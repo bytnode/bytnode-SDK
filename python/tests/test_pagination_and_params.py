@@ -82,6 +82,25 @@ def test_iter_follows_next_and_replaces_the_cursor(respx_mock: respx.MockRouter,
 
 
 @respx.mock(base_url=BASE)
+def test_iter_understands_next_as_a_url(respx_mock: respx.MockRouter, client: Bytnode) -> None:
+    route = respx_mock.get("/v1/klines").mock(
+        side_effect=[
+            httpx.Response(
+                200,
+                json=page(
+                    ["2026-01-01T01:00:00.000Z"],
+                    "/v1/klines?symbol=BTCUSDT&timeframe=1h&limit=1000&before_ms=1767229200000&order=desc",
+                ),
+            ),
+            httpx.Response(200, json=page(["2026-01-01T00:00:00.000Z"], None)),
+        ]
+    )
+    assert len(client.klines.iter("BTCUSDT", "1h").to_list()) == 2
+    second = route.calls[1].request.url.params
+    assert second["before_ms"] == "1767229200000" and second["symbol"] == "BTCUSDT"
+
+
+@respx.mock(base_url=BASE)
 def test_iter_stops_on_empty_page_and_max_items(respx_mock: respx.MockRouter, client: Bytnode) -> None:
     respx_mock.get("/v1/klines").mock(
         return_value=httpx.Response(

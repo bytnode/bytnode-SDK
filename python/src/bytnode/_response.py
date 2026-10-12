@@ -115,7 +115,7 @@ class Response(Generic[T]):
         self.unavailable: str | None = raw.get("unavailable")
         self.coverage: Any = raw.get("coverage")
         self.partial: bool | None = raw.get("partial")
-        self.next: dict[str, Any] | None = raw.get("next")
+        self.next: dict[str, Any] | str | None = raw.get("next")
         skip = {"status", "server_time", "data_type", "data", "next", "unavailable", "coverage", "partial"}
         self.meta: dict[str, Any] = {k: v for k, v in raw.items() if k not in skip}
         self.rate_limit: RateLimit | None = RateLimit.from_headers(headers)
@@ -218,8 +218,17 @@ def _indicators_frame(resp: Response[Any]) -> pd.DataFrame:
 # --------------------------------------------------------------------------- iterators
 
 
-def next_params(params: dict[str, Any], nxt: Mapping[str, Any]) -> dict[str, Any]:
-    """The parameters of the following page: the cursor of `next` replaces ours."""
+def next_params(params: dict[str, Any], nxt: Mapping[str, Any] | str) -> dict[str, Any]:
+    """The parameters of the following page: the cursor of `next` replaces ours.
+
+    `next` is an object of parameters today; a URL (`/v1/klines?symbol=...&before_ms=...`) is
+    understood too, so a future form of the API keeps paginating.
+    """
+    if isinstance(nxt, str):
+        from urllib.parse import parse_qsl, urlsplit
+
+        query = dict(parse_qsl(urlsplit(nxt).query))
+        return {**{k: v for k, v in params.items() if k == "fields"}, **query}
     out = {k: v for k, v in params.items() if k not in CURSOR_KEYS}
     out.update({k: v for k, v in nxt.items() if v is not None})
     return out

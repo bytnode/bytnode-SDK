@@ -156,6 +156,16 @@ describe('pagination', () => {
     expect(b!.has('until_ms')).toBe(false);
   });
 
+  it('understands next as a URL', async () => {
+    const { client, calls } = fakeClient([
+      () => json(200, page(['2026-01-01T01:00:00.000Z'], '/v1/klines?symbol=BTCUSDT&timeframe=1h&limit=1000&before_ms=1767229200000&order=desc')),
+      () => json(200, page(['2026-01-01T00:00:00.000Z'], null)),
+    ]);
+    expect(await client.klines.iter({ symbol: 'BTCUSDT', timeframe: '1h' }).toArray()).toHaveLength(2);
+    expect(calls[1]!.url.searchParams.get('before_ms')).toBe('1767229200000');
+    expect(calls[1]!.url.searchParams.get('symbol')).toBe('BTCUSDT');
+  });
+
   it('respects maxItems and never loops on a stuck cursor', async () => {
     const stuck = { before_ms: 1767225600000, order: 'desc' };
     const { client, calls } = fakeClient(() => json(200, page(['2026-01-01T00:00:00.000Z'], stuck)));

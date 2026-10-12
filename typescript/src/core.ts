@@ -72,7 +72,7 @@ export class ApiResponse<T> {
   readonly coverage: unknown;
   readonly partial: boolean | null;
   /** Parameters of the following page (`null` = last page). `.iter()` follows it for you. */
-  readonly next: Record<string, unknown> | null;
+  readonly next: Record<string, unknown> | string | null;
   /** Your rate limit and monthly quota after this request. */
   readonly rateLimit: RateLimit | null;
   /** The decoded JSON body, untouched (dates as strings). */
@@ -90,7 +90,7 @@ export class ApiResponse<T> {
     this.unavailable = (raw.unavailable as string | undefined) ?? null;
     this.coverage = raw.coverage ?? null;
     this.partial = (raw.partial as boolean | undefined) ?? null;
-    this.next = (raw.next as Record<string, unknown> | undefined) ?? null;
+    this.next = (raw.next as Record<string, unknown> | string | undefined) ?? null;
     this.meta = Object.fromEntries(Object.entries(raw).filter(([k]) => !ENVELOPE.has(k)));
     this.rateLimit = rateLimitFromHeaders(headers);
   }
@@ -154,7 +154,15 @@ export class RowIterator<T> implements AsyncIterable<T> {
   }
 }
 
-export function nextParams(params: Record<string, unknown>, next: Record<string, unknown>): Record<string, unknown> {
+/**
+ * The parameters of the following page: the cursor of `next` replaces ours. `next` is an object of
+ * parameters today; a URL (`/v1/klines?symbol=…&before_ms=…`) is understood too.
+ */
+export function nextParams(params: Record<string, unknown>, next: Record<string, unknown> | string): Record<string, unknown> {
+  if (typeof next === 'string') {
+    const query = Object.fromEntries(new URL(next, 'https://x.invalid').searchParams);
+    return { ...(params.fields != null ? { fields: params.fields } : {}), ...query };
+  }
   const out = Object.fromEntries(Object.entries(params).filter(([k]) => !CURSOR_KEYS.includes(k)));
   for (const [k, v] of Object.entries(next)) if (v != null) out[k] = v;
   return out;
