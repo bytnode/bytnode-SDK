@@ -4,6 +4,25 @@ All notable changes to the BytNode SDKs. Both packages share one version number.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow
 [Semantic Versioning](https://semver.org/).
 
+## [0.2.1] — 2026-10-13
+
+Generated from contract `2.0.0` as republished on 2026-10-13 (same routes, more precise schemas).
+
+### Changed
+
+- Rows are typed with the fields of every variant the API serves: `eth_holdings` (ETF, `asset=ETH`),
+  the four `dataset` shapes of `btc.mining.history`, the stablecoin keys of `symbols.capabilities`.
+- Nullability follows the contract (`priced_at`, `is_volume_futures_estimated` and a few labels can be
+  `null`).
+- `Response.unavailable` is a mapping field -> reason on the snapshot; the obsolete `coverage`
+  attribute is gone (the API no longer sends it).
+- `to_pandas()` without pandas says `pip install pandas` (the PyPI extra does not exist yet).
+
+### Added
+
+- A one-time `BytnodeWarning` (a console warning in TypeScript) when the API serves another major
+  contract version than the SDK.
+
 ## [0.2.0] — 2026-10-12
 
 Generated from contract `2.0.0` (129 routes). Breaking, like the contract it follows.

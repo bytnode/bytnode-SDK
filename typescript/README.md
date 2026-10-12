@@ -5,7 +5,7 @@ API: candles, order flow, derivatives, liquidations, options, macro, on-chain an
 typed, paginated for you, plus the real-time WebSocket stream.
 
 ```bash
-npm install https://github.com/bytnode/bytnode-SDK/releases/download/v0.2.0/bytnode-0.2.0.tgz
+npm install https://github.com/bytnode/bytnode-SDK/releases/download/v0.2.1/bytnode-0.2.1.tgz
 export BYTNODE_API_KEY=cb_live_...   # create one at https://bytnode.com/dashboard/keys
 ```
 
@@ -110,6 +110,9 @@ try {
 
 All extend `BytnodeError`; HTTP ones `APIError` (`status`, `code`, `param`, `details`, `reason`,
 `headers`, `body`). Branch on `code` (type `ErrorCode`), never on the message.
+
+
+Every error carries `requestId` (quote it to support). A value the SDK can check before sending (an unknown timeframe, an indicator parameter out of range) throws a plain `RangeError` at once, without a request: it is a bug in the calling code, not an API answer. If the API serves a newer MAJOR contract than the SDK, a warning says so once.
 
 ## Retries, timeouts and rate limits
 

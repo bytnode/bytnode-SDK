@@ -5,8 +5,8 @@ order flow, derivatives, liquidations, options, macro, on-chain and ETF data —
 you, one call away from a pandas DataFrame, plus the real-time WebSocket stream.
 
 ```bash
-pip install https://github.com/bytnode/bytnode-SDK/releases/download/v0.2.0/bytnode-0.2.0-py3-none-any.whl
-# with pandas: pip install "bytnode[pandas] @ https://github.com/bytnode/bytnode-SDK/releases/download/v0.2.0/bytnode-0.2.0-py3-none-any.whl"
+pip install https://github.com/bytnode/bytnode-SDK/releases/download/v0.2.1/bytnode-0.2.1-py3-none-any.whl
+# with pandas: pip install "bytnode[pandas] @ https://github.com/bytnode/bytnode-SDK/releases/download/v0.2.1/bytnode-0.2.1-py3-none-any.whl"
 export BYTNODE_API_KEY=cb_live_...   # create one at https://bytnode.com/dashboard/keys
 ```
 
@@ -143,7 +143,11 @@ except InvalidRequestError as e:      # 400 / 422
 
 All inherit from `bytnode.BytnodeError`; HTTP ones from `bytnode.APIError` (`status`, `code`,
 `message`, `param`, `details`, `reason`, `headers`, `body`). Branch on `e.code` — stable, listed in
-`bytnode.types.ErrorCode` — never on the message.
+`bytnode.types.ErrorCode` — never on the message. Every error carries `request_id` (quote it to
+support). A value the SDK can check before sending (an unknown timeframe, an indicator parameter
+out of range) raises a plain `ValueError` at once, without a request: it is a bug in the calling
+code, not an API answer. If the API serves a newer MAJOR contract than the SDK, a `BytnodeWarning`
+says so once.
 
 ## Retries, timeouts and rate limits
 

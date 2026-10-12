@@ -1416,8 +1416,9 @@ export interface EtfFundamentalsHistoryParams {
    */
   until?: TimeLike;
   /**
-   * Number of rows to return, in the reading order (most recent first by default). Also bounded
-   * by your plan's history window (403 `history_depth` beyond it).
+   * Number of balance-sheet DATES to return, most recent first by default: a page holds every
+   * issuer's row for each of those dates, so it can hold more than `limit` rows (one filing is
+   * never split across two pages).
    */
   limit?: number;
   /**
@@ -2911,8 +2912,9 @@ export interface KlinesResource {
    * `sell_volume` cover ALL markets (spot + perpetual futures, summed across venues);
    * `volume_spot` / `volume_futures` and their buy/sell split cover one market. `is_closed`
    * turns true once the candle's volumes are final (a few seconds after its end: until then
-   * they can be `null`). Most recent first, or oldest first with `order=asc`. Follow `next` to
-   * read the following page (it never repeats a row).
+   * they can be `null`). To sync incrementally, resume FROM the oldest row still `is_closed:
+   * false` (read it again), not after it. Most recent first, or oldest first with `order=asc`.
+   * Follow `next` to read the following page (it never repeats a row).
    */
   (params: KlinesParams, options?: RequestOptions): Promise<ApiResponse<Array<M.Kline>>>;
   /**
@@ -3820,8 +3822,11 @@ export interface OiHistoryResource {
    * Open interest summed across futures venues, per closed bucket of `timeframe` (required):
    * for each venue, its last open interest in the bucket — `oi` is the value at the END of the
    * bucket, like a close. The same quantity, under the same name, as `oi` on `/v1/oi/delta`.
-   * Most recent first, or oldest first with `order=asc`. Follow `next` to read the following
-   * page (it never repeats a row).
+   * Older history is coarser: its source has one reading every 4 hours, then one a day further
+   * back (BTCUSDT: hourly readings from 2026-06-24, 4-hourly from 2025-10-06). On a finer
+   * `timeframe` such a period has one row per reading; the buckets in between are absent, never
+   * filled. Most recent first, or oldest first with `order=asc`. Follow `next` to read the
+   * following page (it never repeats a row).
    */
   (params: OiHistoryParams, options?: RequestOptions): Promise<ApiResponse<Array<M.OiHistoryItem>>>;
   /**
@@ -6258,7 +6263,8 @@ export interface TradesKlineFuturesSecondsParams {
   until?: TimeLike;
   /**
    * Range reading: `desc` (most recent first, the default) or `asc`. Giving `order`, `since_ms`
-   * or `until_ms` switches the route to range reading, and the response carries `next`.
+   * or `until_ms` switches the route to range reading. Either way, a full page carries `next`
+   * (the following page, older trades without range parameters) and the last page `next: null`.
    */
   order?: Order;
   /**
@@ -6285,7 +6291,8 @@ export interface TradesKlineFuturesSecondsIterParams {
   until?: TimeLike;
   /**
    * Range reading: `desc` (most recent first, the default) or `asc`. Giving `order`, `since_ms`
-   * or `until_ms` switches the route to range reading, and the response carries `next`.
+   * or `until_ms` switches the route to range reading. Either way, a full page carries `next`
+   * (the following page, older trades without range parameters) and the last page `next: null`.
    */
   order?: Order;
   /**
@@ -6310,10 +6317,10 @@ export interface TradesKlineFuturesSecondsResource {
    * Every PERPETUAL FUTURES trade of every venue summed per second: volume, trade count, taker
    * buy and sell, and `is_closed` (a second is final 21 s after it ends: a venue can still
    * deliver a late trade before). Kept 72 hours. Without range parameters: the last `limit`
-   * seconds. With `since_ms`, `until_ms` or `order`: a page of `limit` seconds of the range,
-   * and `next` is the URL of the following page (`null` at the end of the range). Most recent
-   * first, or oldest first with `order=asc`. Follow `next` to read the following page (it never
-   * repeats a row).
+   * seconds, and a full page carries `next` (the older seconds). With `since_ms`, `until_ms` or
+   * `order`: a page of `limit` seconds of the range, and `next` is the URL of the following
+   * page (`null` at the end of the range). Most recent first, or oldest first with `order=asc`.
+   * Follow `next` to read the following page (it never repeats a row).
    */
   (params: TradesKlineFuturesSecondsParams, options?: RequestOptions): Promise<ApiResponse<Array<M.TradesKlineSecond>>>;
   /**
@@ -7015,7 +7022,8 @@ export interface TradesFuturesParams {
   after_id?: string;
   /**
    * Range reading: `desc` (most recent first, the default) or `asc`. Giving `order`, `since_ms`
-   * or `until_ms` switches the route to range reading, and the response carries `next`.
+   * or `until_ms` switches the route to range reading. Either way, a full page carries `next`
+   * (the following page, older trades without range parameters) and the last page `next: null`.
    */
   order?: Order;
   /**
@@ -7042,7 +7050,8 @@ export interface TradesFuturesIterParams {
   until?: TimeLike;
   /**
    * Range reading: `desc` (most recent first, the default) or `asc`. Giving `order`, `since_ms`
-   * or `until_ms` switches the route to range reading, and the response carries `next`.
+   * or `until_ms` switches the route to range reading. Either way, a full page carries `next`
+   * (the following page, older trades without range parameters) and the last page `next: null`.
    */
   order?: Order;
   /**
@@ -7113,7 +7122,8 @@ export interface TradesLargeParams {
   after_id?: string;
   /**
    * Range reading: `desc` (most recent first, the default) or `asc`. Giving `order`, `since_ms`
-   * or `until_ms` switches the route to range reading, and the response carries `next`.
+   * or `until_ms` switches the route to range reading. Either way, a full page carries `next`
+   * (the following page, older trades without range parameters) and the last page `next: null`.
    */
   order?: Order;
   /**
@@ -7144,7 +7154,8 @@ export interface TradesLargeIterParams {
   until?: TimeLike;
   /**
    * Range reading: `desc` (most recent first, the default) or `asc`. Giving `order`, `since_ms`
-   * or `until_ms` switches the route to range reading, and the response carries `next`.
+   * or `until_ms` switches the route to range reading. Either way, a full page carries `next`
+   * (the following page, older trades without range parameters) and the last page `next: null`.
    */
   order?: Order;
   /**
@@ -7208,7 +7219,8 @@ export interface TradesSpotParams {
   after_id?: string;
   /**
    * Range reading: `desc` (most recent first, the default) or `asc`. Giving `order`, `since_ms`
-   * or `until_ms` switches the route to range reading, and the response carries `next`.
+   * or `until_ms` switches the route to range reading. Either way, a full page carries `next`
+   * (the following page, older trades without range parameters) and the last page `next: null`.
    */
   order?: Order;
   /**
@@ -7235,7 +7247,8 @@ export interface TradesSpotIterParams {
   until?: TimeLike;
   /**
    * Range reading: `desc` (most recent first, the default) or `asc`. Giving `order`, `since_ms`
-   * or `until_ms` switches the route to range reading, and the response carries `next`.
+   * or `until_ms` switches the route to range reading. Either way, a full page carries `next`
+   * (the following page, older trades without range parameters) and the last page `next: null`.
    */
   order?: Order;
   /**

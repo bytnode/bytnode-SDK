@@ -22,6 +22,27 @@ T = TypeVar("T")
 CURSOR_KEYS = ("since_ms", "until_ms", "before_ms", "after_id", "order")
 
 
+_CONTRAT_SIGNALE = False
+
+
+def _verifier_contrat(headers: Mapping[str, str]) -> None:
+    """Warn once when the API serves another MAJOR contract version than this SDK."""
+    global _CONTRAT_SIGNALE
+    servi = headers.get("bytnode-contract-version") or headers.get("BytNode-Contract-Version")
+    if _CONTRAT_SIGNALE or not servi:
+        return
+    from ._generated.routes import API_VERSION
+
+    if servi.split(".")[0] != API_VERSION.split(".")[0]:
+        _CONTRAT_SIGNALE = True
+        warnings.warn(
+            f"bytnode: the API serves contract {servi}, this SDK was generated for {API_VERSION}. "
+            "Upgrade the SDK (https://bytnode.com/docs/sdk).",
+            BytnodeWarning,
+            stacklevel=3,
+        )
+
+
 class BytnodeWarning(UserWarning):
     """A response did not match the SDK's model (it was returned unvalidated)."""
 
@@ -70,15 +91,14 @@ class Response(Generic[T]):
         server_time: when the server answered (not the time of the data: rows carry `time`).
         data_type: stable name of the payload.
         meta: the other keys of the envelope (`symbol`, `timeframe`, `asset`, `market`...).
-        unavailable: why `data` is empty (`not_applicable`, `no_api_key`, `no_data`), or `None`.
-        coverage: how many venues fed the value, when the route reports it.
+        unavailable: why `data` is empty (`not_applicable`, `no_api_key`, `no_data`), or `None`;
+            on the snapshot, a mapping field -> reason.
         next: the parameters of the following page (`None` = last page). `.iter()` follows it for you.
         rate_limit: your rate limit and monthly quota after this request.
         raw: the decoded JSON body, untouched.
     """
 
     __slots__ = (
-        "coverage",
         "data",
         "data_type",
         "headers",
@@ -112,11 +132,11 @@ class Response(Generic[T]):
             datetime.fromisoformat(st.replace("Z", "+00:00")) if isinstance(st, str) else None
         )
         self.data_type: str | None = raw.get("data_type")
-        self.unavailable: str | None = raw.get("unavailable")
-        self.coverage: Any = raw.get("coverage")
+        self.unavailable: str | dict[str, str] | None = raw.get("unavailable")
         self.partial: bool | None = raw.get("partial")
         self.next: dict[str, Any] | str | None = raw.get("next")
-        skip = {"status", "server_time", "data_type", "data", "next", "unavailable", "coverage", "partial"}
+        skip = {"status", "server_time", "data_type", "data", "next", "unavailable", "partial"}
+        _verifier_contrat(headers)
         self.meta: dict[str, Any] = {k: v for k, v in raw.items() if k not in skip}
         self.rate_limit: RateLimit | None = RateLimit.from_headers(headers)
 
@@ -161,7 +181,7 @@ class Response(Generic[T]):
 
         `flatten=True` spreads nested objects into dotted columns (`context.gold_usd`).
         `POST /v1/indicators` gives one column per output, indexed by candle time.
-        Needs `pip install "bytnode[pandas]"`.
+        Needs pandas (`pip install pandas`).
         """
         if self.route.shape == "indicators":
             return _indicators_frame(self)
@@ -172,7 +192,7 @@ def _require_pandas() -> Any:
     try:
         import pandas as pd
     except ImportError:  # pragma: no cover - depends on the environment
-        raise ImportError('to_pandas() needs pandas: pip install "bytnode[pandas]"') from None
+        raise ImportError("to_pandas() needs pandas: pip install pandas") from None
     return pd
 
 

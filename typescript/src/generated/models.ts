@@ -438,6 +438,77 @@ export interface BtcMiningHistoryItem {
    * `?live=1`).
    */
   is_closed: boolean;
+  /**
+   * Height of the reward sample (Mempool.space average height of the blocks). Unit: block
+   * height.
+   */
+  block_height?: number | null;
+  /**
+   * Average block reward. Unit: satoshis.
+   */
+  avg_reward_sats?: number | null;
+  /**
+   * Average block reward in USD. Unit: USD.
+   */
+  avg_reward_usd?: number | null;
+  /**
+   * BTC price at the block of the reward (Mempool.space), used for `avg_reward_usd`. Not the
+   * current price. Unit: USD.
+   */
+  btc_price_usd_at_block?: number | null;
+  /**
+   * Height of the block where the difficulty adjustment took effect. Unit: block height.
+   */
+  height?: number | null;
+  /**
+   * Difficulty after the adjustment. Unit: difficulty units.
+   */
+  new_difficulty?: number | null;
+  /**
+   * Difficulty before the adjustment. Unit: difficulty units.
+   */
+  old_difficulty?: number | null;
+  /**
+   * Expected difficulty change at the next adjustment. Unit: percent (58.5 = 58.5 %).
+   */
+  difficulty_change_pct?: number | null;
+  /**
+   * `new_difficulty / old_difficulty` (1.05 = a 5 % rise). Unit: dimensionless ratio.
+   */
+  adjustment_multiplier?: number | null;
+  /**
+   * Lowest fee rate paid in the blocks (0th percentile). Unit: satoshis per virtual byte
+   * (sat/vB).
+   */
+  fee_rate_p0_sat_vb?: number | null;
+  /**
+   * 10th percentile of the fee rates paid in the blocks. Unit: satoshis per virtual byte
+   * (sat/vB).
+   */
+  fee_rate_p10_sat_vb?: number | null;
+  /**
+   * 25th percentile of the fee rates paid in the blocks. Unit: satoshis per virtual byte
+   * (sat/vB).
+   */
+  fee_rate_p25_sat_vb?: number | null;
+  /**
+   * Median fee rate paid in the blocks. Unit: satoshis per virtual byte (sat/vB).
+   */
+  fee_rate_p50_sat_vb?: number | null;
+  /**
+   * 75th percentile of the fee rates paid in the blocks. Unit: satoshis per virtual byte
+   * (sat/vB).
+   */
+  fee_rate_p75_sat_vb?: number | null;
+  /**
+   * 90th percentile of the fee rates paid in the blocks. Unit: satoshis per virtual byte
+   * (sat/vB).
+   */
+  fee_rate_p90_sat_vb?: number | null;
+  /**
+   * Highest fee rate paid in the blocks. Unit: satoshis per virtual byte (sat/vB).
+   */
+  fee_rate_p100_sat_vb?: number | null;
   /** Fields added by the API after this SDK was released. */
   [extra: string]: unknown;
 }
@@ -591,13 +662,14 @@ export interface BuysellRatio {
    */
   is_volume_estimated: boolean;
   /**
-   * Start of the rolling window the value covers (inclusive). The window is aligned on the
-   * minute. Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).
+   * Start of the window the value covers (inclusive), aligned on the minute. The route's `time`
+   * says whether it is dated at the start or at the end of this window. Unit: ISO 8601 UTC,
+   * milliseconds (2026-09-28T14:00:00.000Z).
    */
   window_start: Date;
   /**
-   * Length of the rolling window, in seconds (300 = 5 minutes). The window ends at
-   * `window_start + window_s` (= `time` on the latest value). Unit: seconds.
+   * Length of that window, in seconds: it runs from `window_start` to `window_start + window_s`
+   * (excluded). Unit: seconds.
    */
   window_s: number;
   /** Fields added by the API after this SDK was released. */
@@ -672,7 +744,7 @@ export interface Cvd {
    * Cumulative volume delta inside the bucket, one point per minute, starting from 0 at the
    * bucket start. Unit: base asset quantity (BTC for BTCUSDT).
    */
-  cvd_series: Array<number | null>;
+  cvd_series: Array<number>;
   /**
    * buy_volume - sell_volume over the row, base asset units. Positive = net buying. Unit: base
    * asset quantity (BTC for BTCUSDT).
@@ -720,7 +792,7 @@ export interface CvdHistoryItem {
    * Cumulative volume delta inside the bucket, one point per minute, starting from 0 at the
    * bucket start. Unit: base asset quantity (BTC for BTCUSDT).
    */
-  cvd_series: Array<number | null> | null;
+  cvd_series: Array<number> | null;
   /**
    * buy_volume - sell_volume over the row, base asset units. Positive = net buying. Unit: base
    * asset quantity (BTC for BTCUSDT).
@@ -805,6 +877,10 @@ export interface EtfFundamentals {
    * `true` if the holdings are derived from net assets / price rather than read in the filing.
    */
   is_holdings_estimated: boolean;
+  /**
+   * ETH held by the fund. Unit: ETH.
+   */
+  eth_holdings?: number | null;
   /** Fields added by the API after this SDK was released. */
   [extra: string]: unknown;
 }
@@ -858,12 +934,16 @@ export interface EtfFundamentalsHistoryItem {
   /**
    * `true` if the holdings are derived from net assets / price rather than read in the filing.
    */
-  is_holdings_estimated: boolean;
+  is_holdings_estimated: boolean | null;
   /**
    * `true` = the bucket is final and will never change; `false` = provisional (only with
    * `?live=1`).
    */
   is_closed: boolean;
+  /**
+   * ETH held by the fund. Unit: ETH.
+   */
+  eth_holdings?: number | null;
   /** Fields added by the API after this SDK was released. */
   [extra: string]: unknown;
 }
@@ -949,7 +1029,7 @@ export interface EthDefiHistoryItem {
    * 30-day trend of `defi_health_ratio` (TVL / ETH market cap): `growing`, `declining` or
    * `stable`.
    */
-  label: string;
+  label: string | null;
   /**
    * `true` = the bucket is final and will never change; `false` = provisional (only with
    * `?live=1`).
@@ -1014,7 +1094,7 @@ export interface EthDeflationHistoryItem {
   /**
    * `deflationary` (24 h net issuance < 0) or `inflationary`.
    */
-  label: string;
+  label: string | null;
   /**
    * `true` = the bucket is final and will never change; `false` = provisional (only with
    * `?live=1`).
@@ -1247,7 +1327,7 @@ export interface EthRatioHistoryItem {
   /**
    * 7-day momentum of ETH/BTC: `eth_outperform` (> 0), `btc_outperform` (< 0) or `neutral`.
    */
-  label: string;
+  label: string | null;
   /**
    * `true` = the bucket is final and will never change; `false` = provisional (only with
    * `?live=1`).
@@ -1314,7 +1394,7 @@ export interface EthSqueezeHistoryItem {
   /**
    * `low` (< 33), `moderate` (>= 33), `high` (>= 66).
    */
-  label: string;
+  label: string | null;
   /**
    * `true` = the bucket is final and will never change; `false` = provisional (only with
    * `?live=1`).
@@ -1478,7 +1558,7 @@ export interface EthSupplyHistoryItem {
   /**
    * `deflationary` (24 h net issuance < 0), `inflationary` (> 0) or `neutral`.
    */
-  label: string;
+  label: string | null;
   /**
    * `true` = the bucket is final and will never change; `false` = provisional (only with
    * `?live=1`).
@@ -1965,7 +2045,7 @@ export interface Kline {
    * `true` when `volume_futures` was ESTIMATED from USD amounts and the candle's typical price;
    * `false` = measured.
    */
-  is_volume_futures_estimated: boolean;
+  is_volume_futures_estimated: boolean | null;
   /**
    * `true` = the bucket is final and will never change; `false` = provisional (only with
    * `?live=1`).
@@ -2048,7 +2128,7 @@ export interface LimitsQuota {
 export interface Limits {
   /**
    * Your plan: `free`, `traders`, `financial`, `startup` or `enterprise` (`legacy` for an
-   * internal unmetered key, whose limits are all `null`).
+   * internal unmetered key: every limit below is then unset).
    */
   plan: string;
   /**
@@ -2107,13 +2187,14 @@ export interface LiquidationsCumulative {
    */
   total_usd: number;
   /**
-   * Start of the rolling window the value covers (inclusive). The window is aligned on the
-   * minute. Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).
+   * Start of the window the value covers (inclusive), aligned on the minute. The route's `time`
+   * says whether it is dated at the start or at the end of this window. Unit: ISO 8601 UTC,
+   * milliseconds (2026-09-28T14:00:00.000Z).
    */
   window_start: Date;
   /**
-   * Length of the rolling window, in seconds (300 = 5 minutes). The window ends at
-   * `window_start + window_s` (= `time` on the latest value). Unit: seconds.
+   * Length of that window, in seconds: it runs from `window_start` to `window_start + window_s`
+   * (excluded). Unit: seconds.
    */
   window_s: number;
   /** Fields added by the API after this SDK was released. */
@@ -2225,13 +2306,14 @@ export interface LiquidationsRatio {
    */
   ratio: number | null;
   /**
-   * Start of the rolling window the value covers (inclusive). The window is aligned on the
-   * minute. Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).
+   * Start of the window the value covers (inclusive), aligned on the minute. The route's `time`
+   * says whether it is dated at the start or at the end of this window. Unit: ISO 8601 UTC,
+   * milliseconds (2026-09-28T14:00:00.000Z).
    */
   window_start: Date;
   /**
-   * Length of the rolling window, in seconds (300 = 5 minutes). The window ends at
-   * `window_start + window_s` (= `time` on the latest value). Unit: seconds.
+   * Length of that window, in seconds: it runs from `window_start` to `window_start + window_s`
+   * (excluded). Unit: seconds.
    */
   window_s: number;
   /** Fields added by the API after this SDK was released. */
@@ -3204,13 +3286,14 @@ export interface OiDelta {
    */
   oi_change_pct: number;
   /**
-   * Start of the rolling window the value covers (inclusive). The window is aligned on the
-   * minute. Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).
+   * Start of the window the value covers (inclusive), aligned on the minute. The route's `time`
+   * says whether it is dated at the start or at the end of this window. Unit: ISO 8601 UTC,
+   * milliseconds (2026-09-28T14:00:00.000Z).
    */
   window_start: Date;
   /**
-   * Length of the rolling window, in seconds (300 = 5 minutes). The window ends at
-   * `window_start + window_s` (= `time` on the latest value). Unit: seconds.
+   * Length of that window, in seconds: it runs from `window_start` to `window_start + window_s`
+   * (excluded). Unit: seconds.
    */
   window_s: number;
   /** Fields added by the API after this SDK was released. */
@@ -4478,6 +4561,24 @@ export interface SymbolsCapabilitiesFeedsActiveLast24h {
 }
 
 /**
+ * Derived metrics that do not apply (stablecoins have no futures).
+ */
+export interface SymbolsCapabilitiesComputedMetricsNotApplicable {
+  basis?: string | null;
+  oi_delta?: string | null;
+  liquidations_cumulative?: string | null;
+  liquidations_ratio?: string | null;
+  funding_cumulative?: string | null;
+  /**
+   * One entry per requested indicator id: its parameters, `values` (oldest to newest), `times`
+   * (the candle of each value) and `time` (the candle of the last value).
+   */
+  indicators?: string | null;
+  /** Fields added by the API after this SDK was released. */
+  [extra: string]: unknown;
+}
+
+/**
  * Row of `/v1/symbols/{symbol}/capabilities`.
  */
 export interface SymbolsCapabilities {
@@ -4499,6 +4600,20 @@ export interface SymbolsCapabilities {
    * Derived metrics unavailable, with the missing feeds.
    */
   computed_metrics_blocked: Record<string, unknown>;
+  /**
+   * Feeds that do not exist for this symbol (the futures feeds of a spot-only stablecoin),
+   * under their `/v1/status` names.
+   */
+  feeds_not_applicable?: Array<string>;
+  /**
+   * Spot-only stablecoin: why its futures feeds and derived metrics do not apply. Absent for
+   * any other symbol.
+   */
+  stablecoin_note?: string | null;
+  /**
+   * Derived metrics that do not apply (stablecoins have no futures).
+   */
+  computed_metrics_not_applicable?: SymbolsCapabilitiesComputedMetricsNotApplicable;
   /** Fields added by the API after this SDK was released. */
   [extra: string]: unknown;
 }
@@ -4534,7 +4649,7 @@ export interface Tokenomics {
    * the price is the stablecoin peg. Unit: ISO 8601 UTC, milliseconds
    * (2026-09-28T14:00:00.000Z).
    */
-  priced_at: Date;
+  priced_at: Date | null;
   /**
    * circulating_supply × current price, in USD, derived at request time. Unit: USD.
    */
@@ -4725,13 +4840,14 @@ export interface TradesAvgSize {
    */
   is_volume_estimated: boolean;
   /**
-   * Start of the rolling window the value covers (inclusive). The window is aligned on the
-   * minute. Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).
+   * Start of the window the value covers (inclusive), aligned on the minute. The route's `time`
+   * says whether it is dated at the start or at the end of this window. Unit: ISO 8601 UTC,
+   * milliseconds (2026-09-28T14:00:00.000Z).
    */
   window_start: Date;
   /**
-   * Length of the rolling window, in seconds (300 = 5 minutes). The window ends at
-   * `window_start + window_s` (= `time` on the latest value). Unit: seconds.
+   * Length of that window, in seconds: it runs from `window_start` to `window_start + window_s`
+   * (excluded). Unit: seconds.
    */
   window_s: number;
   /** Fields added by the API after this SDK was released. */
@@ -4964,7 +5080,8 @@ export const MODEL_SHAPES: Record<string, { dates: string[]; nested: Record<stri
   Status: { dates: ["computed_at"], nested: {"feeds": "StatusFeedsItem"} },
   Symbol: { dates: [], nested: {} },
   SymbolsCapabilitiesFeedsActiveLast24h: { dates: [], nested: {} },
-  SymbolsCapabilities: { dates: [], nested: {"feeds_active_last_24h": "SymbolsCapabilitiesFeedsActiveLast24h"} },
+  SymbolsCapabilitiesComputedMetricsNotApplicable: { dates: [], nested: {} },
+  SymbolsCapabilities: { dates: [], nested: {"feeds_active_last_24h": "SymbolsCapabilitiesFeedsActiveLast24h", "computed_metrics_not_applicable": "SymbolsCapabilitiesComputedMetricsNotApplicable"} },
   Tokenomics: { dates: ["time", "priced_at"], nested: {} },
   TokenomicsHistoryItem: { dates: ["time"], nested: {} },
   TradesKline: { dates: ["time"], nested: {} },

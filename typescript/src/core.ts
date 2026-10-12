@@ -2,7 +2,7 @@
 
 import { APIConnectionError, APIError, APITimeoutError, errorFromResponse, parseRetryAfter } from './errors.js';
 import { MODEL_SHAPES } from './generated/models.js';
-import { SNAPSHOT_FIELDS } from './generated/resources.js';
+import { API_VERSION, SNAPSHOT_FIELDS } from './generated/resources.js';
 import { indicatorsBody, type IndicatorsParams } from './indicatorSpec.js';
 import { type RateLimit, rateLimitFromHeaders } from './ratelimit.js';
 import { type TimeLike, toMs } from './time.js';
@@ -52,7 +52,19 @@ const MAX_RETRY_AFTER_S = 60;
 const RETRY_STATUSES = new Set([429, 502, 503, 504]);
 const TIME_WIRES = new Set(['since_ms', 'until_ms', 'before_ms']);
 const CURSOR_KEYS = ['since_ms', 'until_ms', 'before_ms', 'after_id', 'order', 'since', 'until', 'before'];
-const ENVELOPE = new Set(['status', 'server_time', 'data_type', 'data', 'next', 'unavailable', 'coverage', 'partial']);
+const ENVELOPE = new Set(['status', 'server_time', 'data_type', 'data', 'next', 'unavailable', 'partial']);
+
+let contractWarned = false;
+
+/** Warn once when the API serves another MAJOR contract version than this SDK. */
+function checkContract(headers: Headers): void {
+  const served = headers.get('bytnode-contract-version');
+  if (contractWarned || !served) return;
+  if (served.split('.')[0] !== API_VERSION.split('.')[0]) {
+    contractWarned = true;
+    console.warn(`bytnode: the API serves contract ${served}, this SDK was generated for ${API_VERSION}. Upgrade the SDK (https://bytnode.com/docs/sdk).`);
+  }
+}
 
 // --------------------------------------------------------------------------- response
 
@@ -66,10 +78,8 @@ export class ApiResponse<T> {
   readonly dataType: string | null;
   /** The other keys of the envelope (`symbol`, `timeframe`, `asset`, `market`…). */
   readonly meta: Record<string, unknown>;
-  /** Why `data` is empty: `not_applicable`, `no_api_key` or `no_data`. */
-  readonly unavailable: string | null;
-  /** How many venues fed the value, when the route reports it. */
-  readonly coverage: unknown;
+  /** Why `data` is empty: `not_applicable`, `no_api_key` or `no_data` (on the snapshot, field -> reason). */
+  readonly unavailable: string | Record<string, string> | null;
   readonly partial: boolean | null;
   /** Parameters of the following page (`null` = last page). `.iter()` follows it for you. */
   readonly next: Record<string, unknown> | string | null;
@@ -87,8 +97,8 @@ export class ApiResponse<T> {
     this.headers = headers;
     this.serverTime = typeof raw.server_time === 'string' ? new Date(raw.server_time) : null;
     this.dataType = (raw.data_type as string | undefined) ?? null;
-    this.unavailable = (raw.unavailable as string | undefined) ?? null;
-    this.coverage = raw.coverage ?? null;
+    this.unavailable = (raw.unavailable as string | Record<string, string> | undefined) ?? null;
+    checkContract(headers);
     this.partial = (raw.partial as boolean | undefined) ?? null;
     this.next = (raw.next as Record<string, unknown> | string | undefined) ?? null;
     this.meta = Object.fromEntries(Object.entries(raw).filter(([k]) => !ENVELOPE.has(k)));
