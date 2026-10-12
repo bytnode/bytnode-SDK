@@ -1,0 +1,40 @@
+name: Contract drift
+
+# Every week: has the public contract changed since the SDKs were generated?
+# If so, an issue says so (regenerate with `make update-spec generate`).
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "41 5 * * 1"
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  drift:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Download the public contract and regenerate
+        run: python codegen/generate.py --update-spec
+      - name: Open an issue when the generated code changed
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if git diff --quiet -- python/src/bytnode/_generated typescript/src/generated; then
+            echo "SDKs are up to date with the public contract"
+            exit 0
+          fi
+          version=$(python -c "import json; print(json.load(open('spec/openapi.json'))['info']['version'])")
+          title="The public contract changed (contract ${version})"
+          if gh issue list --state open --search "$title in:title" --json number --jq 'length' | grep -qv '^0$'; then
+            echo "issue already open"; exit 0
+          fi
+          { echo "The generated code differs from https://api.bytnode.com/openapi.json."; echo; \
+            echo 'Run `make update-spec generate check`, review and release.'; echo; echo '```'; \
+            git diff --stat -- python/src/bytnode/_generated typescript/src/generated; echo '```'; } > body.md
+          gh issue create --title "$title" --body-file body.md

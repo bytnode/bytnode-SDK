@@ -1,0 +1,96 @@
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[project]
+name = "bytnode"
+dynamic = ["version"]
+description = "Official Python SDK of the BytNode crypto market-data API: typed REST client, pagination, pandas and real-time WebSocket."
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+requires-python = ">=3.10"
+authors = [{ name = "BytNode" }]
+keywords = ["bytnode", "crypto", "market data", "api", "sdk", "trading", "websocket", "pandas", "bitcoin", "derivatives"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Financial and Insurance Industry",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Office/Business :: Financial :: Investment",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Typing :: Typed",
+]
+dependencies = [
+    "httpx>=0.25,<1",
+    "pydantic>=2.5,<3",
+    "websockets>=13,<17",
+]
+
+[project.optional-dependencies]
+pandas = ["pandas>=1.5"]
+
+[project.urls]
+Homepage = "https://bytnode.com"
+Documentation = "https://bytnode.com/docs"
+Repository = "https://github.com/bytnode/bytnode-SDK"
+Changelog = "https://github.com/bytnode/bytnode-SDK/blob/main/CHANGELOG.md"
+"API reference" = "https://api.bytnode.com/openapi.json"
+
+[project.scripts]
+bytnode = "bytnode.cli:main"
+
+[dependency-groups]
+dev = [
+    "pytest>=8",
+    "pytest-asyncio>=0.24",
+    "respx>=0.21",
+    "pandas>=2",
+    "mypy>=1.11",
+    "ruff>=0.6",
+]
+
+[tool.hatch.version]
+path = "src/bytnode/_version.py"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/bytnode"]
+
+[tool.hatch.build.targets.sdist]
+include = ["src/bytnode", "tests", "README.md", "LICENSE"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+markers = ["live: calls the production API (needs BYTNODE_API_KEY); deselected by default"]
+addopts = "-m 'not live'"
+filterwarnings = ["error::bytnode.BytnodeWarning"]
+
+[tool.mypy]
+python_version = "3.10"
+strict = true
+files = ["src/bytnode"]
+plugins = ["pydantic.mypy"]
+
+[[tool.mypy.overrides]]
+module = ["pandas", "pandas.*"]
+ignore_missing_imports = true
+
+[tool.ruff]
+line-length = 120
+target-version = "py310"
+extend-exclude = ["src/bytnode/_generated"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "SIM", "RUF", "S", "TC"]
+ignore = ["RUF001", "RUF002", "RUF003", "S101", "TC001", "TC003", "UP007"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S", "B"]

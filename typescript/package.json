@@ -1,0 +1,82 @@
+{
+  "name": "bytnode",
+  "version": "0.1.0",
+  "description": "Official TypeScript SDK of the BytNode crypto market-data API: typed REST client, pagination and real-time WebSocket.",
+  "keywords": [
+    "bytnode",
+    "crypto",
+    "market data",
+    "api",
+    "sdk",
+    "trading",
+    "websocket",
+    "bitcoin",
+    "derivatives",
+    "typescript"
+  ],
+  "homepage": "https://bytnode.com/docs",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bytnode/bytnode-SDK.git",
+    "directory": "typescript"
+  },
+  "bugs": "https://github.com/bytnode/bytnode-SDK/issues",
+  "license": "MIT",
+  "author": "BytNode",
+  "type": "module",
+  "sideEffects": false,
+  "engines": {
+    "node": ">=18"
+  },
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    },
+    "./mcp": {
+      "import": {
+        "types": "./dist/mcp.d.ts",
+        "default": "./dist/mcp.js"
+      },
+      "require": {
+        "types": "./dist/mcp.d.cts",
+        "default": "./dist/mcp.cjs"
+      }
+    },
+    "./package.json": "./package.json"
+  },
+  "bin": {
+    "bytnode": "./dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:live": "vitest run --config vitest.live.config.ts",
+    "prepublishOnly": "npm run typecheck && npm test && npm run build"
+  },
+  "dependencies": {
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "@types/ws": "^8.5.12",
+    "tsup": "^8.3.0",
+    "typescript": "^5.6.0",
+    "vitest": "^2.1.0"
+  }
+}

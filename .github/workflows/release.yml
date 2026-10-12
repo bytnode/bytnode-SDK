@@ -1,0 +1,53 @@
+name: Release
+
+# Manual only, and gated by the `release` environment (add required reviewers to it).
+# PyPI: trusted publishing (configure the `bytnode` project on pypi.org to trust this workflow).
+# npm: an NPM_TOKEN secret in the `release` environment.
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: "What to publish"
+        type: choice
+        options: [both, pypi, npm]
+        default: both
+
+jobs:
+  pypi:
+    if: inputs.target != 'npm'
+    runs-on: ubuntu-latest
+    environment: release
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python codegen/generate.py --check
+      - run: python -m pip install build && python -m build python
+      - uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: python/dist
+
+  npm:
+    if: inputs.target != 'pypi'
+    runs-on: ubuntu-latest
+    environment: release
+    permissions:
+      id-token: write
+      contents: read
+    defaults:
+      run:
+        working-directory: typescript
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          registry-url: "https://registry.npmjs.org"
+      - run: npm ci && npx tsc --noEmit && npx vitest run && npx tsup
+      - run: npm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

@@ -1,0 +1,72 @@
+{
+  "_comment": "What the public contract does not state in machine-readable form. Every entry is checked by the tests against the contract or the live API.",
+  "literals": [
+    {"name": "Timeframe", "values": ["1m", "5m", "15m", "30m", "1h", "4h", "1d"], "description": "Bucket size of a bucketed series."},
+    {"name": "KlineTimeframe", "values": ["1m", "5m", "15m", "30m", "1h", "4h", "1d", "1w"], "description": "Candle size: every timeframe, the week included (verified against the live API on 2026-10-12)."},
+    {"name": "OptionsTimeframe", "values": ["5m", "15m", "30m", "1h", "4h", "1d"], "description": "Bucket size on options routes (`1m` is not served on options)."},
+    {"name": "Market", "values": ["all", "spot", "futures"], "description": "Market of a flow metric: `all` (spot + perpetual futures, the default), `spot` or `futures`."},
+    {"name": "BookMarket", "values": ["futures", "spot"], "description": "Order book market: `futures` (perpetual futures, the default) or `spot`."},
+    {"name": "Order", "values": ["asc", "desc"], "description": "Reading order: `desc` (most recent first, the default) or `asc` (oldest first)."},
+    {"name": "MiningDataset", "values": ["concentration", "rewards", "difficulty", "fee_rates"], "description": "Mining series: pool shares, block rewards, difficulty or fee rates."}
+  ],
+  "param_literals": [
+    {"param": "timeframe", "paths": ["/v1/klines"], "literal": "KlineTimeframe"},
+    {"param": "timeframe", "description_contains": "not served on options", "literal": "OptionsTimeframe"},
+    {"param": "timeframe", "description_contains": "`1d`", "literal": "Timeframe"},
+    {"param": "market", "default": "all", "literal": "Market"},
+    {"param": "market", "default": "futures", "literal": "BookMarket"},
+    {"param": "order", "literal": "Order"},
+    {"param": "dataset", "literal": "MiningDataset"}
+  ],
+  "segment_aliases": {
+    "global": "global_market"
+  },
+  "model_names": {
+    "/v1/klines": "Kline",
+    "/v1/symbols": "Symbol",
+    "/v1/symbols/{symbol}/capabilities": "SymbolCapabilities",
+    "/v1/ticks/spot": "SpotTick",
+    "/v1/ticks/futures": "FuturesTick",
+    "/v1/ticks/large": "LargeTrade",
+    "/v1/trades/futures/seconds": "FuturesTradeSecond",
+    "/v1/liquidations/events": "LiquidationEvent",
+    "/v1/status": "Status",
+    "/v1/health": "Health",
+    "/v1/macro/series": "MacroSeries",
+    "/v1/macro/intraday/series": "MacroIntradaySeries",
+    "/v1/macro/intraday/history": "MacroIntradayCandle",
+    "/v1/options/iv/klines": "OptionsIvCandle",
+    "/v1/global": "GlobalMarket",
+    "/v1/trades": "TradeCandle",
+    "/v1/trades/futures": "FuturesTradeCandle",
+    "/v1/trades/spot": "SpotTradeCandle",
+    "/v1/oi/history": "OpenInterest",
+    "/v1/macro": "MacroObservation"
+  },
+  "field_prefix_for_leading_digit": "last_",
+  "not_paginated": [],
+  "force_required": {
+    "/v1/options/max-pain/history": ["expiry"]
+  },
+  "indicators": {
+    "rsi": {"group": "momentum", "params": {"period": {"type": "int", "default": 14, "min": 2}}, "outputs": null},
+    "stoch": {"group": "momentum", "params": {"k": {"type": "int", "default": 14, "min": 2}, "d": {"type": "int", "default": 3, "min": 2}, "smooth": {"type": "int", "default": 3, "min": 2}}, "outputs": ["k", "d"]},
+    "macd": {"group": "momentum", "params": {"fast": {"type": "int", "default": 12, "min": 2}, "slow": {"type": "int", "default": 26, "min": 5}, "signal": {"type": "int", "default": 9, "min": 2}}, "outputs": ["macd", "signal", "histogram"]},
+    "cci": {"group": "momentum", "params": {"period": {"type": "int", "default": 20, "min": 2}}, "outputs": null},
+    "willr": {"group": "momentum", "params": {"period": {"type": "int", "default": 14, "min": 2}}, "outputs": null},
+    "mfi": {"group": "momentum", "params": {"period": {"type": "int", "default": 14, "min": 2}}, "outputs": null},
+    "roc": {"group": "momentum", "params": {"period": {"type": "int", "default": 10, "min": 2}}, "outputs": null},
+    "ema": {"group": "trend", "params": {"period": {"type": "int", "default": 20, "min": 2}}, "outputs": null},
+    "sma": {"group": "trend", "params": {"period": {"type": "int", "default": 20, "min": 2}}, "outputs": null},
+    "adx": {"group": "trend", "params": {"period": {"type": "int", "default": 14, "min": 2}}, "outputs": null},
+    "sar": {"group": "trend", "params": {"acceleration": {"type": "float", "default": 0.02, "min": 0.01, "max": 1.0}, "maximum": {"type": "float", "default": 0.2, "min": 0.05, "max": 1.0}}, "outputs": null},
+    "ichimoku": {"group": "trend", "params": {"tenkan": {"type": "int", "default": 9, "min": 2}, "kijun": {"type": "int", "default": 26, "min": 5}, "senkou": {"type": "int", "default": 52, "min": 10}}, "outputs": ["tenkan_sen", "kijun_sen", "senkou_a", "senkou_b"]},
+    "bb": {"group": "volatility", "params": {"period": {"type": "int", "default": 20, "min": 2}, "std": {"type": "float", "default": 2.0, "min": 0.5, "max": 10.0}}, "outputs": ["upper", "middle", "lower"]},
+    "atr": {"group": "volatility", "params": {"period": {"type": "int", "default": 14, "min": 2}}, "outputs": null},
+    "keltner": {"group": "volatility", "params": {"period": {"type": "int", "default": 20, "min": 2}, "multiplier": {"type": "float", "default": 2.0, "min": 0.5, "max": 10.0}}, "outputs": ["upper", "middle", "lower"]},
+    "donchian": {"group": "volatility", "params": {"period": {"type": "int", "default": 20, "min": 2}}, "outputs": ["upper", "middle", "lower"]},
+    "obv": {"group": "volume", "params": {}, "outputs": null},
+    "ad": {"group": "volume", "params": {}, "outputs": null},
+    "adosc": {"group": "volume", "params": {"fast": {"type": "int", "default": 3, "min": 2}, "slow": {"type": "int", "default": 10, "min": 5}}, "outputs": null}
+  }
+}
