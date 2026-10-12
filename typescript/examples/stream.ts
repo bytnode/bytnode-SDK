@@ -14,7 +14,7 @@ process.on('SIGINT', () => stream.close());
 
 for await (const msg of stream) {
   if (msg.kind === 'book') {
-    console.log(`book  mid ${msg.data.mid_avg}  spread ${msg.data.spread_bps_avg} bps`);
+    console.log(`book  mid ${msg.data.mid_avg}  spread ${msg.data.avg_spread_bps} bps`);
   } else {
     const notional = msg.data.reduce((sum, t) => sum + t.price * t.quantity, 0);
     console.log(`${msg.kind.padEnd(6)} ${String(msg.data.length).padStart(3)} prints, ${Math.round(notional)} USD`);

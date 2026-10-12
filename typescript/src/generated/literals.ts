@@ -11,8 +11,7 @@ export type Timeframe = "1m" | "5m" | "15m" | "30m" | "1h" | "4h" | "1d";
 export const TimeframeValues = ["1m", "5m", "15m", "30m", "1h", "4h", "1d"] as const;
 
 /**
- * Candle size: every timeframe, the week included (verified against the live API on
- * 2026-10-12).
+ * Candle size: every timeframe, the week included.
  */
 export type KlineTimeframe = "1m" | "5m" | "15m" | "30m" | "1h" | "4h" | "1d" | "1w";
 export const KlineTimeframeValues = ["1m", "5m", "15m", "30m", "1h", "4h", "1d", "1w"] as const;
@@ -24,16 +23,22 @@ export type OptionsTimeframe = "5m" | "15m" | "30m" | "1h" | "4h" | "1d";
 export const OptionsTimeframeValues = ["5m", "15m", "30m", "1h", "4h", "1d"] as const;
 
 /**
- * Market of a flow metric: `all` (spot + perpetual futures, the default), `spot` or `futures`.
+ * Candle size of an intraday macro series (no `30m`).
  */
-export type Market = "all" | "spot" | "futures";
-export const MarketValues = ["all", "spot", "futures"] as const;
+export type IntradayTimeframe = "1m" | "5m" | "15m" | "1h" | "4h" | "1d";
+export const IntradayTimeframeValues = ["1m", "5m", "15m", "1h", "4h", "1d"] as const;
 
 /**
- * Order book market: `futures` (perpetual futures, the default) or `spot`.
+ * Optional step of a history aggregated to the last reading of each closed bucket.
  */
-export type BookMarket = "futures" | "spot";
-export const BookMarketValues = ["futures", "spot"] as const;
+export type CoarseTimeframe = "1h" | "4h" | "1d";
+export const CoarseTimeframeValues = ["1h", "4h", "1d"] as const;
+
+/**
+ * Underlying asset of the options and spot ETF routes.
+ */
+export type Asset = "BTC" | "ETH";
+export const AssetValues = ["BTC", "ETH"] as const;
 
 /**
  * Reading order: `desc` (most recent first, the default) or `asc` (oldest first).
@@ -51,4 +56,4 @@ export const MiningDatasetValues = ["concentration", "rewards", "difficulty", "f
 export type IndicatorType = "ad" | "adosc" | "adx" | "atr" | "bb" | "cci" | "donchian" | "ema" | "ichimoku" | "keltner" | "macd" | "mfi" | "obv" | "roc" | "rsi" | "sar" | "sma" | "stoch" | "willr";
 
 /** Stable machine-readable `error.code` values. Branch on them, never on the message. */
-export type ErrorCode = "depth_too_large" | "edge_rate_limited" | "history_depth" | "insufficient_data" | "internal_error" | "invalid_api_key" | "invalid_asset" | "invalid_depth" | "invalid_exchange" | "invalid_indicator" | "invalid_pair" | "invalid_parameter" | "invalid_series" | "invalid_symbol" | "invalid_time_range" | "invalid_timeframe" | "method_not_allowed" | "missing_expiry" | "missing_parameter" | "not_applicable" | "not_found" | "plan_family" | "plan_websocket" | "quota_exceeded" | "rate_limited" | "repeated_parameter" | "service_unavailable" | "timeframe_not_served" | "unknown_field" | "unknown_parameter" | "upstream_timeout";
+export type ErrorCode = "depth_too_large" | "edge_rate_limited" | "history_depth" | "insufficient_data" | "internal_error" | "invalid_api_key" | "invalid_asset" | "invalid_channel" | "invalid_depth" | "invalid_indicator" | "invalid_message" | "invalid_parameter" | "invalid_series" | "invalid_symbol" | "invalid_time_range" | "invalid_timeframe" | "method_not_allowed" | "missing_expiry" | "missing_parameter" | "not_applicable" | "not_authenticated" | "not_found" | "plan_family" | "plan_websocket" | "quota_exceeded" | "rate_limited" | "repeated_parameter" | "service_unavailable" | "timeframe_not_served" | "unknown_field" | "unknown_parameter" | "upstream_timeout";

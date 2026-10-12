@@ -121,10 +121,10 @@ def test_iter_never_loops_on_a_stuck_cursor(respx_mock: respx.MockRouter, client
 
 
 @respx.mock(base_url=BASE)
-def test_iter_ticks_enter_range_reading(respx_mock: respx.MockRouter, client: Bytnode) -> None:
+def test_iter_trades_enter_range_reading(respx_mock: respx.MockRouter, client: Bytnode) -> None:
     body = {"status": "ok", "server_time": "2026-10-12T09:00:00.000Z", "data": [], "next": None}
-    route = respx_mock.get("/v1/ticks/spot").mock(return_value=httpx.Response(200, json=body))
-    client.ticks.spot.iter("BTCUSDT").to_list()
+    route = respx_mock.get("/v1/trades/spot").mock(return_value=httpx.Response(200, json=body))
+    client.trades.spot.iter("BTCUSDT").to_list()
     assert route.calls.last.request.url.params["order"] == "desc"
     assert route.calls.last.request.url.params["limit"] == "10000"
 

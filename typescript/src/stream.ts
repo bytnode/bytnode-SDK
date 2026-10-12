@@ -3,7 +3,7 @@
  *
  * Protocol (https://bytnode.com/docs/websocket): the key is checked at the handshake;
  * `{"op":"subscribe","channels":[…],"depth":N}` answers `op: subscribed` with EVERY active
- * channel; data messages carry `channel`, `time`, `seq` (monotonic per channel, arbitrary start)
+ * channel; data messages carry `channel`, `server_time`, `seq` (monotonic per channel, arbitrary start)
  * and `data`. A jump in `seq` on an event channel means messages were lost.
  *
  * Under Node the `ws` package is used, with the key in a header: a refused handshake is read
@@ -16,15 +16,15 @@ import { VERSION } from './version.js';
 
 export interface StreamTrade {
   time: Date;
-  /** Same identifier as the tick of `/v1/ticks/*`: deduplicate against REST. */
+  /** Same identifier as the trades of `/v1/trades/*`: deduplicate against REST. */
   id?: string;
   /** Taker side: `buy` (a buyer lifted the offer) or `sell`. */
   side: 'buy' | 'sell' | string;
   price: number;
   /** In units of the base asset. */
   quantity: number;
-  /** price × quantity. */
-  usd_value?: number;
+  /** price × quantity, in USD. */
+  value_usd?: number;
 }
 
 export interface StreamLiquidation {
@@ -33,7 +33,7 @@ export interface StreamLiquidation {
   quantity: number;
   /** The liquidated position: `long` or `short`. */
   side: 'long' | 'short' | string;
-  usd_value?: number;
+  value_usd?: number;
 }
 
 export interface StreamBook {
@@ -44,15 +44,15 @@ export interface StreamBook {
   /** Reference price. */
   mid_avg: number | null;
   /** Average per-venue spread, in basis points. */
-  spread_bps_avg: number | null;
+  avg_spread_bps: number | null;
   is_crossed?: boolean;
   crossed_bps?: number;
 }
 
 interface Base {
   channel: string;
-  /** When the server sent the tick. */
-  time: Date;
+  /** When the server sent the message. */
+  server_time: Date;
   seq: number | null;
   /** Messages LOST just before this one on its channel (event channels only). */
   gap: number;
@@ -126,7 +126,7 @@ function toMessage(obj: Record<string, unknown>): StreamMessage {
   const kind = parts[0] as StreamMessage['kind'];
   const base = {
     channel,
-    time: new Date(String(obj.time)),
+    server_time: new Date(String(obj.server_time)),
     seq: typeof obj.seq === 'number' ? obj.seq : null,
     gap: 0,
     symbol: parts[parts.length - 1] ?? '',

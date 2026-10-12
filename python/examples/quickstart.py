@@ -9,7 +9,7 @@ from bytnode import Bytnode, InvalidRequestError
 with Bytnode() as client:
     candles = client.klines("BTCUSDT", "1h", limit=3)
     for c in candles:
-        print(f"{c.time:%Y-%m-%d %H:%M}  open {c.open:>10.2f}  close {c.close:>10.2f}  volume {c.volume_total:,.1f}")
+        print(f"{c.time:%Y-%m-%d %H:%M}  open {c.open:>10.2f}  close {c.close:>10.2f}  volume {c.volume or 0:,.1f}")
 
     funding = client.funding.rate("BTCUSDT").data
     if funding is not None:

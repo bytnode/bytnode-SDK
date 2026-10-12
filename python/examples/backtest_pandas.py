@@ -15,7 +15,7 @@ with Bytnode() as client:
     oi = client.oi.history.iter("BTCUSDT", "1h", since=since).to_pandas()
     funding = client.funding.rate.history.iter("BTCUSDT", since=since).to_pandas()
 
-frame = candles[["close", "volume_total"]].join(oi.add_prefix("oi_"), how="left")
+frame = candles[["close", "volume"]].join(oi.add_prefix("oi_"), how="left")
 frame["funding_pct"] = funding["rate_pct"].reindex(frame.index, method="ffill")
 frame["ret_24h"] = frame["close"].pct_change(24)
 frame["signal"] = (frame["funding_pct"] < 0) & (frame["ret_24h"] < -0.03)

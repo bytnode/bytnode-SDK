@@ -5,7 +5,7 @@ API: candles, order flow, derivatives, liquidations, options, macro, on-chain an
 typed, paginated for you, plus the real-time WebSocket stream.
 
 ```bash
-npm install bytnode
+npm install https://github.com/bytnode/bytnode-SDK/releases/download/v0.2.0/bytnode-0.2.0.tgz
 export BYTNODE_API_KEY=cb_live_...   # create one at https://bytnode.com/dashboard/keys
 ```
 
@@ -25,8 +25,8 @@ for await (const row of client.funding.rate.history.iter({ symbol: 'BTCUSDT', si
 Node 18+, Deno, Bun. ESM and CommonJS, types included, one dependency (`ws`, for the stream under
 Node).
 
-> **Server-side only.** The REST API sends no CORS headers, and an API key in a web page can be read
-> by anyone: call BytNode from your backend (Node, a serverless function...) and send your page only
+> **Server-side only.** The REST API does answer browsers (CORS, any origin), but an API key in a web
+> page can be read by anyone: call BytNode from your backend (Node, a serverless function...) and send your page only
 > what it needs. The client refuses to start in a browser unless you pass
 > `{ dangerouslyAllowBrowser: true }`.
 
@@ -46,7 +46,7 @@ Every route of the [API reference](https://bytnode.com/docs) is a property named
 | `GET /v1/global` | `client.globalMarket()` |
 
 Path segments are camelCase; parameter and field names are the API's own (`snake_case`), so the docs
-read the same. Closed values are typed (`timeframe: Timeframe`, `market: Market`): a typo does not
+read the same. Closed values are typed (`timeframe: Timeframe`, `asset: Asset`): a typo does not
 compile. Every method carries the documentation of its route.
 
 ## Responses

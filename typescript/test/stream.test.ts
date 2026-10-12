@@ -5,9 +5,9 @@ import { AuthenticationError, Bytnode, ConnectionLimitError, StreamError, channe
 
 const T = '2026-10-12T09:00:00.000Z';
 const trades = (seq: number) =>
-  JSON.stringify({ channel: 'trades.futures.BTCUSDT', time: T, seq, data: [{ time: T, id: `id${seq}`, side: 'buy', price: 83000, quantity: 0.01, usd_value: 830 }] });
+  JSON.stringify({ channel: 'trades.futures.BTCUSDT', server_time: T, seq, data: [{ time: T, id: `id${seq}`, side: 'buy', price: 83000, quantity: 0.01, value_usd: 830 }] });
 const book = (seq: number) =>
-  JSON.stringify({ channel: 'book.futures.BTCUSDT', time: T, seq, data: { bids: [[82999, 1.5]], asks: [[83001, 2]], mid_avg: 83000, spread_bps_avg: 0.03 } });
+  JSON.stringify({ channel: 'book.futures.BTCUSDT', server_time: T, seq, data: { bids: [[82999, 1.5]], asks: [[83001, 2]], mid_avg: 83000, avg_spread_bps: 0.03 } });
 
 type Script = (ws: WebSocket) => void;
 const servers: WebSocketServer[] = [];

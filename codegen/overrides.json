@@ -1,47 +1,22 @@
 {
-  "_comment": "What the public contract does not state in machine-readable form. Every entry is checked by the tests against the contract or the live API.",
+  "_comment": "What the public contract does not state in machine-readable form. Closed sets of values come from the contract's `enum`; the literals here only NAME them (matched by their values).",
   "literals": [
     {"name": "Timeframe", "values": ["1m", "5m", "15m", "30m", "1h", "4h", "1d"], "description": "Bucket size of a bucketed series."},
-    {"name": "KlineTimeframe", "values": ["1m", "5m", "15m", "30m", "1h", "4h", "1d", "1w"], "description": "Candle size: every timeframe, the week included (verified against the live API on 2026-10-12)."},
+    {"name": "KlineTimeframe", "values": ["1m", "5m", "15m", "30m", "1h", "4h", "1d", "1w"], "description": "Candle size: every timeframe, the week included."},
     {"name": "OptionsTimeframe", "values": ["5m", "15m", "30m", "1h", "4h", "1d"], "description": "Bucket size on options routes (`1m` is not served on options)."},
-    {"name": "Market", "values": ["all", "spot", "futures"], "description": "Market of a flow metric: `all` (spot + perpetual futures, the default), `spot` or `futures`."},
-    {"name": "BookMarket", "values": ["futures", "spot"], "description": "Order book market: `futures` (perpetual futures, the default) or `spot`."},
+    {"name": "IntradayTimeframe", "values": ["1m", "5m", "15m", "1h", "4h", "1d"], "description": "Candle size of an intraday macro series (no `30m`)."},
+    {"name": "CoarseTimeframe", "values": ["1h", "4h", "1d"], "description": "Optional step of a history aggregated to the last reading of each closed bucket."},
+    {"name": "Asset", "values": ["BTC", "ETH"], "description": "Underlying asset of the options and spot ETF routes."},
     {"name": "Order", "values": ["asc", "desc"], "description": "Reading order: `desc` (most recent first, the default) or `asc` (oldest first)."},
     {"name": "MiningDataset", "values": ["concentration", "rewards", "difficulty", "fee_rates"], "description": "Mining series: pool shares, block rewards, difficulty or fee rates."}
   ],
-  "param_literals": [
-    {"param": "timeframe", "paths": ["/v1/klines"], "literal": "KlineTimeframe"},
-    {"param": "timeframe", "description_contains": "not served on options", "literal": "OptionsTimeframe"},
-    {"param": "timeframe", "description_contains": "`1d`", "literal": "Timeframe"},
-    {"param": "market", "default": "all", "literal": "Market"},
-    {"param": "market", "default": "futures", "literal": "BookMarket"},
-    {"param": "order", "literal": "Order"},
-    {"param": "dataset", "literal": "MiningDataset"}
-  ],
+  "param_literals": [],
   "segment_aliases": {
     "global": "global_market"
   },
   "model_names": {
-    "/v1/klines": "Kline",
-    "/v1/symbols": "Symbol",
-    "/v1/symbols/{symbol}/capabilities": "SymbolCapabilities",
-    "/v1/ticks/spot": "SpotTick",
-    "/v1/ticks/futures": "FuturesTick",
-    "/v1/ticks/large": "LargeTrade",
-    "/v1/trades/futures/seconds": "FuturesTradeSecond",
-    "/v1/liquidations/events": "LiquidationEvent",
-    "/v1/status": "Status",
-    "/v1/health": "Health",
-    "/v1/macro/series": "MacroSeries",
-    "/v1/macro/intraday/series": "MacroIntradaySeries",
-    "/v1/macro/intraday/history": "MacroIntradayCandle",
-    "/v1/options/iv/klines": "OptionsIvCandle",
     "/v1/global": "GlobalMarket",
-    "/v1/trades": "TradeCandle",
-    "/v1/trades/futures": "FuturesTradeCandle",
-    "/v1/trades/spot": "SpotTradeCandle",
-    "/v1/oi/history": "OpenInterest",
-    "/v1/macro": "MacroObservation"
+    "/v1/health": "Health"
   },
   "field_prefix_for_leading_digit": "last_",
   "not_paginated": [],

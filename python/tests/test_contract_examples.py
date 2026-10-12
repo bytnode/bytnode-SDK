@@ -19,7 +19,7 @@ OPS = operations()
 
 
 def test_every_route_has_a_method() -> None:
-    assert len(ROUTES) == len(OPS) == 111
+    assert len(ROUTES) == len(OPS) == 129
     assert set(ROUTES) == {p for p, _, _ in OPS}
 
 

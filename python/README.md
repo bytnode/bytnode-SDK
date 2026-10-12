@@ -5,7 +5,8 @@ order flow, derivatives, liquidations, options, macro, on-chain and ETF data —
 you, one call away from a pandas DataFrame, plus the real-time WebSocket stream.
 
 ```bash
-pip install bytnode            # add [pandas] for .to_pandas(): pip install "bytnode[pandas]"
+pip install https://github.com/bytnode/bytnode-SDK/releases/download/v0.2.0/bytnode-0.2.0-py3-none-any.whl
+# with pandas: pip install "bytnode[pandas] @ https://github.com/bytnode/bytnode-SDK/releases/download/v0.2.0/bytnode-0.2.0-py3-none-any.whl"
 export BYTNODE_API_KEY=cb_live_...   # create one at https://bytnode.com/dashboard/keys
 ```
 
@@ -51,7 +52,7 @@ Every route of the [API reference](https://bytnode.com/docs) is an attribute nam
 | `GET /v1/global` | `client.global_market()` (`global` is a Python keyword) |
 
 Dashes become underscores. Required parameters come first and can be positional; the others are
-keyword-only. Closed values are typed (`timeframe: Timeframe`, `market: Market`, `order: Order`):
+keyword-only. Closed values are typed (`timeframe: Timeframe`, `asset: Asset`, `order: Order`):
 your editor completes them, and a typo is flagged before the request is sent. Every method carries
 the docstring of its route.
 
@@ -71,7 +72,7 @@ resp.raw             # the JSON body, untouched
 ```
 
 A list response iterates and indexes like a list (`for row in resp`, `resp[0]`, `len(resp)`).
-Models also read like mappings (`row["close"]`, `row.get("venue_count")`) and convert back with
+Models also read like mappings (`row["close"]`, `row.get("volume_spot")`) and convert back with
 `row.to_dict()` or `resp.to_dicts()`. Dates are `datetime` objects in UTC.
 
 A field added by the API after this release is kept as an extra attribute: a newer API never breaks
@@ -115,7 +116,7 @@ df["close"].pct_change().rolling(20).std()
 
 `to_pandas()` exists on every response and iterator: indexed by `time` (UTC), ascending, one column
 per field. `flatten=True` spreads nested objects into dotted columns. Install the extra:
-`pip install "bytnode[pandas]"`.
+the `pandas` extra (`bytnode[pandas]`, see Install).
 
 ## Errors
 

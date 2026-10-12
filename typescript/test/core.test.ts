@@ -175,9 +175,9 @@ describe('pagination', () => {
     expect(await c2.klines.iter({ symbol: 'BTCUSDT', timeframe: '1h', maxItems: 3 }).toArray()).toHaveLength(3);
   });
 
-  it('puts ticks in range reading', async () => {
+  it('puts trades in range reading', async () => {
     const { client, calls } = fakeClient(() => json(200, { status: 'ok', server_time: '2026-10-12T09:00:00.000Z', data: [], next: null }));
-    await client.ticks.spot.iter({ symbol: 'BTCUSDT' }).toArray();
+    await client.trades.spot.iter({ symbol: 'BTCUSDT' }).toArray();
     expect(calls[0]!.url.searchParams.get('order')).toBe('desc');
     expect(calls[0]!.url.searchParams.get('limit')).toBe('10000');
   });

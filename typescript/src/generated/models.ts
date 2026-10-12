@@ -38,7 +38,7 @@ export interface Basis {
 /**
  * Row of `/v1/basis/history`.
  */
-export interface BasisHistory {
+export interface BasisHistoryItem {
   /**
    * Without `timeframe`: the instant of the one-minute measurement. With `timeframe`: start of
    * the bucket, the value aggregating the bucket's minutes. Unit: ISO 8601 UTC, milliseconds
@@ -82,23 +82,23 @@ export interface BtcFeesPrecise {
   /**
    * Fee rate for the next block. Unit: satoshis per virtual byte (sat/vB).
    */
-  fastest_fee_sat_vb: number | null;
+  fastest_fee_sat_vb: number;
   /**
    * Fee rate for confirmation within ~30 minutes. Unit: satoshis per virtual byte (sat/vB).
    */
-  half_hour_fee_sat_vb: number | null;
+  half_hour_fee_sat_vb: number;
   /**
    * Fee rate for confirmation within ~1 hour. Unit: satoshis per virtual byte (sat/vB).
    */
-  hour_fee_sat_vb: number | null;
+  hour_fee_sat_vb: number;
   /**
    * Fee rate for a low-priority confirmation. Unit: satoshis per virtual byte (sat/vB).
    */
-  economy_fee_sat_vb: number | null;
+  economy_fee_sat_vb: number;
   /**
    * Minimum relay fee rate. Unit: satoshis per virtual byte (sat/vB).
    */
-  minimum_fee_sat_vb: number | null;
+  minimum_fee_sat_vb: number;
   /** Fields added by the API after this SDK was released. */
   [extra: string]: unknown;
 }
@@ -111,7 +111,7 @@ export interface BtcFeesFeePressure {
   /**
    * fastest / economy fee rate. Unit: dimensionless ratio.
    */
-  ratio: number;
+  ratio: number | null;
   /**
    * Fee pressure: `normal` (ratio <= 2), `elevated` (> 2) or `congested` (> 5).
    */
@@ -132,23 +132,23 @@ export interface BtcFees {
   /**
    * Fee rate for the next block. Unit: satoshis per virtual byte (sat/vB).
    */
-  fastest_fee_sat_vb: number | null;
+  fastest_fee_sat_vb: number;
   /**
    * Fee rate for confirmation within ~30 minutes. Unit: satoshis per virtual byte (sat/vB).
    */
-  half_hour_fee_sat_vb: number | null;
+  half_hour_fee_sat_vb: number;
   /**
    * Fee rate for confirmation within ~1 hour. Unit: satoshis per virtual byte (sat/vB).
    */
-  hour_fee_sat_vb: number | null;
+  hour_fee_sat_vb: number;
   /**
    * Fee rate for a low-priority confirmation. Unit: satoshis per virtual byte (sat/vB).
    */
-  economy_fee_sat_vb: number | null;
+  economy_fee_sat_vb: number;
   /**
    * Minimum relay fee rate. Unit: satoshis per virtual byte (sat/vB).
    */
-  minimum_fee_sat_vb: number | null;
+  minimum_fee_sat_vb: number;
   /**
    * Same fee rates, unrounded. Unit: satoshis per virtual byte (sat/vB).
    */
@@ -165,32 +165,37 @@ export interface BtcFees {
 /**
  * Row of `/v1/btc/fees/history`.
  */
-export interface BtcFeesHistory {
+export interface BtcFeesHistoryItem {
   /**
-   * Point-in-time value: the instant of the measurement (when the source was read). Unit: ISO
-   * 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).
+   * Without `timeframe`: the instant of the reading. With `timeframe`: start of the bucket, the
+   * value being its LAST reading. Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).
    */
   time: Date;
   /**
    * Fee rate for the next block. Unit: satoshis per virtual byte (sat/vB).
    */
-  fastest_fee_sat_vb: number | null;
+  fastest_fee_sat_vb: number;
   /**
    * Fee rate for confirmation within ~30 minutes. Unit: satoshis per virtual byte (sat/vB).
    */
-  half_hour_fee_sat_vb: number | null;
+  half_hour_fee_sat_vb: number;
   /**
    * Fee rate for confirmation within ~1 hour. Unit: satoshis per virtual byte (sat/vB).
    */
-  hour_fee_sat_vb: number | null;
+  hour_fee_sat_vb: number;
   /**
    * Fee rate for a low-priority confirmation. Unit: satoshis per virtual byte (sat/vB).
    */
-  economy_fee_sat_vb: number | null;
+  economy_fee_sat_vb: number;
   /**
    * Minimum relay fee rate. Unit: satoshis per virtual byte (sat/vB).
    */
-  minimum_fee_sat_vb: number | null;
+  minimum_fee_sat_vb: number;
+  /**
+   * `true` = the bucket is final and will never change; `false` = provisional (only with
+   * `?live=1`).
+   */
+  is_closed: boolean;
   /** Fields added by the API after this SDK was released. */
   [extra: string]: unknown;
 }
@@ -240,7 +245,7 @@ export interface BtcMempool {
   /**
    * Total fees waiting in the mempool. Unit: satoshis.
    */
-  total_fee_sats: number | null;
+  total_fee_sats: number;
   /**
    * `[fee_rate, vsize]` pairs: how much virtual size waits at each fee rate. Unit: satoshis per
    * virtual byte (sat/vB).
@@ -258,7 +263,7 @@ export interface BtcMempool {
 /**
  * Row of `/v1/btc/mempool/history`.
  */
-export interface BtcMempoolHistory {
+export interface BtcMempoolHistoryItem {
   /**
    * Point-in-time value: the instant of the measurement (when the source was read). Unit: ISO
    * 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).
@@ -275,7 +280,12 @@ export interface BtcMempoolHistory {
   /**
    * Total fees waiting in the mempool. Unit: satoshis.
    */
-  total_fee_sats: number | null;
+  total_fee_sats: number;
+  /**
+   * `true` = the bucket is final and will never change; `false` = provisional (only with
+   * `?live=1`).
+   */
+  is_closed: boolean;
   /** Fields added by the API after this SDK was released. */
   [extra: string]: unknown;
 }
@@ -287,7 +297,7 @@ export interface BtcMiningConcentration {
   /**
    * Blocks in the period. Unit: count.
    */
-  total_block_count: number | null;
+  total_block_count: number;
   /**
    * Share of blocks mined by the largest pool. Unit: percent (58.5 = 58.5 %).
    */
@@ -322,7 +332,7 @@ export interface BtcMiningLatestReward {
    * Height of the reward sample (Mempool.space average height of the blocks). Unit: block
    * height.
    */
-  block_height: number | null;
+  block_height: number;
   /**
    * Average block reward. Unit: satoshis.
    */
@@ -335,7 +345,7 @@ export interface BtcMiningLatestReward {
    * BTC price at the block of the reward (Mempool.space), used for `avg_reward_usd`. Not the
    * current price. Unit: USD.
    */
-  btc_price_usd_at_block: number | null;
+  btc_price_usd_at_block: number;
   /** Fields added by the API after this SDK was released. */
   [extra: string]: unknown;
 }
@@ -396,7 +406,7 @@ export interface BtcMining {
 /**
  * Row of `/v1/btc/mining/history`.
  */
-export interface BtcMiningHistory {
+export interface BtcMiningHistoryItem {
   /**
    * Point-in-time value: the instant of the measurement (when the source was read). Unit: ISO
    * 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).
@@ -423,6 +433,11 @@ export interface BtcMiningHistory {
    * `high_risk` (> 50 %).
    */
   label: string;
+  /**
+   * `true` = the bucket is final and will never change; `false` = provisional (only with
+   * `?live=1`).
+   */
+  is_closed: boolean;
   /** Fields added by the API after this SDK was released. */
   [extra: string]: unknown;
 }
@@ -493,11 +508,11 @@ export interface BtcNetwork {
   /**
    * Progress through the current 2016-block difficulty period. Unit: percent (58.5 = 58.5 %).
    */
-  progress_pct: number | null;
+  progress_pct: number;
   /**
    * Expected difficulty change at the next adjustment. Unit: percent (58.5 = 58.5 %).
    */
-  difficulty_change_pct: number | null;
+  difficulty_change_pct: number;
   /**
    * Average block time over 24 h (`avg_24h_s`), its deviation from the 600 s target, and a
    * `label`.
@@ -514,7 +529,7 @@ export interface BtcNetwork {
 /**
  * Row of `/v1/btc/network/history`.
  */
-export interface BtcNetworkHistory {
+export interface BtcNetworkHistoryItem {
   /**
    * Point-in-time value: the instant of the measurement (when the source was read). Unit: ISO
    * 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).
@@ -536,12 +551,17 @@ export interface BtcNetworkHistory {
    * Expected difficulty change at the next adjustment. Unit: percent (58.5 = 58.5 %).
    */
   difficulty_change_pct: number;
+  /**
+   * `true` = the bucket is final and will never change; `false` = provisional (only with
+   * `?live=1`).
+   */
+  is_closed: boolean;
   /** Fields added by the API after this SDK was released. */
   [extra: string]: unknown;
 }
 
 /**
- * Row of `/v1/buysell/ratio`.
+ * Row of `/v1/buysell/ratio`, `/v1/buysell/ratio/futures`, `/v1/buysell/ratio/spot`.
  */
 export interface BuysellRatio {
   /**
@@ -553,17 +573,17 @@ export interface BuysellRatio {
    * Aggressive (taker) buy volume, base asset units, aggregated across venues. Unit: base asset
    * quantity (BTC for BTCUSDT).
    */
-  buy_volume: number;
+  buy_volume: number | null;
   /**
    * Aggressive (taker) sell volume, base asset units, aggregated across venues. Unit: base
    * asset quantity (BTC for BTCUSDT).
    */
-  sell_volume: number;
+  sell_volume: number | null;
   /**
    * buy_volume / (buy_volume + sell_volume). Above 0.5 = buyers dominate. Unit: fraction (0.585
    * = 58.5 %).
    */
-  buy_ratio: number;
+  buy_ratio: number | null;
   /**
    * `true` when base-asset quantities of this row were ESTIMATED from USD amounts ÷ the
    * candle's typical price (high + low + close) / 3 (data written before quantities were
@@ -579,38 +599,39 @@ export interface BuysellRatio {
    * Length of the rolling window, in seconds (300 = 5 minutes). The window ends at
    * `window_start + window_s` (= `time` on the latest value). Unit: seconds.
    */
-  window_s: number | null;
+  window_s: number;
   /** Fields added by the API after this SDK was released. */
   [extra: string]: unknown;
 }
 
 /**
- * Row of `/v1/buysell/ratio/history`.
+ * Row of `/v1/buysell/ratio/futures/history`, `/v1/buysell/ratio/history`,
+ * `/v1/buysell/ratio/spot/history`.
  */
-export interface BuysellRatioHistory {
+export interface BuysellRatioHistoryItem {
   /**
-   * Without `timeframe`: end of the 5-minute window. With `timeframe`: start of the bucket —
-   * the value is the bucket's LAST window, which starts at `window_start` and lasts `window_s`.
-   * Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).
+   * Start of the bucket. The row covers the WHOLE bucket, from `time` to `time + window_s`
+   * (excluded). Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).
    */
   time: Date;
   /**
    * Aggressive (taker) buy volume, base asset units, aggregated across venues. Unit: base asset
    * quantity (BTC for BTCUSDT).
    */
-  buy_volume: number;
+  buy_volume: number | null;
   /**
    * Aggressive (taker) sell volume, base asset units, aggregated across venues. Unit: base
    * asset quantity (BTC for BTCUSDT).
    */
-  sell_volume: number;
+  sell_volume: number | null;
   /**
    * buy_volume / (buy_volume + sell_volume). Above 0.5 = buyers dominate. Unit: fraction (0.585
    * = 58.5 %).
    */
-  buy_ratio: number;
+  buy_ratio: number | null;
   /**
-   * Number of source points behind the value (one-minute points in a bucket). Unit: count.
+   * Number of points of the CVD series behind the bucket — the `sample_count` of
+   * `/v1/cvd/history` for the same bucket. Unit: count.
    */
   sample_count: number;
   /**
@@ -625,21 +646,21 @@ export interface BuysellRatioHistory {
    */
   is_closed: boolean;
   /**
-   * Start of the rolling window the value covers (inclusive). The window is aligned on the
-   * minute. Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).
+   * Start of the bucket the totals cover (= `time`). Unit: ISO 8601 UTC, milliseconds
+   * (2026-09-28T14:00:00.000Z).
    */
   window_start: Date;
   /**
-   * Length of the rolling window, in seconds (300 = 5 minutes). The window ends at
-   * `window_start + window_s` (= `time` on the latest value). Unit: seconds.
+   * Length of the bucket, in seconds (3600 for `1h`). Unit: seconds.
    */
-  window_s: number | null;
+  window_s: number;
   /** Fields added by the API after this SDK was released. */
   [extra: string]: unknown;
 }
 
 /**
- * Row of `/v1/cvd`, `/v1/cvd/history`.
+ * Row of `/v1/cvd`, `/v1/cvd/futures`, `/v1/cvd/futures/history`, `/v1/cvd/history`,
+ * `/v1/cvd/spot`, `/v1/cvd/spot/history`.
  */
 export interface Cvd {
   /**
@@ -651,22 +672,22 @@ export interface Cvd {
    * Cumulative volume delta inside the bucket, one point per minute, starting from 0 at the
    * bucket start. Unit: base asset quantity (BTC for BTCUSDT).
    */
-  cvd_series: Array<number>;
+  cvd_series: Array<number | null>;
   /**
    * buy_volume - sell_volume over the row, base asset units. Positive = net buying. Unit: base
    * asset quantity (BTC for BTCUSDT).
    */
-  net_volume: number;
+  net_volume: number | null;
   /**
    * Aggressive (taker) buy volume, base asset units, aggregated across venues. Unit: base asset
    * quantity (BTC for BTCUSDT).
    */
-  buy_volume: number;
+  buy_volume: number | null;
   /**
    * Aggressive (taker) sell volume, base asset units, aggregated across venues. Unit: base
    * asset quantity (BTC for BTCUSDT).
    */
-  sell_volume: number;
+  sell_volume: number | null;
   /**
    * Number of one-minute points in `cvd_series`. Unit: count.
    */
@@ -681,18 +702,19 @@ export interface Cvd {
    * `true` = the bucket is final and will never change; `false` = provisional (only with
    * `?live=1`).
    */
-  is_closed?: boolean;
+  is_closed: boolean;
   /** Fields added by the API after this SDK was released. */
   [extra: string]: unknown;
 }
 
 /**
- * Row of `/v1/etf/fundamentals`, `/v1/etf/fundamentals/history`.
+ * Row of `/v1/etf/fundamentals`.
  */
 export interface EtfFundamentals {
   /**
-   * End of the reporting period of the filing (`period_end`), at midnight UTC. Unit: ISO 8601
-   * UTC, milliseconds (2026-09-28T14:00:00.000Z).
+   * The balance-sheet date of the filing — the day the holdings, NAV and net assets are
+   * measured (end of the quarter for a 10-Q), at midnight UTC. `filed_date` says when the
+   * filing reached the SEC. Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).
    */
   time: Date;
   /**
@@ -704,17 +726,13 @@ export interface EtfFundamentals {
    */
   issuer: string;
   /**
-   * Date of the balance sheet the holdings come from. Unit: calendar date (YYYY-MM-DD).
-   */
-  balance_date: string;
-  /**
    * ETF shares outstanding. Unit: shares.
    */
   shares_outstanding: number;
   /**
    * Net asset value per share. Unit: USD.
    */
-  nav_per_share_usd: number | null;
+  nav_per_share_usd: number;
   /**
    * Net assets (AUM). Unit: USD.
    */
@@ -744,7 +762,66 @@ export interface EtfFundamentals {
 }
 
 /**
- * Row of `/v1/eth/defi`, `/v1/eth/defi/history`.
+ * Row of `/v1/etf/fundamentals/history`.
+ */
+export interface EtfFundamentalsHistoryItem {
+  /**
+   * The balance-sheet date of the filing — the day the holdings, NAV and net assets are
+   * measured (end of the quarter for a 10-Q), at midnight UTC. `filed_date` says when the
+   * filing reached the SEC. Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).
+   */
+  time: Date;
+  /**
+   * ETF ticker.
+   */
+  ticker: string;
+  /**
+   * ETF issuer.
+   */
+  issuer: string;
+  /**
+   * ETF shares outstanding. Unit: shares.
+   */
+  shares_outstanding: number;
+  /**
+   * Net asset value per share. Unit: USD.
+   */
+  nav_per_share_usd: number;
+  /**
+   * Net assets (AUM). Unit: USD.
+   */
+  net_assets_usd: number;
+  /**
+   * SEC form type of the filing (`10-Q`, `10-K`...).
+   */
+  form: string;
+  /**
+   * Filing date at the SEC. Unit: calendar date (YYYY-MM-DD).
+   */
+  filed_date: string;
+  /**
+   * Link to the filing on SEC EDGAR.
+   */
+  filing_url: string;
+  /**
+   * BTC held by the fund. Unit: BTC.
+   */
+  btc_holdings: number | null;
+  /**
+   * `true` if the holdings are derived from net assets / price rather than read in the filing.
+   */
+  is_holdings_estimated: boolean;
+  /**
+   * `true` = the bucket is final and will never change; `false` = provisional (only with
+   * `?live=1`).
+   */
+  is_closed: boolean;
+  /** Fields added by the API after this SDK was released. */
+  [extra: string]: unknown;
+}
+
+/**
+ * Row of `/v1/eth/defi`.
  */
 export interface EthDefi {
   /**
@@ -776,7 +853,7 @@ export interface EthDefi {
    * Relative change of `defi_health_ratio` (TVL / ETH market cap) over 30 days, percent. Unit:
    * percent (58.5 = 58.5 %).
    */
-  defi_health_change_30d_pct: number;
+  defi_health_change_30d_pct: number | null;
   /**
    * 30-day trend of `defi_health_ratio` (TVL / ETH market cap): `growing`, `declining` or
    * `stable`.
@@ -787,7 +864,55 @@ export interface EthDefi {
 }
 
 /**
- * Row of `/v1/eth/deflation`, `/v1/eth/deflation/history`.
+ * Row of `/v1/eth/defi/history`.
+ */
+export interface EthDefiHistoryItem {
+  /**
+   * The day, at midnight UTC; the value is the LAST measurement of that day. Unit: ISO 8601
+   * UTC, milliseconds (2026-09-28T14:00:00.000Z).
+   */
+  time: Date;
+  /**
+   * Total value locked in Ethereum DeFi. Unit: USD.
+   */
+  tvl_usd: number;
+  /**
+   * DEX volume over 24 h. Unit: USD.
+   */
+  dex_volume_24h_usd: number;
+  /**
+   * DEX volume over 7 days. Unit: USD.
+   */
+  dex_volume_7d_usd: number;
+  /**
+   * ETH market capitalisation. Unit: USD.
+   */
+  eth_market_cap_usd: number;
+  /**
+   * tvl_usd / eth_market_cap_usd. Unit: fraction (0.585 = 58.5 %).
+   */
+  defi_health_ratio: number;
+  /**
+   * Relative change of `defi_health_ratio` (TVL / ETH market cap) over 30 days, percent. Unit:
+   * percent (58.5 = 58.5 %).
+   */
+  defi_health_change_30d_pct: number | null;
+  /**
+   * 30-day trend of `defi_health_ratio` (TVL / ETH market cap): `growing`, `declining` or
+   * `stable`.
+   */
+  label: string;
+  /**
+   * `true` = the bucket is final and will never change; `false` = provisional (only with
+   * `?live=1`).
+   */
+  is_closed: boolean;
+  /** Fields added by the API after this SDK was released. */
+  [extra: string]: unknown;
+}
+
+/**
+ * Row of `/v1/eth/deflation`.
  */
 export interface EthDeflation {
   /**
@@ -798,16 +923,16 @@ export interface EthDeflation {
   /**
    * ETH burnt over the last 24 h. Unit: ETH.
    */
-  burn_24h: number;
+  burn_24h: number | null;
   /**
    * New ETH issued minus ETH burnt over 24 h. Negative = deflationary. Unit: ETH.
    */
-  net_issuance_24h: number;
+  net_issuance_24h: number | null;
   /**
    * Net issuance annualised, as a percent of supply. Negative = the supply shrinks. Unit:
    * percent (58.5 = 58.5 %).
    */
-  annualized_rate_pct: number;
+  annualized_rate_pct: number | null;
   /**
    * `deflationary` (24 h net issuance < 0) or `inflationary`.
    */
@@ -817,7 +942,42 @@ export interface EthDeflation {
 }
 
 /**
- * Row of `/v1/eth/gas`, `/v1/eth/gas/history`.
+ * Row of `/v1/eth/deflation/history`.
+ */
+export interface EthDeflationHistoryItem {
+  /**
+   * The day, at midnight UTC; the value is the LAST measurement of that day. Unit: ISO 8601
+   * UTC, milliseconds (2026-09-28T14:00:00.000Z).
+   */
+  time: Date;
+  /**
+   * ETH burnt over the last 24 h. Unit: ETH.
+   */
+  burn_24h: number | null;
+  /**
+   * New ETH issued minus ETH burnt over 24 h. Negative = deflationary. Unit: ETH.
+   */
+  net_issuance_24h: number | null;
+  /**
+   * Net issuance annualised, as a percent of supply. Negative = the supply shrinks. Unit:
+   * percent (58.5 = 58.5 %).
+   */
+  annualized_rate_pct: number | null;
+  /**
+   * `deflationary` (24 h net issuance < 0) or `inflationary`.
+   */
+  label: string;
+  /**
+   * `true` = the bucket is final and will never change; `false` = provisional (only with
+   * `?live=1`).
+   */
+  is_closed: boolean;
+  /** Fields added by the API after this SDK was released. */
+  [extra: string]: unknown;
+}
+
+/**
+ * Row of `/v1/eth/gas`.
  */
 export interface EthGas {
   /**
@@ -828,19 +988,19 @@ export interface EthGas {
   /**
    * Gas price for a low-priority transaction. Unit: gwei.
    */
-  safe_gas_price_gwei: number | null;
+  safe_gas_price_gwei: number;
   /**
    * Gas price for a standard transaction. Unit: gwei.
    */
-  propose_gas_price_gwei: number | null;
+  propose_gas_price_gwei: number;
   /**
    * Gas price for a fast transaction. Unit: gwei.
    */
-  fast_gas_price_gwei: number | null;
+  fast_gas_price_gwei: number;
   /**
    * EIP-1559 base fee (burnt). Unit: gwei.
    */
-  base_fee_gwei: number | null;
+  base_fee_gwei: number;
   /**
    * Block gas used / gas target over recent blocks. Unit: fraction (0.585 = 58.5 %).
    */
@@ -854,7 +1014,7 @@ export interface EthGas {
 }
 
 /**
- * Row of `/v1/eth/gas-momentum`, `/v1/eth/gas-momentum/history`.
+ * Row of `/v1/eth/gas-momentum`.
  */
 export interface EthGasMomentum {
   /**
@@ -865,7 +1025,7 @@ export interface EthGasMomentum {
   /**
    * EIP-1559 base fee (burnt). Unit: gwei.
    */
-  base_fee_gwei: number | null;
+  base_fee_gwei: number;
   /**
    * Block gas used / gas target over recent blocks. Unit: fraction (0.585 = 58.5 %).
    */
@@ -873,11 +1033,11 @@ export interface EthGasMomentum {
   /**
    * 7-day simple moving average of the base fee. Unit: gwei.
    */
-  gas_sma_7d_gwei: number | null;
+  gas_sma_7d_gwei: number;
   /**
    * 30-day simple moving average of the base fee. Unit: gwei.
    */
-  gas_sma_30d_gwei: number | null;
+  gas_sma_30d_gwei: number;
   /**
    * (7-day simple moving average - 30-day simple moving average) / 30-day average, percent.
    * Unit: percent (58.5 = 58.5 %).
@@ -893,7 +1053,93 @@ export interface EthGasMomentum {
 }
 
 /**
- * Row of `/v1/eth/ratio`, `/v1/eth/ratio/history`.
+ * Row of `/v1/eth/gas-momentum/history`.
+ */
+export interface EthGasMomentumHistoryItem {
+  /**
+   * The day, at midnight UTC; the value is the LAST measurement of that day. Unit: ISO 8601
+   * UTC, milliseconds (2026-09-28T14:00:00.000Z).
+   */
+  time: Date;
+  /**
+   * EIP-1559 base fee (burnt). Unit: gwei.
+   */
+  base_fee_gwei: number;
+  /**
+   * Block gas used / gas target over recent blocks. Unit: fraction (0.585 = 58.5 %).
+   */
+  gas_used_ratio: number;
+  /**
+   * 7-day simple moving average of the base fee. Unit: gwei.
+   */
+  gas_sma_7d_gwei: number;
+  /**
+   * 30-day simple moving average of the base fee. Unit: gwei.
+   */
+  gas_sma_30d_gwei: number;
+  /**
+   * (7-day simple moving average - 30-day simple moving average) / 30-day average, percent.
+   * Unit: percent (58.5 = 58.5 %).
+   */
+  sma_7d_vs_30d_pct: number;
+  /**
+   * `high_demand` (gas_used_ratio > 0.8 and sma_7d_vs_30d_pct > 0), `low_demand` (< 0.5 and
+   * sma_7d_vs_30d_pct < 0), otherwise `normal`.
+   */
+  label: string;
+  /**
+   * `true` = the bucket is final and will never change; `false` = provisional (only with
+   * `?live=1`).
+   */
+  is_closed: boolean;
+  /** Fields added by the API after this SDK was released. */
+  [extra: string]: unknown;
+}
+
+/**
+ * Row of `/v1/eth/gas/history`.
+ */
+export interface EthGasHistoryItem {
+  /**
+   * The day, at midnight UTC; the value is the LAST measurement of that day. Unit: ISO 8601
+   * UTC, milliseconds (2026-09-28T14:00:00.000Z).
+   */
+  time: Date;
+  /**
+   * Gas price for a low-priority transaction. Unit: gwei.
+   */
+  safe_gas_price_gwei: number;
+  /**
+   * Gas price for a standard transaction. Unit: gwei.
+   */
+  propose_gas_price_gwei: number;
+  /**
+   * Gas price for a fast transaction. Unit: gwei.
+   */
+  fast_gas_price_gwei: number;
+  /**
+   * EIP-1559 base fee (burnt). Unit: gwei.
+   */
+  base_fee_gwei: number;
+  /**
+   * Block gas used / gas target over recent blocks. Unit: fraction (0.585 = 58.5 %).
+   */
+  gas_used_ratio: number;
+  /**
+   * Congestion: `low` (gas_used_ratio < 0.5), `normal`, or `high` (> 0.8).
+   */
+  label: string;
+  /**
+   * `true` = the bucket is final and will never change; `false` = provisional (only with
+   * `?live=1`).
+   */
+  is_closed: boolean;
+  /** Fields added by the API after this SDK was released. */
+  [extra: string]: unknown;
+}
+
+/**
+ * Row of `/v1/eth/ratio`.
  */
 export interface EthRatio {
   /**
@@ -910,13 +1156,13 @@ export interface EthRatio {
    */
   btc_price_usd: number;
   /**
-   * ETH price / BTC price. Unit: BTC per ETH.
+   * ETH price in BTC (ETH price / BTC price). Unit: BTC.
    */
-  eth_btc_ratio: number;
+  eth_price_btc: number;
   /**
    * Relative change of the value over 7 days, percent. Unit: percent (58.5 = 58.5 %).
    */
-  change_7d_pct: number;
+  change_7d_pct: number | null;
   /**
    * 7-day momentum of ETH/BTC: `eth_outperform` (> 0), `btc_outperform` (< 0) or `neutral`.
    */
@@ -926,7 +1172,45 @@ export interface EthRatio {
 }
 
 /**
- * Row of `/v1/eth/squeeze`, `/v1/eth/squeeze/history`.
+ * Row of `/v1/eth/ratio/history`.
+ */
+export interface EthRatioHistoryItem {
+  /**
+   * The day, at midnight UTC; the value is the LAST measurement of that day. Unit: ISO 8601
+   * UTC, milliseconds (2026-09-28T14:00:00.000Z).
+   */
+  time: Date;
+  /**
+   * ETH price. Unit: USD.
+   */
+  eth_price_usd: number;
+  /**
+   * BTC price in USD at the time of the row (the source of the ETH/BTC ratio). Unit: USD.
+   */
+  btc_price_usd: number;
+  /**
+   * ETH price in BTC (ETH price / BTC price). Unit: BTC.
+   */
+  eth_price_btc: number;
+  /**
+   * Relative change of the value over 7 days, percent. Unit: percent (58.5 = 58.5 %).
+   */
+  change_7d_pct: number | null;
+  /**
+   * 7-day momentum of ETH/BTC: `eth_outperform` (> 0), `btc_outperform` (< 0) or `neutral`.
+   */
+  label: string;
+  /**
+   * `true` = the bucket is final and will never change; `false` = provisional (only with
+   * `?live=1`).
+   */
+  is_closed: boolean;
+  /** Fields added by the API after this SDK was released. */
+  [extra: string]: unknown;
+}
+
+/**
+ * Row of `/v1/eth/squeeze`.
  */
 export interface EthSqueeze {
   /**
@@ -942,7 +1226,7 @@ export interface EthSqueeze {
    * Net issuance annualised, as a percent of supply. Negative = the supply shrinks. Unit:
    * percent (58.5 = 58.5 %).
    */
-  annualized_rate_pct: number;
+  annualized_rate_pct: number | null;
   /**
    * Supply squeeze index: combines the staked share and net issuance. Higher = less liquid ETH
    * available. Unit: score from 0 to 100.
@@ -957,7 +1241,43 @@ export interface EthSqueeze {
 }
 
 /**
- * Row of `/v1/eth/staking`, `/v1/eth/staking/history`.
+ * Row of `/v1/eth/squeeze/history`.
+ */
+export interface EthSqueezeHistoryItem {
+  /**
+   * The day, at midnight UTC; the value is the LAST measurement of that day. Unit: ISO 8601
+   * UTC, milliseconds (2026-09-28T14:00:00.000Z).
+   */
+  time: Date;
+  /**
+   * Share of the ETH supply staked. Unit: fraction (0.585 = 58.5 %).
+   */
+  staking_ratio: number | null;
+  /**
+   * Net issuance annualised, as a percent of supply. Negative = the supply shrinks. Unit:
+   * percent (58.5 = 58.5 %).
+   */
+  annualized_rate_pct: number | null;
+  /**
+   * Supply squeeze index: combines the staked share and net issuance. Higher = less liquid ETH
+   * available. Unit: score from 0 to 100.
+   */
+  squeeze_index: number | null;
+  /**
+   * `low` (< 33), `moderate` (>= 33), `high` (>= 66).
+   */
+  label: string;
+  /**
+   * `true` = the bucket is final and will never change; `false` = provisional (only with
+   * `?live=1`).
+   */
+  is_closed: boolean;
+  /** Fields added by the API after this SDK was released. */
+  [extra: string]: unknown;
+}
+
+/**
+ * Row of `/v1/eth/staking`.
  */
 export interface EthStaking {
   /**
@@ -986,7 +1306,41 @@ export interface EthStaking {
 }
 
 /**
- * Row of `/v1/eth/supply`, `/v1/eth/supply/history`.
+ * Row of `/v1/eth/staking/history`.
+ */
+export interface EthStakingHistoryItem {
+  /**
+   * The day, at midnight UTC; the value is the LAST measurement of that day. Unit: ISO 8601
+   * UTC, milliseconds (2026-09-28T14:00:00.000Z).
+   */
+  time: Date;
+  /**
+   * Share of the ETH supply staked. Unit: fraction (0.585 = 58.5 %).
+   */
+  staking_ratio: number | null;
+  /**
+   * ETH staked (beacon chain). Unit: ETH.
+   */
+  total_staked: number | null;
+  /**
+   * Total coins issued (circulating + locked), net of burns. Unit: coins.
+   */
+  total_supply: number | null;
+  /**
+   * Annualised rate in percent. Unit: percent (58.5 = 58.5 %).
+   */
+  apr_pct: number;
+  /**
+   * `true` = the bucket is final and will never change; `false` = provisional (only with
+   * `?live=1`).
+   */
+  is_closed: boolean;
+  /** Fields added by the API after this SDK was released. */
+  [extra: string]: unknown;
+}
+
+/**
+ * Row of `/v1/eth/supply`.
  */
 export interface EthSupply {
   /**
@@ -995,14 +1349,16 @@ export interface EthSupply {
    */
   time: Date;
   /**
-   * ETH supply reported by the source. Unit: ETH.
+   * Cumulative execution-layer issuance (genesis + proof-of-work rewards before the Merge), as
+   * published by Etherscan. NOT the supply: `total_supply` = this +
+   * `consensus_rewards_cumulative` - `burnt_fees` (was `eth_supply`). Unit: ETH.
    */
-  eth_supply: number;
+  execution_issuance_cumulative: number;
   /**
    * Cumulative consensus-layer issuance (staking rewards) since the Beacon Chain launch. NOT
    * the ETH staked: see `total_staked` on `/v1/eth/staking`. Unit: ETH.
    */
-  consensus_rewards_cumulative: number | null;
+  consensus_rewards_cumulative: number;
   /**
    * ETH burnt since EIP-1559. Unit: ETH.
    */
@@ -1018,11 +1374,11 @@ export interface EthSupply {
   /**
    * ETH burnt over the last 24 h. Unit: ETH.
    */
-  burn_24h: number;
+  burn_24h: number | null;
   /**
    * New ETH issued minus ETH burnt over 24 h. Negative = deflationary. Unit: ETH.
    */
-  net_issuance_24h: number;
+  net_issuance_24h: number | null;
   /**
    * `deflationary` (24 h net issuance < 0), `inflationary` (> 0) or `neutral`.
    */
@@ -1032,7 +1388,60 @@ export interface EthSupply {
 }
 
 /**
- * Row of `/v1/fear-greed`, `/v1/fear-greed/history`.
+ * Row of `/v1/eth/supply/history`.
+ */
+export interface EthSupplyHistoryItem {
+  /**
+   * The day, at midnight UTC; the value is the LAST measurement of that day. Unit: ISO 8601
+   * UTC, milliseconds (2026-09-28T14:00:00.000Z).
+   */
+  time: Date;
+  /**
+   * Cumulative execution-layer issuance (genesis + proof-of-work rewards before the Merge), as
+   * published by Etherscan. NOT the supply: `total_supply` = this +
+   * `consensus_rewards_cumulative` - `burnt_fees` (was `eth_supply`). Unit: ETH.
+   */
+  execution_issuance_cumulative: number;
+  /**
+   * Cumulative consensus-layer issuance (staking rewards) since the Beacon Chain launch. NOT
+   * the ETH staked: see `total_staked` on `/v1/eth/staking`. Unit: ETH.
+   */
+  consensus_rewards_cumulative: number;
+  /**
+   * ETH burnt since EIP-1559. Unit: ETH.
+   */
+  burnt_fees: number;
+  /**
+   * ETH withdrawn from staking. Unit: ETH.
+   */
+  withdrawn_total: number;
+  /**
+   * Total coins issued (circulating + locked), net of burns. Unit: coins.
+   */
+  total_supply: number | null;
+  /**
+   * ETH burnt over the last 24 h. Unit: ETH.
+   */
+  burn_24h: number | null;
+  /**
+   * New ETH issued minus ETH burnt over 24 h. Negative = deflationary. Unit: ETH.
+   */
+  net_issuance_24h: number | null;
+  /**
+   * `deflationary` (24 h net issuance < 0), `inflationary` (> 0) or `neutral`.
+   */
+  label: string;
+  /**
+   * `true` = the bucket is final and will never change; `false` = provisional (only with
+   * `?live=1`).
+   */
+  is_closed: boolean;
+  /** Fields added by the API after this SDK was released. */
+  [extra: string]: unknown;
+}
+
+/**
+ * Row of `/v1/fear-greed`.
  */
 export interface FearGreed {
   /**
@@ -1055,7 +1464,35 @@ export interface FearGreed {
 }
 
 /**
- * Row of `/v1/funding/cumulative`, `/v1/funding/cumulative/history`.
+ * Row of `/v1/fear-greed/history`.
+ */
+export interface FearGreedHistoryItem {
+  /**
+   * The day the value refers to, at midnight UTC. Unit: ISO 8601 UTC, milliseconds
+   * (2026-09-28T14:00:00.000Z).
+   */
+  time: Date;
+  /**
+   * Crypto Fear & Greed Index (alternative.me). 0 = extreme fear, 100 = extreme greed. Unit:
+   * score from 0 to 100.
+   */
+  value: number;
+  /**
+   * Label of the value, from alternative.me's scale: `extreme_fear`, `fear`, `neutral`, `greed`
+   * or `extreme_greed` (snake_case, like every label of the API).
+   */
+  label: string;
+  /**
+   * `true` = the bucket is final and will never change; `false` = provisional (only with
+   * `?live=1`).
+   */
+  is_closed: boolean;
+  /** Fields added by the API after this SDK was released. */
+  [extra: string]: unknown;
+}
+
+/**
+ * Row of `/v1/funding/cumulative`.
  */
 export interface FundingCumulative {
   /**
@@ -1072,12 +1509,14 @@ export interface FundingCumulative {
   /**
    * Length of the window, in seconds (86400 = 24 hours). Unit: seconds.
    */
-  window_s: number | null;
+  window_s: number;
   /**
-   * Sum of the last three settled 8-hour funding rates (24 h), in percent. Unit: percent (58.5
-   * = 58.5 %).
+   * Sum of the last three settled 8-hour funding rates — a ROLLING 24-hour window — in percent.
+   * A row is published every 8 hours and covers 24: consecutive rows OVERLAP by 16 hours, so
+   * never add them up (sum `rate_pct` of `/v1/funding/rate/history` instead). Unit: percent
+   * (58.5 = 58.5 %).
    */
-  cumulative_rate_pct: number | null;
+  rolling_24h_rate_pct: number;
   /**
    * Annualised rate in percent. Unit: percent (58.5 = 58.5 %).
    */
@@ -1086,6 +1525,49 @@ export interface FundingCumulative {
    * Number of 8-hour funding windows summed. Unit: count.
    */
   sample_count: number;
+  /** Fields added by the API after this SDK was released. */
+  [extra: string]: unknown;
+}
+
+/**
+ * Row of `/v1/funding/cumulative/history`.
+ */
+export interface FundingCumulativeHistoryItem {
+  /**
+   * END of each 24-hour window (the settlement that closes its last 8-hour period). The window
+   * starts at `window_start` and lasts `window_s`. Unit: ISO 8601 UTC, milliseconds
+   * (2026-09-28T14:00:00.000Z).
+   */
+  time: Date;
+  /**
+   * Start of the 24-hour window summed (inclusive). Unit: ISO 8601 UTC, milliseconds
+   * (2026-09-28T14:00:00.000Z).
+   */
+  window_start: Date;
+  /**
+   * Length of the window, in seconds (86400 = 24 hours). Unit: seconds.
+   */
+  window_s: number;
+  /**
+   * Sum of the last three settled 8-hour funding rates — a ROLLING 24-hour window — in percent.
+   * A row is published every 8 hours and covers 24: consecutive rows OVERLAP by 16 hours, so
+   * never add them up (sum `rate_pct` of `/v1/funding/rate/history` instead). Unit: percent
+   * (58.5 = 58.5 %).
+   */
+  rolling_24h_rate_pct: number;
+  /**
+   * Annualised rate in percent. Unit: percent (58.5 = 58.5 %).
+   */
+  apr_pct: number;
+  /**
+   * Number of 8-hour funding windows summed. Unit: count.
+   */
+  sample_count: number;
+  /**
+   * `true` = the bucket is final and will never change; `false` = provisional (only with
+   * `?live=1`).
+   */
+  is_closed: boolean;
   /** Fields added by the API after this SDK was released. */
   [extra: string]: unknown;
 }
@@ -1103,7 +1585,7 @@ export interface FundingNext {
    * Venue forecast of the NEXT funding settlement, in percent per 8 h (0.01 = 0.01 %),
    * normalised to 8 h, OI-weighted. Unit: percent (58.5 = 58.5 %).
    */
-  estimated_rate_pct: number | null;
+  estimated_rate_pct: number;
   /**
    * Annualised rate in percent. Unit: percent (58.5 = 58.5 %).
    */
@@ -1113,10 +1595,6 @@ export interface FundingNext {
    * published yet).
    */
   is_past: boolean;
-  /**
-   * Number of venues that contributed to the value. Unit: count.
-   */
-  venue_count?: number | null;
   /** Fields added by the API after this SDK was released. */
   [extra: string]: unknown;
 }
@@ -1146,15 +1624,11 @@ export interface FundingRate {
    * Settled funding rate of the 8-hour period, in percent (0.01 = 0.01 % per 8 h), normalised
    * to 8 h and open-interest weighted across venues. Unit: percent (58.5 = 58.5 %).
    */
-  rate_pct: number | null;
+  rate_pct: number;
   /**
    * Annualised rate in percent. Unit: percent (58.5 = 58.5 %).
    */
   apr_pct: number;
-  /**
-   * Number of venues that contributed to the value. Unit: count.
-   */
-  venue_count?: number | null;
   /**
    * `true` = the bucket is final and will never change; `false` = provisional (only with
    * `?live=1`).
@@ -1165,7 +1639,7 @@ export interface FundingRate {
 }
 
 /**
- * Row of `/v1/global`, `/v1/global/history`.
+ * Row of `/v1/global`.
  */
 export interface GlobalMarket {
   /**
@@ -1203,6 +1677,61 @@ export interface GlobalMarket {
 }
 
 /**
+ * Row of `/v1/global/history`.
+ */
+export interface GlobalHistoryItem {
+  /**
+   * The instant the source states for each measurement. Unit: ISO 8601 UTC, milliseconds
+   * (2026-09-28T14:00:00.000Z).
+   */
+  time: Date;
+  /**
+   * Total crypto market capitalisation. Unit: USD.
+   */
+  total_market_cap_usd: number;
+  /**
+   * Total crypto trading volume over 24 h. Unit: USD.
+   */
+  total_volume_usd: number;
+  /**
+   * Bitcoin share of the total market cap. Unit: percent (58.5 = 58.5 %).
+   */
+  btc_dominance_pct: number;
+  /**
+   * Ether share of the total market cap. Unit: percent (58.5 = 58.5 %).
+   */
+  eth_dominance_pct: number;
+  /**
+   * Share of every other asset. Unit: percent (58.5 = 58.5 %).
+   */
+  others_dominance_pct: number;
+  /**
+   * Number of tracked crypto assets. Unit: count.
+   */
+  active_cryptocurrency_count: number;
+  /**
+   * `true` = the bucket is final and will never change; `false` = provisional (only with
+   * `?live=1`).
+   */
+  is_closed: boolean;
+  /** Fields added by the API after this SDK was released. */
+  [extra: string]: unknown;
+}
+
+/**
+ * Row of `/v1/health`.
+ */
+export interface Health {
+  /**
+   * `connected` when the service reaches its database. A failing check answers 503
+   * `service_unavailable` with `database` in the error body.
+   */
+  database: string;
+  /** Fields added by the API after this SDK was released. */
+  [extra: string]: unknown;
+}
+
+/**
  * Row of `/v1/heatmap/clusters`.
  */
 export interface HeatmapClusters {
@@ -1220,7 +1749,7 @@ export interface HeatmapClusters {
    * Distance from the price to the cluster above, as a fraction of the price (0.037 = 3.7 %
    * higher). Unit: fraction (0.585 = 58.5 %).
    */
-  dist_up: number;
+  dist_up_ratio: number;
   /**
    * Estimated liquidation density of the most attractive cluster BELOW the price (long
    * positions). Unit: dimensionless score.
@@ -1230,15 +1759,15 @@ export interface HeatmapClusters {
    * Distance from the price to the cluster below, as a fraction of the price. Unit: fraction
    * (0.585 = 58.5 %).
    */
-  dist_down: number;
+  dist_down_ratio: number;
   /**
-   * density_up / dist_up²: how strongly the cluster above pulls the price. Unit: dimensionless
-   * score.
+   * density_up / dist_up_ratio²: how strongly the cluster above pulls the price. Unit:
+   * dimensionless score.
    */
   attraction_up: number;
   /**
-   * density_down / dist_down²: how strongly the cluster below pulls the price. Compare with
-   * attraction_up. Unit: dimensionless score.
+   * density_down / dist_down_ratio²: how strongly the cluster below pulls the price. Compare
+   * with attraction_up. Unit: dimensionless score.
    */
   attraction_down: number;
   /** Fields added by the API after this SDK was released. */
@@ -1248,7 +1777,7 @@ export interface HeatmapClusters {
 /**
  * Row of `/v1/heatmap/clusters/history`.
  */
-export interface HeatmapClustersHistory {
+export interface HeatmapClustersHistoryItem {
   /**
    * Without `timeframe`: the instant of the one-minute measurement. With `timeframe`: start of
    * the bucket, the value aggregating the bucket's minutes. Unit: ISO 8601 UTC, milliseconds
@@ -1264,7 +1793,7 @@ export interface HeatmapClustersHistory {
    * Distance from the price to the cluster above, as a fraction of the price (0.037 = 3.7 %
    * higher). Unit: fraction (0.585 = 58.5 %).
    */
-  dist_up: number;
+  dist_up_ratio: number;
   /**
    * Estimated liquidation density of the most attractive cluster BELOW the price (long
    * positions). Unit: dimensionless score.
@@ -1274,15 +1803,15 @@ export interface HeatmapClustersHistory {
    * Distance from the price to the cluster below, as a fraction of the price. Unit: fraction
    * (0.585 = 58.5 %).
    */
-  dist_down: number;
+  dist_down_ratio: number;
   /**
-   * density_up / dist_up²: how strongly the cluster above pulls the price. Unit: dimensionless
-   * score.
+   * density_up / dist_up_ratio²: how strongly the cluster above pulls the price. Unit:
+   * dimensionless score.
    */
   attraction_up: number;
   /**
-   * density_down / dist_down²: how strongly the cluster below pulls the price. Compare with
-   * attraction_up. Unit: dimensionless score.
+   * density_down / dist_down_ratio²: how strongly the cluster below pulls the price. Compare
+   * with attraction_up. Unit: dimensionless score.
    */
   attraction_down: number;
   /**
@@ -1310,20 +1839,44 @@ export interface Kline {
   /**
    * Opening price of the candle. Unit: quote currency (USDT for BTCUSDT).
    */
-  open: number | null;
+  open: number;
   /**
    * Highest price of the candle. Unit: quote currency (USDT for BTCUSDT).
    */
-  high: number | null;
+  high: number;
   /**
    * Lowest price of the candle. Unit: quote currency (USDT for BTCUSDT).
    */
-  low: number | null;
+  low: number;
   /**
    * Closing price of the candle (last price for the open candle). Unit: quote currency (USDT
    * for BTCUSDT).
    */
-  close: number | null;
+  close: number;
+  /**
+   * Traded volume over the row, base asset units (BTC for BTCUSDT, NOT dollars), aggregated
+   * across venues, ALL the markets of the route: spot + perpetual futures on `/v1/klines` and
+   * `/v1/trades-kline` (a name without a market suffix covers every market; `volume_spot` /
+   * `volume_futures` restrict). `null` when a market is not available (never a partial sum).
+   * Unit: base asset quantity (BTC for BTCUSDT).
+   */
+  volume: number | null;
+  /**
+   * Aggressive (taker) buy volume, base asset units, aggregated across venues. Unit: base asset
+   * quantity (BTC for BTCUSDT).
+   */
+  buy_volume: number | null;
+  /**
+   * Aggressive (taker) sell volume, base asset units, aggregated across venues. Unit: base
+   * asset quantity (BTC for BTCUSDT).
+   */
+  sell_volume: number | null;
+  /**
+   * `true` when base-asset quantities of this row were ESTIMATED from USD amounts ÷ the
+   * candle's typical price (high + low + close) / 3 (data written before quantities were
+   * recorded; mean error 0.04 % in 1m, 0.37 % in 1d); `false` = measured.
+   */
+  is_volume_estimated: boolean;
   /**
    * Volume traded on the SPOT market, summed across venues, base asset units. `null` while not
    * available yet (never a partial sum). Unit: base asset quantity (BTC for BTCUSDT).
@@ -1351,15 +1904,135 @@ export interface Kline {
    */
   volume_futures: number | null;
   /**
+   * Aggressive (taker) buy volume on PERPETUAL FUTURES, across venues. Unit: base asset
+   * quantity (BTC for BTCUSDT).
+   */
+  buy_volume_futures: number | null;
+  /**
+   * Aggressive (taker) sell volume on PERPETUAL FUTURES, across venues. Unit: base asset
+   * quantity (BTC for BTCUSDT).
+   */
+  sell_volume_futures: number | null;
+  /**
    * `true` when `volume_futures` was ESTIMATED from USD amounts and the candle's typical price;
    * `false` = measured.
    */
   is_volume_futures_estimated: boolean;
   /**
-   * Spot + perpetual futures volume (`volume_spot` + `volume_futures`), base asset units.
-   * `null` when either is not available. Unit: base asset quantity (BTC for BTCUSDT).
+   * `true` = the bucket is final and will never change; `false` = provisional (only with
+   * `?live=1`).
    */
-  volume_total: number | null;
+  is_closed: boolean;
+  /** Fields added by the API after this SDK was released. */
+  [extra: string]: unknown;
+}
+
+/**
+ * Nested object (LimitsHistoryItem).
+ */
+export interface LimitsHistoryItem {
+  /**
+   * The timeframe the window applies to.
+   */
+  timeframe: string;
+  /**
+   * How far back this timeframe may be read, in minutes, measured from now; `null` = unlimited.
+   * Beyond it: 403 `history_depth`. Unit: minutes.
+   */
+  window_minutes: number | null;
+  /** Fields added by the API after this SDK was released. */
+  [extra: string]: unknown;
+}
+
+/**
+ * The per-minute rate, as a token bucket; `null` = unlimited or unmetered key. The same values
+ * as the `RateLimit` headers (`debit` policy).
+ */
+export interface LimitsRate {
+  /**
+   * Capacity of the bucket: requests you can send at once. Unit: count.
+   */
+  burst: number | null;
+  /**
+   * Seconds to refill the bucket from empty. Unit: seconds.
+   */
+  refill_s: number | null;
+  /**
+   * Requests left right now (after this one). Unit: count.
+   */
+  remaining: number | null;
+  /**
+   * Seconds until fully restored. Unit: seconds.
+   */
+  reset_s: number | null;
+  /** Fields added by the API after this SDK was released. */
+  [extra: string]: unknown;
+}
+
+/**
+ * The monthly quota; `null` = unlimited or unmetered key. The same values as the `RateLimit`
+ * headers (`mensuel` policy). It resets on the 1st of the month, 00:00 UTC.
+ */
+export interface LimitsQuota {
+  /**
+   * Requests included per calendar month. Unit: count.
+   */
+  monthly: number | null;
+  /**
+   * Length of the current calendar month, in seconds. Unit: seconds.
+   */
+  month_length_s: number | null;
+  /**
+   * Requests left right now (after this one). Unit: count.
+   */
+  remaining: number | null;
+  /**
+   * Seconds until fully restored. Unit: seconds.
+   */
+  reset_s: number | null;
+  /** Fields added by the API after this SDK was released. */
+  [extra: string]: unknown;
+}
+
+/**
+ * Row of `/v1/limits`.
+ */
+export interface Limits {
+  /**
+   * Your plan: `free`, `traders`, `financial`, `startup` or `enterprise` (`legacy` for an
+   * internal unmetered key, whose limits are all `null`).
+   */
+  plan: string;
+  /**
+   * Data families your plan includes (`price_volume`, `derivatives`, `microstructure`, `ticks`,
+   * `snapshot`, `indicators`, `macro`, `options`, `onchain`, `etf`, `tokenomics`, `sentiment`);
+   * `null` = all of them. A route outside them answers 403 `plan_family`.
+   */
+  families: Array<string>;
+  /**
+   * History window per timeframe, one object per timeframe the API serves.
+   */
+  history: Array<LimitsHistoryItem>;
+  /**
+   * How far back individual trades (`/v1/trades/*`) may be read, in minutes; `null` = unlimited
+   * or not in your plan (see `families`). Unit: minutes.
+   */
+  ticks_window_minutes: number | string | null;
+  /**
+   * How many of the most recent individual liquidations `/v1/liquidations/events` may return;
+   * `null` = unlimited. Unit: count.
+   */
+  liquidation_events: number | null;
+  /**
+   * The per-minute rate, as a token bucket; `null` = unlimited or unmetered key. The same
+   * values as the `RateLimit` headers (`debit` policy).
+   */
+  rate: LimitsRate;
+  /**
+   * The monthly quota; `null` = unlimited or unmetered key. The same values as the `RateLimit`
+   * headers (`mensuel` policy). It resets on the 1st of the month, 00:00 UTC.
+   */
+  quota: LimitsQuota;
   /** Fields added by the API after this SDK was released. */
   [extra: string]: unknown;
 }
@@ -1394,7 +2067,7 @@ export interface LiquidationsCumulative {
    * Length of the rolling window, in seconds (300 = 5 minutes). The window ends at
    * `window_start + window_s` (= `time` on the latest value). Unit: seconds.
    */
-  window_s: number | null;
+  window_s: number;
   /** Fields added by the API after this SDK was released. */
   [extra: string]: unknown;
 }
@@ -1402,11 +2075,10 @@ export interface LiquidationsCumulative {
 /**
  * Row of `/v1/liquidations/cumulative/history`.
  */
-export interface LiquidationsCumulativeHistory {
+export interface LiquidationsCumulativeHistoryItem {
   /**
-   * Without `timeframe`: end of the 5-minute window. With `timeframe`: start of the bucket —
-   * the value is the bucket's LAST window, which starts at `window_start` and lasts `window_s`.
-   * Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).
+   * Start of the bucket. The row covers the WHOLE bucket, from `time` to `time + window_s`
+   * (excluded). Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).
    */
   time: Date;
   /**
@@ -1431,15 +2103,14 @@ export interface LiquidationsCumulativeHistory {
    */
   is_closed: boolean;
   /**
-   * Start of the rolling window the value covers (inclusive). The window is aligned on the
-   * minute. Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).
+   * Start of the bucket the totals cover (= `time`). Unit: ISO 8601 UTC, milliseconds
+   * (2026-09-28T14:00:00.000Z).
    */
   window_start: Date;
   /**
-   * Length of the rolling window, in seconds (300 = 5 minutes). The window ends at
-   * `window_start + window_s` (= `time` on the latest value). Unit: seconds.
+   * Length of the bucket, in seconds (3600 for `1h`). Unit: seconds.
    */
-  window_s: number | null;
+  window_s: number;
   /** Fields added by the API after this SDK was released. */
   [extra: string]: unknown;
 }
@@ -1460,16 +2131,16 @@ export interface LiquidationEvent {
   /**
    * Price. Unit: quote currency (USDT for BTCUSDT).
    */
-  price: number | null;
+  price: number;
   /**
    * Quantity traded or liquidated, in base asset units. Unit: base asset quantity (BTC for
    * BTCUSDT).
    */
-  quantity: number | null;
+  quantity: number;
   /**
    * Notional value: price × quantity. Unit: USD.
    */
-  usd_value: number | null;
+  value_usd: number;
   /** Fields added by the API after this SDK was released. */
   [extra: string]: unknown;
 }
@@ -1479,8 +2150,9 @@ export interface LiquidationEvent {
  */
 export interface LiquidationsRatio {
   /**
-   * Point-in-time value: the instant of the measurement of the latest one-minute window. Unit:
-   * ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).
+   * Start of the latest CLOSED minute that had at least one liquidation — the same row as the
+   * first one of `/v1/liquidations/ratio/history?timeframe=1m`. Unit: ISO 8601 UTC,
+   * milliseconds (2026-09-28T14:00:00.000Z).
    */
   time: Date;
   /**
@@ -1504,6 +2176,16 @@ export interface LiquidationsRatio {
    * USD or more. `null` when small_usd is 0. Unit: big / small.
    */
   ratio: number | null;
+  /**
+   * Start of the rolling window the value covers (inclusive). The window is aligned on the
+   * minute. Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).
+   */
+  window_start: Date;
+  /**
+   * Length of the rolling window, in seconds (300 = 5 minutes). The window ends at
+   * `window_start + window_s` (= `time` on the latest value). Unit: seconds.
+   */
+  window_s: number;
   /** Fields added by the API after this SDK was released. */
   [extra: string]: unknown;
 }
@@ -1511,7 +2193,7 @@ export interface LiquidationsRatio {
 /**
  * Row of `/v1/liquidations/ratio/history`.
  */
-export interface LiquidationsRatioHistory {
+export interface LiquidationsRatioHistoryItem {
   /**
    * Without `timeframe`: the instant of the one-minute measurement. With `timeframe`: start of
    * the bucket, the value aggregating the bucket's minutes. Unit: ISO 8601 UTC, milliseconds
@@ -1540,7 +2222,7 @@ export interface LiquidationsRatioHistory {
    */
   ratio: number | null;
   /**
-   * Number of source points behind the value (one-minute points in a bucket). Unit: count.
+   * Minutes of the bucket that had at least one liquidation. Unit: count.
    */
   sample_count: number;
   /**
@@ -1555,7 +2237,7 @@ export interface LiquidationsRatioHistory {
 /**
  * Row of `/v1/macro`.
  */
-export interface MacroObservation {
+export interface Macro {
   /**
    * The day of the observation, at midnight UTC. Unit: ISO 8601 UTC, milliseconds
    * (2026-09-28T14:00:00.000Z).
@@ -1863,7 +2545,7 @@ export interface MacroCorrelations {
 /**
  * Row of `/v1/macro/history`.
  */
-export interface MacroObservationHistory {
+export interface MacroHistoryItem {
   /**
    * The day of the observation, at midnight UTC. Unit: ISO 8601 UTC, milliseconds
    * (2026-09-28T14:00:00.000Z).
@@ -1873,6 +2555,11 @@ export interface MacroObservationHistory {
    * Value of the series on the day of `time`. Unit: see the series `units`.
    */
   value: number;
+  /**
+   * `true` = the bucket is final and will never change; `false` = provisional (only with
+   * `?live=1`).
+   */
+  is_closed: boolean;
   /** Fields added by the API after this SDK was released. */
   [extra: string]: unknown;
 }
@@ -1880,7 +2567,7 @@ export interface MacroObservationHistory {
 /**
  * Row of `/v1/macro/intraday/history`.
  */
-export interface MacroIntradayCandle {
+export interface MacroIntraday {
   /**
    * Start of the bucket the row covers: a 1h bucket at 14:00 covers 14:00:00 to 14:59:59.999.
    * Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).
@@ -1889,24 +2576,29 @@ export interface MacroIntradayCandle {
   /**
    * Open. Unit: series unit.
    */
-  open: number | null;
+  open: number;
   /**
    * High. Unit: series unit.
    */
-  high: number | null;
+  high: number;
   /**
    * Low. Unit: series unit.
    */
-  low: number | null;
+  low: number;
   /**
    * Close. Unit: series unit.
    */
-  close: number | null;
+  close: number;
   /**
    * Volume reported by the source for this instrument (not the whole market). Unit: see
    * `volume_kind`.
    */
   volume: number | null;
+  /**
+   * `true` = the bucket is final and will never change; `false` = provisional (only with
+   * `?live=1`).
+   */
+  is_closed: boolean;
   /** Fields added by the API after this SDK was released. */
   [extra: string]: unknown;
 }
@@ -1914,7 +2606,7 @@ export interface MacroIntradayCandle {
 /**
  * Last candle available, per timeframe.
  */
-export interface MacroIntradaySeriesLastCandleAt {
+export interface MacroIntradaySeriesInfoLastCandleAt {
   "1m": Date;
   "5m": Date;
   "15m": Date;
@@ -1928,7 +2620,7 @@ export interface MacroIntradaySeriesLastCandleAt {
 /**
  * Row of `/v1/macro/intraday/series`.
  */
-export interface MacroIntradaySeries {
+export interface MacroIntradaySeriesInfo {
   /**
    * Series identifier.
    */
@@ -1970,7 +2662,7 @@ export interface MacroIntradaySeries {
    * Last candle available, per timeframe. Unit: ISO 8601 UTC, milliseconds
    * (2026-09-28T14:00:00.000Z).
    */
-  last_candle_at: MacroIntradaySeriesLastCandleAt;
+  last_candle_at: MacroIntradaySeriesInfoLastCandleAt;
   /** Fields added by the API after this SDK was released. */
   [extra: string]: unknown;
 }
@@ -2101,15 +2793,15 @@ export interface MacroNetLiquidity {
   /**
    * Fed total assets (WALCL), as known on that day. Unit: USD.
    */
-  walcl_usd: number | null;
+  walcl_usd: number;
   /**
    * Treasury General Account (WTREGEN), as known on that day. Unit: USD.
    */
-  tga_usd: number | null;
+  tga_usd: number;
   /**
    * Overnight reverse repo (RRPONTSYD) of that day. Unit: USD.
    */
-  rrp_usd: number | null;
+  rrp_usd: number;
   /**
    * Observation day of the WALCL value used (weekly series). Unit: calendar date (YYYY-MM-DD).
    */
@@ -2125,7 +2817,7 @@ export interface MacroNetLiquidity {
 /**
  * Row of `/v1/macro/net-liquidity/history`.
  */
-export interface MacroNetLiquidityHistory {
+export interface MacroNetLiquidityHistoryItem {
   /**
    * The day the value refers to, at midnight UTC. Unit: ISO 8601 UTC, milliseconds
    * (2026-09-28T14:00:00.000Z).
@@ -2135,19 +2827,19 @@ export interface MacroNetLiquidityHistory {
    * Fed balance sheet (WALCL) - Treasury General Account (TGA) - overnight reverse repo (ON
    * RRP), in USD. Unit: USD.
    */
-  net_liquidity_usd: number | null;
+  net_liquidity_usd: number;
   /**
    * Fed total assets (WALCL), as known on that day. Unit: USD.
    */
-  walcl_usd: number | null;
+  walcl_usd: number;
   /**
    * Treasury General Account (WTREGEN), as known on that day. Unit: USD.
    */
-  tga_usd: number | null;
+  tga_usd: number;
   /**
    * Overnight reverse repo (RRPONTSYD) of that day. Unit: USD.
    */
-  rrp_usd: number | null;
+  rrp_usd: number;
   /**
    * Observation day of the WALCL value used (weekly series). Unit: calendar date (YYYY-MM-DD).
    */
@@ -2156,6 +2848,11 @@ export interface MacroNetLiquidityHistory {
    * Observation day of the TGA value used (weekly series). Unit: calendar date (YYYY-MM-DD).
    */
   tga_date: string;
+  /**
+   * `true` = the bucket is final and will never change; `false` = provisional (only with
+   * `?live=1`).
+   */
+  is_closed: boolean;
   /** Fields added by the API after this SDK was released. */
   [extra: string]: unknown;
 }
@@ -2306,7 +3003,7 @@ export interface MacroRiskContext {
   /**
    * 10-year minus 2-year US Treasury yield. Unit: percentage points.
    */
-  yield_curve_10y2y_pp: number | null;
+  yield_curve_10y2y_pp: number;
   /**
    * S&P 500. Unit: index points.
    */
@@ -2318,11 +3015,11 @@ export interface MacroRiskContext {
   /**
    * Gold price. Unit: USD per troy ounce.
    */
-  gold_usd: number | null;
+  gold_usd: number;
   /**
    * Gold price seven days earlier. Unit: USD per troy ounce.
    */
-  gold_7d_ago_usd: number | null;
+  gold_7d_ago_usd: number;
   /** Fields added by the API after this SDK was released. */
   [extra: string]: unknown;
 }
@@ -2377,7 +3074,7 @@ export interface MacroRisk {
 /**
  * Row of `/v1/macro/series`.
  */
-export interface MacroSeries {
+export interface MacroSeriesInfo {
   /**
    * The day of the latest observation of the series, at midnight UTC. Unit: ISO 8601 UTC,
    * milliseconds (2026-09-28T14:00:00.000Z).
@@ -2412,6 +3109,25 @@ export interface MacroSeries {
 }
 
 /**
+ * Row of `/v1/oi`.
+ */
+export interface Oi {
+  /**
+   * Point-in-time value: the instant of the latest reading summed (the same as `/v1/oi/delta`).
+   * Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).
+   */
+  time: Date;
+  /**
+   * Total open interest across venues, base asset units. On a bucketed row, the value at the
+   * END of the bucket (like a close); on `/v1/oi/delta`, the latest measurement. Unit: base
+   * asset quantity (BTC for BTCUSDT).
+   */
+  oi: number;
+  /** Fields added by the API after this SDK was released. */
+  [extra: string]: unknown;
+}
+
+/**
  * Row of `/v1/oi/delta`.
  */
 export interface OiDelta {
@@ -2421,23 +3137,34 @@ export interface OiDelta {
    */
   time: Date;
   /**
-   * Total open interest across venues at the end of the window, base asset units. Unit: base
+   * Total open interest across venues, base asset units. On a bucketed row, the value at the
+   * END of the bucket (like a close); on `/v1/oi/delta`, the latest measurement. Unit: base
    * asset quantity (BTC for BTCUSDT).
    */
-  oi_current: number;
+  oi: number;
   /**
    * Total open interest at the start of the window. Unit: base asset quantity (BTC for
    * BTCUSDT).
    */
   oi_previous: number;
   /**
-   * oi_current - oi_previous, base asset units. Unit: base asset quantity (BTC for BTCUSDT).
+   * oi - oi_previous, base asset units. Unit: base asset quantity (BTC for BTCUSDT).
    */
   oi_change: number;
   /**
    * Relative open interest change, percent. Unit: percent (58.5 = 58.5 %).
    */
   oi_change_pct: number;
+  /**
+   * Start of the rolling window the value covers (inclusive). The window is aligned on the
+   * minute. Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).
+   */
+  window_start: Date;
+  /**
+   * Length of the rolling window, in seconds (300 = 5 minutes). The window ends at
+   * `window_start + window_s` (= `time` on the latest value). Unit: seconds.
+   */
+  window_s: number;
   /** Fields added by the API after this SDK was released. */
   [extra: string]: unknown;
 }
@@ -2445,7 +3172,7 @@ export interface OiDelta {
 /**
  * Row of `/v1/oi/delta/history`.
  */
-export interface OiDeltaHistory {
+export interface OiDeltaHistoryItem {
   /**
    * Without `timeframe`: the instant of the one-minute measurement. With `timeframe`: start of
    * the bucket, the value aggregating the bucket's minutes. Unit: ISO 8601 UTC, milliseconds
@@ -2453,17 +3180,18 @@ export interface OiDeltaHistory {
    */
   time: Date;
   /**
-   * Total open interest across venues at the end of the window, base asset units. Unit: base
+   * Total open interest across venues, base asset units. On a bucketed row, the value at the
+   * END of the bucket (like a close); on `/v1/oi/delta`, the latest measurement. Unit: base
    * asset quantity (BTC for BTCUSDT).
    */
-  oi_current: number;
+  oi: number;
   /**
    * Total open interest at the start of the window. Unit: base asset quantity (BTC for
    * BTCUSDT).
    */
   oi_previous: number;
   /**
-   * oi_current - oi_previous, base asset units. Unit: base asset quantity (BTC for BTCUSDT).
+   * oi - oi_previous, base asset units. Unit: base asset quantity (BTC for BTCUSDT).
    */
   oi_change: number;
   /**
@@ -2486,25 +3214,22 @@ export interface OiDeltaHistory {
 /**
  * Row of `/v1/oi/history`.
  */
-export interface OpenInterest {
+export interface OiHistoryItem {
   /**
    * Start of the bucket the row covers: a 1h bucket at 14:00 covers 14:00:00 to 14:59:59.999.
    * Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).
    */
   time: Date;
   /**
-   * Total open interest across venues, base asset units. Unit: base asset quantity (BTC for
-   * BTCUSDT).
+   * Total open interest across venues, base asset units. On a bucketed row, the value at the
+   * END of the bucket (like a close); on `/v1/oi/delta`, the latest measurement. Unit: base
+   * asset quantity (BTC for BTCUSDT).
    */
-  oi_total: number | null;
-  /**
-   * Number of venues that contributed to the value. Unit: count.
-   */
-  venue_count?: number | null;
+  oi: number;
   /**
    * Number of source points behind the value (one-minute points in a bucket). Unit: count.
    */
-  sample_count: number | null;
+  sample_count: number;
   /**
    * `true` = the bucket is final and will never change; `false` = provisional (only with
    * `?live=1`).
@@ -2515,7 +3240,7 @@ export interface OpenInterest {
 }
 
 /**
- * Row of `/v1/onchain/active-addresses`, `/v1/onchain/active-addresses/history`.
+ * Row of `/v1/onchain/active-addresses`.
  */
 export interface OnchainActiveAddresses {
   /**
@@ -2549,7 +3274,46 @@ export interface OnchainActiveAddresses {
 }
 
 /**
- * Row of `/v1/onchain/miner-stress`, `/v1/onchain/miner-stress/history`.
+ * Row of `/v1/onchain/active-addresses/history`.
+ */
+export interface OnchainActiveAddressesHistoryItem {
+  /**
+   * The day the value refers to, at midnight UTC. Unit: ISO 8601 UTC, milliseconds
+   * (2026-09-28T14:00:00.000Z).
+   */
+  time: Date;
+  /**
+   * Addresses active on the day. Unit: count.
+   */
+  active_addresses: number;
+  /**
+   * 7-day simple moving average of active_addresses. Unit: count.
+   */
+  active_addresses_sma_7d: number;
+  /**
+   * 30-day simple moving average of active_addresses. Unit: count.
+   */
+  active_addresses_sma_30d: number;
+  /**
+   * (7-day simple moving average - 30-day simple moving average) / 30-day average, percent.
+   * Unit: percent (58.5 = 58.5 %).
+   */
+  sma_7d_vs_30d_pct: number;
+  /**
+   * 7-day vs 30-day average: `accelerating` (> +5 %), `decelerating` (< -5 %) or `stable`.
+   */
+  label: string;
+  /**
+   * `true` = the bucket is final and will never change; `false` = provisional (only with
+   * `?live=1`).
+   */
+  is_closed: boolean;
+  /** Fields added by the API after this SDK was released. */
+  [extra: string]: unknown;
+}
+
+/**
+ * Row of `/v1/onchain/miner-stress`.
  */
 export interface OnchainMinerStress {
   /**
@@ -2561,12 +3325,12 @@ export interface OnchainMinerStress {
    * Miners' daily revenue (USD) divided by the network difficulty of the day: revenue per unit
    * of work. Read it against its 30-day average. Unit: USD per unit of difficulty.
    */
-  revenue_per_difficulty_usd: number | null;
+  revenue_per_difficulty_usd: number;
   /**
    * 30-day simple moving average of revenue_per_difficulty_usd. Unit: USD per unit of
    * difficulty.
    */
-  revenue_per_difficulty_sma_30d_usd: number | null;
+  revenue_per_difficulty_sma_30d_usd: number;
   /**
    * `healthy` (at or above its 30-day average), `stress` (below it), `capitulation` (below 70 %
    * of it — historically near BTC bottoms).
@@ -2577,7 +3341,40 @@ export interface OnchainMinerStress {
 }
 
 /**
- * Row of `/v1/onchain/mvrv`, `/v1/onchain/mvrv/history`.
+ * Row of `/v1/onchain/miner-stress/history`.
+ */
+export interface OnchainMinerStressHistoryItem {
+  /**
+   * The day the value refers to, at midnight UTC. Unit: ISO 8601 UTC, milliseconds
+   * (2026-09-28T14:00:00.000Z).
+   */
+  time: Date;
+  /**
+   * Miners' daily revenue (USD) divided by the network difficulty of the day: revenue per unit
+   * of work. Read it against its 30-day average. Unit: USD per unit of difficulty.
+   */
+  revenue_per_difficulty_usd: number;
+  /**
+   * 30-day simple moving average of revenue_per_difficulty_usd. Unit: USD per unit of
+   * difficulty.
+   */
+  revenue_per_difficulty_sma_30d_usd: number;
+  /**
+   * `healthy` (at or above its 30-day average), `stress` (below it), `capitulation` (below 70 %
+   * of it — historically near BTC bottoms).
+   */
+  label: string;
+  /**
+   * `true` = the bucket is final and will never change; `false` = provisional (only with
+   * `?live=1`).
+   */
+  is_closed: boolean;
+  /** Fields added by the API after this SDK was released. */
+  [extra: string]: unknown;
+}
+
+/**
+ * Row of `/v1/onchain/mvrv`.
  */
 export interface OnchainMvrv {
   /**
@@ -2602,7 +3399,37 @@ export interface OnchainMvrv {
 }
 
 /**
- * Row of `/v1/onchain/nvt`, `/v1/onchain/nvt/history`.
+ * Row of `/v1/onchain/mvrv/history`.
+ */
+export interface OnchainMvrvHistoryItem {
+  /**
+   * The day the value refers to, at midnight UTC. Unit: ISO 8601 UTC, milliseconds
+   * (2026-09-28T14:00:00.000Z).
+   */
+  time: Date;
+  /**
+   * Market value / realised value. Unit: dimensionless ratio.
+   */
+  mvrv: number;
+  /**
+   * `undervalued` (<= 1), `fair` (> 1), `elevated` (> 2.5), `overvalued` (> 3.5).
+   */
+  label: string;
+  /**
+   * Relative change of the value over 30 days, percent. Unit: percent (58.5 = 58.5 %).
+   */
+  change_30d_pct: number;
+  /**
+   * `true` = the bucket is final and will never change; `false` = provisional (only with
+   * `?live=1`).
+   */
+  is_closed: boolean;
+  /** Fields added by the API after this SDK was released. */
+  [extra: string]: unknown;
+}
+
+/**
+ * Row of `/v1/onchain/nvt`.
  */
 export interface OnchainNvt {
   /**
@@ -2623,6 +3450,37 @@ export interface OnchainNvt {
    * `bubble` (> 150).
    */
   label: string;
+  /** Fields added by the API after this SDK was released. */
+  [extra: string]: unknown;
+}
+
+/**
+ * Row of `/v1/onchain/nvt/history`.
+ */
+export interface OnchainNvtHistoryItem {
+  /**
+   * The day the value refers to, at midnight UTC. Unit: ISO 8601 UTC, milliseconds
+   * (2026-09-28T14:00:00.000Z).
+   */
+  time: Date;
+  /**
+   * Market cap / daily on-chain transaction volume (NVT ratio). Unit: dimensionless ratio.
+   */
+  nvt: number;
+  /**
+   * NVT smoothed over 90 days (NVT Signal), less noisy. Unit: dimensionless ratio.
+   */
+  nvt_signal: number;
+  /**
+   * Zone of the NVT Signal: `undervalued` (<= 45), `fair` (> 45), `overvalued` (> 100),
+   * `bubble` (> 150).
+   */
+  label: string;
+  /**
+   * `true` = the bucket is final and will never change; `false` = provisional (only with
+   * `?live=1`).
+   */
+  is_closed: boolean;
   /** Fields added by the API after this SDK was released. */
   [extra: string]: unknown;
 }
@@ -2649,43 +3507,40 @@ export interface OptionsExpiry {
    */
   oi_put_usd: number | null;
   /**
-   * Put/call open interest ratio. Below 1 = more calls than puts. Unit: puts / calls.
+   * Put/call open interest ratio (a quotient, not a share: 1.2 = 1.2 puts per call). Below 1 =
+   * more calls than puts. Unit: puts / calls.
    */
-  pc_ratio: number;
+  put_call_ratio: number;
   /**
    * Strike at which option holders lose the most at expiry (max pain). Unit: USD.
    */
-  max_pain_strike_usd: number | null;
+  max_pain_strike_usd: number;
   /**
    * Strike with the largest call open interest. Unit: USD.
    */
-  top_call_strike_usd: number | null;
+  top_call_strike_usd: number;
   /**
    * Strike with the largest put open interest. Unit: USD.
    */
-  top_put_strike_usd: number | null;
+  top_put_strike_usd: number;
   /**
    * At-the-money implied volatility of THIS expiry, annualised, in percent (55.2 = 55.2 %).
    * Unit: percent (58.5 = 58.5 %).
    */
   iv_atm_pct: number;
   /**
-   * `bullish` (pc_ratio < 0.7), `neutral`, or `bearish` (pc_ratio > 1).
+   * `bullish` (put_call_ratio < 0.7), `neutral`, or `bearish` (put_call_ratio > 1).
    */
-  pc_label: string;
+  put_call_label: string;
   /** Fields added by the API after this SDK was released. */
   [extra: string]: unknown;
 }
 
 /**
- * `venue_count` (venues contributing) and `oi_coverage_ratio` (share of open interest covered,
- * 1.0 = all).
+ * `oi_coverage_ratio`: share of the open interest covered by the venues that answered (1.0 =
+ * all).
  */
 export interface OptionsGreeksCoverage {
-  /**
-   * Options venues contributing. Unit: count.
-   */
-  venue_count?: number;
   /**
    * Share of the open interest covered by the contributing venues. Unit: fraction (0.585 = 58.5
    * %).
@@ -2722,8 +3577,8 @@ export interface OptionsGreeks {
    */
   vega: number;
   /**
-   * `venue_count` (venues contributing) and `oi_coverage_ratio` (share of open interest
-   * covered, 1.0 = all).
+   * `oi_coverage_ratio`: share of the open interest covered by the venues that answered (1.0 =
+   * all).
    */
   coverage: OptionsGreeksCoverage;
   /** Fields added by the API after this SDK was released. */
@@ -2753,7 +3608,7 @@ export interface OptionsIv {
 /**
  * Row of `/v1/options/iv/klines`.
  */
-export interface OptionsIvCandle {
+export interface OptionsIvKline {
   /**
    * Start of the bucket; the value is the LAST options snapshot of the bucket. Unit: ISO 8601
    * UTC, milliseconds (2026-09-28T14:00:00.000Z).
@@ -2775,6 +3630,11 @@ export interface OptionsIvCandle {
    * 30-day ATM IV at the end of the bucket. Unit: percent (58.5 = 58.5 %).
    */
   close: number;
+  /**
+   * `true` = the bucket is final and will never change; `false` = provisional (only with
+   * `?live=1`).
+   */
+  is_closed: boolean;
   /** Fields added by the API after this SDK was released. */
   [extra: string]: unknown;
 }
@@ -2795,11 +3655,12 @@ export interface OptionsMaxPain {
   /**
    * Strike at which option holders lose the most at expiry (max pain). Unit: USD.
    */
-  max_pain_strike_usd: number | null;
+  max_pain_strike_usd: number;
   /**
-   * Put/call open interest ratio. Below 1 = more calls than puts. Unit: puts / calls.
+   * Put/call open interest ratio (a quotient, not a share: 1.2 = 1.2 puts per call). Below 1 =
+   * more calls than puts. Unit: puts / calls.
    */
-  pc_ratio: number;
+  put_call_ratio: number;
   /**
    * Call open interest, USD. Unit: USD.
    */
@@ -2815,33 +3676,36 @@ export interface OptionsMaxPain {
 /**
  * Row of `/v1/options/max-pain/history`.
  */
-export interface OptionsMaxPainHistory {
+export interface OptionsMaxPainHistoryItem {
   /**
-   * Start of the bucket; the value is the LAST options snapshot of the bucket. Unit: ISO 8601
-   * UTC, milliseconds (2026-09-28T14:00:00.000Z).
+   * The instant of the options snapshot the max pain was computed on (one row per snapshot,
+   * about every minute; no `timeframe`). Unit: ISO 8601 UTC, milliseconds
+   * (2026-09-28T14:00:00.000Z).
    */
   time: Date;
   /**
    * Strike at which option holders lose the most at expiry (max pain). Unit: USD.
    */
-  max_pain_strike_usd: number | null;
+  max_pain_strike_usd: number;
   /**
-   * Put/call open interest ratio. Below 1 = more calls than puts. Unit: puts / calls.
+   * Put/call open interest ratio (a quotient, not a share: 1.2 = 1.2 puts per call). Below 1 =
+   * more calls than puts. Unit: puts / calls.
    */
-  pc_ratio: number;
+  put_call_ratio: number;
+  /**
+   * `true` = the bucket is final and will never change; `false` = provisional (only with
+   * `?live=1`).
+   */
+  is_closed: boolean;
   /** Fields added by the API after this SDK was released. */
   [extra: string]: unknown;
 }
 
 /**
- * `venue_count` (venues contributing) and `oi_coverage_ratio` (share of open interest covered,
- * 1.0 = all).
+ * `oi_coverage_ratio`: share of the open interest covered by the venues that answered (1.0 =
+ * all).
  */
 export interface OptionsOiCoverage {
-  /**
-   * Number of venues that contributed to the value. Unit: count.
-   */
-  venue_count?: number;
   /**
    * Share of the open interest covered by the contributing venues. Unit: fraction (0.585 = 58.5
    * %).
@@ -2881,8 +3745,8 @@ export interface OptionsOi {
    */
   oi_put: number;
   /**
-   * `venue_count` (venues contributing) and `oi_coverage_ratio` (share of open interest
-   * covered, 1.0 = all).
+   * `oi_coverage_ratio`: share of the open interest covered by the venues that answered (1.0 =
+   * all).
    */
   coverage: OptionsOiCoverage;
   /** Fields added by the API after this SDK was released. */
@@ -2890,7 +3754,7 @@ export interface OptionsOi {
 }
 
 /**
- * Row of `/v1/options/oi/delta`, `/v1/options/oi/delta/history`.
+ * Row of `/v1/options/oi/delta`.
  */
 export interface OptionsOiDelta {
   /**
@@ -2915,6 +3779,36 @@ export interface OptionsOiDelta {
 }
 
 /**
+ * Row of `/v1/options/oi/delta/history`.
+ */
+export interface OptionsOiDeltaHistoryItem {
+  /**
+   * Start of the bucket; the value is the LAST options snapshot of the bucket. Unit: ISO 8601
+   * UTC, milliseconds (2026-09-28T14:00:00.000Z).
+   */
+  time: Date;
+  /**
+   * Change of call open interest over the bucket, USD. Unit: USD.
+   */
+  oi_change_call_usd: number;
+  /**
+   * Change of put open interest over the bucket, USD. Unit: USD.
+   */
+  oi_change_put_usd: number;
+  /**
+   * Change of total open interest over the bucket, USD. Unit: USD.
+   */
+  oi_change_total_usd: number;
+  /**
+   * `true` = the bucket is final and will never change; `false` = provisional (only with
+   * `?live=1`).
+   */
+  is_closed: boolean;
+  /** Fields added by the API after this SDK was released. */
+  [extra: string]: unknown;
+}
+
+/**
  * Row of `/v1/options/oi/distribution`.
  */
 export interface OptionsOiDistribution {
@@ -2926,7 +3820,7 @@ export interface OptionsOiDistribution {
   /**
    * Strike price. Unit: USD.
    */
-  strike_usd: number | null;
+  strike_usd: number;
   /**
    * Call open interest at this strike, USD. `null` = no call listed. Unit: USD.
    */
@@ -2942,7 +3836,7 @@ export interface OptionsOiDistribution {
 /**
  * Row of `/v1/options/oi/history`.
  */
-export interface OptionsOiHistory {
+export interface OptionsOiHistoryItem {
   /**
    * Start of the bucket; the value is the LAST options snapshot of the bucket. Unit: ISO 8601
    * UTC, milliseconds (2026-09-28T14:00:00.000Z).
@@ -2963,11 +3857,16 @@ export interface OptionsOiHistory {
   /**
    * Call open interest, in coins (base asset). Unit: base asset quantity (BTC for BTCUSDT).
    */
-  oi_call: number | null;
+  oi_call: number;
   /**
    * Put open interest, in coins (base asset). Unit: base asset quantity (BTC for BTCUSDT).
    */
-  oi_put: number | null;
+  oi_put: number;
+  /**
+   * `true` = the bucket is final and will never change; `false` = provisional (only with
+   * `?live=1`).
+   */
+  is_closed: boolean;
   /** Fields added by the API after this SDK was released. */
   [extra: string]: unknown;
 }
@@ -2982,11 +3881,12 @@ export interface OptionsPcRatio {
    */
   time: Date;
   /**
-   * Put/call open interest ratio. Below 1 = more calls than puts. Unit: puts / calls.
+   * Put/call open interest ratio (a quotient, not a share: 1.2 = 1.2 puts per call). Below 1 =
+   * more calls than puts. Unit: puts / calls.
    */
-  pc_ratio: number;
+  put_call_ratio: number;
   /**
-   * `bullish` (pc_ratio < 0.7), `neutral`, or `bearish` (pc_ratio > 1).
+   * `bullish` (put_call_ratio < 0.7), `neutral`, or `bearish` (put_call_ratio > 1).
    */
   label: string;
   /** Fields added by the API after this SDK was released. */
@@ -2996,16 +3896,22 @@ export interface OptionsPcRatio {
 /**
  * Row of `/v1/options/pc-ratio/history`.
  */
-export interface OptionsPcRatioHistory {
+export interface OptionsPcRatioHistoryItem {
   /**
    * Start of the bucket; the value is the LAST options snapshot of the bucket. Unit: ISO 8601
    * UTC, milliseconds (2026-09-28T14:00:00.000Z).
    */
   time: Date;
   /**
-   * Put/call open interest ratio. Below 1 = more calls than puts. Unit: puts / calls.
+   * Put/call open interest ratio (a quotient, not a share: 1.2 = 1.2 puts per call). Below 1 =
+   * more calls than puts. Unit: puts / calls.
    */
-  pc_ratio: number;
+  put_call_ratio: number;
+  /**
+   * `true` = the bucket is final and will never change; `false` = provisional (only with
+   * `?live=1`).
+   */
+  is_closed: boolean;
   /** Fields added by the API after this SDK was released. */
   [extra: string]: unknown;
 }
@@ -3026,11 +3932,12 @@ export interface OptionsSummaryNearestExpiry {
   /**
    * Strike at which option holders lose the most at expiry (max pain). Unit: USD.
    */
-  max_pain_strike_usd: number | null;
+  max_pain_strike_usd: number;
   /**
-   * Put/call open interest ratio. Below 1 = more calls than puts. Unit: puts / calls.
+   * Put/call open interest ratio (a quotient, not a share: 1.2 = 1.2 puts per call). Below 1 =
+   * more calls than puts. Unit: puts / calls.
    */
-  pc_ratio: number;
+  put_call_ratio: number;
   /**
    * At-the-money implied volatility of THIS expiry, annualised, in percent (55.2 = 55.2 %).
    * Unit: percent (58.5 = 58.5 %).
@@ -3041,14 +3948,10 @@ export interface OptionsSummaryNearestExpiry {
 }
 
 /**
- * `venue_count` (venues contributing) and `oi_coverage_ratio` (share of open interest covered,
- * 1.0 = all).
+ * `oi_coverage_ratio`: share of the open interest covered by the venues that answered (1.0 =
+ * all).
  */
 export interface OptionsSummaryCoverage {
-  /**
-   * Number of venues that contributed to the value. Unit: count.
-   */
-  venue_count?: number;
   /**
    * Share of the open interest covered by the contributing venues. Unit: fraction (0.585 = 58.5
    * %).
@@ -3071,7 +3974,7 @@ export interface OptionsSummary {
    * Index (spot) price of the underlying, from the options venues. Each expiry's ATM strike and
    * greeks use that expiry's own forward price. Unit: USD.
    */
-  underlying_price_usd: number | null;
+  underlying_price_usd: number;
   /**
    * Total open interest, USD. Unit: USD.
    */
@@ -3097,13 +4000,14 @@ export interface OptionsSummary {
    */
   volume_put_usd: number;
   /**
-   * Put/call open interest ratio. Below 1 = more calls than puts. Unit: puts / calls.
+   * Put/call open interest ratio (a quotient, not a share: 1.2 = 1.2 puts per call). Below 1 =
+   * more calls than puts. Unit: puts / calls.
    */
-  pc_ratio: number;
+  put_call_ratio: number;
   /**
-   * `bullish` (pc_ratio < 0.7), `neutral`, or `bearish` (pc_ratio > 1).
+   * `bullish` (put_call_ratio < 0.7), `neutral`, or `bearish` (put_call_ratio > 1).
    */
-  pc_label: string;
+  put_call_label: string;
   /**
    * At-the-money implied volatility at a constant 30-day maturity, annualised, in percent (55.2
    * = 55.2 %). Interpolated in total variance (IV² × time) between the two expiries around 30
@@ -3116,8 +4020,8 @@ export interface OptionsSummary {
    */
   nearest_expiry: OptionsSummaryNearestExpiry;
   /**
-   * `venue_count` (venues contributing) and `oi_coverage_ratio` (share of open interest
-   * covered, 1.0 = all).
+   * `oi_coverage_ratio`: share of the open interest covered by the venues that answered (1.0 =
+   * all).
    */
   coverage: OptionsSummaryCoverage;
   /** Fields added by the API after this SDK was released. */
@@ -3125,14 +4029,10 @@ export interface OptionsSummary {
 }
 
 /**
- * `venue_count` (venues contributing) and `oi_coverage_ratio` (share of open interest covered,
- * 1.0 = all).
+ * `oi_coverage_ratio`: share of the open interest covered by the venues that answered (1.0 =
+ * all).
  */
 export interface OptionsVolumeCoverage {
-  /**
-   * Number of venues that contributed to the value. Unit: count.
-   */
-  venue_count?: number;
   /**
    * Share of the open interest covered by the contributing venues. Unit: fraction (0.585 = 58.5
    * %).
@@ -3164,8 +4064,8 @@ export interface OptionsVolume {
    */
   volume_put_usd: number;
   /**
-   * `venue_count` (venues contributing) and `oi_coverage_ratio` (share of open interest
-   * covered, 1.0 = all).
+   * `oi_coverage_ratio`: share of the open interest covered by the venues that answered (1.0 =
+   * all).
    */
   coverage: OptionsVolumeCoverage;
   /** Fields added by the API after this SDK was released. */
@@ -3175,7 +4075,7 @@ export interface OptionsVolume {
 /**
  * Row of `/v1/options/volume/history`.
  */
-export interface OptionsVolumeHistory {
+export interface OptionsVolumeHistoryItem {
   /**
    * Start of the bucket; the value is the LAST options snapshot of the bucket. Unit: ISO 8601
    * UTC, milliseconds (2026-09-28T14:00:00.000Z).
@@ -3184,23 +4084,28 @@ export interface OptionsVolumeHistory {
   /**
    * Total traded volume, USD. Unit: USD.
    */
-  volume_total_usd: number | null;
+  volume_total_usd: number;
   /**
    * Call volume, USD. Unit: USD.
    */
-  volume_call_usd: number | null;
+  volume_call_usd: number;
   /**
    * Put volume, USD. Unit: USD.
    */
-  volume_put_usd: number | null;
+  volume_put_usd: number;
+  /**
+   * `true` = the bucket is final and will never change; `false` = provisional (only with
+   * `?live=1`).
+   */
+  is_closed: boolean;
   /** Fields added by the API after this SDK was released. */
   [extra: string]: unknown;
 }
 
 /**
- * Nested object (OrderbookAggregatedRangesItem).
+ * Nested object (OrderbookRangesItem).
  */
-export interface OrderbookAggregatedRangesItem {
+export interface OrderbookRangesItem {
   /**
    * Half-width of the range around each venue's mid price ((best bid + best ask) / 2): `1.0` =
    * bids down to -1 % and asks up to +1 %. Unit: percent (58.5 = 58.5 %).
@@ -3229,24 +4134,21 @@ export interface OrderbookAggregatedRangesItem {
    * (bids_usd - asks_usd) / (bids_usd + asks_usd). Positive = more bids than asks. `null` when
    * one side is not measured. Unit: fraction from -1 to 1.
    */
-  imbalance: number | null;
+  imbalance_ratio: number | null;
   /** Fields added by the API after this SDK was released. */
   [extra: string]: unknown;
 }
 
 /**
- * Row of `/v1/orderbook/aggregated`, `/v1/orderbook/aggregated/history`.
+ * Row of `/v1/orderbook`, `/v1/orderbook/futures`, `/v1/orderbook/futures/history`,
+ * `/v1/orderbook/history`, `/v1/orderbook/spot`, `/v1/orderbook/spot/history`.
  */
-export interface OrderbookAggregated {
+export interface Orderbook {
   /**
    * Start of the bucket; the depth is the photo of the order book at the END of the bucket.
    * Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).
    */
   time: Date;
-  /**
-   * Number of venues that contributed to the value. Unit: count.
-   */
-  venue_count?: number;
   /**
    * `true` = the bucket is final and will never change; `false` = provisional (only with
    * `?live=1`).
@@ -3256,7 +4158,7 @@ export interface OrderbookAggregated {
    * One entry per price range around the mid price, from the tightest (±0.25 %) to the widest
    * (±10 %). Each range is cumulative: ±1 % includes everything inside ±0.5 %.
    */
-  ranges: Array<OrderbookAggregatedRangesItem>;
+  ranges: Array<OrderbookRangesItem>;
   /** Fields added by the API after this SDK was released. */
   [extra: string]: unknown;
 }
@@ -3265,11 +4167,11 @@ export interface OrderbookAggregated {
  * Price change over each window, keyed by window (`1m` … `1w`), in percent.
  */
 export interface PriceChangeChangesPct {
-  "1m": number | null;
-  "5m": number | null;
-  "15m": number | null;
-  "30m": number | null;
-  "1h": number | null;
+  "1m": number;
+  "5m": number;
+  "15m": number;
+  "30m": number;
+  "1h": number;
   "4h": number | null;
   "1d": number | null;
   "1w": number | null;
@@ -3282,8 +4184,10 @@ export interface PriceChangeChangesPct {
  */
 export interface PriceChange {
   /**
-   * Start of the latest closed one-minute candle; `price` is its close. Unit: ISO 8601 UTC,
-   * milliseconds (2026-09-28T14:00:00.000Z).
+   * Start of the latest closed one-minute candle; `price` is its close. Exception: USDTUSDC,
+   * which no spot candle source lists, gives the instant of its latest trade, `price` being the
+   * volume-weighted price of its last 90 seconds. Unit: ISO 8601 UTC, milliseconds
+   * (2026-09-28T14:00:00.000Z).
    */
   time: Date;
   /**
@@ -3394,11 +4298,7 @@ export interface SpreadInterexchange {
    */
   low: SpreadInterexchangeLow;
   /**
-   * Number of venues that contributed to the value. Unit: count.
-   */
-  venue_count?: number;
-  /**
-   * Per-venue prices and premiums (`[{exchange, price, premium_bps}]`).
+   * Per-venue prices and premiums (`[{venue, price, premium_bps}]`).
    */
   venues: Array<SpreadInterexchangeVenuesItem>;
   /** Fields added by the API after this SDK was released. */
@@ -3410,9 +4310,9 @@ export interface SpreadInterexchange {
  */
 export interface StatusFeedsItem {
   /**
-   * Public feed name, after the route that serves it (`trades_futures_1h`, `cvd_source_1m`,
-   * `trades_futures_seconds`, `funding_rate`...). The same names key `feeds_active_last_24h` in
-   * `/v1/symbols/{symbol}/capabilities`.
+   * Public feed name, after the route that serves it (`trades_kline_futures_1h`,
+   * `cvd_source_1m`, `trades_kline_futures_seconds`, `funding_rate`...). The same names key
+   * `feeds_active_last_24h` in `/v1/symbols/{symbol}/capabilities`.
    */
   feed: string;
   /**
@@ -3494,22 +4394,34 @@ export interface Symbol {
    * Human-readable name.
    */
   name: string;
+  /**
+   * Quote currency of the pair (`USDT` for BTCUSDT, `USDC` for USDTUSDC): the currency of its
+   * prices.
+   */
+  quote_asset: string;
+  /**
+   * Markets served for the pair: `spot` and `futures` (USDT-margined perpetual), or `spot` only
+   * for the two stablecoin pairs (their `/futures` routes answer `unavailable:
+   * not_applicable`).
+   */
+  markets: Array<string>;
   /** Fields added by the API after this SDK was released. */
   [extra: string]: unknown;
 }
 
 /**
- * Per source feed, under its `/v1/status` name (`trades_futures_seconds`, `oi_history`,
- * `funding_rate`, `klines_1m`...): whether it received data for this symbol in the last 24 h.
+ * Per source feed, under its `/v1/status` name (`trades_spot`, `trades_kline_futures_seconds`,
+ * `oi_history`, `funding_rate`, `klines_1m`...): whether it received data for this symbol in
+ * the last 24 h.
  */
-export interface SymbolCapabilitiesFeedsActiveLast24h {
+export interface SymbolsCapabilitiesFeedsActiveLast24h {
   klines_futures_1m: boolean;
-  ticks_spot: boolean;
-  ticks_futures: boolean;
+  trades_spot: boolean;
+  trades_futures: boolean;
   oi_history: boolean;
   funding_rate: boolean;
   liquidations_events: boolean;
-  trades_futures_seconds: boolean;
+  trades_kline_futures_seconds: boolean;
   klines_futures_multi: boolean;
   klines_1m: boolean;
   klines_multi: boolean;
@@ -3520,16 +4432,17 @@ export interface SymbolCapabilitiesFeedsActiveLast24h {
 /**
  * Row of `/v1/symbols/{symbol}/capabilities`.
  */
-export interface SymbolCapabilities {
+export interface SymbolsCapabilities {
   /**
    * `crypto` or `stablecoin` (spot only, no futures metrics).
    */
   asset_class: string;
   /**
-   * Per source feed, under its `/v1/status` name (`trades_futures_seconds`, `oi_history`,
-   * `funding_rate`, `klines_1m`...): whether it received data for this symbol in the last 24 h.
+   * Per source feed, under its `/v1/status` name (`trades_spot`,
+   * `trades_kline_futures_seconds`, `oi_history`, `funding_rate`, `klines_1m`...): whether it
+   * received data for this symbol in the last 24 h.
    */
-  feeds_active_last_24h: SymbolCapabilitiesFeedsActiveLast24h;
+  feeds_active_last_24h: SymbolsCapabilitiesFeedsActiveLast24h;
   /**
    * Derived metrics available for the symbol.
    */
@@ -3538,114 +4451,6 @@ export interface SymbolCapabilities {
    * Derived metrics unavailable, with the missing feeds.
    */
   computed_metrics_blocked: Record<string, unknown>;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
-}
-
-/**
- * Row of `/v1/ticks/futures`.
- */
-export interface FuturesTick {
-  /**
-   * Execution instant of the trade, as stated by the venue (milliseconds). Unit: ISO 8601 UTC,
-   * milliseconds (2026-09-28T14:00:00.000Z).
-   */
-  time: Date;
-  /**
-   * Opaque, stable identifier of the trade (16 hex characters): the same trade always has the
-   * same `id`, so it can be used to deduplicate or resume. It reveals nothing about the venue.
-   */
-  id: string;
-  /**
-   * Trades: `buy` or `sell` (aggressor side). Liquidations: `long` or `short` (the position
-   * liquidated).
-   */
-  side: string;
-  /**
-   * Price. Unit: quote currency (USDT for BTCUSDT).
-   */
-  price: number | null;
-  /**
-   * Quantity traded or liquidated, in base asset units. Unit: base asset quantity (BTC for
-   * BTCUSDT).
-   */
-  quantity: number | null;
-  /**
-   * Notional value: price × quantity. Unit: USD.
-   */
-  usd_value: number | null;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
-}
-
-/**
- * Row of `/v1/ticks/large`.
- */
-export interface LargeTrade {
-  /**
-   * Execution instant of the trade, as stated by the venue (milliseconds). Unit: ISO 8601 UTC,
-   * milliseconds (2026-09-28T14:00:00.000Z).
-   */
-  time: Date;
-  /**
-   * Opaque, stable identifier of the trade (16 hex characters): the same trade always has the
-   * same `id`, so it can be used to deduplicate or resume. It reveals nothing about the venue.
-   */
-  id: string;
-  /**
-   * Trades: `buy` or `sell` (aggressor side). Liquidations: `long` or `short` (the position
-   * liquidated).
-   */
-  side: string;
-  /**
-   * Price. Unit: quote currency (USDT for BTCUSDT).
-   */
-  price: number | null;
-  /**
-   * Quantity traded or liquidated, in base asset units. Unit: base asset quantity (BTC for
-   * BTCUSDT).
-   */
-  quantity: number | null;
-  /**
-   * Notional value: price × quantity. Unit: USD.
-   */
-  usd_value: number | null;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
-}
-
-/**
- * Row of `/v1/ticks/spot`.
- */
-export interface SpotTick {
-  /**
-   * Execution instant of the trade, as stated by the venue (milliseconds). Unit: ISO 8601 UTC,
-   * milliseconds (2026-09-28T14:00:00.000Z).
-   */
-  time: Date;
-  /**
-   * Opaque, stable identifier of the trade (16 hex characters): the same trade always has the
-   * same `id`, so it can be used to deduplicate or resume. It reveals nothing about the venue.
-   */
-  id: string;
-  /**
-   * Trades: `buy` or `sell` (aggressor side). Liquidations: `long` or `short` (the position
-   * liquidated).
-   */
-  side: string;
-  /**
-   * Price. Unit: quote currency (USDT for BTCUSDT).
-   */
-  price: number | null;
-  /**
-   * Quantity traded or liquidated, in base asset units. Unit: base asset quantity (BTC for
-   * BTCUSDT).
-   */
-  quantity: number | null;
-  /**
-   * Notional value: price × quantity. Unit: USD.
-   */
-  usd_value: number | null;
   /** Fields added by the API after this SDK was released. */
   [extra: string]: unknown;
 }
@@ -3672,11 +4477,12 @@ export interface Tokenomics {
    */
   max_supply: number | null;
   /**
-   * Latest price used for market_cap_usd and fdv_usd. Unit: USD.
+   * Latest price used for market_cap_usd and fdv_usd (the USDT price of the pair, read as USD).
+   * Unit: USD.
    */
-  price: number;
+  price_usd: number;
   /**
-   * Instant of `price` (the row's `timestamp` is the instant of the supply data). `null` when
+   * Instant of `price_usd` (the row's `time` is the instant of the supply data). `null` when
    * the price is the stablecoin peg. Unit: ISO 8601 UTC, milliseconds
    * (2026-09-28T14:00:00.000Z).
    */
@@ -3697,7 +4503,7 @@ export interface Tokenomics {
 /**
  * Row of `/v1/tokenomics/history`.
  */
-export interface TokenomicsHistory {
+export interface TokenomicsHistoryItem {
   /**
    * The day the value refers to, at midnight UTC. Unit: ISO 8601 UTC, milliseconds
    * (2026-09-28T14:00:00.000Z).
@@ -3706,7 +4512,7 @@ export interface TokenomicsHistory {
   /**
    * Daily closing price used for the derived values. Unit: USD.
    */
-  price: number;
+  price_usd: number;
   /**
    * Coins in circulation. Unit: coins.
    */
@@ -3728,14 +4534,20 @@ export interface TokenomicsHistory {
    * stablecoins. Unit: USD.
    */
   fdv_usd: number | null;
+  /**
+   * `true` = the bucket is final and will never change; `false` = provisional (only with
+   * `?live=1`).
+   */
+  is_closed: boolean;
   /** Fields added by the API after this SDK was released. */
   [extra: string]: unknown;
 }
 
 /**
- * Row of `/v1/trades`, `/v1/trades/history`.
+ * Row of `/v1/trades-kline`, `/v1/trades-kline/futures`, `/v1/trades-kline/futures/history`,
+ * `/v1/trades-kline/history`, `/v1/trades-kline/spot`, `/v1/trades-kline/spot/history`.
  */
-export interface TradeCandle {
+export interface TradesKline {
   /**
    * Start of the bucket the row covers: a 1h bucket at 14:00 covers 14:00:00 to 14:59:59.999.
    * Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).
@@ -3749,27 +4561,30 @@ export interface TradeCandle {
    * Average trade size, base asset units (NOT dollars: multiply by the price for a notional).
    * Unit: base asset quantity (BTC for BTCUSDT).
    */
-  avg_trade_size: number;
+  avg_trade_size: number | null;
   /**
    * Traded volume over the row, base asset units (BTC for BTCUSDT, NOT dollars), aggregated
-   * across venues. Unit: base asset quantity (BTC for BTCUSDT).
+   * across venues, ALL the markets of the route: spot + perpetual futures on `/v1/klines` and
+   * `/v1/trades-kline` (a name without a market suffix covers every market; `volume_spot` /
+   * `volume_futures` restrict). `null` when a market is not available (never a partial sum).
+   * Unit: base asset quantity (BTC for BTCUSDT).
    */
-  volume: number;
+  volume: number | null;
   /**
    * Aggressive (taker) buy volume, base asset units, aggregated across venues. Unit: base asset
    * quantity (BTC for BTCUSDT).
    */
-  buy_volume: number;
+  buy_volume: number | null;
   /**
    * Aggressive (taker) sell volume, base asset units, aggregated across venues. Unit: base
    * asset quantity (BTC for BTCUSDT).
    */
-  sell_volume: number;
+  sell_volume: number | null;
   /**
    * buy_volume - sell_volume over the row, base asset units. Positive = net buying. Unit: base
    * asset quantity (BTC for BTCUSDT).
    */
-  net_volume: number;
+  net_volume: number | null;
   /**
    * Average number of trades per second over the bucket. Unit: trades per second.
    */
@@ -3790,7 +4605,47 @@ export interface TradeCandle {
 }
 
 /**
- * Row of `/v1/trades/avg-size`.
+ * Row of `/v1/trades-kline/futures/seconds`.
+ */
+export interface TradesKlineSecond {
+  /**
+   * Start of the second the row covers. Unit: ISO 8601 UTC, milliseconds
+   * (2026-09-28T14:00:00.000Z).
+   */
+  time: Date;
+  /**
+   * Traded volume over the row, base asset units (BTC for BTCUSDT, NOT dollars), aggregated
+   * across venues, ALL the markets of the route: spot + perpetual futures on `/v1/klines` and
+   * `/v1/trades-kline` (a name without a market suffix covers every market; `volume_spot` /
+   * `volume_futures` restrict). `null` when a market is not available (never a partial sum).
+   * Unit: base asset quantity (BTC for BTCUSDT).
+   */
+  volume: number | null;
+  /**
+   * Number of trades. Unit: count.
+   */
+  trade_count: number;
+  /**
+   * Aggressive (taker) buy volume, base asset units, aggregated across venues. Unit: base asset
+   * quantity (BTC for BTCUSDT).
+   */
+  buy_volume: number | null;
+  /**
+   * Aggressive (taker) sell volume, base asset units, aggregated across venues. Unit: base
+   * asset quantity (BTC for BTCUSDT).
+   */
+  sell_volume: number | null;
+  /**
+   * `true` = the bucket is final and will never change; `false` = provisional (only with
+   * `?live=1`).
+   */
+  is_closed: boolean;
+  /** Fields added by the API after this SDK was released. */
+  [extra: string]: unknown;
+}
+
+/**
+ * Row of `/v1/trades/avg-size`, `/v1/trades/avg-size/futures`, `/v1/trades/avg-size/spot`.
  */
 export interface TradesAvgSize {
   /**
@@ -3802,12 +4657,15 @@ export interface TradesAvgSize {
    * Average trade size, base asset units (NOT dollars: multiply by the price for a notional).
    * Unit: base asset quantity (BTC for BTCUSDT).
    */
-  avg_trade_size: number;
+  avg_trade_size: number | null;
   /**
    * Traded volume over the row, base asset units (BTC for BTCUSDT, NOT dollars), aggregated
-   * across venues. Unit: base asset quantity (BTC for BTCUSDT).
+   * across venues, ALL the markets of the route: spot + perpetual futures on `/v1/klines` and
+   * `/v1/trades-kline` (a name without a market suffix covers every market; `volume_spot` /
+   * `volume_futures` restrict). `null` when a market is not available (never a partial sum).
+   * Unit: base asset quantity (BTC for BTCUSDT).
    */
-  volume: number;
+  volume: number | null;
   /**
    * Number of trades. Unit: count.
    */
@@ -3818,14 +4676,25 @@ export interface TradesAvgSize {
    * recorded; mean error 0.04 % in 1m, 0.37 % in 1d); `false` = measured.
    */
   is_volume_estimated: boolean;
+  /**
+   * Start of the rolling window the value covers (inclusive). The window is aligned on the
+   * minute. Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).
+   */
+  window_start: Date;
+  /**
+   * Length of the rolling window, in seconds (300 = 5 minutes). The window ends at
+   * `window_start + window_s` (= `time` on the latest value). Unit: seconds.
+   */
+  window_s: number;
   /** Fields added by the API after this SDK was released. */
   [extra: string]: unknown;
 }
 
 /**
- * Row of `/v1/trades/avg-size/history`.
+ * Row of `/v1/trades/avg-size/futures/history`, `/v1/trades/avg-size/history`,
+ * `/v1/trades/avg-size/spot/history`.
  */
-export interface TradesAvgSizeHistory {
+export interface TradesAvgSizeHistoryItem {
   /**
    * Without `timeframe`: start of the one-minute candle. With `timeframe`: start of the bucket
    * the row covers: a 1h bucket at 14:00 covers 14:00:00 to 14:59:59.999. Unit: ISO 8601 UTC,
@@ -3836,12 +4705,15 @@ export interface TradesAvgSizeHistory {
    * Average trade size, base asset units (NOT dollars: multiply by the price for a notional).
    * Unit: base asset quantity (BTC for BTCUSDT).
    */
-  avg_trade_size: number;
+  avg_trade_size: number | null;
   /**
    * Traded volume over the row, base asset units (BTC for BTCUSDT, NOT dollars), aggregated
-   * across venues. Unit: base asset quantity (BTC for BTCUSDT).
+   * across venues, ALL the markets of the route: spot + perpetual futures on `/v1/klines` and
+   * `/v1/trades-kline` (a name without a market suffix covers every market; `volume_spot` /
+   * `volume_futures` restrict). `null` when a market is not available (never a partial sum).
+   * Unit: base asset quantity (BTC for BTCUSDT).
    */
-  volume: number;
+  volume: number | null;
   /**
    * Number of trades. Unit: count.
    */
@@ -3866,152 +4738,37 @@ export interface TradesAvgSizeHistory {
 }
 
 /**
- * Row of `/v1/trades/futures`, `/v1/trades/futures/history`.
+ * Row of `/v1/trades/futures`, `/v1/trades/large`, `/v1/trades/spot`.
  */
-export interface FuturesTradeCandle {
+export interface Trade {
   /**
-   * Start of the bucket the row covers: a 1h bucket at 14:00 covers 14:00:00 to 14:59:59.999.
-   * Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).
+   * Execution instant of the trade, as stated by the venue (milliseconds). Unit: ISO 8601 UTC,
+   * milliseconds (2026-09-28T14:00:00.000Z).
    */
   time: Date;
   /**
-   * Number of trades. Unit: count.
+   * Opaque, stable identifier of the trade (16 hex characters): the same trade always has the
+   * same `id`, so it can be used to deduplicate or resume. It reveals nothing about the venue.
    */
-  trade_count: number;
+  id: string;
   /**
-   * Average trade size, base asset units (NOT dollars: multiply by the price for a notional).
-   * Unit: base asset quantity (BTC for BTCUSDT).
+   * Trades: `buy` or `sell` (aggressor side). Liquidations: `long` or `short` (the position
+   * liquidated).
    */
-  avg_trade_size: number;
+  side: string;
   /**
-   * Traded volume over the row, base asset units (BTC for BTCUSDT, NOT dollars), aggregated
-   * across venues. Unit: base asset quantity (BTC for BTCUSDT).
+   * Price. Unit: quote currency (USDT for BTCUSDT).
    */
-  volume: number;
+  price: number;
   /**
-   * Aggressive (taker) buy volume, base asset units, aggregated across venues. Unit: base asset
-   * quantity (BTC for BTCUSDT).
+   * Quantity traded or liquidated, in base asset units. Unit: base asset quantity (BTC for
+   * BTCUSDT).
    */
-  buy_volume: number;
+  quantity: number;
   /**
-   * Aggressive (taker) sell volume, base asset units, aggregated across venues. Unit: base
-   * asset quantity (BTC for BTCUSDT).
+   * Notional value: price × quantity. Unit: USD.
    */
-  sell_volume: number;
-  /**
-   * buy_volume - sell_volume over the row, base asset units. Positive = net buying. Unit: base
-   * asset quantity (BTC for BTCUSDT).
-   */
-  net_volume: number;
-  /**
-   * Average number of trades per second over the bucket. Unit: trades per second.
-   */
-  trade_rate: number;
-  /**
-   * `true` when base-asset quantities of this row were ESTIMATED from USD amounts ÷ the
-   * candle's typical price (high + low + close) / 3 (data written before quantities were
-   * recorded; mean error 0.04 % in 1m, 0.37 % in 1d); `false` = measured.
-   */
-  is_volume_estimated: boolean;
-  /**
-   * `true` = the bucket is final and will never change; `false` = provisional (only with
-   * `?live=1`).
-   */
-  is_closed: boolean;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
-}
-
-/**
- * Row of `/v1/trades/futures/seconds`.
- */
-export interface FuturesTradeSecond {
-  /**
-   * Start of the second the row covers. Unit: ISO 8601 UTC, milliseconds
-   * (2026-09-28T14:00:00.000Z).
-   */
-  time: Date;
-  /**
-   * Traded volume over the row, base asset units (BTC for BTCUSDT, NOT dollars), aggregated
-   * across venues. Unit: base asset quantity (BTC for BTCUSDT).
-   */
-  volume: number | null;
-  /**
-   * Number of trades. Unit: count.
-   */
-  trade_count: number | null;
-  /**
-   * Aggressive (taker) buy volume, base asset units, aggregated across venues. Unit: base asset
-   * quantity (BTC for BTCUSDT).
-   */
-  buy_volume: number | null;
-  /**
-   * Aggressive (taker) sell volume, base asset units, aggregated across venues. Unit: base
-   * asset quantity (BTC for BTCUSDT).
-   */
-  sell_volume: number | null;
-  /**
-   * `true` = the bucket is final and will never change; `false` = provisional (only with
-   * `?live=1`).
-   */
-  is_closed: boolean;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
-}
-
-/**
- * Row of `/v1/trades/spot`, `/v1/trades/spot/history`.
- */
-export interface SpotTradeCandle {
-  /**
-   * Start of the bucket the row covers: a 1h bucket at 14:00 covers 14:00:00 to 14:59:59.999.
-   * Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).
-   */
-  time: Date;
-  /**
-   * Number of trades. Unit: count.
-   */
-  trade_count: number;
-  /**
-   * Average trade size, base asset units (NOT dollars: multiply by the price for a notional).
-   * Unit: base asset quantity (BTC for BTCUSDT).
-   */
-  avg_trade_size: number;
-  /**
-   * Traded volume over the row, base asset units (BTC for BTCUSDT, NOT dollars), aggregated
-   * across venues. Unit: base asset quantity (BTC for BTCUSDT).
-   */
-  volume: number;
-  /**
-   * Aggressive (taker) buy volume, base asset units, aggregated across venues. Unit: base asset
-   * quantity (BTC for BTCUSDT).
-   */
-  buy_volume: number;
-  /**
-   * Aggressive (taker) sell volume, base asset units, aggregated across venues. Unit: base
-   * asset quantity (BTC for BTCUSDT).
-   */
-  sell_volume: number;
-  /**
-   * buy_volume - sell_volume over the row, base asset units. Positive = net buying. Unit: base
-   * asset quantity (BTC for BTCUSDT).
-   */
-  net_volume: number;
-  /**
-   * Average number of trades per second over the bucket. Unit: trades per second.
-   */
-  trade_rate: number;
-  /**
-   * `true` when base-asset quantities of this row were ESTIMATED from USD amounts ÷ the
-   * candle's typical price (high + low + close) / 3 (data written before quantities were
-   * recorded; mean error 0.04 % in 1m, 0.37 % in 1d); `false` = measured.
-   */
-  is_volume_estimated: boolean;
-  /**
-   * `true` = the bucket is final and will never change; `false` = provisional (only with
-   * `?live=1`).
-   */
-  is_closed: boolean;
+  value_usd: number;
   /** Fields added by the API after this SDK was released. */
   [extra: string]: unknown;
 }
@@ -4019,49 +4776,66 @@ export interface SpotTradeCandle {
 /** @internal Which fields of each model are ISO date-times, and which hold nested models. */
 export const MODEL_SHAPES: Record<string, { dates: string[]; nested: Record<string, string> }> = {
   Basis: { dates: ["time"], nested: {} },
-  BasisHistory: { dates: ["time"], nested: {} },
+  BasisHistoryItem: { dates: ["time"], nested: {} },
   BtcFeesPrecise: { dates: [], nested: {} },
   BtcFeesFeePressure: { dates: [], nested: {} },
   BtcFees: { dates: ["time"], nested: {"precise": "BtcFeesPrecise", "fee_pressure": "BtcFeesFeePressure"} },
-  BtcFeesHistory: { dates: ["time"], nested: {} },
+  BtcFeesHistoryItem: { dates: ["time"], nested: {} },
   BtcMempoolTrend: { dates: [], nested: {} },
   BtcMempool: { dates: ["time"], nested: {"trend": "BtcMempoolTrend"} },
-  BtcMempoolHistory: { dates: ["time"], nested: {} },
+  BtcMempoolHistoryItem: { dates: ["time"], nested: {} },
   BtcMiningConcentration: { dates: [], nested: {} },
   BtcMiningLatestReward: { dates: ["time"], nested: {} },
   BtcMiningPoolsItem: { dates: [], nested: {} },
   BtcMining: { dates: ["time"], nested: {"concentration": "BtcMiningConcentration", "latest_reward": "BtcMiningLatestReward", "pools": "BtcMiningPoolsItem"} },
-  BtcMiningHistory: { dates: ["time"], nested: {} },
+  BtcMiningHistoryItem: { dates: ["time"], nested: {} },
   BtcNetworkBlockTime: { dates: [], nested: {} },
   BtcNetworkNextAdjustment: { dates: ["estimated_retarget_at"], nested: {} },
   BtcNetwork: { dates: ["time"], nested: {"block_time": "BtcNetworkBlockTime", "next_adjustment": "BtcNetworkNextAdjustment"} },
-  BtcNetworkHistory: { dates: ["time"], nested: {} },
+  BtcNetworkHistoryItem: { dates: ["time"], nested: {} },
   BuysellRatio: { dates: ["time", "window_start"], nested: {} },
-  BuysellRatioHistory: { dates: ["time", "window_start"], nested: {} },
+  BuysellRatioHistoryItem: { dates: ["time", "window_start"], nested: {} },
   Cvd: { dates: ["time"], nested: {} },
   EtfFundamentals: { dates: ["time"], nested: {} },
+  EtfFundamentalsHistoryItem: { dates: ["time"], nested: {} },
   EthDefi: { dates: ["time"], nested: {} },
+  EthDefiHistoryItem: { dates: ["time"], nested: {} },
   EthDeflation: { dates: ["time"], nested: {} },
+  EthDeflationHistoryItem: { dates: ["time"], nested: {} },
   EthGas: { dates: ["time"], nested: {} },
   EthGasMomentum: { dates: ["time"], nested: {} },
+  EthGasMomentumHistoryItem: { dates: ["time"], nested: {} },
+  EthGasHistoryItem: { dates: ["time"], nested: {} },
   EthRatio: { dates: ["time"], nested: {} },
+  EthRatioHistoryItem: { dates: ["time"], nested: {} },
   EthSqueeze: { dates: ["time"], nested: {} },
+  EthSqueezeHistoryItem: { dates: ["time"], nested: {} },
   EthStaking: { dates: ["time"], nested: {} },
+  EthStakingHistoryItem: { dates: ["time"], nested: {} },
   EthSupply: { dates: ["time"], nested: {} },
+  EthSupplyHistoryItem: { dates: ["time"], nested: {} },
   FearGreed: { dates: ["time"], nested: {} },
+  FearGreedHistoryItem: { dates: ["time"], nested: {} },
   FundingCumulative: { dates: ["time", "window_start"], nested: {} },
+  FundingCumulativeHistoryItem: { dates: ["time", "window_start"], nested: {} },
   FundingNext: { dates: ["time"], nested: {} },
   FundingRate: { dates: ["time", "period_end", "settled_at"], nested: {} },
   GlobalMarket: { dates: ["time"], nested: {} },
+  GlobalHistoryItem: { dates: ["time"], nested: {} },
+  Health: { dates: [], nested: {} },
   HeatmapClusters: { dates: ["time"], nested: {} },
-  HeatmapClustersHistory: { dates: ["time"], nested: {} },
+  HeatmapClustersHistoryItem: { dates: ["time"], nested: {} },
   Kline: { dates: ["time"], nested: {} },
+  LimitsHistoryItem: { dates: [], nested: {} },
+  LimitsRate: { dates: [], nested: {} },
+  LimitsQuota: { dates: [], nested: {} },
+  Limits: { dates: [], nested: {"history": "LimitsHistoryItem", "rate": "LimitsRate", "quota": "LimitsQuota"} },
   LiquidationsCumulative: { dates: ["time", "window_start"], nested: {} },
-  LiquidationsCumulativeHistory: { dates: ["time", "window_start"], nested: {} },
+  LiquidationsCumulativeHistoryItem: { dates: ["time", "window_start"], nested: {} },
   LiquidationEvent: { dates: ["time"], nested: {} },
-  LiquidationsRatio: { dates: ["time"], nested: {} },
-  LiquidationsRatioHistory: { dates: ["time"], nested: {} },
-  MacroObservation: { dates: ["time"], nested: {} },
+  LiquidationsRatio: { dates: ["time", "window_start"], nested: {} },
+  LiquidationsRatioHistoryItem: { dates: ["time"], nested: {} },
+  Macro: { dates: ["time"], nested: {} },
   MacroCorrelationsCorrelationsDxy30d: { dates: ["time"], nested: {} },
   MacroCorrelationsCorrelationsDxy90d: { dates: ["time"], nested: {} },
   MacroCorrelationsCorrelationsDxy: { dates: [], nested: {"30d": "MacroCorrelationsCorrelationsDxy30d", "90d": "MacroCorrelationsCorrelationsDxy90d"} },
@@ -4076,17 +4850,17 @@ export const MODEL_SHAPES: Record<string, { dates: string[]; nested: Record<stri
   MacroCorrelationsCorrelationsVix: { dates: [], nested: {"30d": "MacroCorrelationsCorrelationsVix30d", "90d": "MacroCorrelationsCorrelationsVix90d"} },
   MacroCorrelationsCorrelations: { dates: [], nested: {"dxy": "MacroCorrelationsCorrelationsDxy", "sp500": "MacroCorrelationsCorrelationsSp500", "gold": "MacroCorrelationsCorrelationsGold", "vix": "MacroCorrelationsCorrelationsVix"} },
   MacroCorrelations: { dates: ["time"], nested: {"correlations": "MacroCorrelationsCorrelations"} },
-  MacroObservationHistory: { dates: ["time"], nested: {} },
-  MacroIntradayCandle: { dates: ["time"], nested: {} },
-  MacroIntradaySeriesLastCandleAt: { dates: ["1m", "5m", "15m", "1h", "4h", "1d"], nested: {} },
-  MacroIntradaySeries: { dates: [], nested: {"last_candle_at": "MacroIntradaySeriesLastCandleAt"} },
+  MacroHistoryItem: { dates: ["time"], nested: {} },
+  MacroIntraday: { dates: ["time"], nested: {} },
+  MacroIntradaySeriesInfoLastCandleAt: { dates: ["1m", "5m", "15m", "1h", "4h", "1d"], nested: {} },
+  MacroIntradaySeriesInfo: { dates: [], nested: {"last_candle_at": "MacroIntradaySeriesInfoLastCandleAt"} },
   MacroMomentum30dComponentsItem: { dates: ["time"], nested: {} },
   MacroMomentum30d: { dates: [], nested: {"components": "MacroMomentum30dComponentsItem"} },
   MacroMomentum90dComponentsItem: { dates: ["time"], nested: {} },
   MacroMomentum90d: { dates: [], nested: {"components": "MacroMomentum90dComponentsItem"} },
   MacroMomentum: { dates: ["time"], nested: {"30d": "MacroMomentum30d", "90d": "MacroMomentum90d"} },
   MacroNetLiquidity: { dates: ["time"], nested: {} },
-  MacroNetLiquidityHistory: { dates: ["time"], nested: {} },
+  MacroNetLiquidityHistoryItem: { dates: ["time"], nested: {} },
   MacroRiskSignalsVix: { dates: ["time"], nested: {} },
   MacroRiskSignalsDxy: { dates: ["time"], nested: {} },
   MacroRiskSignalsYieldCurve: { dates: ["time"], nested: {} },
@@ -4095,36 +4869,42 @@ export const MODEL_SHAPES: Record<string, { dates: string[]; nested: Record<stri
   MacroRiskSignals: { dates: [], nested: {"vix": "MacroRiskSignalsVix", "dxy": "MacroRiskSignalsDxy", "yield_curve": "MacroRiskSignalsYieldCurve", "sp500": "MacroRiskSignalsSp500", "gold": "MacroRiskSignalsGold"} },
   MacroRiskContext: { dates: [], nested: {} },
   MacroRisk: { dates: ["time"], nested: {"signals": "MacroRiskSignals", "context": "MacroRiskContext"} },
-  MacroSeries: { dates: ["time"], nested: {} },
-  OiDelta: { dates: ["time"], nested: {} },
-  OiDeltaHistory: { dates: ["time"], nested: {} },
-  OpenInterest: { dates: ["time"], nested: {} },
+  MacroSeriesInfo: { dates: ["time"], nested: {} },
+  Oi: { dates: ["time"], nested: {} },
+  OiDelta: { dates: ["time", "window_start"], nested: {} },
+  OiDeltaHistoryItem: { dates: ["time"], nested: {} },
+  OiHistoryItem: { dates: ["time"], nested: {} },
   OnchainActiveAddresses: { dates: ["time"], nested: {} },
+  OnchainActiveAddressesHistoryItem: { dates: ["time"], nested: {} },
   OnchainMinerStress: { dates: ["time"], nested: {} },
+  OnchainMinerStressHistoryItem: { dates: ["time"], nested: {} },
   OnchainMvrv: { dates: ["time"], nested: {} },
+  OnchainMvrvHistoryItem: { dates: ["time"], nested: {} },
   OnchainNvt: { dates: ["time"], nested: {} },
+  OnchainNvtHistoryItem: { dates: ["time"], nested: {} },
   OptionsExpiry: { dates: ["expiry"], nested: {} },
   OptionsGreeksCoverage: { dates: [], nested: {} },
   OptionsGreeks: { dates: ["time"], nested: {"coverage": "OptionsGreeksCoverage"} },
   OptionsIv: { dates: ["time"], nested: {} },
-  OptionsIvCandle: { dates: ["time"], nested: {} },
+  OptionsIvKline: { dates: ["time"], nested: {} },
   OptionsMaxPain: { dates: ["expiry"], nested: {} },
-  OptionsMaxPainHistory: { dates: ["time"], nested: {} },
+  OptionsMaxPainHistoryItem: { dates: ["time"], nested: {} },
   OptionsOiCoverage: { dates: [], nested: {} },
   OptionsOi: { dates: ["time"], nested: {"coverage": "OptionsOiCoverage"} },
   OptionsOiDelta: { dates: ["time"], nested: {} },
+  OptionsOiDeltaHistoryItem: { dates: ["time"], nested: {} },
   OptionsOiDistribution: { dates: ["expiry"], nested: {} },
-  OptionsOiHistory: { dates: ["time"], nested: {} },
+  OptionsOiHistoryItem: { dates: ["time"], nested: {} },
   OptionsPcRatio: { dates: ["time"], nested: {} },
-  OptionsPcRatioHistory: { dates: ["time"], nested: {} },
+  OptionsPcRatioHistoryItem: { dates: ["time"], nested: {} },
   OptionsSummaryNearestExpiry: { dates: ["expiry"], nested: {} },
   OptionsSummaryCoverage: { dates: [], nested: {} },
   OptionsSummary: { dates: ["time"], nested: {"nearest_expiry": "OptionsSummaryNearestExpiry", "coverage": "OptionsSummaryCoverage"} },
   OptionsVolumeCoverage: { dates: [], nested: {} },
   OptionsVolume: { dates: ["time"], nested: {"coverage": "OptionsVolumeCoverage"} },
-  OptionsVolumeHistory: { dates: ["time"], nested: {} },
-  OrderbookAggregatedRangesItem: { dates: [], nested: {} },
-  OrderbookAggregated: { dates: ["time"], nested: {"ranges": "OrderbookAggregatedRangesItem"} },
+  OptionsVolumeHistoryItem: { dates: ["time"], nested: {} },
+  OrderbookRangesItem: { dates: [], nested: {} },
+  Orderbook: { dates: ["time"], nested: {"ranges": "OrderbookRangesItem"} },
   PriceChangeChangesPct: { dates: [], nested: {} },
   PriceChange: { dates: ["time"], nested: {"changes_pct": "PriceChangeChangesPct"} },
   SpreadInterexchangeHigh: { dates: [], nested: {} },
@@ -4134,17 +4914,13 @@ export const MODEL_SHAPES: Record<string, { dates: string[]; nested: Record<stri
   StatusFeedsItem: { dates: [], nested: {} },
   Status: { dates: ["computed_at"], nested: {"feeds": "StatusFeedsItem"} },
   Symbol: { dates: [], nested: {} },
-  SymbolCapabilitiesFeedsActiveLast24h: { dates: [], nested: {} },
-  SymbolCapabilities: { dates: [], nested: {"feeds_active_last_24h": "SymbolCapabilitiesFeedsActiveLast24h"} },
-  FuturesTick: { dates: ["time"], nested: {} },
-  LargeTrade: { dates: ["time"], nested: {} },
-  SpotTick: { dates: ["time"], nested: {} },
+  SymbolsCapabilitiesFeedsActiveLast24h: { dates: [], nested: {} },
+  SymbolsCapabilities: { dates: [], nested: {"feeds_active_last_24h": "SymbolsCapabilitiesFeedsActiveLast24h"} },
   Tokenomics: { dates: ["time", "priced_at"], nested: {} },
-  TokenomicsHistory: { dates: ["time"], nested: {} },
-  TradeCandle: { dates: ["time"], nested: {} },
-  TradesAvgSize: { dates: ["time"], nested: {} },
-  TradesAvgSizeHistory: { dates: ["time"], nested: {} },
-  FuturesTradeCandle: { dates: ["time"], nested: {} },
-  FuturesTradeSecond: { dates: ["time"], nested: {} },
-  SpotTradeCandle: { dates: ["time"], nested: {} },
+  TokenomicsHistoryItem: { dates: ["time"], nested: {} },
+  TradesKline: { dates: ["time"], nested: {} },
+  TradesKlineSecond: { dates: ["time"], nested: {} },
+  TradesAvgSize: { dates: ["time", "window_start"], nested: {} },
+  TradesAvgSizeHistoryItem: { dates: ["time"], nested: {} },
+  Trade: { dates: ["time"], nested: {} },
 };

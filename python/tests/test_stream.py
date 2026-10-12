@@ -26,8 +26,8 @@ T = "2026-10-12T09:00:00.000Z"
 
 
 def trades(seq: int, channel: str = "trades.futures.BTCUSDT") -> str:
-    row = {"time": T, "id": f"id{seq}", "side": "buy", "price": 83000.0, "quantity": 0.01, "usd_value": 830.0}
-    return json.dumps({"channel": channel, "time": T, "seq": seq, "data": [row]})
+    row = {"time": T, "id": f"id{seq}", "side": "buy", "price": 83000.0, "quantity": 0.01, "value_usd": 830.0}
+    return json.dumps({"channel": channel, "server_time": T, "seq": seq, "data": [row]})
 
 
 def book(seq: int) -> str:
@@ -35,11 +35,11 @@ def book(seq: int) -> str:
         "bids": [[82999.0, 1.5]],
         "asks": [[83001.0, 2.0]],
         "mid_avg": 83000.0,
-        "spread_bps_avg": 0.03,
+        "avg_spread_bps": 0.03,
         "is_crossed": False,
         "crossed_bps": 0.0,
     }
-    return json.dumps({"channel": "book.futures.BTCUSDT", "time": T, "seq": seq, "data": data})
+    return json.dumps({"channel": "book.futures.BTCUSDT", "server_time": T, "seq": seq, "data": data})
 
 
 class FakeStream:

@@ -4,8 +4,11 @@ Official client libraries for the [BytNode](https://bytnode.com) crypto market-d
 
 | Language | Package | Install | Docs |
 |---|---|---|---|
-| Python 3.10+ | `bytnode` | `pip install bytnode` | [python/README.md](python/README.md) |
-| TypeScript / JavaScript (Node 18+, Deno, Bun) | `bytnode` | `npm install bytnode` | [typescript/README.md](typescript/README.md) |
+| Python 3.10+ | `bytnode` | `pip install https://github.com/bytnode/bytnode-SDK/releases/download/v0.2.0/bytnode-0.2.0-py3-none-any.whl` | [python/README.md](python/README.md) |
+| TypeScript / JavaScript (Node 18+, Deno, Bun) | `bytnode` | `npm install https://github.com/bytnode/bytnode-SDK/releases/download/v0.2.0/bytnode-0.2.0.tgz` | [typescript/README.md](typescript/README.md) |
+
+The packages are attached to each [GitHub release](https://github.com/bytnode/bytnode-SDK/releases);
+they are not on PyPI or npm yet.
 
 ```python
 from bytnode import Bytnode
@@ -25,7 +28,7 @@ Get a key at [bytnode.com/dashboard/keys](https://bytnode.com/dashboard/keys).
 
 ## What the SDKs do for you
 
-- **Every route, typed.** All 111 REST routes, named after their path: `/v1/funding/rate/history` is
+- **Every route, typed.** All 129 REST routes, named after their path: `/v1/funding/rate/history` is
   `client.funding.rate.history(...)`. Parameters with a closed set of values are typed; every row is
   a typed model with the API's own field names and its dates already converted.
 - **Pagination handled.** `.iter()` follows `next` page after page, with the largest pages the route

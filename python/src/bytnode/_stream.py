@@ -2,7 +2,7 @@
 
 The protocol (https://bytnode.com/docs/websocket): the key is checked at the handshake;
 `{"op": "subscribe", "channels": [...], "depth": N}` answers `op: subscribed` with EVERY active
-channel; data messages carry `channel`, `time`, `seq` (monotonic per channel, arbitrary start)
+channel; data messages carry `channel`, `server_time`, `seq` (monotonic per channel, arbitrary start)
 and `data`. A jump in `seq` on an event channel means messages were lost.
 """
 
@@ -35,11 +35,11 @@ class StreamTrade(BytnodeModel):
     """One execution. `side` is the taker's side (`buy` = a buyer lifted the offer)."""
 
     time: datetime = PydField(description="Instant of the trade.")
-    id: str | None = PydField(None, description="Same identifier as the tick of /v1/ticks/*: deduplicate against REST.")
+    id: str | None = PydField(None, description="Same id as /v1/trades/*: deduplicate against REST.")
     side: str = PydField(description="Taker side: `buy` or `sell`.")
     price: float
     quantity: float = PydField(description="In units of the base asset.")
-    usd_value: float | None = PydField(None, description="price × quantity.")
+    value_usd: float | None = PydField(None, description="price × quantity, in USD.")
 
 
 class StreamLiquidation(BytnodeModel):
@@ -49,7 +49,7 @@ class StreamLiquidation(BytnodeModel):
     price: float
     quantity: float
     side: str = PydField(description="`long` or `short`: the liquidated position.")
-    usd_value: float | None = None
+    value_usd: float | None = None
 
 
 class StreamBook(BytnodeModel):
@@ -58,7 +58,7 @@ class StreamBook(BytnodeModel):
     bids: list[tuple[float, float]] = PydField(default_factory=list, description="Decreasing prices.")
     asks: list[tuple[float, float]] = PydField(default_factory=list, description="Increasing prices.")
     mid_avg: float | None = PydField(None, description="Reference price.")
-    spread_bps_avg: float | None = PydField(None, description="Average per-venue spread, in basis points.")
+    avg_spread_bps: float | None = PydField(None, description="Average per-venue spread, in basis points.")
     is_crossed: bool | None = None
     crossed_bps: float | None = None
 
@@ -67,7 +67,7 @@ class StreamMessage(BytnodeModel):
     """A message of the stream. `gap` counts the messages LOST just before this one."""
 
     channel: str
-    time: datetime = PydField(description="When the server sent the tick.")
+    server_time: datetime = PydField(description="When the server sent the message.")
     seq: int | None = None
     gap: int = PydField(0, description="Messages lost before this one on its channel (event channels only).")
 

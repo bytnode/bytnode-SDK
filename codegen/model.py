@@ -300,8 +300,10 @@ class Builder:
         if lit:
             t = TypeRef("literal", name=lit, values=self.literals[lit].values)
         elif schema.get("enum"):
-            name = {"order": "Order"}.get(wire)
-            t = TypeRef("literal", name=name, values=tuple(schema["enum"]))
+            # the contract closes the set; a known literal with the same values names it
+            values = tuple(schema["enum"])
+            name = next((lit.name for lit in self.literals.values() if lit.values == values), None)
+            t = TypeRef("literal", name=name, values=values)
         else:
             t = self.schema_type(schema, pascal(wire))
             t.nullable = False
@@ -348,7 +350,14 @@ class Builder:
         resp = op["responses"]["200"]["content"]["application/json"]
         envelope, _ = self.resolve(resp["schema"])
         env = envelope["properties"]
-        data, ref_name = self.resolve(env.get("data", {}))
+        data_schema = env.get("data", {})
+        # A latest-value route types `data` as `anyOf: [<Model>, null]` (the value can be
+        # missing, then `unavailable` says why): the model is the non-null member.
+        if "anyOf" in data_schema:
+            members = [o for o in data_schema["anyOf"] if o.get("type") != "null"]
+            if len(members) == 1:
+                data_schema = members[0]
+        data, ref_name = self.resolve(data_schema)
         if data.get("type") == "array":
             items, item_ref = self.resolve(data.get("items", {}))
             data = {**data, "items": items}
@@ -494,6 +503,11 @@ class Builder:
             error_codes=list(err.get("enum", [])),
             renamed=self.spec.get("x-renamed", {}),
         )
+
+
+def param_literals(api: Api) -> list[str]:
+    """Names of the literals used by route parameters (the resource modules import them)."""
+    return sorted({p.type.name for r in api.routes for p in r.params if p.type.kind == "literal" and p.type.name})
 
 
 def load() -> Api:
