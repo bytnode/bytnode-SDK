@@ -1195,7 +1195,7 @@ class AsyncCvdFuturesResource(AsyncResource):
 class AsyncCvdHistoryResource(AsyncResource):
     """`/v1/cvd/history`."""
 
-    _route = RouteSpec(path='/v1/cvd/history', method='GET', shape='list', model=m.Cvd, paginated=True, path_params=(), max_limit=1000, range_mode=False)
+    _route = RouteSpec(path='/v1/cvd/history', method='GET', shape='list', model=m.CvdHistoryItem, paginated=True, path_params=(), max_limit=1000, range_mode=False)
 
     async def __call__(
         self,
@@ -1209,7 +1209,7 @@ class AsyncCvdHistoryResource(AsyncResource):
         order: Order | None = None,
         fields: Fields | None = None,
         request_options: RequestOptions | None = None,
-    ) -> Response[list[m.Cvd]]:
+    ) -> Response[list[m.CvdHistoryItem]]:
         """GET /v1/cvd/history — Cumulative volume delta history
 
         Same as `/v1/cvd`, one row per closed bucket. The market is in the PATH: no suffix =
@@ -1261,7 +1261,7 @@ class AsyncCvdHistoryResource(AsyncResource):
         page_size: int | None = None,
         max_items: int | None = None,
         request_options: RequestOptions | None = None,
-    ) -> AsyncRowIterator[m.Cvd]:
+    ) -> AsyncRowIterator[m.CvdHistoryItem]:
         """Every row of `/v1/cvd/history` over a period, following `next` page after page.
 
         Pages are fetched lazily, `page_size` rows at a time (default: the route's

@@ -659,8 +659,8 @@ export interface BuysellRatioHistoryItem {
 }
 
 /**
- * Row of `/v1/cvd`, `/v1/cvd/futures`, `/v1/cvd/futures/history`, `/v1/cvd/history`,
- * `/v1/cvd/spot`, `/v1/cvd/spot/history`.
+ * Row of `/v1/cvd`, `/v1/cvd/futures`, `/v1/cvd/futures/history`, `/v1/cvd/spot`,
+ * `/v1/cvd/spot/history`.
  */
 export interface Cvd {
   /**
@@ -673,6 +673,54 @@ export interface Cvd {
    * bucket start. Unit: base asset quantity (BTC for BTCUSDT).
    */
   cvd_series: Array<number | null>;
+  /**
+   * buy_volume - sell_volume over the row, base asset units. Positive = net buying. Unit: base
+   * asset quantity (BTC for BTCUSDT).
+   */
+  net_volume: number | null;
+  /**
+   * Aggressive (taker) buy volume, base asset units, aggregated across venues. Unit: base asset
+   * quantity (BTC for BTCUSDT).
+   */
+  buy_volume: number | null;
+  /**
+   * Aggressive (taker) sell volume, base asset units, aggregated across venues. Unit: base
+   * asset quantity (BTC for BTCUSDT).
+   */
+  sell_volume: number | null;
+  /**
+   * Number of one-minute points in `cvd_series`. Unit: count.
+   */
+  sample_count: number;
+  /**
+   * `true` when base-asset quantities of this row were ESTIMATED from USD amounts ÷ the
+   * candle's typical price (high + low + close) / 3 (data written before quantities were
+   * recorded; mean error 0.04 % in 1m, 0.37 % in 1d); `false` = measured.
+   */
+  is_volume_estimated: boolean;
+  /**
+   * `true` = the bucket is final and will never change; `false` = provisional (only with
+   * `?live=1`).
+   */
+  is_closed: boolean;
+  /** Fields added by the API after this SDK was released. */
+  [extra: string]: unknown;
+}
+
+/**
+ * Row of `/v1/cvd/history`.
+ */
+export interface CvdHistoryItem {
+  /**
+   * Start of the bucket the row covers: a 1h bucket at 14:00 covers 14:00:00 to 14:59:59.999.
+   * Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).
+   */
+  time: Date;
+  /**
+   * Cumulative volume delta inside the bucket, one point per minute, starting from 0 at the
+   * bucket start. Unit: base asset quantity (BTC for BTCUSDT).
+   */
+  cvd_series: Array<number | null> | null;
   /**
    * buy_volume - sell_volume over the row, base asset units. Positive = net buying. Unit: base
    * asset quantity (BTC for BTCUSDT).
@@ -2008,7 +2056,7 @@ export interface Limits {
    * `snapshot`, `indicators`, `macro`, `options`, `onchain`, `etf`, `tokenomics`, `sentiment`);
    * `null` = all of them. A route outside them answers 403 `plan_family`.
    */
-  families: Array<string>;
+  families: Array<string> | null;
   /**
    * History window per timeframe, one object per timeframe the API serves.
    */
@@ -2017,7 +2065,7 @@ export interface Limits {
    * How far back individual trades (`/v1/trades/*`) may be read, in minutes; `null` = unlimited
    * or not in your plan (see `families`). Unit: minutes.
    */
-  ticks_window_minutes: number | string | null;
+  ticks_window_minutes: number | null;
   /**
    * How many of the most recent individual liquidations `/v1/liquidations/events` may return;
    * `null` = unlimited. Unit: count.
@@ -2027,12 +2075,12 @@ export interface Limits {
    * The per-minute rate, as a token bucket; `null` = unlimited or unmetered key. The same
    * values as the `RateLimit` headers (`debit` policy).
    */
-  rate: LimitsRate;
+  rate: LimitsRate | null;
   /**
    * The monthly quota; `null` = unlimited or unmetered key. The same values as the `RateLimit`
    * headers (`mensuel` policy). It resets on the 1st of the month, 00:00 UTC.
    */
-  quota: LimitsQuota;
+  quota: LimitsQuota | null;
   /** Fields added by the API after this SDK was released. */
   [extra: string]: unknown;
 }
@@ -4796,6 +4844,7 @@ export const MODEL_SHAPES: Record<string, { dates: string[]; nested: Record<stri
   BuysellRatio: { dates: ["time", "window_start"], nested: {} },
   BuysellRatioHistoryItem: { dates: ["time", "window_start"], nested: {} },
   Cvd: { dates: ["time"], nested: {} },
+  CvdHistoryItem: { dates: ["time"], nested: {} },
   EtfFundamentals: { dates: ["time"], nested: {} },
   EtfFundamentalsHistoryItem: { dates: ["time"], nested: {} },
   EthDefi: { dates: ["time"], nested: {} },

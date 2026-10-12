@@ -28,7 +28,7 @@ const R_BUYSELL_RATIO_SPOT_HISTORY: RouteSpec = {"path": "/v1/buysell/ratio/spot
 const R_CVD: RouteSpec = {"path": "/v1/cvd", "method": "GET", "shape": "object", "model": "Cvd", "paginated": false, "pathParams": [], "maxLimit": null, "rangeMode": false, "wire": {}};
 const R_CVD_FUTURES: RouteSpec = {"path": "/v1/cvd/futures", "method": "GET", "shape": "object", "model": "Cvd", "paginated": false, "pathParams": [], "maxLimit": null, "rangeMode": false, "wire": {}};
 const R_CVD_FUTURES_HISTORY: RouteSpec = {"path": "/v1/cvd/futures/history", "method": "GET", "shape": "list", "model": "Cvd", "paginated": true, "pathParams": [], "maxLimit": 1000, "rangeMode": false, "wire": {"since": "since_ms", "until": "until_ms", "before": "before_ms"}};
-const R_CVD_HISTORY: RouteSpec = {"path": "/v1/cvd/history", "method": "GET", "shape": "list", "model": "Cvd", "paginated": true, "pathParams": [], "maxLimit": 1000, "rangeMode": false, "wire": {"since": "since_ms", "until": "until_ms", "before": "before_ms"}};
+const R_CVD_HISTORY: RouteSpec = {"path": "/v1/cvd/history", "method": "GET", "shape": "list", "model": "CvdHistoryItem", "paginated": true, "pathParams": [], "maxLimit": 1000, "rangeMode": false, "wire": {"since": "since_ms", "until": "until_ms", "before": "before_ms"}};
 const R_CVD_SPOT: RouteSpec = {"path": "/v1/cvd/spot", "method": "GET", "shape": "object", "model": "Cvd", "paginated": false, "pathParams": [], "maxLimit": null, "rangeMode": false, "wire": {}};
 const R_CVD_SPOT_HISTORY: RouteSpec = {"path": "/v1/cvd/spot/history", "method": "GET", "shape": "list", "model": "Cvd", "paginated": true, "pathParams": [], "maxLimit": 1000, "rangeMode": false, "wire": {"since": "since_ms", "until": "until_ms", "before": "before_ms"}};
 const R_ETF_FUNDAMENTALS: RouteSpec = {"path": "/v1/etf/fundamentals", "method": "GET", "shape": "list", "model": "EtfFundamentals", "paginated": false, "pathParams": [], "maxLimit": null, "rangeMode": false, "wire": {}};
@@ -1225,12 +1225,12 @@ export interface CvdHistoryResource {
    * true`); `/futures` serves the full futures history. Most recent first, or oldest first with
    * `order=asc`. Follow `next` to read the following page (it never repeats a row).
    */
-  (params: CvdHistoryParams, options?: RequestOptions): Promise<ApiResponse<Array<M.Cvd>>>;
+  (params: CvdHistoryParams, options?: RequestOptions): Promise<ApiResponse<Array<M.CvdHistoryItem>>>;
   /**
    * Every row of `/v1/cvd/history` over a period, following `next` page after page (`for
    * await`).
    */
-  iter(params: CvdHistoryIterOptions, options?: RequestOptions): RowIterator<M.Cvd>;
+  iter(params: CvdHistoryIterOptions, options?: RequestOptions): RowIterator<M.CvdHistoryItem>;
 }
 
 export interface CvdSpotHistoryParams {

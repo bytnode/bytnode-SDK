@@ -1828,6 +1828,68 @@
           }
         }
       },
+      "CvdHistoryItem": {
+        "type": "object",
+        "properties": {
+          "time": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Start of the bucket the row covers: a 1h bucket at 14:00 covers 14:00:00 to 14:59:59.999.",
+            "x-unit": "ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z)"
+          },
+          "cvd_series": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "description": "Cumulative volume delta inside the bucket, one point per minute, starting from 0 at the bucket start.",
+            "x-unit": "base asset quantity (BTC for BTCUSDT)"
+          },
+          "net_volume": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "description": "buy_volume - sell_volume over the row, base asset units. Positive = net buying.",
+            "x-unit": "base asset quantity (BTC for BTCUSDT)"
+          },
+          "buy_volume": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "description": "Aggressive (taker) buy volume, base asset units, aggregated across venues.",
+            "x-unit": "base asset quantity (BTC for BTCUSDT)"
+          },
+          "sell_volume": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "description": "Aggressive (taker) sell volume, base asset units, aggregated across venues.",
+            "x-unit": "base asset quantity (BTC for BTCUSDT)"
+          },
+          "sample_count": {
+            "type": "integer",
+            "description": "Number of one-minute points in `cvd_series`.",
+            "x-unit": "count"
+          },
+          "is_volume_estimated": {
+            "type": "boolean",
+            "description": "`true` when base-asset quantities of this row were ESTIMATED from USD amounts ÷ the candle's typical price (high + low + close) / 3 (data written before quantities were recorded; mean error 0.04 % in 1m, 0.37 % in 1d); `false` = measured."
+          },
+          "is_closed": {
+            "type": "boolean",
+            "description": "`true` = the bucket is final and will never change; `false` = provisional (only with `?live=1`)."
+          }
+        }
+      },
       "CvdHistoryResponse": {
         "type": "object",
         "required": [
@@ -1870,7 +1932,7 @@
           "data": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/Cvd"
+              "$ref": "#/components/schemas/CvdHistoryItem"
             },
             "description": "The payload. Most recent first when it is a list."
           },
@@ -6313,7 +6375,10 @@
             "description": "Your plan: `free`, `traders`, `financial`, `startup` or `enterprise` (`legacy` for an internal unmetered key, whose limits are all `null`)."
           },
           "families": {
-            "type": "array",
+            "type": [
+              "array",
+              "null"
+            ],
             "items": {
               "type": "string"
             },
@@ -6342,8 +6407,7 @@
           },
           "ticks_window_minutes": {
             "type": [
-              "number",
-              "string",
+              "integer",
               "null"
             ],
             "description": "How far back individual trades (`/v1/trades/*`) may be read, in minutes; `null` = unlimited or not in your plan (see `families`).",
@@ -6358,7 +6422,10 @@
             "x-unit": "count"
           },
           "rate": {
-            "type": "object",
+            "type": [
+              "object",
+              "null"
+            ],
             "properties": {
               "burst": {
                 "type": [
@@ -6396,7 +6463,10 @@
             "description": "The per-minute rate, as a token bucket; `null` = unlimited or unmetered key. The same values as the `RateLimit` headers (`debit` policy)."
           },
           "quota": {
-            "type": "object",
+            "type": [
+              "object",
+              "null"
+            ],
             "properties": {
               "monthly": {
                 "type": [
@@ -11442,7 +11512,10 @@
         "type": "object",
         "properties": {
           "funding_rate": {
-            "type": "object",
+            "type": [
+              "object",
+              "null"
+            ],
             "properties": {
               "time": {
                 "type": "string",
@@ -11479,7 +11552,10 @@
             }
           },
           "basis": {
-            "type": "object",
+            "type": [
+              "object",
+              "null"
+            ],
             "properties": {
               "time": {
                 "type": "string",
