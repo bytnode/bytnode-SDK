@@ -251,3 +251,23 @@ describe('pagination: short pages and timeouts', () => {
     expect(limits).toEqual(['1000', '500']);
   });
 });
+
+describe('exact models and request id', () => {
+  it('does not compile a misspelt field', () => {
+    const row = { close: 1 } as unknown as import('../src/index.js').Kline;
+    // @ts-expect-error -- `clsoe` is not a field of Kline: a typo must not compile
+    expect(row.clsoe).toBeUndefined();
+    expect(row.close).toBe(1);
+  });
+
+  it('gives the request id of a successful response', async () => {
+    const { client } = fakeClient([
+      () => new Response(JSON.stringify({ status: 'ok', server_time: '2026-10-13T00:00:00.000Z', data_type: 'health', data: { database: 'connected' } }), {
+        status: 200,
+        headers: { 'content-type': 'application/json', 'x-request-id': 'abc123' },
+      }),
+    ]);
+    const resp = await client.health();
+    expect(resp.requestId).toBe('abc123');
+  });
+});

@@ -91,8 +91,9 @@ def emit_models(api: Api) -> str:
             out.extend(jsdoc(desc, 2))
             opt = "" if f.required else "?"
             out.append(f"  {key(f.name)}{opt}: {ts_type(f.type)};")
-        out.append("  /** Fields added by the API after this SDK was released. */")
-        out.append("  [extra: string]: unknown;")
+        # Pas de signature d'index (audit neutre du 2026-10-13, iteration 5, DX) : avec
+        # `[extra: string]: unknown`, `row.rate_pc` compilait. Un champ ajoute par l'API
+        # apres la release reste lisible par `response.raw` (et `as` si besoin).
         out.append("}")
         out.append("")
     # date descriptors: which keys to turn into Date, which nested models to walk

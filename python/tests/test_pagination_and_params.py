@@ -231,3 +231,11 @@ def test_iter_asks_a_smaller_page_after_a_504(respx_mock: respx.MockRouter) -> N
     assert len(rows) == 1
     limits = [call.request.url.params["limit"] for call in route.calls]
     assert limits == ["1000", "500"]
+
+
+@respx.mock(base_url=BASE)
+def test_a_successful_response_gives_its_request_id(respx_mock: respx.MockRouter, client: Bytnode) -> None:
+    respx_mock.get("/v1/klines").mock(
+        return_value=httpx.Response(200, json=page([], None), headers={"X-Request-Id": "abc123"})
+    )
+    assert client.klines("BTCUSDT", "1h").request_id == "abc123"

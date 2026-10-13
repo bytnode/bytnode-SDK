@@ -32,8 +32,6 @@ export interface Basis {
    * Spot price across venues. Unit: quote currency (USDT for BTCUSDT).
    */
   spot_price: number;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -68,12 +66,11 @@ export interface BasisHistoryItem {
    */
   sample_count: number;
   /**
-   * `true` = the bucket is final and will never change; `false` = provisional (only with
-   * `?live=1`).
+   * `true` = the row is final and will never change; `false` = provisional: the latest bucket
+   * while it still settles (a few seconds after its end, e.g. a candle whose volumes are not
+   * final yet), or the period in progress with `?live=1` on the routes that take it.
    */
   is_closed: boolean;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -100,8 +97,6 @@ export interface BtcFeesPrecise {
    * Minimum relay fee rate. Unit: satoshis per virtual byte (sat/vB).
    */
   minimum_fee_sat_vb: number;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -117,8 +112,6 @@ export interface BtcFeesFeePressure {
    * Fee pressure: `normal` (ratio <= 2), `elevated` (> 2) or `congested` (> 5).
    */
   label: string;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -159,8 +152,6 @@ export interface BtcFees {
    * `congested` (> 5).
    */
   fee_pressure: BtcFeesFeePressure;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -193,12 +184,11 @@ export interface BtcFeesHistoryItem {
    */
   minimum_fee_sat_vb: number;
   /**
-   * `true` = the bucket is final and will never change; `false` = provisional (only with
-   * `?live=1`).
+   * `true` = the row is final and will never change; `false` = provisional: the latest bucket
+   * while it still settles (a few seconds after its end, e.g. a candle whose volumes are not
+   * final yet), or the period in progress with `?live=1` on the routes that take it.
    */
   is_closed: boolean;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -222,8 +212,6 @@ export interface BtcMempoolTrend {
    * `filling` (vsize grew over 1 h), `draining` (shrank) or `stable`.
    */
   label: string;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -257,8 +245,6 @@ export interface BtcMempool {
    * `stable`).
    */
   trend: BtcMempoolTrend;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -283,12 +269,11 @@ export interface BtcMempoolHistoryItem {
    */
   total_fee_sats: number;
   /**
-   * `true` = the bucket is final and will never change; `false` = provisional (only with
-   * `?live=1`).
+   * `true` = the row is final and will never change; `false` = provisional: the latest bucket
+   * while it still settles (a few seconds after its end, e.g. a candle whose volumes are not
+   * final yet), or the period in progress with `?live=1` on the routes that take it.
    */
   is_closed: boolean;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -316,8 +301,6 @@ export interface BtcMiningConcentration {
    * `high_risk` (> 50 %).
    */
   label: string;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -347,8 +330,6 @@ export interface BtcMiningLatestReward {
    * current price. Unit: USD.
    */
   btc_price_usd_at_block: number;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -375,8 +356,6 @@ export interface BtcMiningPoolsItem {
    * Share of blocks. Unit: percent (58.5 = 58.5 %).
    */
   share_pct: number;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -400,8 +379,6 @@ export interface BtcMining {
    * Pools ranked by blocks mined: `name`, `slug`, `block_count`, `rank`, `share_pct`.
    */
   pools: Array<BtcMiningPoolsItem>;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -435,8 +412,9 @@ export interface BtcMiningHistoryItem {
    */
   label: string;
   /**
-   * `true` = the bucket is final and will never change; `false` = provisional (only with
-   * `?live=1`).
+   * `true` = the row is final and will never change; `false` = provisional: the latest bucket
+   * while it still settles (a few seconds after its end, e.g. a candle whose volumes are not
+   * final yet), or the period in progress with `?live=1` on the routes that take it.
    */
   is_closed: boolean;
   /**
@@ -512,8 +490,6 @@ export interface BtcMiningHistoryItem {
    * Highest fee rate paid in the blocks. Unit: satoshis per virtual byte (sat/vB).
    */
   fee_rate_p100_sat_vb?: number | null;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -533,8 +509,6 @@ export interface BtcNetworkBlockTime {
    * 24 h block time versus the 600 s target: `slow` (> +30 s), `fast` (< -30 s) or `on_target`.
    */
   label: string;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -558,8 +532,6 @@ export interface BtcNetworkNextAdjustment {
    * Estimated time left before the adjustment, seconds. Unit: seconds.
    */
   remaining_s: number;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -598,8 +570,6 @@ export interface BtcNetwork {
    * Next difficulty adjustment: progress, expected change, date, remaining blocks and time.
    */
   next_adjustment: BtcNetworkNextAdjustment;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -630,12 +600,11 @@ export interface BtcNetworkHistoryItem {
    */
   difficulty_change_pct: number;
   /**
-   * `true` = the bucket is final and will never change; `false` = provisional (only with
-   * `?live=1`).
+   * `true` = the row is final and will never change; `false` = provisional: the latest bucket
+   * while it still settles (a few seconds after its end, e.g. a candle whose volumes are not
+   * final yet), or the period in progress with `?live=1` on the routes that take it.
    */
   is_closed: boolean;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -679,8 +648,6 @@ export interface BuysellRatio {
    * (excluded). Unit: seconds.
    */
   window_s: number;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -720,8 +687,9 @@ export interface BuysellRatioHistoryItem {
    */
   is_volume_estimated: boolean;
   /**
-   * `true` = the bucket is final and will never change; `false` = provisional (only with
-   * `?live=1`).
+   * `true` = the row is final and will never change; `false` = provisional: the latest bucket
+   * while it still settles (a few seconds after its end, e.g. a candle whose volumes are not
+   * final yet), or the period in progress with `?live=1` on the routes that take it.
    */
   is_closed: boolean;
   /**
@@ -733,8 +701,6 @@ export interface BuysellRatioHistoryItem {
    * Length of the bucket, in seconds (3600 for `1h`). Unit: seconds.
    */
   window_s: number;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -778,12 +744,11 @@ export interface Cvd {
    */
   is_volume_estimated: boolean;
   /**
-   * `true` = the bucket is final and will never change; `false` = provisional (only with
-   * `?live=1`).
+   * `true` = the row is final and will never change; `false` = provisional: the latest bucket
+   * while it still settles (a few seconds after its end, e.g. a candle whose volumes are not
+   * final yet), or the period in progress with `?live=1` on the routes that take it.
    */
   is_closed: boolean;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -826,12 +791,11 @@ export interface CvdHistoryItem {
    */
   is_volume_estimated: boolean;
   /**
-   * `true` = the bucket is final and will never change; `false` = provisional (only with
-   * `?live=1`).
+   * `true` = the row is final and will never change; `false` = provisional: the latest bucket
+   * while it still settles (a few seconds after its end, e.g. a candle whose volumes are not
+   * final yet), or the period in progress with `?live=1` on the routes that take it.
    */
   is_closed: boolean;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -888,8 +852,6 @@ export interface EtfFundamentals {
    * ETH held by the fund. Unit: ETH.
    */
   eth_holdings?: number | null;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -943,16 +905,15 @@ export interface EtfFundamentalsHistoryItem {
    */
   is_holdings_estimated: boolean | null;
   /**
-   * `true` = the bucket is final and will never change; `false` = provisional (only with
-   * `?live=1`).
+   * `true` = the row is final and will never change; `false` = provisional: the latest bucket
+   * while it still settles (a few seconds after its end, e.g. a candle whose volumes are not
+   * final yet), or the period in progress with `?live=1` on the routes that take it.
    */
   is_closed: boolean;
   /**
    * ETH held by the fund. Unit: ETH.
    */
   eth_holdings?: number | null;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -994,8 +955,6 @@ export interface EthDefi {
    * `stable`.
    */
   label: string;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -1038,12 +997,11 @@ export interface EthDefiHistoryItem {
    */
   label: string | null;
   /**
-   * `true` = the bucket is final and will never change; `false` = provisional (only with
-   * `?live=1`).
+   * `true` = the row is final and will never change; `false` = provisional: the latest bucket
+   * while it still settles (a few seconds after its end, e.g. a candle whose volumes are not
+   * final yet), or the period in progress with `?live=1` on the routes that take it.
    */
   is_closed: boolean;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -1072,8 +1030,6 @@ export interface EthDeflation {
    * `deflationary` (24 h net issuance < 0) or `inflationary`.
    */
   label: string;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -1103,12 +1059,11 @@ export interface EthDeflationHistoryItem {
    */
   label: string | null;
   /**
-   * `true` = the bucket is final and will never change; `false` = provisional (only with
-   * `?live=1`).
+   * `true` = the row is final and will never change; `false` = provisional: the latest bucket
+   * while it still settles (a few seconds after its end, e.g. a candle whose volumes are not
+   * final yet), or the period in progress with `?live=1` on the routes that take it.
    */
   is_closed: boolean;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -1144,8 +1099,6 @@ export interface EthGas {
    * Congestion: `low` (gas_used_ratio < 0.5), `normal`, or `high` (> 0.8).
    */
   label: string;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -1183,8 +1136,6 @@ export interface EthGasMomentum {
    * sma_7d_vs_30d_pct < 0), otherwise `normal`.
    */
   label: string;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -1223,12 +1174,11 @@ export interface EthGasMomentumHistoryItem {
    */
   label: string;
   /**
-   * `true` = the bucket is final and will never change; `false` = provisional (only with
-   * `?live=1`).
+   * `true` = the row is final and will never change; `false` = provisional: the latest bucket
+   * while it still settles (a few seconds after its end, e.g. a candle whose volumes are not
+   * final yet), or the period in progress with `?live=1` on the routes that take it.
    */
   is_closed: boolean;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -1265,12 +1215,11 @@ export interface EthGasHistoryItem {
    */
   label: string;
   /**
-   * `true` = the bucket is final and will never change; `false` = provisional (only with
-   * `?live=1`).
+   * `true` = the row is final and will never change; `false` = provisional: the latest bucket
+   * while it still settles (a few seconds after its end, e.g. a candle whose volumes are not
+   * final yet), or the period in progress with `?live=1` on the routes that take it.
    */
   is_closed: boolean;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -1302,8 +1251,6 @@ export interface EthRatio {
    * 7-day momentum of ETH/BTC: `eth_outperform` (> 0), `btc_outperform` (< 0) or `neutral`.
    */
   label: string;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -1336,12 +1283,11 @@ export interface EthRatioHistoryItem {
    */
   label: string | null;
   /**
-   * `true` = the bucket is final and will never change; `false` = provisional (only with
-   * `?live=1`).
+   * `true` = the row is final and will never change; `false` = provisional: the latest bucket
+   * while it still settles (a few seconds after its end, e.g. a candle whose volumes are not
+   * final yet), or the period in progress with `?live=1` on the routes that take it.
    */
   is_closed: boolean;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -1371,8 +1317,6 @@ export interface EthSqueeze {
    * `low` (< 33), `moderate` (>= 33), `high` (>= 66).
    */
   label: string;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -1403,12 +1347,11 @@ export interface EthSqueezeHistoryItem {
    */
   label: string | null;
   /**
-   * `true` = the bucket is final and will never change; `false` = provisional (only with
-   * `?live=1`).
+   * `true` = the row is final and will never change; `false` = provisional: the latest bucket
+   * while it still settles (a few seconds after its end, e.g. a candle whose volumes are not
+   * final yet), or the period in progress with `?live=1` on the routes that take it.
    */
   is_closed: boolean;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -1436,8 +1379,6 @@ export interface EthStaking {
    * Annualised rate in percent. Unit: percent (58.5 = 58.5 %).
    */
   apr_pct: number;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -1466,12 +1407,11 @@ export interface EthStakingHistoryItem {
    */
   apr_pct: number;
   /**
-   * `true` = the bucket is final and will never change; `false` = provisional (only with
-   * `?live=1`).
+   * `true` = the row is final and will never change; `false` = provisional: the latest bucket
+   * while it still settles (a few seconds after its end, e.g. a candle whose volumes are not
+   * final yet), or the period in progress with `?live=1` on the routes that take it.
    */
   is_closed: boolean;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -1518,8 +1458,6 @@ export interface EthSupply {
    * `deflationary` (24 h net issuance < 0), `inflationary` (> 0) or `neutral`.
    */
   label: string;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -1567,12 +1505,11 @@ export interface EthSupplyHistoryItem {
    */
   label: string | null;
   /**
-   * `true` = the bucket is final and will never change; `false` = provisional (only with
-   * `?live=1`).
+   * `true` = the row is final and will never change; `false` = provisional: the latest bucket
+   * while it still settles (a few seconds after its end, e.g. a candle whose volumes are not
+   * final yet), or the period in progress with `?live=1` on the routes that take it.
    */
   is_closed: boolean;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -1594,8 +1531,6 @@ export interface FearGreed {
    * or `extreme_greed` (snake_case, like every label of the API).
    */
   label: string;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -1618,12 +1553,11 @@ export interface FearGreedHistoryItem {
    */
   label: string;
   /**
-   * `true` = the bucket is final and will never change; `false` = provisional (only with
-   * `?live=1`).
+   * `true` = the row is final and will never change; `false` = provisional: the latest bucket
+   * while it still settles (a few seconds after its end, e.g. a candle whose volumes are not
+   * final yet), or the period in progress with `?live=1` on the routes that take it.
    */
   is_closed: boolean;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -1660,8 +1594,6 @@ export interface FundingCumulative {
    * Number of 8-hour funding windows summed. Unit: count.
    */
   sample_count: number;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -1699,12 +1631,11 @@ export interface FundingCumulativeHistoryItem {
    */
   sample_count: number;
   /**
-   * `true` = the bucket is final and will never change; `false` = provisional (only with
-   * `?live=1`).
+   * `true` = the row is final and will never change; `false` = provisional: the latest bucket
+   * while it still settles (a few seconds after its end, e.g. a candle whose volumes are not
+   * final yet), or the period in progress with `?live=1` on the routes that take it.
    */
   is_closed: boolean;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -1730,8 +1661,6 @@ export interface FundingNext {
    * published yet).
    */
   is_past: boolean;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -1766,12 +1695,11 @@ export interface FundingRate {
    */
   apr_pct: number;
   /**
-   * `true` = the bucket is final and will never change; `false` = provisional (only with
-   * `?live=1`).
+   * `true` = the row is final and will never change; `false` = provisional: the latest bucket
+   * while it still settles (a few seconds after its end, e.g. a candle whose volumes are not
+   * final yet), or the period in progress with `?live=1` on the routes that take it.
    */
   is_closed: boolean;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -1808,8 +1736,6 @@ export interface GlobalMarket {
    * Number of tracked crypto assets. Unit: count.
    */
   active_cryptocurrency_count: number;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -1846,12 +1772,11 @@ export interface GlobalMarketHistoryItem {
    */
   active_cryptocurrency_count: number;
   /**
-   * `true` = the bucket is final and will never change; `false` = provisional (only with
-   * `?live=1`).
+   * `true` = the row is final and will never change; `false` = provisional: the latest bucket
+   * while it still settles (a few seconds after its end, e.g. a candle whose volumes are not
+   * final yet), or the period in progress with `?live=1` on the routes that take it.
    */
   is_closed: boolean;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -1863,8 +1788,6 @@ export interface Health {
    * `service_unavailable` with `database` in the error body.
    */
   database: string;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -1906,8 +1829,6 @@ export interface HeatmapClusters {
    * with attraction_up. Unit: dimensionless score.
    */
   attraction_down: number;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -1954,12 +1875,11 @@ export interface HeatmapClustersHistoryItem {
    */
   sample_count: number;
   /**
-   * `true` = the bucket is final and will never change; `false` = provisional (only with
-   * `?live=1`).
+   * `true` = the row is final and will never change; `false` = provisional: the latest bucket
+   * while it still settles (a few seconds after its end, e.g. a candle whose volumes are not
+   * final yet), or the period in progress with `?live=1` on the routes that take it.
    */
   is_closed: boolean;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -1990,8 +1910,9 @@ export interface Kline {
   close: number;
   /**
    * Traded volume over the row, base asset units (BTC for BTCUSDT, NOT dollars), aggregated
-   * across venues, ALL the markets of the route: spot + perpetual futures on `/v1/klines` and
-   * `/v1/trades-kline` (a name without a market suffix covers every market; `volume_spot` /
+   * across venues, over the market(s) the route covers: spot + perpetual futures on
+   * `/v1/klines` and `/v1/trades-kline`, the path's market alone on a `/spot` or `/futures`
+   * route (a name without a market suffix covers every market of its route; `volume_spot` /
    * `volume_futures` restrict). `null` when a market is not available (never a partial sum).
    * Unit: base asset quantity (BTC for BTCUSDT).
    */
@@ -2054,12 +1975,11 @@ export interface Kline {
    */
   is_volume_futures_estimated: boolean | null;
   /**
-   * `true` = the bucket is final and will never change; `false` = provisional (only with
-   * `?live=1`).
+   * `true` = the row is final and will never change; `false` = provisional: the latest bucket
+   * while it still settles (a few seconds after its end, e.g. a candle whose volumes are not
+   * final yet), or the period in progress with `?live=1` on the routes that take it.
    */
   is_closed: boolean;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -2075,14 +1995,16 @@ export interface LimitsHistoryItem {
    * Beyond it: 403 `history_depth`. Unit: minutes.
    */
   window_minutes: number | null;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
  * Nested object (LimitsRate).
  */
 export interface LimitsRate {
+  /**
+   * Requests per minute of your plan (the bucket refills at this pace). Unit: count.
+   */
+  per_minute: number | null;
   /**
    * Capacity of the bucket: requests you can send at once. Unit: count.
    */
@@ -2099,8 +2021,6 @@ export interface LimitsRate {
    * Seconds until fully restored. Unit: seconds.
    */
   reset_s: number | null;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -2123,8 +2043,6 @@ export interface LimitsQuota {
    * Seconds until fully restored. Unit: seconds.
    */
   reset_s: number | null;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -2147,13 +2065,15 @@ export interface Limits {
    */
   history: Array<LimitsHistoryItem>;
   /**
-   * How far back individual trades (`/v1/trades/*`) may be read, in minutes; `null` = unlimited
-   * or not in your plan (see `families`). Unit: minutes.
+   * How far back individual trades (`/v1/trades/spot`, `/futures`, `/large`) may be read, in
+   * minutes; `0` = not in your plan (family `ticks`), `null` = unlimited. Unit: minutes.
    */
   ticks_window_minutes: number | null;
   /**
-   * How many of the most recent individual liquidations `/v1/liquidations/events` may return;
-   * `null` = unlimited. Unit: count.
+   * How many of the most recent individual liquidations `/v1/liquidations/events` may return,
+   * when your plan sets a count; `null` = no count: the route serves the events within your
+   * `1h` history window, at most 1,000 per call; `0` = not in your plan (family `derivatives`).
+   * Unit: count.
    */
   liquidation_events: number | null;
   /**
@@ -2166,8 +2086,6 @@ export interface Limits {
    * headers (`mensuel` policy). It resets on the 1st of the month, 00:00 UTC.
    */
   quota: LimitsQuota | null;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -2202,8 +2120,6 @@ export interface LiquidationsCumulative {
    * (excluded). Unit: seconds.
    */
   window_s: number;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -2232,8 +2148,9 @@ export interface LiquidationsCumulativeHistoryItem {
    */
   sample_count: number;
   /**
-   * `true` = the bucket is final and will never change; `false` = provisional (only with
-   * `?live=1`).
+   * `true` = the row is final and will never change; `false` = provisional: the latest bucket
+   * while it still settles (a few seconds after its end, e.g. a candle whose volumes are not
+   * final yet), or the period in progress with `?live=1` on the routes that take it.
    */
   is_closed: boolean;
   /**
@@ -2245,8 +2162,6 @@ export interface LiquidationsCumulativeHistoryItem {
    * Length of the bucket, in seconds (3600 for `1h`). Unit: seconds.
    */
   window_s: number;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -2276,8 +2191,6 @@ export interface LiquidationEvent {
    * USD. Unit: USD.
    */
   value_usd: number;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -2307,8 +2220,9 @@ export interface LiquidationsRatio {
    */
   small_usd: number;
   /**
-   * big_usd / small_usd: how much of the liquidated notional comes from liquidations of 100,000
-   * USD or more. `null` when small_usd is 0. Unit: big / small.
+   * big_usd / small_usd: the notional of liquidations of 100,000 USD or more DIVIDED BY that of
+   * the smaller ones (8.2 = the big ones weigh 8.2 times the small ones: a quotient, not a
+   * share). `null` when small_usd is 0. Unit: big / small.
    */
   ratio: number | null;
   /**
@@ -2322,8 +2236,6 @@ export interface LiquidationsRatio {
    * (excluded). Unit: seconds.
    */
   window_s: number;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -2353,8 +2265,9 @@ export interface LiquidationsRatioHistoryItem {
    */
   small_usd: number;
   /**
-   * big_usd / small_usd: how much of the liquidated notional comes from liquidations of 100,000
-   * USD or more. `null` when small_usd is 0. Unit: big / small.
+   * big_usd / small_usd: the notional of liquidations of 100,000 USD or more DIVIDED BY that of
+   * the smaller ones (8.2 = the big ones weigh 8.2 times the small ones: a quotient, not a
+   * share). `null` when small_usd is 0. Unit: big / small.
    */
   ratio: number | null;
   /**
@@ -2362,8 +2275,9 @@ export interface LiquidationsRatioHistoryItem {
    */
   sample_count: number;
   /**
-   * `true` = the bucket is final and will never change; `false` = provisional (only with
-   * `?live=1`).
+   * `true` = the row is final and will never change; `false` = provisional: the latest bucket
+   * while it still settles (a few seconds after its end, e.g. a candle whose volumes are not
+   * final yet), or the period in progress with `?live=1` on the routes that take it.
    */
   is_closed: boolean;
   /**
@@ -2377,8 +2291,6 @@ export interface LiquidationsRatioHistoryItem {
    * (excluded). Unit: seconds.
    */
   window_s: number;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -2414,12 +2326,10 @@ export interface Macro {
    * Latest value of the series, in the unit given by `units`. Unit: see `units`.
    */
   value: number;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
- * Nested object (MacroCorrelationsCorrelationsDxy30d).
+ * Pearson correlation of daily returns against BTC over the last 30d, from -1 to 1.
  */
 export interface MacroCorrelationsCorrelationsDxy30d {
   /**
@@ -2436,12 +2346,10 @@ export interface MacroCorrelationsCorrelationsDxy30d {
    * Number of days used. Unit: count.
    */
   sample_count: number;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
- * Nested object (MacroCorrelationsCorrelationsDxy90d).
+ * Pearson correlation of daily returns against BTC over the last 90d, from -1 to 1.
  */
 export interface MacroCorrelationsCorrelationsDxy90d {
   /**
@@ -2458,22 +2366,24 @@ export interface MacroCorrelationsCorrelationsDxy90d {
    * Number of days used. Unit: count.
    */
   sample_count: number;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
- * US Dollar Index.
+ * Pearson correlation of daily returns against BTC over the last dxy, from -1 to 1.
  */
 export interface MacroCorrelationsCorrelationsDxy {
+  /**
+   * Pearson correlation of daily returns against BTC over the last 30d, from -1 to 1.
+   */
   "30d": MacroCorrelationsCorrelationsDxy30d;
+  /**
+   * Pearson correlation of daily returns against BTC over the last 90d, from -1 to 1.
+   */
   "90d": MacroCorrelationsCorrelationsDxy90d;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
- * Nested object (MacroCorrelationsCorrelationsSp50030d).
+ * Pearson correlation of daily returns against BTC over the last 30d, from -1 to 1.
  */
 export interface MacroCorrelationsCorrelationsSp50030d {
   /**
@@ -2490,12 +2400,10 @@ export interface MacroCorrelationsCorrelationsSp50030d {
    * Number of days used. Unit: count.
    */
   sample_count: number;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
- * Nested object (MacroCorrelationsCorrelationsSp50090d).
+ * Pearson correlation of daily returns against BTC over the last 90d, from -1 to 1.
  */
 export interface MacroCorrelationsCorrelationsSp50090d {
   /**
@@ -2512,22 +2420,24 @@ export interface MacroCorrelationsCorrelationsSp50090d {
    * Number of days used. Unit: count.
    */
   sample_count: number;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
- * S&P 500.
+ * Pearson correlation of daily returns against BTC over the last sp500, from -1 to 1.
  */
 export interface MacroCorrelationsCorrelationsSp500 {
+  /**
+   * Pearson correlation of daily returns against BTC over the last 30d, from -1 to 1.
+   */
   "30d": MacroCorrelationsCorrelationsSp50030d;
+  /**
+   * Pearson correlation of daily returns against BTC over the last 90d, from -1 to 1.
+   */
   "90d": MacroCorrelationsCorrelationsSp50090d;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
- * Nested object (MacroCorrelationsCorrelationsGold30d).
+ * Pearson correlation of daily returns against BTC over the last 30d, from -1 to 1.
  */
 export interface MacroCorrelationsCorrelationsGold30d {
   /**
@@ -2544,12 +2454,10 @@ export interface MacroCorrelationsCorrelationsGold30d {
    * Number of days used. Unit: count.
    */
   sample_count: number;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
- * Nested object (MacroCorrelationsCorrelationsGold90d).
+ * Pearson correlation of daily returns against BTC over the last 90d, from -1 to 1.
  */
 export interface MacroCorrelationsCorrelationsGold90d {
   /**
@@ -2566,22 +2474,24 @@ export interface MacroCorrelationsCorrelationsGold90d {
    * Number of days used. Unit: count.
    */
   sample_count: number;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
- * Nested object (MacroCorrelationsCorrelationsGold).
+ * Pearson correlation of daily returns against BTC over the last gold, from -1 to 1.
  */
 export interface MacroCorrelationsCorrelationsGold {
+  /**
+   * Pearson correlation of daily returns against BTC over the last 30d, from -1 to 1.
+   */
   "30d": MacroCorrelationsCorrelationsGold30d;
+  /**
+   * Pearson correlation of daily returns against BTC over the last 90d, from -1 to 1.
+   */
   "90d": MacroCorrelationsCorrelationsGold90d;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
- * Nested object (MacroCorrelationsCorrelationsVix30d).
+ * Pearson correlation of daily returns against BTC over the last 30d, from -1 to 1.
  */
 export interface MacroCorrelationsCorrelationsVix30d {
   /**
@@ -2598,12 +2508,10 @@ export interface MacroCorrelationsCorrelationsVix30d {
    * Number of days used. Unit: count.
    */
   sample_count: number;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
- * Nested object (MacroCorrelationsCorrelationsVix90d).
+ * Pearson correlation of daily returns against BTC over the last 90d, from -1 to 1.
  */
 export interface MacroCorrelationsCorrelationsVix90d {
   /**
@@ -2620,18 +2528,20 @@ export interface MacroCorrelationsCorrelationsVix90d {
    * Number of days used. Unit: count.
    */
   sample_count: number;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
- * CBOE Volatility Index.
+ * Pearson correlation of daily returns against BTC over the last vix, from -1 to 1.
  */
 export interface MacroCorrelationsCorrelationsVix {
+  /**
+   * Pearson correlation of daily returns against BTC over the last 30d, from -1 to 1.
+   */
   "30d": MacroCorrelationsCorrelationsVix30d;
+  /**
+   * Pearson correlation of daily returns against BTC over the last 90d, from -1 to 1.
+   */
   "90d": MacroCorrelationsCorrelationsVix90d;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -2640,20 +2550,21 @@ export interface MacroCorrelationsCorrelationsVix {
  */
 export interface MacroCorrelationsCorrelations {
   /**
-   * US Dollar Index.
+   * Pearson correlation of daily returns against BTC over the last dxy, from -1 to 1.
    */
   dxy: MacroCorrelationsCorrelationsDxy;
   /**
-   * S&P 500.
+   * Pearson correlation of daily returns against BTC over the last sp500, from -1 to 1.
    */
   sp500: MacroCorrelationsCorrelationsSp500;
+  /**
+   * Pearson correlation of daily returns against BTC over the last gold, from -1 to 1.
+   */
   gold: MacroCorrelationsCorrelationsGold;
   /**
-   * CBOE Volatility Index.
+   * Pearson correlation of daily returns against BTC over the last vix, from -1 to 1.
    */
   vix: MacroCorrelationsCorrelationsVix;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -2685,8 +2596,6 @@ export interface MacroCorrelations {
    * of common days.
    */
   correlations: MacroCorrelationsCorrelations;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -2703,12 +2612,11 @@ export interface MacroHistoryItem {
    */
   value: number;
   /**
-   * `true` = the bucket is final and will never change; `false` = provisional (only with
-   * `?live=1`).
+   * `true` = the row is final and will never change; `false` = provisional: the latest bucket
+   * while it still settles (a few seconds after its end, e.g. a candle whose volumes are not
+   * final yet), or the period in progress with `?live=1` on the routes that take it.
    */
   is_closed: boolean;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -2742,26 +2650,41 @@ export interface MacroIntraday {
    */
   volume: number | null;
   /**
-   * `true` = the bucket is final and will never change; `false` = provisional (only with
-   * `?live=1`).
+   * `true` = the row is final and will never change; `false` = provisional: the latest bucket
+   * while it still settles (a few seconds after its end, e.g. a candle whose volumes are not
+   * final yet), or the period in progress with `?live=1` on the routes that take it.
    */
   is_closed: boolean;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
  * Last candle available, per timeframe.
  */
 export interface MacroIntradaySeriesInfoLastCandleAt {
+  /**
+   * Start of the latest 1m candle served for this series (ISO 8601 UTC).
+   */
   "1m": Date;
+  /**
+   * Start of the latest 5m candle served for this series (ISO 8601 UTC).
+   */
   "5m": Date;
+  /**
+   * Start of the latest 15m candle served for this series (ISO 8601 UTC).
+   */
   "15m": Date;
+  /**
+   * Start of the latest 1h candle served for this series (ISO 8601 UTC).
+   */
   "1h": Date;
+  /**
+   * Start of the latest 4h candle served for this series (ISO 8601 UTC).
+   */
   "4h": Date;
+  /**
+   * Start of the latest 1d candle served for this series (ISO 8601 UTC).
+   */
   "1d": Date;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -2809,8 +2732,6 @@ export interface MacroIntradaySeriesInfo {
    * Last candle available, per timeframe.
    */
   last_candle_at: MacroIntradaySeriesInfoLastCandleAt;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -2834,12 +2755,10 @@ export interface MacroMomentum30dComponentsItem {
    * Contribution of the input to the score. Unit: dimensionless score.
    */
   contribution: number;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
- * Nested object (MacroMomentum30d).
+ * Momentum score over the last 30d, from -100 to +100.
  */
 export interface MacroMomentum30d {
   /**
@@ -2851,8 +2770,6 @@ export interface MacroMomentum30d {
    * The inputs of the score and their contributions.
    */
   components: Array<MacroMomentum30dComponentsItem>;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -2876,12 +2793,10 @@ export interface MacroMomentum90dComponentsItem {
    * Contribution of the input to the score. Unit: dimensionless score.
    */
   contribution: number;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
- * Nested object (MacroMomentum90d).
+ * Momentum score over the last 90d, from -100 to +100.
  */
 export interface MacroMomentum90d {
   /**
@@ -2893,8 +2808,6 @@ export interface MacroMomentum90d {
    * The inputs of the score and their contributions.
    */
   components: Array<MacroMomentum90dComponentsItem>;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -2916,10 +2829,14 @@ export interface MacroMomentum {
    * Reading scale of the score.
    */
   scale: string;
+  /**
+   * Momentum score over the last 30d, from -100 to +100.
+   */
   "30d": MacroMomentum30d;
+  /**
+   * Momentum score over the last 90d, from -100 to +100.
+   */
   "90d": MacroMomentum90d;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -2956,8 +2873,6 @@ export interface MacroNetLiquidity {
    * Observation day of the TGA value used (weekly series). Unit: calendar date (YYYY-MM-DD).
    */
   tga_date: string;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -2995,16 +2910,15 @@ export interface MacroNetLiquidityHistoryItem {
    */
   tga_date: string | null;
   /**
-   * `true` = the bucket is final and will never change; `false` = provisional (only with
-   * `?live=1`).
+   * `true` = the row is final and will never change; `false` = provisional: the latest bucket
+   * while it still settles (a few seconds after its end, e.g. a candle whose volumes are not
+   * final yet), or the period in progress with `?live=1` on the routes that take it.
    */
   is_closed: boolean;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
- * CBOE Volatility Index.
+ * The `vix` signal: its reading, and whether it counts as risk-on.
  */
 export interface MacroRiskSignalsVix {
   /**
@@ -3020,12 +2934,10 @@ export interface MacroRiskSignalsVix {
    * Whether the signal is risk-on now.
    */
   is_risk_on: boolean;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
- * US Dollar Index.
+ * The `dxy` signal: its reading, and whether it counts as risk-on.
  */
 export interface MacroRiskSignalsDxy {
   /**
@@ -3041,12 +2953,10 @@ export interface MacroRiskSignalsDxy {
    * Whether the signal is risk-on now.
    */
   is_risk_on: boolean;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
- * Nested object (MacroRiskSignalsYieldCurve).
+ * The `yield_curve` signal: its reading, and whether it counts as risk-on.
  */
 export interface MacroRiskSignalsYieldCurve {
   /**
@@ -3062,12 +2972,10 @@ export interface MacroRiskSignalsYieldCurve {
    * Whether the signal is risk-on now.
    */
   is_risk_on: boolean;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
- * S&P 500.
+ * The `sp500` signal: its reading, and whether it counts as risk-on.
  */
 export interface MacroRiskSignalsSp500 {
   /**
@@ -3083,12 +2991,10 @@ export interface MacroRiskSignalsSp500 {
    * Whether the signal is risk-on now.
    */
   is_risk_on: boolean;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
- * Nested object (MacroRiskSignalsGold).
+ * The `gold` signal: its reading, and whether it counts as risk-on.
  */
 export interface MacroRiskSignalsGold {
   /**
@@ -3104,8 +3010,6 @@ export interface MacroRiskSignalsGold {
    * Whether the signal is risk-on now.
    */
   is_risk_on: boolean;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -3113,21 +3017,25 @@ export interface MacroRiskSignalsGold {
  */
 export interface MacroRiskSignals {
   /**
-   * CBOE Volatility Index.
+   * The `vix` signal: its reading, and whether it counts as risk-on.
    */
   vix: MacroRiskSignalsVix;
   /**
-   * US Dollar Index.
+   * The `dxy` signal: its reading, and whether it counts as risk-on.
    */
   dxy: MacroRiskSignalsDxy;
+  /**
+   * The `yield_curve` signal: its reading, and whether it counts as risk-on.
+   */
   yield_curve: MacroRiskSignalsYieldCurve;
   /**
-   * S&P 500.
+   * The `sp500` signal: its reading, and whether it counts as risk-on.
    */
   sp500: MacroRiskSignalsSp500;
+  /**
+   * The `gold` signal: its reading, and whether it counts as risk-on.
+   */
   gold: MacroRiskSignalsGold;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -3166,8 +3074,6 @@ export interface MacroRiskContext {
    * Gold price seven days earlier. Unit: USD per troy ounce.
    */
   gold_7d_ago_usd: number;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -3213,8 +3119,6 @@ export interface MacroRisk {
    * The raw inputs used by the signals.
    */
   context: MacroRiskContext;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -3250,8 +3154,6 @@ export interface MacroSeriesInfo {
    * Latest value of the series, in the unit given by `units`. Unit: see `units`.
    */
   value: number;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -3269,8 +3171,6 @@ export interface Oi {
    * asset quantity (BTC for BTCUSDT).
    */
   oi: number;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -3312,8 +3212,6 @@ export interface OiDelta {
    * (excluded). Unit: seconds.
    */
   window_s: number;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -3350,8 +3248,9 @@ export interface OiDeltaHistoryItem {
    */
   sample_count: number;
   /**
-   * `true` = the bucket is final and will never change; `false` = provisional (only with
-   * `?live=1`).
+   * `true` = the row is final and will never change; `false` = provisional: the latest bucket
+   * while it still settles (a few seconds after its end, e.g. a candle whose volumes are not
+   * final yet), or the period in progress with `?live=1` on the routes that take it.
    */
   is_closed: boolean;
   /**
@@ -3365,8 +3264,6 @@ export interface OiDeltaHistoryItem {
    * (excluded). Unit: seconds.
    */
   window_s: number;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -3389,12 +3286,11 @@ export interface OiHistoryItem {
    */
   sample_count: number;
   /**
-   * `true` = the bucket is final and will never change; `false` = provisional (only with
-   * `?live=1`).
+   * `true` = the row is final and will never change; `false` = provisional: the latest bucket
+   * while it still settles (a few seconds after its end, e.g. a candle whose volumes are not
+   * final yet), or the period in progress with `?live=1` on the routes that take it.
    */
   is_closed: boolean;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -3427,8 +3323,6 @@ export interface OnchainActiveAddresses {
    * 7-day vs 30-day average: `accelerating` (> +5 %), `decelerating` (< -5 %) or `stable`.
    */
   label: string;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -3462,12 +3356,11 @@ export interface OnchainActiveAddressesHistoryItem {
    */
   label: string;
   /**
-   * `true` = the bucket is final and will never change; `false` = provisional (only with
-   * `?live=1`).
+   * `true` = the row is final and will never change; `false` = provisional: the latest bucket
+   * while it still settles (a few seconds after its end, e.g. a candle whose volumes are not
+   * final yet), or the period in progress with `?live=1` on the routes that take it.
    */
   is_closed: boolean;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -3494,8 +3387,6 @@ export interface OnchainMinerStress {
    * of it — historically near BTC bottoms).
    */
   label: string;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -3523,12 +3414,11 @@ export interface OnchainMinerStressHistoryItem {
    */
   label: string;
   /**
-   * `true` = the bucket is final and will never change; `false` = provisional (only with
-   * `?live=1`).
+   * `true` = the row is final and will never change; `false` = provisional: the latest bucket
+   * while it still settles (a few seconds after its end, e.g. a candle whose volumes are not
+   * final yet), or the period in progress with `?live=1` on the routes that take it.
    */
   is_closed: boolean;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -3552,8 +3442,6 @@ export interface OnchainMvrv {
    * Relative change of the value over 30 days, percent. Unit: percent (58.5 = 58.5 %).
    */
   change_30d_pct: number | null;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -3578,12 +3466,11 @@ export interface OnchainMvrvHistoryItem {
    */
   change_30d_pct: number | null;
   /**
-   * `true` = the bucket is final and will never change; `false` = provisional (only with
-   * `?live=1`).
+   * `true` = the row is final and will never change; `false` = provisional: the latest bucket
+   * while it still settles (a few seconds after its end, e.g. a candle whose volumes are not
+   * final yet), or the period in progress with `?live=1` on the routes that take it.
    */
   is_closed: boolean;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -3608,8 +3495,6 @@ export interface OnchainNvt {
    * `bubble` (> 150).
    */
   label: string;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -3635,12 +3520,11 @@ export interface OnchainNvtHistoryItem {
    */
   label: string;
   /**
-   * `true` = the bucket is final and will never change; `false` = provisional (only with
-   * `?live=1`).
+   * `true` = the row is final and will never change; `false` = provisional: the latest bucket
+   * while it still settles (a few seconds after its end, e.g. a candle whose volumes are not
+   * final yet), or the period in progress with `?live=1` on the routes that take it.
    */
   is_closed: boolean;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -3695,8 +3579,6 @@ export interface OptionsExpiry {
    * `bullish` (put_call_ratio < 0.7), `neutral`, or `bearish` (put_call_ratio > 1).
    */
   put_call_label: string;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -3709,8 +3591,6 @@ export interface OptionsGreeksCoverage {
    * %).
    */
   oi_coverage_ratio: number;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -3744,8 +3624,6 @@ export interface OptionsGreeks {
    * all).
    */
   coverage: OptionsGreeksCoverage;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -3764,8 +3642,6 @@ export interface OptionsIv {
    * on `/v1/options/expiry`. Unit: percent (58.5 = 58.5 %).
    */
   iv_atm_30d_pct: number;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -3794,12 +3670,11 @@ export interface OptionsIvKline {
    */
   close: number;
   /**
-   * `true` = the bucket is final and will never change; `false` = provisional (only with
-   * `?live=1`).
+   * `true` = the row is final and will never change; `false` = provisional: the latest bucket
+   * while it still settles (a few seconds after its end, e.g. a candle whose volumes are not
+   * final yet), or the period in progress with `?live=1` on the routes that take it.
    */
   is_closed: boolean;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -3837,8 +3712,6 @@ export interface OptionsMaxPain {
    * Put open interest, USD. Unit: USD.
    */
   oi_put_usd: number | null;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -3861,12 +3734,11 @@ export interface OptionsMaxPainHistoryItem {
    */
   put_call_ratio: number;
   /**
-   * `true` = the bucket is final and will never change; `false` = provisional (only with
-   * `?live=1`).
+   * `true` = the row is final and will never change; `false` = provisional: the latest bucket
+   * while it still settles (a few seconds after its end, e.g. a candle whose volumes are not
+   * final yet), or the period in progress with `?live=1` on the routes that take it.
    */
   is_closed: boolean;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -3879,8 +3751,6 @@ export interface OptionsOiCoverage {
    * %).
    */
   oi_coverage_ratio: number;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -3917,8 +3787,6 @@ export interface OptionsOi {
    * all).
    */
   coverage: OptionsOiCoverage;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -3952,8 +3820,6 @@ export interface OptionsOiDelta {
    * Change of total open interest from `window_start` to `time`, USD. Unit: USD.
    */
   oi_change_total_usd: number | null;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -3978,12 +3844,11 @@ export interface OptionsOiDeltaHistoryItem {
    */
   oi_change_total_usd: number | null;
   /**
-   * `true` = the bucket is final and will never change; `false` = provisional (only with
-   * `?live=1`).
+   * `true` = the row is final and will never change; `false` = provisional: the latest bucket
+   * while it still settles (a few seconds after its end, e.g. a candle whose volumes are not
+   * final yet), or the period in progress with `?live=1` on the routes that take it.
    */
   is_closed: boolean;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -4012,8 +3877,6 @@ export interface OptionsOiDistribution {
    * Put open interest at this strike, USD. `null` = no put listed. Unit: USD.
    */
   oi_put_usd: number | null;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -4046,12 +3909,11 @@ export interface OptionsOiHistoryItem {
    */
   oi_put: number;
   /**
-   * `true` = the bucket is final and will never change; `false` = provisional (only with
-   * `?live=1`).
+   * `true` = the row is final and will never change; `false` = provisional: the latest bucket
+   * while it still settles (a few seconds after its end, e.g. a candle whose volumes are not
+   * final yet), or the period in progress with `?live=1` on the routes that take it.
    */
   is_closed: boolean;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -4072,8 +3934,6 @@ export interface OptionsPcRatio {
    * `bullish` (put_call_ratio < 0.7), `neutral`, or `bearish` (put_call_ratio > 1).
    */
   label: string;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -4095,12 +3955,11 @@ export interface OptionsPcRatioHistoryItem {
    */
   label: string;
   /**
-   * `true` = the bucket is final and will never change; `false` = provisional (only with
-   * `?live=1`).
+   * `true` = the row is final and will never change; `false` = provisional: the latest bucket
+   * while it still settles (a few seconds after its end, e.g. a candle whose volumes are not
+   * final yet), or the period in progress with `?live=1` on the routes that take it.
    */
   is_closed: boolean;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -4130,8 +3989,6 @@ export interface OptionsSummaryNearestExpiry {
    * Unit: percent (58.5 = 58.5 %).
    */
   iv_atm_pct: number;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -4144,8 +4001,6 @@ export interface OptionsSummaryCoverage {
    * %).
    */
   oi_coverage_ratio: number;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -4211,8 +4066,6 @@ export interface OptionsSummary {
    * all).
    */
   coverage: OptionsSummaryCoverage;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -4225,8 +4078,6 @@ export interface OptionsVolumeCoverage {
    * %).
    */
   oi_coverage_ratio: number;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -4255,8 +4106,6 @@ export interface OptionsVolume {
    * all).
    */
   coverage: OptionsVolumeCoverage;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -4281,12 +4130,11 @@ export interface OptionsVolumeHistoryItem {
    */
   volume_put_usd: number;
   /**
-   * `true` = the bucket is final and will never change; `false` = provisional (only with
-   * `?live=1`).
+   * `true` = the row is final and will never change; `false` = provisional: the latest bucket
+   * while it still settles (a few seconds after its end, e.g. a candle whose volumes are not
+   * final yet), or the period in progress with `?live=1` on the routes that take it.
    */
   is_closed: boolean;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -4322,8 +4170,6 @@ export interface OrderbookRangesItem {
    * one side is not measured. Unit: fraction from -1 to 1.
    */
   imbalance_ratio: number | null;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -4337,8 +4183,9 @@ export interface Orderbook {
    */
   time: Date;
   /**
-   * `true` = the bucket is final and will never change; `false` = provisional (only with
-   * `?live=1`).
+   * `true` = the row is final and will never change; `false` = provisional: the latest bucket
+   * while it still settles (a few seconds after its end, e.g. a candle whose volumes are not
+   * final yet), or the period in progress with `?live=1` on the routes that take it.
    */
   is_closed: boolean;
   /**
@@ -4346,8 +4193,6 @@ export interface Orderbook {
    * (±10 %). Each range is cumulative: ±1 % includes everything inside ±0.5 %.
    */
   ranges: Array<OrderbookRangesItem>;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -4355,39 +4200,37 @@ export interface Orderbook {
  */
 export interface PriceChangeChangesPct {
   /**
-   * Unit: percent.
+   * Price change over the last 1m, in percent. Unit: percent.
    */
   "1m": number;
   /**
-   * Unit: percent.
+   * Price change over the last 5m, in percent. Unit: percent.
    */
   "5m": number;
   /**
-   * Unit: percent.
+   * Price change over the last 15m, in percent. Unit: percent.
    */
   "15m": number;
   /**
-   * Unit: percent.
+   * Price change over the last 30m, in percent. Unit: percent.
    */
   "30m": number;
   /**
-   * Unit: percent.
+   * Price change over the last 1h, in percent. Unit: percent.
    */
   "1h": number;
   /**
-   * Unit: percent.
+   * Price change over the last 4h, in percent. Unit: percent.
    */
   "4h": number | null;
   /**
-   * Unit: percent.
+   * Price change over the last 1d, in percent. Unit: percent.
    */
   "1d": number | null;
   /**
-   * Unit: percent.
+   * Price change over the last 1w, in percent. Unit: percent.
    */
   "1w": number | null;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -4409,8 +4252,6 @@ export interface PriceChange {
    * Price change over each window, keyed by window (`1m` … `1w`), in percent.
    */
   changes_pct: PriceChangeChangesPct;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -4426,8 +4267,6 @@ export interface SpreadInterexchangeHigh {
    * BTCUSDT).
    */
   price: number;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -4443,8 +4282,6 @@ export interface SpreadInterexchangeLow {
    * BTCUSDT).
    */
   price: number;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -4465,8 +4302,6 @@ export interface SpreadInterexchangeVenuesItem {
    * (1 bp = 0.01 %).
    */
   premium_bps: number;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -4479,8 +4314,9 @@ export interface SpreadInterexchange {
    */
   time: Date;
   /**
-   * `true` = the bucket is final and will never change; `false` = provisional (only with
-   * `?live=1`).
+   * `true` = the row is final and will never change; `false` = provisional: the latest bucket
+   * while it still settles (a few seconds after its end, e.g. a candle whose volumes are not
+   * final yet), or the period in progress with `?live=1` on the routes that take it.
    */
   is_closed: boolean;
   /**
@@ -4509,8 +4345,6 @@ export interface SpreadInterexchange {
    * Per-venue prices and premiums (`[{venue, price, premium_bps}]`).
    */
   venues: Array<SpreadInterexchangeVenuesItem>;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -4548,8 +4382,6 @@ export interface StatusFeedsItem {
    * Venues lagging on this feed. Unit: count.
    */
   stale_venue_count: number | null;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -4582,8 +4414,6 @@ export interface Status {
    * One row per public feed.
    */
   feeds: Array<StatusFeedsItem>;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -4613,8 +4443,6 @@ export interface SymbolInfo {
    * not_applicable`).
    */
   markets: Array<string>;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -4623,47 +4451,107 @@ export interface SymbolInfo {
  * the last 24 h.
  */
 export interface SymbolsCapabilitiesFeedsActiveLast24h {
+  /**
+   * `true` when the `klines_futures_1m` feed delivered data in the last 24 hours; `null` when
+   * its probe did not conclude in time.
+   */
   klines_futures_1m: boolean;
+  /**
+   * `true` when the `trades_spot` feed delivered data in the last 24 hours; `null` when its
+   * probe did not conclude in time.
+   */
   trades_spot: boolean;
+  /**
+   * `true` when the `trades_futures` feed delivered data in the last 24 hours; `null` when its
+   * probe did not conclude in time.
+   */
   trades_futures: boolean;
+  /**
+   * `true` when the `oi_history` feed delivered data in the last 24 hours; `null` when its
+   * probe did not conclude in time.
+   */
   oi_history: boolean;
+  /**
+   * `true` when the `funding_rate` feed delivered data in the last 24 hours; `null` when its
+   * probe did not conclude in time.
+   */
   funding_rate: boolean;
+  /**
+   * `true` when the `liquidations_events` feed delivered data in the last 24 hours; `null` when
+   * its probe did not conclude in time.
+   */
   liquidations_events: boolean;
+  /**
+   * `true` when the `trades_kline_futures_seconds` feed delivered data in the last 24 hours;
+   * `null` when its probe did not conclude in time.
+   */
   trades_kline_futures_seconds: boolean;
+  /**
+   * `true` when the `klines_futures_multi` feed delivered data in the last 24 hours; `null`
+   * when its probe did not conclude in time.
+   */
   klines_futures_multi: boolean;
+  /**
+   * `true` when the `klines_1m` feed delivered data in the last 24 hours; `null` when its probe
+   * did not conclude in time.
+   */
   klines_1m: boolean;
+  /**
+   * `true` when the `klines_multi` feed delivered data in the last 24 hours; `null` when its
+   * probe did not conclude in time.
+   */
   klines_multi: boolean;
+  /**
+   * `true` when the `orderbook_1m` feed delivered data in the last 24 hours; `null` when its
+   * probe did not conclude in time.
+   */
   orderbook_1m: boolean;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
  * Derived metrics that do not apply (stablecoins have no futures).
  */
 export interface SymbolsCapabilitiesComputedMetricsNotApplicable {
+  /**
+   * Why `basis` does not apply to this symbol.
+   */
   basis?: string | null;
+  /**
+   * Why `oi_delta` does not apply to this symbol.
+   */
   oi_delta?: string | null;
+  /**
+   * Why `liquidations_cumulative` does not apply to this symbol.
+   */
   liquidations_cumulative?: string | null;
+  /**
+   * Why `liquidations_ratio` does not apply to this symbol.
+   */
   liquidations_ratio?: string | null;
+  /**
+   * Why `funding_cumulative` does not apply to this symbol.
+   */
   funding_cumulative?: string | null;
   /**
-   * One entry per requested indicator id: its parameters, `values` (oldest to newest), `times`
-   * (the candle of each value) and `time` (the candle of the last value).
+   * Why `indicators` does not apply to this symbol.
    */
   indicators?: string | null;
+  /**
+   * Why `trades_kline_futures` does not apply to this symbol.
+   */
   trades_kline_futures?: string | null;
+  /**
+   * Why `heatmap_clusters` does not apply to this symbol.
+   */
   heatmap_clusters?: string | null;
   /**
-   * Why this metric does not apply to the symbol (present only then).
+   * Why `cvd` does not apply to this symbol.
    */
   cvd?: string;
   /**
-   * Why this metric does not apply to the symbol (present only then).
+   * Why `trades_kline` does not apply to this symbol.
    */
   trades_kline?: string;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -4702,8 +4590,6 @@ export interface SymbolsCapabilities {
    * Derived metrics that do not apply (stablecoins have no futures).
    */
   computed_metrics_not_applicable?: SymbolsCapabilitiesComputedMetricsNotApplicable;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -4747,8 +4633,6 @@ export interface Tokenomics {
    * stablecoins. Unit: USD.
    */
   fdv_usd: number | null;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -4786,12 +4670,11 @@ export interface TokenomicsHistoryItem {
    */
   fdv_usd: number | null;
   /**
-   * `true` = the bucket is final and will never change; `false` = provisional (only with
-   * `?live=1`).
+   * `true` = the row is final and will never change; `false` = provisional: the latest bucket
+   * while it still settles (a few seconds after its end, e.g. a candle whose volumes are not
+   * final yet), or the period in progress with `?live=1` on the routes that take it.
    */
   is_closed: boolean;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -4815,8 +4698,9 @@ export interface TradesKline {
   avg_trade_size: number | null;
   /**
    * Traded volume over the row, base asset units (BTC for BTCUSDT, NOT dollars), aggregated
-   * across venues, ALL the markets of the route: spot + perpetual futures on `/v1/klines` and
-   * `/v1/trades-kline` (a name without a market suffix covers every market; `volume_spot` /
+   * across venues, over the market(s) the route covers: spot + perpetual futures on
+   * `/v1/klines` and `/v1/trades-kline`, the path's market alone on a `/spot` or `/futures`
+   * route (a name without a market suffix covers every market of its route; `volume_spot` /
    * `volume_futures` restrict). `null` when a market is not available (never a partial sum).
    * Unit: base asset quantity (BTC for BTCUSDT).
    */
@@ -4847,12 +4731,11 @@ export interface TradesKline {
    */
   is_volume_estimated: boolean;
   /**
-   * `true` = the bucket is final and will never change; `false` = provisional (only with
-   * `?live=1`).
+   * `true` = the row is final and will never change; `false` = provisional: the latest bucket
+   * while it still settles (a few seconds after its end, e.g. a candle whose volumes are not
+   * final yet), or the period in progress with `?live=1` on the routes that take it.
    */
   is_closed: boolean;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -4866,8 +4749,9 @@ export interface TradesKlineSecond {
   time: Date;
   /**
    * Traded volume over the row, base asset units (BTC for BTCUSDT, NOT dollars), aggregated
-   * across venues, ALL the markets of the route: spot + perpetual futures on `/v1/klines` and
-   * `/v1/trades-kline` (a name without a market suffix covers every market; `volume_spot` /
+   * across venues, over the market(s) the route covers: spot + perpetual futures on
+   * `/v1/klines` and `/v1/trades-kline`, the path's market alone on a `/spot` or `/futures`
+   * route (a name without a market suffix covers every market of its route; `volume_spot` /
    * `volume_futures` restrict). `null` when a market is not available (never a partial sum).
    * Unit: base asset quantity (BTC for BTCUSDT).
    */
@@ -4887,12 +4771,31 @@ export interface TradesKlineSecond {
    */
   sell_volume: number | null;
   /**
-   * `true` = the bucket is final and will never change; `false` = provisional (only with
-   * `?live=1`).
+   * `true` = the row is final and will never change; `false` = provisional: the latest bucket
+   * while it still settles (a few seconds after its end, e.g. a candle whose volumes are not
+   * final yet), or the period in progress with `?live=1` on the routes that take it.
    */
   is_closed: boolean;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
+  /**
+   * buy_volume - sell_volume over the row, base asset units. Positive = net buying. Unit: base
+   * asset quantity (BTC for BTCUSDT).
+   */
+  net_volume: number | null;
+  /**
+   * Average trade size, base asset units (NOT dollars: multiply by the price for a notional).
+   * Unit: base asset quantity (BTC for BTCUSDT).
+   */
+  avg_trade_size: number | null;
+  /**
+   * Average number of trades per second over the bucket. Unit: trades per second.
+   */
+  trade_rate: number | null;
+  /**
+   * `true` when base-asset quantities of this row were ESTIMATED from USD amounts ÷ the
+   * candle's typical price (high + low + close) / 3 (data written before quantities were
+   * recorded; mean error 0.04 % in 1m, 0.37 % in 1d); `false` = measured.
+   */
+  is_volume_estimated: boolean | null;
 }
 
 /**
@@ -4911,8 +4814,9 @@ export interface TradesAvgSize {
   avg_trade_size: number | null;
   /**
    * Traded volume over the row, base asset units (BTC for BTCUSDT, NOT dollars), aggregated
-   * across venues, ALL the markets of the route: spot + perpetual futures on `/v1/klines` and
-   * `/v1/trades-kline` (a name without a market suffix covers every market; `volume_spot` /
+   * across venues, over the market(s) the route covers: spot + perpetual futures on
+   * `/v1/klines` and `/v1/trades-kline`, the path's market alone on a `/spot` or `/futures`
+   * route (a name without a market suffix covers every market of its route; `volume_spot` /
    * `volume_futures` restrict). `null` when a market is not available (never a partial sum).
    * Unit: base asset quantity (BTC for BTCUSDT).
    */
@@ -4938,8 +4842,6 @@ export interface TradesAvgSize {
    * (excluded). Unit: seconds.
    */
   window_s: number;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -4960,8 +4862,9 @@ export interface TradesAvgSizeHistoryItem {
   avg_trade_size: number | null;
   /**
    * Traded volume over the row, base asset units (BTC for BTCUSDT, NOT dollars), aggregated
-   * across venues, ALL the markets of the route: spot + perpetual futures on `/v1/klines` and
-   * `/v1/trades-kline` (a name without a market suffix covers every market; `volume_spot` /
+   * across venues, over the market(s) the route covers: spot + perpetual futures on
+   * `/v1/klines` and `/v1/trades-kline`, the path's market alone on a `/spot` or `/futures`
+   * route (a name without a market suffix covers every market of its route; `volume_spot` /
    * `volume_futures` restrict). `null` when a market is not available (never a partial sum).
    * Unit: base asset quantity (BTC for BTCUSDT).
    */
@@ -4981,8 +4884,9 @@ export interface TradesAvgSizeHistoryItem {
    */
   sample_count: number;
   /**
-   * `true` = the bucket is final and will never change; `false` = provisional (only with
-   * `?live=1`).
+   * `true` = the row is final and will never change; `false` = provisional: the latest bucket
+   * while it still settles (a few seconds after its end, e.g. a candle whose volumes are not
+   * final yet), or the period in progress with `?live=1` on the routes that take it.
    */
   is_closed: boolean;
   /**
@@ -4996,8 +4900,6 @@ export interface TradesAvgSizeHistoryItem {
    * (excluded). Unit: seconds.
    */
   window_s: number;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /**
@@ -5033,8 +4935,6 @@ export interface Trade {
    * USD. Unit: USD.
    */
   value_usd: number;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
 }
 
 /** @internal Which fields of each model are ISO date-times, and which hold nested models. */

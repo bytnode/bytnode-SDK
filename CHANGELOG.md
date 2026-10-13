@@ -4,6 +4,25 @@ All notable changes to the BytNode SDKs. Both packages share one version number.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow
 [Semantic Versioning](https://semver.org/).
 
+## [0.3.0] — 2026-10-13
+
+Generated from contract `2.6.0` (additions only since 2.0.0).
+
+### Changed (TypeScript types — why this is 0.3.0, not a patch)
+
+- The generated models no longer carry an index signature (`[extra: string]: unknown`): a
+  misspelt field (`row.rate_pc`) is now a compile error, as it is with mypy in Python. A field
+  the API adds after this release is still in `response.raw`.
+
+### Added
+
+- `response.request_id` (Python) / `response.requestId` (TypeScript): the `X-Request-Id` of the
+  call, on every response, not only on errors.
+- `client.limits()`: `rate.per_minute`; `ticks_window_minutes` and `liquidation_events` are `0`
+  when your plan does not include their family (`null` = unlimited).
+- Per-second trade candles carry `net_volume`, `avg_trade_size`, `trade_rate` and
+  `is_volume_estimated`, like every other trade candle.
+
 ## [0.2.4] — 2026-10-13
 
 Generated from contract `2.5.0` (additions only since 2.0.0).

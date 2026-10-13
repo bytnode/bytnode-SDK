@@ -3621,9 +3621,9 @@ class LiquidationsEventsResource(SyncResource):
 
         Forced liquidations across futures venues, one row per event, most recent first.
         `limit` is a number of events (with `min_usd`: events of at least that size).
-        History depth is a count per plan: the last 100 liquidations on Free, 500 on
-        Traders, 1,000 on Financial, 10,000 on Startup; a larger `limit` returns 403
-        `history_depth`.
+        History depth: the events within your plan's `1h` history window (`GET /v1/limits`),
+        at most 1,000 per call; a larger `limit`, or a plan that sets a count
+        (`liquidation_events`), is refused with 403 `history_depth` beyond it.
 
         Args:
             symbol: Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET

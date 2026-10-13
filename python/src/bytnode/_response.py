@@ -95,6 +95,7 @@ class Response(Generic[T]):
             on the snapshot, a mapping field -> reason.
         next: the parameters of the following page (`None` = last page). `.iter()` follows it for you.
         rate_limit: your rate limit and monthly quota after this request.
+        request_id: the request identifier the API sent (`X-Request-Id`): quote it to support.
         raw: the decoded JSON body, untouched.
     """
 
@@ -107,6 +108,7 @@ class Response(Generic[T]):
         "partial",
         "rate_limit",
         "raw",
+        "request_id",
         "route",
         "server_time",
         "status_code",
@@ -139,6 +141,7 @@ class Response(Generic[T]):
         _verifier_contrat(headers)
         self.meta: dict[str, Any] = {k: v for k, v in raw.items() if k not in skip}
         self.rate_limit: RateLimit | None = RateLimit.from_headers(headers)
+        self.request_id: str | None = headers.get("x-request-id") or headers.get("X-Request-Id")
 
     # ---- conveniences --------------------------------------------------------
 

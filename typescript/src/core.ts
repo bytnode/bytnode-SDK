@@ -85,6 +85,8 @@ export class ApiResponse<T> {
   readonly next: Record<string, unknown> | string | null;
   /** Your rate limit and monthly quota after this request. */
   readonly rateLimit: RateLimit | null;
+  /** The request identifier the API sent (`X-Request-Id`): quote it to support. */
+  readonly requestId: string | null;
   /** The decoded JSON body, untouched (dates as strings). */
   readonly raw: Record<string, unknown>;
   readonly status: number;
@@ -103,6 +105,7 @@ export class ApiResponse<T> {
     this.next = (raw.next as Record<string, unknown> | string | undefined) ?? null;
     this.meta = Object.fromEntries(Object.entries(raw).filter(([k]) => !ENVELOPE.has(k)));
     this.rateLimit = rateLimitFromHeaders(headers);
+    this.requestId = headers.get('x-request-id');
   }
 
   /** Effective `symbol` of the request. */
