@@ -4615,6 +4615,7 @@ export interface SymbolsCapabilitiesFeedsActiveLast24h {
   klines_futures_multi: boolean;
   klines_1m: boolean;
   klines_multi: boolean;
+  orderbook_1m: boolean;
   /** Fields added by the API after this SDK was released. */
   [extra: string]: unknown;
 }
@@ -4633,6 +4634,10 @@ export interface SymbolsCapabilitiesComputedMetricsNotApplicable {
    * (the candle of each value) and `time` (the candle of the last value).
    */
   indicators?: string | null;
+  trades_kline?: string | null;
+  trades_kline_futures?: string | null;
+  cvd?: string | null;
+  heatmap_clusters?: string | null;
   /** Fields added by the API after this SDK was released. */
   [extra: string]: unknown;
 }

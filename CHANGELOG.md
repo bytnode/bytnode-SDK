@@ -6,7 +6,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); ver
 
 ## [0.2.3] — 2026-10-13
 
-Generated from contract `2.3.0` (additions only since 2.0.0).
+Generated from contract `2.4.0` (additions only since 2.0.0).
 
 ### Fixed
 

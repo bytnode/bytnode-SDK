@@ -1508,6 +1508,7 @@ class SymbolsCapabilitiesFeedsActiveLast24h(BytnodeModel):
     klines_futures_multi: bool
     klines_1m: bool
     klines_multi: bool
+    orderbook_1m: bool
 
 
 class SymbolsCapabilitiesComputedMetricsNotApplicable(BytnodeModel):
@@ -1519,6 +1520,10 @@ class SymbolsCapabilitiesComputedMetricsNotApplicable(BytnodeModel):
     liquidations_ratio: str | None = PydField(None)
     funding_cumulative: str | None = PydField(None)
     indicators: str | None = PydField(None, description='One entry per requested indicator id: its parameters, `values` (oldest to newest), `times` (the candle of each value) and `time` (the candle of the last value).')
+    trades_kline: str | None = PydField(None)
+    trades_kline_futures: str | None = PydField(None)
+    cvd: str | None = PydField(None)
+    heatmap_clusters: str | None = PydField(None)
 
 
 class SymbolsCapabilities(BytnodeModel):
