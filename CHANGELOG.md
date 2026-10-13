@@ -4,6 +4,26 @@ All notable changes to the BytNode SDKs. Both packages share one version number.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow
 [Semantic Versioning](https://semver.org/).
 
+## [0.2.3] — 2026-10-13
+
+Generated from contract `2.3.0` (additions only since 2.0.0).
+
+### Fixed
+
+- A snapshot field that only accepts depth 1 (`funding_rate`, `fear_greed`, `options_summary`…) is
+  typed as its route's object (or `None`/`null`) in both SDKs, as the README says; its depth
+  parameter accepts `True`/`1` only.
+- `client.limits()`: `families` is a list of strings, `rate` and `quota` are objects (they were
+  typed as numbers or strings, and a paid key's answer failed validation).
+- `.iter(since=…)` reads every row: the API no longer stops an ascending read at the first gap
+  of the series (options, inter-venue spread, funding).
+
+### Changed
+
+- `ErrorCode` lists the known codes; an error code the SDK does not know yet is kept as a string.
+- The model of `/v1/symbols` rows is `SymbolInfo` (was `Symbol`, which shadowed the global
+  `Symbol` of JavaScript).
+
 ## [0.2.2] — 2026-10-13
 
 Generated from contract `2.2.0` (additions only since 2.0.0: no route, field or value removed or renamed).

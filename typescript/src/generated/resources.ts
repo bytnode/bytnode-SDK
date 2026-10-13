@@ -118,7 +118,7 @@ const R_SNAPSHOT: RouteSpec = {"path": "/v1/snapshot", "method": "GET", "shape":
 const R_SPREAD_INTEREXCHANGE: RouteSpec = {"path": "/v1/spread/interexchange", "method": "GET", "shape": "object", "model": "SpreadInterexchange", "paginated": false, "pathParams": [], "maxLimit": null, "rangeMode": false, "wire": {}};
 const R_SPREAD_INTEREXCHANGE_HISTORY: RouteSpec = {"path": "/v1/spread/interexchange/history", "method": "GET", "shape": "list", "model": "SpreadInterexchange", "paginated": true, "pathParams": [], "maxLimit": 1000, "rangeMode": false, "wire": {"since": "since_ms", "until": "until_ms", "before": "before_ms"}};
 const R_STATUS: RouteSpec = {"path": "/v1/status", "method": "GET", "shape": "object", "model": "Status", "paginated": false, "pathParams": [], "maxLimit": null, "rangeMode": false, "wire": {}};
-const R_SYMBOLS: RouteSpec = {"path": "/v1/symbols", "method": "GET", "shape": "list", "model": "Symbol", "paginated": false, "pathParams": [], "maxLimit": null, "rangeMode": false, "wire": {}};
+const R_SYMBOLS: RouteSpec = {"path": "/v1/symbols", "method": "GET", "shape": "list", "model": "SymbolInfo", "paginated": false, "pathParams": [], "maxLimit": null, "rangeMode": false, "wire": {}};
 const R_SYMBOLS_CAPABILITIES: RouteSpec = {"path": "/v1/symbols/{symbol}/capabilities", "method": "GET", "shape": "object", "model": "SymbolsCapabilities", "paginated": false, "pathParams": ["symbol"], "maxLimit": null, "rangeMode": false, "wire": {}};
 const R_TOKENOMICS: RouteSpec = {"path": "/v1/tokenomics", "method": "GET", "shape": "object", "model": "Tokenomics", "paginated": false, "pathParams": [], "maxLimit": null, "rangeMode": false, "wire": {}};
 const R_TOKENOMICS_HISTORY: RouteSpec = {"path": "/v1/tokenomics/history", "method": "GET", "shape": "list", "model": "TokenomicsHistoryItem", "paginated": true, "pathParams": [], "maxLimit": 1000, "rangeMode": false, "wire": {"since": "since_ms", "until": "until_ms", "before": "before_ms"}};
@@ -5516,95 +5516,95 @@ export interface SnapshotParams {
    * Recommended Bitcoin fees. Same content as `/v1/btc/fees`. Value: `true` (or 1): the latest
    * value only.
    */
-  btc_fees?: Depth;
+  btc_fees?: true | 1;
   /**
    * Bitcoin mempool. Same content as `/v1/btc/mempool`. Value: `true` (or 1): the latest value
    * only.
    */
-  btc_mempool?: Depth;
+  btc_mempool?: true | 1;
   /**
    * Mining pool concentration. Same content as `/v1/btc/mining`. Value: `true` (or 1): the
    * latest value only.
    */
-  btc_mining?: Depth;
+  btc_mining?: true | 1;
   /**
    * Bitcoin network state. Same content as `/v1/btc/network`. Value: `true` (or 1): the latest
    * value only.
    */
-  btc_network?: Depth;
+  btc_network?: true | 1;
   /**
    * Buy/sell volume ratio. Same content as `/v1/buysell/ratio`. Value: `true` (or 1): the
    * latest value only.
    */
-  buysell_ratio?: Depth;
+  buysell_ratio?: true | 1;
   /**
    * Ethereum DeFi. Same content as `/v1/eth/defi`. Value: `true` (or 1): the latest value only.
    */
-  eth_defi?: Depth;
+  eth_defi?: true | 1;
   /**
    * ETH deflation. Same content as `/v1/eth/deflation`. Value: `true` (or 1): the latest value
    * only.
    */
-  eth_deflation?: Depth;
+  eth_deflation?: true | 1;
   /**
    * Ethereum gas. Same content as `/v1/eth/gas`. Value: `true` (or 1): the latest value only.
    */
-  eth_gas?: Depth;
+  eth_gas?: true | 1;
   /**
    * Gas momentum. Same content as `/v1/eth/gas-momentum`. Value: `true` (or 1): the latest
    * value only.
    */
-  eth_gas_momentum?: Depth;
+  eth_gas_momentum?: true | 1;
   /**
    * ETH/BTC ratio. Same content as `/v1/eth/ratio`. Value: `true` (or 1): the latest value
    * only.
    */
-  eth_ratio?: Depth;
+  eth_ratio?: true | 1;
   /**
    * ETH supply squeeze index. Same content as `/v1/eth/squeeze`. Value: `true` (or 1): the
    * latest value only.
    */
-  eth_squeeze?: Depth;
+  eth_squeeze?: true | 1;
   /**
    * ETH staking. Same content as `/v1/eth/staking`. Value: `true` (or 1): the latest value
    * only.
    */
-  eth_staking?: Depth;
+  eth_staking?: true | 1;
   /**
    * ETH supply and burn. Same content as `/v1/eth/supply`. Value: `true` (or 1): the latest
    * value only.
    */
-  eth_supply?: Depth;
+  eth_supply?: true | 1;
   /**
    * Crypto Fear & Greed Index. Same content as `/v1/fear-greed`. Value: `true` (or 1): the
    * latest value only.
    */
-  fear_greed?: Depth;
+  fear_greed?: true | 1;
   /**
    * Funding summed over 24 h. Same content as `/v1/funding/cumulative`. Value: `true` (or 1):
    * the latest value only.
    */
-  funding_cumulative?: Depth;
+  funding_cumulative?: true | 1;
   /**
    * Next funding forecast. Same content as `/v1/funding/next`. Value: `true` (or 1): the latest
    * value only.
    */
-  funding_next?: Depth;
+  funding_next?: true | 1;
   /**
    * Latest settled funding window. Same content as `/v1/funding/rate`. Value: `true` (or 1):
    * the latest value only.
    */
-  funding_rate?: Depth;
+  funding_rate?: true | 1;
   /**
    * Total crypto market cap and dominance. Same content as `/v1/global`. Value: `true` (or 1):
    * the latest value only.
    */
-  global?: Depth;
+  global?: true | 1;
   /**
    * Liquidation heatmap clusters. Same content as `/v1/heatmap/clusters`. Value: `true` (or 1):
    * the latest value only.
    */
-  heatmap_clusters?: Depth;
+  heatmap_clusters?: true | 1;
   /**
    * Liquidations long/short USD (N latest minutes). Same content as
    * `/v1/liquidations/cumulative`. Value: depth N (at most 1440), or `true` for 1.
@@ -5619,32 +5619,32 @@ export interface SnapshotParams {
    * Big vs small liquidations. Same content as `/v1/liquidations/ratio`. Value: `true` (or 1):
    * the latest value only.
    */
-  liquidations_ratio?: Depth;
+  liquidations_ratio?: true | 1;
   /**
    * Latest value of every FRED series. Same content as `/v1/macro/series`. Value: `true` (or
    * 1): the latest value only.
    */
-  macro?: Depth;
+  macro?: true | 1;
   /**
    * BTC correlation with DXY, S&P 500, gold, VIX. Same content as `/v1/macro/correlations`.
    * Value: `true` (or 1): the latest value only.
    */
-  macro_correlations?: Depth;
+  macro_correlations?: true | 1;
   /**
    * Macro momentum score. Same content as `/v1/macro/momentum`. Value: `true` (or 1): the
    * latest value only.
    */
-  macro_momentum?: Depth;
+  macro_momentum?: true | 1;
   /**
    * US net liquidity. Same content as `/v1/macro/net-liquidity`. Value: `true` (or 1): the
    * latest value only.
    */
-  macro_net_liquidity?: Depth;
+  macro_net_liquidity?: true | 1;
   /**
    * Risk-on / risk-off score. Same content as `/v1/macro/risk`. Value: `true` (or 1): the
    * latest value only.
    */
-  macro_risk?: Depth;
+  macro_risk?: true | 1;
   /**
    * Open interest change (N latest minutes). Same content as `/v1/oi/delta`. Value: depth N (at
    * most 60), or `true` for 1.
@@ -5654,42 +5654,42 @@ export interface SnapshotParams {
    * Bitcoin active addresses. Same content as `/v1/onchain/active-addresses`. Value: `true` (or
    * 1): the latest value only.
    */
-  onchain_active_addresses?: Depth;
+  onchain_active_addresses?: true | 1;
   /**
    * Bitcoin miner stress. Same content as `/v1/onchain/miner-stress`. Value: `true` (or 1): the
    * latest value only.
    */
-  onchain_miner_stress?: Depth;
+  onchain_miner_stress?: true | 1;
   /**
    * Bitcoin MVRV. Same content as `/v1/onchain/mvrv`. Value: `true` (or 1): the latest value
    * only.
    */
-  onchain_mvrv?: Depth;
+  onchain_mvrv?: true | 1;
   /**
    * Bitcoin NVT. Same content as `/v1/onchain/nvt`. Value: `true` (or 1): the latest value
    * only.
    */
-  onchain_nvt?: Depth;
+  onchain_nvt?: true | 1;
   /**
    * Options market summary for the symbol's asset. Same content as `/v1/options/summary`.
    * Value: `true` (or 1): the latest value only.
    */
-  options_summary?: Depth;
+  options_summary?: true | 1;
   /**
    * Price change over 1m to 1w, in percent. Same content as `/v1/price-change`. Value: `true`
    * (or 1): the latest value only.
    */
-  price_change?: Depth;
+  price_change?: true | 1;
   /**
    * Supply, market cap, FDV. Same content as `/v1/tokenomics`. Value: `true` (or 1): the latest
    * value only.
    */
-  tokenomics?: Depth;
+  tokenomics?: true | 1;
   /**
    * Average trade size. Same content as `/v1/trades/avg-size`. Value: `true` (or 1): the latest
    * value only.
    */
-  trades_avg_size?: Depth;
+  trades_avg_size?: true | 1;
   /**
    * Individual futures trades (N trades), bounded by your plan's tick window. Same content as
    * `/v1/trades/futures`. Value: depth N (at most 10000), or `true` for 1.
@@ -5726,42 +5726,42 @@ export interface SnapshotParams {
 /** The payload of `GET /v1/snapshot`: the requested fields, typed like their routes. */
 export interface SnapshotData {
   basis?: M.Basis | Array<M.Basis> | null;
-  btc_fees?: M.BtcFees | Array<M.BtcFees> | null;
-  btc_mempool?: M.BtcMempool | Array<M.BtcMempool> | null;
-  btc_mining?: M.BtcMining | Array<M.BtcMining> | null;
-  btc_network?: M.BtcNetwork | Array<M.BtcNetwork> | null;
-  buysell_ratio?: M.BuysellRatio | Array<M.BuysellRatio> | null;
-  eth_defi?: M.EthDefi | Array<M.EthDefi> | null;
-  eth_deflation?: M.EthDeflation | Array<M.EthDeflation> | null;
-  eth_gas?: M.EthGas | Array<M.EthGas> | null;
-  eth_gas_momentum?: M.EthGasMomentum | Array<M.EthGasMomentum> | null;
-  eth_ratio?: M.EthRatio | Array<M.EthRatio> | null;
-  eth_squeeze?: M.EthSqueeze | Array<M.EthSqueeze> | null;
-  eth_staking?: M.EthStaking | Array<M.EthStaking> | null;
-  eth_supply?: M.EthSupply | Array<M.EthSupply> | null;
-  fear_greed?: M.FearGreed | Array<M.FearGreed> | null;
-  funding_cumulative?: M.FundingCumulative | Array<M.FundingCumulative> | null;
-  funding_next?: M.FundingNext | Array<M.FundingNext> | null;
-  funding_rate?: M.FundingRate | Array<M.FundingRate> | null;
-  global?: M.GlobalMarket | Array<M.GlobalMarket> | null;
-  heatmap_clusters?: M.HeatmapClusters | Array<M.HeatmapClusters> | null;
+  btc_fees?: M.BtcFees | null;
+  btc_mempool?: M.BtcMempool | null;
+  btc_mining?: M.BtcMining | null;
+  btc_network?: M.BtcNetwork | null;
+  buysell_ratio?: M.BuysellRatio | null;
+  eth_defi?: M.EthDefi | null;
+  eth_deflation?: M.EthDeflation | null;
+  eth_gas?: M.EthGas | null;
+  eth_gas_momentum?: M.EthGasMomentum | null;
+  eth_ratio?: M.EthRatio | null;
+  eth_squeeze?: M.EthSqueeze | null;
+  eth_staking?: M.EthStaking | null;
+  eth_supply?: M.EthSupply | null;
+  fear_greed?: M.FearGreed | null;
+  funding_cumulative?: M.FundingCumulative | null;
+  funding_next?: M.FundingNext | null;
+  funding_rate?: M.FundingRate | null;
+  global?: M.GlobalMarket | null;
+  heatmap_clusters?: M.HeatmapClusters | null;
   liquidations_cumulative?: M.LiquidationsCumulative | Array<M.LiquidationsCumulative> | null;
   liquidations_events?: M.LiquidationEvent | Array<M.LiquidationEvent> | null;
-  liquidations_ratio?: M.LiquidationsRatio | Array<M.LiquidationsRatio> | null;
-  macro?: M.MacroSeriesInfo | Array<M.MacroSeriesInfo> | null;
-  macro_correlations?: M.MacroCorrelations | Array<M.MacroCorrelations> | null;
-  macro_momentum?: M.MacroMomentum | Array<M.MacroMomentum> | null;
-  macro_net_liquidity?: M.MacroNetLiquidity | Array<M.MacroNetLiquidity> | null;
-  macro_risk?: M.MacroRisk | Array<M.MacroRisk> | null;
+  liquidations_ratio?: M.LiquidationsRatio | null;
+  macro?: M.MacroSeriesInfo | null;
+  macro_correlations?: M.MacroCorrelations | null;
+  macro_momentum?: M.MacroMomentum | null;
+  macro_net_liquidity?: M.MacroNetLiquidity | null;
+  macro_risk?: M.MacroRisk | null;
   oi_delta?: M.OiDelta | Array<M.OiDelta> | null;
-  onchain_active_addresses?: M.OnchainActiveAddresses | Array<M.OnchainActiveAddresses> | null;
-  onchain_miner_stress?: M.OnchainMinerStress | Array<M.OnchainMinerStress> | null;
-  onchain_mvrv?: M.OnchainMvrv | Array<M.OnchainMvrv> | null;
-  onchain_nvt?: M.OnchainNvt | Array<M.OnchainNvt> | null;
-  options_summary?: M.OptionsSummary | Array<M.OptionsSummary> | null;
-  price_change?: M.PriceChange | Array<M.PriceChange> | null;
-  tokenomics?: M.Tokenomics | Array<M.Tokenomics> | null;
-  trades_avg_size?: M.TradesAvgSize | Array<M.TradesAvgSize> | null;
+  onchain_active_addresses?: M.OnchainActiveAddresses | null;
+  onchain_miner_stress?: M.OnchainMinerStress | null;
+  onchain_mvrv?: M.OnchainMvrv | null;
+  onchain_nvt?: M.OnchainNvt | null;
+  options_summary?: M.OptionsSummary | null;
+  price_change?: M.PriceChange | null;
+  tokenomics?: M.Tokenomics | null;
+  trades_avg_size?: M.TradesAvgSize | null;
   trades_futures?: M.Trade | Array<M.Trade> | null;
   trades_kline_futures_seconds?: M.TradesKlineSecond | Array<M.TradesKlineSecond> | null;
   trades_spot?: M.Trade | Array<M.Trade> | null;
@@ -6132,7 +6132,7 @@ export interface SymbolsResource {
    * TRX, SUI, HYPE, XLM, XMR, LINK, ADA, LTC, UNI, GRAM, AVAX, HBAR, NEAR, TAO) plus two
    * spot-only stablecoin pairs (USDCUSDT, USDTUSDC).
    */
-  (params?: SymbolsParams, options?: RequestOptions): Promise<ApiResponse<Array<M.Symbol>>>;
+  (params?: SymbolsParams, options?: RequestOptions): Promise<ApiResponse<Array<M.SymbolInfo>>>;
   capabilities: SymbolsCapabilitiesResource;
 }
 
@@ -7788,4 +7788,4 @@ export const ROUTES: Record<string, string> = {
   "/v1/trades/spot": "trades.spot",
 };
 /** `info.version` of the contract this SDK was generated from. */
-export const API_VERSION = "2.2.0";
+export const API_VERSION = "2.3.0";

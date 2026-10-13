@@ -196,7 +196,11 @@ def emit_snapshot(api: Api) -> str:
     ]
     for f in api.snapshot_fields:
         attr = py_ident(f.wire.replace("@", "_"))
-        t = f"m.{f.model} | list[m.{f.model}] | None" if f.model else "object | None"
+        # A field limited to depth 1 is its route's OBJECT (or None), never a list.
+        if f.model and f.maximum == 1:
+            t = f"m.{f.model} | None"
+        else:
+            t = f"m.{f.model} | list[m.{f.model}] | None" if f.model else "object | None"
         lines.append(f"    {attr}: {t} = PydField(None, alias={f.wire!r}, description={f.description[:300]!r})")
     lines.append("")
     lines.append("")
@@ -370,7 +374,9 @@ def emit_snapshot_methods(api: Api, r: Route, sync: bool) -> list[str]:
     lines.append("        symbol: str,")
     lines.append("        *,")
     for f in singles:
-        lines.append(f"        {py_ident(f.base)}: Depth | None = None,")
+        # Depth 1 only: `True` (or 1), never a list.
+        profondeur = "Literal[True, 1]" if f.maximum == 1 else "Depth"
+        lines.append(f"        {py_ident(f.base)}: {profondeur} | None = None,")
     for base, tfs in multis.items():
         lit = "KlineTimeframe" if "1w" in tfs else "Timeframe"
         lines.append(f"        {base}: Mapping[{lit}, Depth] | None = None,")
@@ -488,7 +494,7 @@ def emit_resources(api: Api, sync: bool) -> str:
         "from __future__ import annotations",
         "",
         "from collections.abc import Mapping, Sequence",
-        "from typing import Any",
+        "from typing import Any, Literal",
         "",
         f"from .._resource import {base}",
         f"from .._response import {it}, Response",

@@ -2073,6 +2073,54 @@ export interface LimitsHistoryItem {
 }
 
 /**
+ * Nested object (LimitsRate).
+ */
+export interface LimitsRate {
+  /**
+   * Capacity of the bucket: requests you can send at once. Unit: count.
+   */
+  burst?: number;
+  /**
+   * Seconds to refill the bucket from empty. Unit: seconds.
+   */
+  refill_s?: number;
+  /**
+   * Requests left right now (after this one). Unit: count.
+   */
+  remaining?: number | null;
+  /**
+   * Seconds until fully restored. Unit: seconds.
+   */
+  reset_s?: number | null;
+  /** Fields added by the API after this SDK was released. */
+  [extra: string]: unknown;
+}
+
+/**
+ * Nested object (LimitsQuota).
+ */
+export interface LimitsQuota {
+  /**
+   * Requests included per calendar month. Unit: count.
+   */
+  monthly?: number;
+  /**
+   * Length of the current calendar month, in seconds. Unit: seconds.
+   */
+  month_length_s?: number;
+  /**
+   * Requests left right now (after this one). Unit: count.
+   */
+  remaining?: number | null;
+  /**
+   * Seconds until fully restored. Unit: seconds.
+   */
+  reset_s?: number | null;
+  /** Fields added by the API after this SDK was released. */
+  [extra: string]: unknown;
+}
+
+/**
  * Row of `/v1/limits`.
  */
 export interface Limits {
@@ -2086,7 +2134,7 @@ export interface Limits {
    * `snapshot`, `indicators`, `macro`, `options`, `onchain`, `etf`, `tokenomics`, `sentiment`);
    * `null` = all of them. A route outside them answers 403 `plan_family`.
    */
-  families: number | string | null;
+  families: Array<"derivatives" | "etf" | "indicators" | "macro" | "microstructure" | "onchain" | "options" | "price_volume" | "sentiment" | "snapshot" | "ticks" | "tokenomics"> | null;
   /**
    * History window per timeframe, one object per timeframe the API serves.
    */
@@ -2105,12 +2153,12 @@ export interface Limits {
    * The per-minute rate, as a token bucket; `null` = unlimited or unmetered key. The same
    * values as the `RateLimit` headers (`debit` policy).
    */
-  rate: number | string | null;
+  rate: LimitsRate | null;
   /**
    * The monthly quota; `null` = unlimited or unmetered key. The same values as the `RateLimit`
    * headers (`mensuel` policy). It resets on the 1st of the month, 00:00 UTC.
    */
-  quota: number | string | null;
+  quota: LimitsQuota | null;
   /** Fields added by the API after this SDK was released. */
   [extra: string]: unknown;
 }
@@ -3191,7 +3239,7 @@ export interface MacroSeriesInfo {
    */
   units: string;
   /**
-   * Value of the series. Unit: dimensionless score.
+   * Latest value of the series, in the unit given by `units`. Unit: see `units`.
    */
   value: number;
   /** Fields added by the API after this SDK was released. */
@@ -4523,7 +4571,7 @@ export interface Status {
 /**
  * Row of `/v1/symbols`.
  */
-export interface Symbol {
+export interface SymbolInfo {
   /**
    * Trading pair, e.g. `BTCUSDT`.
    */
@@ -5014,7 +5062,9 @@ export const MODEL_SHAPES: Record<string, { dates: string[]; nested: Record<stri
   HeatmapClustersHistoryItem: { dates: ["time"], nested: {} },
   Kline: { dates: ["time"], nested: {} },
   LimitsHistoryItem: { dates: [], nested: {} },
-  Limits: { dates: [], nested: {"history": "LimitsHistoryItem"} },
+  LimitsRate: { dates: [], nested: {} },
+  LimitsQuota: { dates: [], nested: {} },
+  Limits: { dates: [], nested: {"history": "LimitsHistoryItem", "rate": "LimitsRate", "quota": "LimitsQuota"} },
   LiquidationsCumulative: { dates: ["time", "window_start"], nested: {} },
   LiquidationsCumulativeHistoryItem: { dates: ["time", "window_start"], nested: {} },
   LiquidationEvent: { dates: ["time"], nested: {} },
@@ -5098,7 +5148,7 @@ export const MODEL_SHAPES: Record<string, { dates: string[]; nested: Record<stri
   SpreadInterexchange: { dates: ["time"], nested: {"high": "SpreadInterexchangeHigh", "low": "SpreadInterexchangeLow", "venues": "SpreadInterexchangeVenuesItem"} },
   StatusFeedsItem: { dates: [], nested: {} },
   Status: { dates: ["computed_at"], nested: {"feeds": "StatusFeedsItem"} },
-  Symbol: { dates: [], nested: {} },
+  SymbolInfo: { dates: [], nested: {} },
   SymbolsCapabilitiesFeedsActiveLast24h: { dates: [], nested: {} },
   SymbolsCapabilitiesComputedMetricsNotApplicable: { dates: [], nested: {} },
   SymbolsCapabilities: { dates: [], nested: {"feeds_active_last_24h": "SymbolsCapabilitiesFeedsActiveLast24h", "computed_metrics_not_applicable": "SymbolsCapabilitiesComputedMetricsNotApplicable"} },

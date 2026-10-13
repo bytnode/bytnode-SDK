@@ -6,7 +6,7 @@
 from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
-from typing import Any
+from typing import Any, Literal
 
 from .._resource import AsyncResource
 from .._response import AsyncRowIterator, Response
@@ -6424,42 +6424,42 @@ class AsyncSnapshotResource(AsyncResource):
         symbol: str,
         *,
         basis: Depth | None = None,
-        btc_fees: Depth | None = None,
-        btc_mempool: Depth | None = None,
-        btc_mining: Depth | None = None,
-        btc_network: Depth | None = None,
-        buysell_ratio: Depth | None = None,
-        eth_defi: Depth | None = None,
-        eth_deflation: Depth | None = None,
-        eth_gas: Depth | None = None,
-        eth_gas_momentum: Depth | None = None,
-        eth_ratio: Depth | None = None,
-        eth_squeeze: Depth | None = None,
-        eth_staking: Depth | None = None,
-        eth_supply: Depth | None = None,
-        fear_greed: Depth | None = None,
-        funding_cumulative: Depth | None = None,
-        funding_next: Depth | None = None,
-        funding_rate: Depth | None = None,
-        global_market: Depth | None = None,
-        heatmap_clusters: Depth | None = None,
+        btc_fees: Literal[True, 1] | None = None,
+        btc_mempool: Literal[True, 1] | None = None,
+        btc_mining: Literal[True, 1] | None = None,
+        btc_network: Literal[True, 1] | None = None,
+        buysell_ratio: Literal[True, 1] | None = None,
+        eth_defi: Literal[True, 1] | None = None,
+        eth_deflation: Literal[True, 1] | None = None,
+        eth_gas: Literal[True, 1] | None = None,
+        eth_gas_momentum: Literal[True, 1] | None = None,
+        eth_ratio: Literal[True, 1] | None = None,
+        eth_squeeze: Literal[True, 1] | None = None,
+        eth_staking: Literal[True, 1] | None = None,
+        eth_supply: Literal[True, 1] | None = None,
+        fear_greed: Literal[True, 1] | None = None,
+        funding_cumulative: Literal[True, 1] | None = None,
+        funding_next: Literal[True, 1] | None = None,
+        funding_rate: Literal[True, 1] | None = None,
+        global_market: Literal[True, 1] | None = None,
+        heatmap_clusters: Literal[True, 1] | None = None,
         liquidations_cumulative: Depth | None = None,
         liquidations_events: Depth | None = None,
-        liquidations_ratio: Depth | None = None,
-        macro: Depth | None = None,
-        macro_correlations: Depth | None = None,
-        macro_momentum: Depth | None = None,
-        macro_net_liquidity: Depth | None = None,
-        macro_risk: Depth | None = None,
+        liquidations_ratio: Literal[True, 1] | None = None,
+        macro: Literal[True, 1] | None = None,
+        macro_correlations: Literal[True, 1] | None = None,
+        macro_momentum: Literal[True, 1] | None = None,
+        macro_net_liquidity: Literal[True, 1] | None = None,
+        macro_risk: Literal[True, 1] | None = None,
         oi_delta: Depth | None = None,
-        onchain_active_addresses: Depth | None = None,
-        onchain_miner_stress: Depth | None = None,
-        onchain_mvrv: Depth | None = None,
-        onchain_nvt: Depth | None = None,
-        options_summary: Depth | None = None,
-        price_change: Depth | None = None,
-        tokenomics: Depth | None = None,
-        trades_avg_size: Depth | None = None,
+        onchain_active_addresses: Literal[True, 1] | None = None,
+        onchain_miner_stress: Literal[True, 1] | None = None,
+        onchain_mvrv: Literal[True, 1] | None = None,
+        onchain_nvt: Literal[True, 1] | None = None,
+        options_summary: Literal[True, 1] | None = None,
+        price_change: Literal[True, 1] | None = None,
+        tokenomics: Literal[True, 1] | None = None,
+        trades_avg_size: Literal[True, 1] | None = None,
         trades_futures: Depth | None = None,
         trades_kline_futures_seconds: Depth | None = None,
         trades_spot: Depth | None = None,
@@ -6791,14 +6791,14 @@ class AsyncSymbolsResource(AsyncResource):
         super().__init__(client)
         self.capabilities = AsyncSymbolsCapabilitiesResource(client)
 
-    _route = RouteSpec(path='/v1/symbols', method='GET', shape='list', model=m.Symbol, paginated=False, path_params=(), max_limit=None, range_mode=False)
+    _route = RouteSpec(path='/v1/symbols', method='GET', shape='list', model=m.SymbolInfo, paginated=False, path_params=(), max_limit=None, range_mode=False)
 
     async def __call__(
         self,
         *,
         fields: Fields | None = None,
         request_options: RequestOptions | None = None,
-    ) -> Response[list[m.Symbol]]:
+    ) -> Response[list[m.SymbolInfo]]:
         """GET /v1/symbols — List the served trading pairs
 
         The 22 served pairs: 20 USDT-margined perpetual markets (BTC, ETH, SOL, XRP, DOGE,

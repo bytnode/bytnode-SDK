@@ -5,7 +5,7 @@ API: candles, order flow, derivatives, liquidations, options, macro, on-chain an
 typed, paginated for you, plus the real-time WebSocket stream.
 
 ```bash
-npm install https://github.com/bytnode/bytnode-SDK/releases/download/v0.2.2/bytnode-0.2.2.tgz
+npm install https://github.com/bytnode/bytnode-SDK/releases/download/v0.2.3/bytnode-0.2.3.tgz
 export BYTNODE_API_KEY=cb_live_...   # create one at https://bytnode.com/dashboard/keys
 ```
 
@@ -72,12 +72,13 @@ after this release are still there (index signature): a newer API never breaks a
 Time bounds take a `Date`, an ISO string (`'2026-01-01'`, naive = UTC) or epoch milliseconds:
 
 ```ts
-const page = await client.oi.history({ symbol: 'BTCUSDT', timeframe: '1h', since: '2026-10-01', limit: 100 });
+const since = new Date(Date.now() - 12 * 3_600_000); // inside every plan's window
+const page = await client.oi.history({ symbol: 'BTCUSDT', timeframe: '1h', since, limit: 100 });
 page.next; // relative URL of the following page, or null (.iter() follows it for you)
 
 // .iter() follows `next` for you, page after page:
 const rows = await client.klines.iter({ symbol: 'ETHUSDT', timeframe: '4h', since: new Date(Date.now() - 3 * 86_400_000) }).toArray();
-for await (const page of client.cvd.history.iter({ symbol: 'BTCUSDT', timeframe: '1h', since: '2026-10-01' }).pages()) {
+for await (const page of client.cvd.history.iter({ symbol: 'BTCUSDT', timeframe: '1h', since }).pages()) {
   console.log(page.data.length, page.rateLimit?.quotaRemaining);
 }
 ```

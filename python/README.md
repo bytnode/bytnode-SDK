@@ -5,8 +5,8 @@ order flow, derivatives, liquidations, options, macro, on-chain and ETF data —
 you, one call away from a pandas DataFrame, plus the real-time WebSocket stream.
 
 ```bash
-pip install https://github.com/bytnode/bytnode-SDK/releases/download/v0.2.2/bytnode-0.2.2-py3-none-any.whl
-# with pandas: pip install "bytnode[pandas] @ https://github.com/bytnode/bytnode-SDK/releases/download/v0.2.2/bytnode-0.2.2-py3-none-any.whl"
+pip install https://github.com/bytnode/bytnode-SDK/releases/download/v0.2.3/bytnode-0.2.3-py3-none-any.whl
+# with pandas: pip install "bytnode[pandas] @ https://github.com/bytnode/bytnode-SDK/releases/download/v0.2.3/bytnode-0.2.3-py3-none-any.whl"
 export BYTNODE_API_KEY=cb_live_...   # create one at https://bytnode.com/dashboard/keys
 ```
 
@@ -88,7 +88,10 @@ History routes take time bounds as you write them — `datetime` (naive = UTC), 
 or epoch milliseconds:
 
 ```python
-page = client.funding.rate.history("BTCUSDT", since="2026-09-01", until="2026-10-01", limit=100)
+from datetime import datetime, timedelta, timezone
+
+now = datetime.now(timezone.utc)
+page = client.funding.rate.history("BTCUSDT", since=now - timedelta(days=5), until=now, limit=100)
 page.next   # relative URL of the following page, or None (iter() follows it for you)
 ```
 
@@ -100,7 +103,7 @@ from datetime import datetime, timedelta, timezone
 for row in client.klines.iter("ETHUSDT", "4h", since=datetime.now(timezone.utc) - timedelta(days=3)):
     ...
 
-rows = client.oi.history.iter("BTCUSDT", "1h", since="2026-10-01", max_items=500).to_list()
+rows = client.oi.history.iter("BTCUSDT", "1h", since=now - timedelta(hours=12), max_items=500).to_list()
 ```
 
 - With `since`, pages are as large as the route allows (fewest requests, least quota); without it, the route's default page, which stops at your plan's history window instead of exceeding it. `page_size=` changes it.
@@ -236,12 +239,15 @@ with client.stream(ch.trades("BTCUSDT"), ch.book("BTCUSDT"), depth=5) as stream:
 
 ```python
 import asyncio
+from datetime import datetime, timedelta, timezone
+
 from bytnode import AsyncBytnode, channels as ch
 
 async def main() -> None:
     async with AsyncBytnode() as client:
         btc, eth = await asyncio.gather(client.funding.rate("BTCUSDT"), client.funding.rate("ETHUSDT"))
-        df = await client.klines.iter("BTCUSDT", "1h", since="2026-10-01").to_pandas()
+        since = datetime.now(timezone.utc) - timedelta(hours=12)
+        df = await client.klines.iter("BTCUSDT", "1h", since=since).to_pandas()
         async with client.stream(ch.trades("BTCUSDT")) as stream:
             async for msg in stream:
                 ...

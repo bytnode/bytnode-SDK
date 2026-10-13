@@ -28,6 +28,9 @@ TIME_PARAMS = {"since_ms": "since", "until_ms": "until", "before_ms": "before"}
 # --------------------------------------------------------------------------- types
 
 
+# Contract schema names that would collide with a language built-in in the SDKs.
+MODEL_RENAMES: dict[str, str] = {"Symbol": "SymbolInfo"}
+
 @dataclass
 class TypeRef:
     """A field or parameter type, independent of the target language.
@@ -195,7 +198,8 @@ class Builder:
                 raise ValueError(f"unsupported $ref {ref}")
             name = ref.rsplit("/", 1)[-1]
             schema = {**self.spec["components"]["schemas"][name], **{k: v for k, v in schema.items() if k != "$ref"}}
-        return schema, name
+        # `Symbol` would shadow the global `Symbol` of JavaScript at import.
+        return schema, MODEL_RENAMES.get(name, name) if name else name
 
     def schema_type(self, schema: dict[str, Any], hint: str) -> TypeRef:
         schema, ref_name = self.resolve(schema)
@@ -411,8 +415,10 @@ class Builder:
             if route and route not in routes:
                 hist = route + "/history"
                 route = hist if hist in routes else None
-            maximum = None
-            for o in prm.get("schema", {}).get("oneOf", []):
+            # The depth is a plain integer since contract 2.1.0 (a `oneOf` before).
+            schema = prm.get("schema", {})
+            maximum = schema.get("maximum")
+            for o in schema.get("oneOf", []):
                 if o.get("type") == "integer":
                     maximum = o.get("maximum")
             out.append(
@@ -493,6 +499,9 @@ class Builder:
         # `ApiError` since contract 2.1.0 (`Error` before: a reserved word of several generators).
         schemas = self.spec["components"]["schemas"]
         err = (schemas.get("ApiError") or schemas["Error"])["properties"]["error"]["properties"]["code"]
+        # `error.code` is an open string since contract 2.3.0: the known codes are `ErrorCode`.
+        if "enum" not in err and "ErrorCode" in schemas:
+            err = schemas["ErrorCode"]
         return Api(
             version=self.spec["info"]["version"],
             title=self.spec["info"]["title"],

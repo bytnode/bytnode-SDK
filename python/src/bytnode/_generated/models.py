@@ -640,16 +640,34 @@ class LimitsHistoryItem(BytnodeModel):
     window_minutes: int | None = PydField(None, description='How far back this timeframe may be read, in minutes, measured from now; `null` = unlimited. Beyond it: 403 `history_depth`. Unit: minutes.')
 
 
+class LimitsRate(BytnodeModel):
+    """Nested object (LimitsRate)."""
+
+    burst: int | None = PydField(None, description='Capacity of the bucket: requests you can send at once. Unit: count.')
+    refill_s: int | None = PydField(None, description='Seconds to refill the bucket from empty. Unit: seconds.')
+    remaining: int | None = PydField(None, description='Requests left right now (after this one). Unit: count.')
+    reset_s: int | None = PydField(None, description='Seconds until fully restored. Unit: seconds.')
+
+
+class LimitsQuota(BytnodeModel):
+    """Nested object (LimitsQuota)."""
+
+    monthly: int | None = PydField(None, description='Requests included per calendar month. Unit: count.')
+    month_length_s: int | None = PydField(None, description='Length of the current calendar month, in seconds. Unit: seconds.')
+    remaining: int | None = PydField(None, description='Requests left right now (after this one). Unit: count.')
+    reset_s: int | None = PydField(None, description='Seconds until fully restored. Unit: seconds.')
+
+
 class Limits(BytnodeModel):
     """Row of `/v1/limits`."""
 
     plan: str = PydField(description='Your plan: `free`, `traders`, `financial`, `startup` or `enterprise` (`legacy` for an internal unmetered key: every limit below is then unset).')
-    families: float | str | None = PydField(None, description='Data families your plan includes (`price_volume`, `derivatives`, `microstructure`, `ticks`, `snapshot`, `indicators`, `macro`, `options`, `onchain`, `etf`, `tokenomics`, `sentiment`); `null` = all of them. A route outside them answers 403 `plan_family`.')
+    families: list[Literal['derivatives', 'etf', 'indicators', 'macro', 'microstructure', 'onchain', 'options', 'price_volume', 'sentiment', 'snapshot', 'ticks', 'tokenomics']] | None = PydField(None, description='Data families your plan includes (`price_volume`, `derivatives`, `microstructure`, `ticks`, `snapshot`, `indicators`, `macro`, `options`, `onchain`, `etf`, `tokenomics`, `sentiment`); `null` = all of them. A route outside them answers 403 `plan_family`.')
     history: list[LimitsHistoryItem] = PydField(description='History window per timeframe, one object per timeframe the API serves.')
     ticks_window_minutes: int | None = PydField(None, description='How far back individual trades (`/v1/trades/*`) may be read, in minutes; `null` = unlimited or not in your plan (see `families`). Unit: minutes.')
     liquidation_events: int | None = PydField(None, description='How many of the most recent individual liquidations `/v1/liquidations/events` may return; `null` = unlimited. Unit: count.')
-    rate: float | str | None = PydField(None, description='The per-minute rate, as a token bucket; `null` = unlimited or unmetered key. The same values as the `RateLimit` headers (`debit` policy).')
-    quota: float | str | None = PydField(None, description='The monthly quota; `null` = unlimited or unmetered key. The same values as the `RateLimit` headers (`mensuel` policy). It resets on the 1st of the month, 00:00 UTC.')
+    rate: LimitsRate | None = PydField(None, description='The per-minute rate, as a token bucket; `null` = unlimited or unmetered key. The same values as the `RateLimit` headers (`debit` policy).')
+    quota: LimitsQuota | None = PydField(None, description='The monthly quota; `null` = unlimited or unmetered key. The same values as the `RateLimit` headers (`mensuel` policy). It resets on the 1st of the month, 00:00 UTC.')
 
 
 class LiquidationsCumulative(BytnodeModel):
@@ -1036,7 +1054,7 @@ class MacroSeriesInfo(BytnodeModel):
     name: str = PydField(description='Human-readable name of the series.')
     frequency: str = PydField(description='Publication frequency of the source (`daily`, `weekly`, `monthly`).')
     units: str = PydField(description='Unit of `value` as published by the source.')
-    value: float = PydField(description='Value of the series. Unit: dimensionless score.')
+    value: float = PydField(description='Latest value of the series, in the unit given by `units`. Unit: see `units`.')
 
 
 class Oi(BytnodeModel):
@@ -1467,7 +1485,7 @@ class Status(BytnodeModel):
     feeds: list[StatusFeedsItem] = PydField(description='One row per public feed.')
 
 
-class Symbol(BytnodeModel):
+class SymbolInfo(BytnodeModel):
     """Row of `/v1/symbols`."""
 
     symbol: str = PydField(description='Trading pair, e.g. `BTCUSDT`.')
@@ -1604,4 +1622,4 @@ class Trade(BytnodeModel):
     value_usd: float = PydField(description='Notional value: price × quantity. Unit: USD.')
 
 
-__all__ = ['Basis', 'BasisHistoryItem', 'BtcFeesPrecise', 'BtcFeesFeePressure', 'BtcFees', 'BtcFeesHistoryItem', 'BtcMempoolTrend', 'BtcMempool', 'BtcMempoolHistoryItem', 'BtcMiningConcentration', 'BtcMiningLatestReward', 'BtcMiningPoolsItem', 'BtcMining', 'BtcMiningHistoryItem', 'BtcNetworkBlockTime', 'BtcNetworkNextAdjustment', 'BtcNetwork', 'BtcNetworkHistoryItem', 'BuysellRatio', 'BuysellRatioHistoryItem', 'Cvd', 'CvdHistoryItem', 'EtfFundamentals', 'EtfFundamentalsHistoryItem', 'EthDefi', 'EthDefiHistoryItem', 'EthDeflation', 'EthDeflationHistoryItem', 'EthGas', 'EthGasMomentum', 'EthGasMomentumHistoryItem', 'EthGasHistoryItem', 'EthRatio', 'EthRatioHistoryItem', 'EthSqueeze', 'EthSqueezeHistoryItem', 'EthStaking', 'EthStakingHistoryItem', 'EthSupply', 'EthSupplyHistoryItem', 'FearGreed', 'FearGreedHistoryItem', 'FundingCumulative', 'FundingCumulativeHistoryItem', 'FundingNext', 'FundingRate', 'GlobalMarket', 'GlobalMarketHistoryItem', 'Health', 'HeatmapClusters', 'HeatmapClustersHistoryItem', 'Kline', 'LimitsHistoryItem', 'Limits', 'LiquidationsCumulative', 'LiquidationsCumulativeHistoryItem', 'LiquidationEvent', 'LiquidationsRatio', 'LiquidationsRatioHistoryItem', 'Macro', 'MacroCorrelationsCorrelationsDxy30d', 'MacroCorrelationsCorrelationsDxy90d', 'MacroCorrelationsCorrelationsDxy', 'MacroCorrelationsCorrelationsSp50030d', 'MacroCorrelationsCorrelationsSp50090d', 'MacroCorrelationsCorrelationsSp500', 'MacroCorrelationsCorrelationsGold30d', 'MacroCorrelationsCorrelationsGold90d', 'MacroCorrelationsCorrelationsGold', 'MacroCorrelationsCorrelationsVix30d', 'MacroCorrelationsCorrelationsVix90d', 'MacroCorrelationsCorrelationsVix', 'MacroCorrelationsCorrelations', 'MacroCorrelations', 'MacroHistoryItem', 'MacroIntraday', 'MacroIntradaySeriesInfoLastCandleAt', 'MacroIntradaySeriesInfo', 'MacroMomentum30dComponentsItem', 'MacroMomentum30d', 'MacroMomentum90dComponentsItem', 'MacroMomentum90d', 'MacroMomentum', 'MacroNetLiquidity', 'MacroNetLiquidityHistoryItem', 'MacroRiskSignalsVix', 'MacroRiskSignalsDxy', 'MacroRiskSignalsYieldCurve', 'MacroRiskSignalsSp500', 'MacroRiskSignalsGold', 'MacroRiskSignals', 'MacroRiskContext', 'MacroRisk', 'MacroSeriesInfo', 'Oi', 'OiDelta', 'OiDeltaHistoryItem', 'OiHistoryItem', 'OnchainActiveAddresses', 'OnchainActiveAddressesHistoryItem', 'OnchainMinerStress', 'OnchainMinerStressHistoryItem', 'OnchainMvrv', 'OnchainMvrvHistoryItem', 'OnchainNvt', 'OnchainNvtHistoryItem', 'OptionsExpiry', 'OptionsGreeksCoverage', 'OptionsGreeks', 'OptionsIv', 'OptionsIvKline', 'OptionsMaxPain', 'OptionsMaxPainHistoryItem', 'OptionsOiCoverage', 'OptionsOi', 'OptionsOiDelta', 'OptionsOiDeltaHistoryItem', 'OptionsOiDistribution', 'OptionsOiHistoryItem', 'OptionsPcRatio', 'OptionsPcRatioHistoryItem', 'OptionsSummaryNearestExpiry', 'OptionsSummaryCoverage', 'OptionsSummary', 'OptionsVolumeCoverage', 'OptionsVolume', 'OptionsVolumeHistoryItem', 'OrderbookRangesItem', 'Orderbook', 'PriceChangeChangesPct', 'PriceChange', 'SpreadInterexchangeHigh', 'SpreadInterexchangeLow', 'SpreadInterexchangeVenuesItem', 'SpreadInterexchange', 'StatusFeedsItem', 'Status', 'Symbol', 'SymbolsCapabilitiesFeedsActiveLast24h', 'SymbolsCapabilitiesComputedMetricsNotApplicable', 'SymbolsCapabilities', 'Tokenomics', 'TokenomicsHistoryItem', 'TradesKline', 'TradesKlineSecond', 'TradesAvgSize', 'TradesAvgSizeHistoryItem', 'Trade']
+__all__ = ['Basis', 'BasisHistoryItem', 'BtcFeesPrecise', 'BtcFeesFeePressure', 'BtcFees', 'BtcFeesHistoryItem', 'BtcMempoolTrend', 'BtcMempool', 'BtcMempoolHistoryItem', 'BtcMiningConcentration', 'BtcMiningLatestReward', 'BtcMiningPoolsItem', 'BtcMining', 'BtcMiningHistoryItem', 'BtcNetworkBlockTime', 'BtcNetworkNextAdjustment', 'BtcNetwork', 'BtcNetworkHistoryItem', 'BuysellRatio', 'BuysellRatioHistoryItem', 'Cvd', 'CvdHistoryItem', 'EtfFundamentals', 'EtfFundamentalsHistoryItem', 'EthDefi', 'EthDefiHistoryItem', 'EthDeflation', 'EthDeflationHistoryItem', 'EthGas', 'EthGasMomentum', 'EthGasMomentumHistoryItem', 'EthGasHistoryItem', 'EthRatio', 'EthRatioHistoryItem', 'EthSqueeze', 'EthSqueezeHistoryItem', 'EthStaking', 'EthStakingHistoryItem', 'EthSupply', 'EthSupplyHistoryItem', 'FearGreed', 'FearGreedHistoryItem', 'FundingCumulative', 'FundingCumulativeHistoryItem', 'FundingNext', 'FundingRate', 'GlobalMarket', 'GlobalMarketHistoryItem', 'Health', 'HeatmapClusters', 'HeatmapClustersHistoryItem', 'Kline', 'LimitsHistoryItem', 'LimitsRate', 'LimitsQuota', 'Limits', 'LiquidationsCumulative', 'LiquidationsCumulativeHistoryItem', 'LiquidationEvent', 'LiquidationsRatio', 'LiquidationsRatioHistoryItem', 'Macro', 'MacroCorrelationsCorrelationsDxy30d', 'MacroCorrelationsCorrelationsDxy90d', 'MacroCorrelationsCorrelationsDxy', 'MacroCorrelationsCorrelationsSp50030d', 'MacroCorrelationsCorrelationsSp50090d', 'MacroCorrelationsCorrelationsSp500', 'MacroCorrelationsCorrelationsGold30d', 'MacroCorrelationsCorrelationsGold90d', 'MacroCorrelationsCorrelationsGold', 'MacroCorrelationsCorrelationsVix30d', 'MacroCorrelationsCorrelationsVix90d', 'MacroCorrelationsCorrelationsVix', 'MacroCorrelationsCorrelations', 'MacroCorrelations', 'MacroHistoryItem', 'MacroIntraday', 'MacroIntradaySeriesInfoLastCandleAt', 'MacroIntradaySeriesInfo', 'MacroMomentum30dComponentsItem', 'MacroMomentum30d', 'MacroMomentum90dComponentsItem', 'MacroMomentum90d', 'MacroMomentum', 'MacroNetLiquidity', 'MacroNetLiquidityHistoryItem', 'MacroRiskSignalsVix', 'MacroRiskSignalsDxy', 'MacroRiskSignalsYieldCurve', 'MacroRiskSignalsSp500', 'MacroRiskSignalsGold', 'MacroRiskSignals', 'MacroRiskContext', 'MacroRisk', 'MacroSeriesInfo', 'Oi', 'OiDelta', 'OiDeltaHistoryItem', 'OiHistoryItem', 'OnchainActiveAddresses', 'OnchainActiveAddressesHistoryItem', 'OnchainMinerStress', 'OnchainMinerStressHistoryItem', 'OnchainMvrv', 'OnchainMvrvHistoryItem', 'OnchainNvt', 'OnchainNvtHistoryItem', 'OptionsExpiry', 'OptionsGreeksCoverage', 'OptionsGreeks', 'OptionsIv', 'OptionsIvKline', 'OptionsMaxPain', 'OptionsMaxPainHistoryItem', 'OptionsOiCoverage', 'OptionsOi', 'OptionsOiDelta', 'OptionsOiDeltaHistoryItem', 'OptionsOiDistribution', 'OptionsOiHistoryItem', 'OptionsPcRatio', 'OptionsPcRatioHistoryItem', 'OptionsSummaryNearestExpiry', 'OptionsSummaryCoverage', 'OptionsSummary', 'OptionsVolumeCoverage', 'OptionsVolume', 'OptionsVolumeHistoryItem', 'OrderbookRangesItem', 'Orderbook', 'PriceChangeChangesPct', 'PriceChange', 'SpreadInterexchangeHigh', 'SpreadInterexchangeLow', 'SpreadInterexchangeVenuesItem', 'SpreadInterexchange', 'StatusFeedsItem', 'Status', 'SymbolInfo', 'SymbolsCapabilitiesFeedsActiveLast24h', 'SymbolsCapabilitiesComputedMetricsNotApplicable', 'SymbolsCapabilities', 'Tokenomics', 'TokenomicsHistoryItem', 'TradesKline', 'TradesKlineSecond', 'TradesAvgSize', 'TradesAvgSizeHistoryItem', 'Trade']

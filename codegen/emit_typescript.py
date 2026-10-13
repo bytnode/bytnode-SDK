@@ -209,7 +209,8 @@ def emit_snapshot(api: Api, r: Route, out: list[str]) -> None:
     out.append("  symbol: string;")
     for f in singles:
         out.extend(jsdoc(f.description, 2))
-        out.append(f"  {f.base}?: Depth;")
+        # Depth 1 only: `true` (or 1).
+        out.append(f"  {f.base}?: {'true | 1' if f.maximum == 1 else 'Depth'};")
     for base, tfs in multis.items():
         lit = "KlineTimeframe" if "1w" in tfs else "Timeframe"
         out.append(f"  /** `{base}` per timeframe: `{{ \"1h\": 24 }}` = the 24 latest `{base}@1h` rows. */")
@@ -219,7 +220,11 @@ def emit_snapshot(api: Api, r: Route, out: list[str]) -> None:
     out.append("/** The payload of `GET /v1/snapshot`: the requested fields, typed like their routes. */")
     out.append("export interface SnapshotData {")
     for f in api.snapshot_fields:
-        t = f"M.{f.model} | Array<M.{f.model}> | null" if f.model else "unknown"
+        # A field limited to depth 1 is its route's OBJECT (or null), never an array.
+        if f.model and f.maximum == 1:
+            t = f"M.{f.model} | null"
+        else:
+            t = f"M.{f.model} | Array<M.{f.model}> | null" if f.model else "unknown"
         out.append(f"  {key(f.wire)}?: {t};")
     out.append("  [extra: string]: unknown;")
     out.append("}")
