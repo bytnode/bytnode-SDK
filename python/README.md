@@ -5,8 +5,8 @@ order flow, derivatives, liquidations, options, macro, on-chain and ETF data —
 you, one call away from a pandas DataFrame, plus the real-time WebSocket stream.
 
 ```bash
-pip install https://github.com/bytnode/bytnode-SDK/releases/download/v0.2.3/bytnode-0.2.3-py3-none-any.whl
-# with pandas: pip install "bytnode[pandas] @ https://github.com/bytnode/bytnode-SDK/releases/download/v0.2.3/bytnode-0.2.3-py3-none-any.whl"
+pip install https://github.com/bytnode/bytnode-SDK/releases/download/v0.2.4/bytnode-0.2.4-py3-none-any.whl
+# with pandas: pip install "bytnode[pandas] @ https://github.com/bytnode/bytnode-SDK/releases/download/v0.2.4/bytnode-0.2.4-py3-none-any.whl"
 export BYTNODE_API_KEY=cb_live_...   # create one at https://bytnode.com/dashboard/keys
 ```
 
@@ -66,7 +66,7 @@ A call returns a `Response`:
 ```python
 resp = client.funding.rate("BTCUSDT")
 resp.data            # FundingRate | None  — a model, a list of models, or None
-resp.data.rate_pct   # attributes are the API's own field names: the docs read the same
+resp.data.rate_pct   # (when resp.data is not None) attributes are the API's own field names
 resp.server_time     # when the server answered (rows carry their own `time`)
 resp.symbol          # effective symbol of the request (`resp.meta` holds the rest of the envelope)
 resp.unavailable     # why `data` is empty: "not_applicable", "no_api_key" or "no_data"

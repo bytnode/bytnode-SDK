@@ -197,3 +197,37 @@ def test_indicator_checks() -> None:
     assert indicators_body([ind.obv()])[0] == {"id": "obv", "type": "obv"}
     with pytest.raises(ValueError, match="at least one"):
         indicators_body([])
+
+
+@respx.mock(base_url=BASE)
+def test_iter_goes_on_after_a_short_or_empty_page_with_next(respx_mock: respx.MockRouter, client: Bytnode) -> None:
+    """An ascending read that reached a dense period returns, within its time budget,
+    a short (even empty) page WITH `next`: only `next: null` ends the read."""
+    suite = "/v1/klines?symbol=BTCUSDT&timeframe=1h&order=asc&limit=1000&since_ms="
+    respx_mock.get("/v1/klines").mock(
+        side_effect=[
+            httpx.Response(200, json=page(["2026-01-01T00:00:00.000Z"], suite + "1767312000000")),
+            httpx.Response(200, json=page([], suite + "1767398400000")),
+            httpx.Response(200, json=page(["2026-01-03T00:00:00.000Z", "2026-01-03T01:00:00.000Z"], None)),
+        ]
+    )
+    rows = client.klines.iter("BTCUSDT", "1h", since="2026-01-01").to_list()
+    assert len(rows) == 3
+
+
+@respx.mock(base_url=BASE)
+def test_iter_asks_a_smaller_page_after_a_504(respx_mock: respx.MockRouter) -> None:
+    client = Bytnode(api_key="cb_live_test_key_0123456789", base_url=BASE, max_retries=0)
+    timeout = {
+        "status": "error",
+        "server_time": "2026-10-13T00:00:00.000Z",
+        "error": {"code": "upstream_timeout", "message": "Took too long: reduce the window."},
+    }
+    ok = page(["2026-01-01T00:00:00.000Z"], None)
+    route = respx_mock.get("/v1/klines").mock(
+        side_effect=[httpx.Response(504, json=timeout), httpx.Response(200, json=ok)]
+    )
+    rows = client.klines.iter("BTCUSDT", "1h", since="2026-01-01").to_list()
+    assert len(rows) == 1
+    limits = [call.request.url.params["limit"] for call in route.calls]
+    assert limits == ["1000", "500"]

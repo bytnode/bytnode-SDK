@@ -4,6 +4,26 @@ All notable changes to the BytNode SDKs. Both packages share one version number.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow
 [Semantic Versioning](https://semver.org/).
 
+## [0.2.4] — 2026-10-13
+
+Generated from contract `2.5.0` (additions only since 2.0.0).
+
+### Fixed
+
+- `.iter()` follows `next` until it is `null`: it stopped on an EMPTY page, while the API can
+  return a short or empty page that still has a `next` (an ascending or descending read that
+  reaches a dense period returns, within its time budget, what it has read so far).
+- `.iter()` asks a page again with half the rows (down to 10) when the API answers 504
+  `upstream_timeout`, instead of failing the whole read.
+- TypeScript: the API key is no longer serialized with the client (`JSON.stringify(client)`,
+  `{ ...client }`, `console.log(client)` in Node). `client.apiKey` still reads it.
+- TypeScript: the browser guard no longer says the API sends no CORS headers (it does).
+
+### Changed
+
+- Fields that are `null` on the OLDEST rows of a history (daily candles before 2023-10, early
+  on-chain, options and macro rows) are typed as optional values; `error.details` is typed.
+
 ## [0.2.3] — 2026-10-13
 
 Generated from contract `2.4.0` (additions only since 2.0.0).

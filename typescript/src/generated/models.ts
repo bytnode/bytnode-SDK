@@ -470,7 +470,9 @@ export interface BtcMiningHistoryItem {
    */
   old_difficulty?: number | null;
   /**
-   * Expected difficulty change at the next adjustment. Unit: percent (58.5 = 58.5 %).
+   * Expected difficulty change at the next adjustment
+   * (`/v1/btc/mining/history?dataset=difficulty`: the change applied at that adjustment). Unit:
+   * percent (58.5 = 58.5 %).
    */
   difficulty_change_pct?: number | null;
   /**
@@ -572,7 +574,7 @@ export interface BtcNetwork {
   /**
    * Network mining difficulty. Unit: difficulty units.
    */
-  difficulty: number;
+  difficulty: number | null;
   /**
    * Height of the latest block. Unit: block height.
    */
@@ -582,7 +584,9 @@ export interface BtcNetwork {
    */
   progress_pct: number;
   /**
-   * Expected difficulty change at the next adjustment. Unit: percent (58.5 = 58.5 %).
+   * Expected difficulty change at the next adjustment
+   * (`/v1/btc/mining/history?dataset=difficulty`: the change applied at that adjustment). Unit:
+   * percent (58.5 = 58.5 %).
    */
   difficulty_change_pct: number;
   /**
@@ -610,7 +614,7 @@ export interface BtcNetworkHistoryItem {
   /**
    * Network mining difficulty. Unit: difficulty units.
    */
-  difficulty: number;
+  difficulty: number | null;
   /**
    * Height of the latest block. Unit: block height.
    */
@@ -620,7 +624,9 @@ export interface BtcNetworkHistoryItem {
    */
   progress_pct: number;
   /**
-   * Expected difficulty change at the next adjustment. Unit: percent (58.5 = 58.5 %).
+   * Expected difficulty change at the next adjustment
+   * (`/v1/btc/mining/history?dataset=difficulty`: the change applied at that adjustment). Unit:
+   * percent (58.5 = 58.5 %).
    */
   difficulty_change_pct: number;
   /**
@@ -1745,8 +1751,9 @@ export interface FundingRate {
   period_end: Date;
   /**
    * Instant of the last settlement counted in the window: `period_end` for a complete settled
-   * window, earlier for the window in progress (`?live=1`). Unit: ISO 8601 UTC, milliseconds
-   * (2026-09-28T14:00:00.000Z).
+   * window; for the window in progress (`?live=1`), the latest settlement already paid inside
+   * it (some venues settle every hour), so the period itself is not settled yet. Unit: ISO 8601
+   * UTC, milliseconds (2026-09-28T14:00:00.000Z).
    */
   settled_at: Date;
   /**
@@ -2004,7 +2011,7 @@ export interface Kline {
    * candle's typical price (high + low + close) / 3 (data written before quantities were
    * recorded; mean error 0.04 % in 1m, 0.37 % in 1d); `false` = measured.
    */
-  is_volume_estimated: boolean;
+  is_volume_estimated: boolean | null;
   /**
    * Volume traded on the SPOT market, summed across venues, base asset units. `null` while not
    * available yet (never a partial sum). Unit: base asset quantity (BTC for BTCUSDT).
@@ -2079,19 +2086,19 @@ export interface LimitsRate {
   /**
    * Capacity of the bucket: requests you can send at once. Unit: count.
    */
-  burst?: number;
+  burst: number;
   /**
    * Seconds to refill the bucket from empty. Unit: seconds.
    */
-  refill_s?: number;
+  refill_s: number;
   /**
    * Requests left right now (after this one). Unit: count.
    */
-  remaining?: number | null;
+  remaining: number | null;
   /**
    * Seconds until fully restored. Unit: seconds.
    */
-  reset_s?: number | null;
+  reset_s: number | null;
   /** Fields added by the API after this SDK was released. */
   [extra: string]: unknown;
 }
@@ -2103,19 +2110,19 @@ export interface LimitsQuota {
   /**
    * Requests included per calendar month. Unit: count.
    */
-  monthly?: number;
+  monthly: number;
   /**
    * Length of the current calendar month, in seconds. Unit: seconds.
    */
-  month_length_s?: number;
+  month_length_s: number;
   /**
    * Requests left right now (after this one). Unit: count.
    */
-  remaining?: number | null;
+  remaining: number | null;
   /**
    * Seconds until fully restored. Unit: seconds.
    */
-  reset_s?: number | null;
+  reset_s: number | null;
   /** Fields added by the API after this SDK was released. */
   [extra: string]: unknown;
 }
@@ -2265,7 +2272,8 @@ export interface LiquidationEvent {
    */
   quantity: number;
   /**
-   * Notional value: price × quantity. Unit: USD.
+   * Notional value: price × quantity, in the pair's quote currency (USDT for BTCUSDT), taken as
+   * USD. Unit: USD.
    */
   value_usd: number;
   /** Fields added by the API after this SDK was released. */
@@ -2927,15 +2935,15 @@ export interface MacroNetLiquidity {
    * Fed balance sheet (WALCL) - Treasury General Account (TGA) - overnight reverse repo (ON
    * RRP), in USD. Unit: USD.
    */
-  net_liquidity_usd: number;
+  net_liquidity_usd: number | null;
   /**
    * Fed total assets (WALCL), as known on that day. Unit: USD.
    */
-  walcl_usd: number;
+  walcl_usd: number | null;
   /**
    * Treasury General Account (WTREGEN), as known on that day. Unit: USD.
    */
-  tga_usd: number;
+  tga_usd: number | null;
   /**
    * Overnight reverse repo (RRPONTSYD) of that day. Unit: USD.
    */
@@ -2965,15 +2973,15 @@ export interface MacroNetLiquidityHistoryItem {
    * Fed balance sheet (WALCL) - Treasury General Account (TGA) - overnight reverse repo (ON
    * RRP), in USD. Unit: USD.
    */
-  net_liquidity_usd: number;
+  net_liquidity_usd: number | null;
   /**
    * Fed total assets (WALCL), as known on that day. Unit: USD.
    */
-  walcl_usd: number;
+  walcl_usd: number | null;
   /**
    * Treasury General Account (WTREGEN), as known on that day. Unit: USD.
    */
-  tga_usd: number;
+  tga_usd: number | null;
   /**
    * Overnight reverse repo (RRPONTSYD) of that day. Unit: USD.
    */
@@ -2981,11 +2989,11 @@ export interface MacroNetLiquidityHistoryItem {
   /**
    * Observation day of the WALCL value used (weekly series). Unit: calendar date (YYYY-MM-DD).
    */
-  walcl_date: string;
+  walcl_date: string | null;
   /**
    * Observation day of the TGA value used (weekly series). Unit: calendar date (YYYY-MM-DD).
    */
-  tga_date: string;
+  tga_date: string | null;
   /**
    * `true` = the bucket is final and will never change; `false` = provisional (only with
    * `?live=1`).
@@ -3543,7 +3551,7 @@ export interface OnchainMvrv {
   /**
    * Relative change of the value over 30 days, percent. Unit: percent (58.5 = 58.5 %).
    */
-  change_30d_pct: number;
+  change_30d_pct: number | null;
   /** Fields added by the API after this SDK was released. */
   [extra: string]: unknown;
 }
@@ -3568,7 +3576,7 @@ export interface OnchainMvrvHistoryItem {
   /**
    * Relative change of the value over 30 days, percent. Unit: percent (58.5 = 58.5 %).
    */
-  change_30d_pct: number;
+  change_30d_pct: number | null;
   /**
    * `true` = the bucket is final and will never change; `false` = provisional (only with
    * `?live=1`).
@@ -3923,17 +3931,27 @@ export interface OptionsOiDelta {
    */
   time: Date;
   /**
-   * Change of call open interest over the bucket, USD. Unit: USD.
+   * Instant of the reference snapshot: the latest one at least `timeframe` before `time`. Unit:
+   * ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).
    */
-  oi_change_call_usd: number;
+  window_start: Date | null;
   /**
-   * Change of put open interest over the bucket, USD. Unit: USD.
+   * Actual distance between the two snapshots, in seconds (`timeframe` or a little more:
+   * snapshots arrive every minute). Unit: seconds.
    */
-  oi_change_put_usd: number;
+  window_s: number | null;
   /**
-   * Change of total open interest over the bucket, USD. Unit: USD.
+   * Change of call open interest from `window_start` to `time`, USD. Unit: USD.
    */
-  oi_change_total_usd: number;
+  oi_change_call_usd: number | null;
+  /**
+   * Change of put open interest from `window_start` to `time`, USD. Unit: USD.
+   */
+  oi_change_put_usd: number | null;
+  /**
+   * Change of total open interest from `window_start` to `time`, USD. Unit: USD.
+   */
+  oi_change_total_usd: number | null;
   /** Fields added by the API after this SDK was released. */
   [extra: string]: unknown;
 }
@@ -3948,17 +3966,17 @@ export interface OptionsOiDeltaHistoryItem {
    */
   time: Date;
   /**
-   * Change of call open interest over the bucket, USD. Unit: USD.
+   * Change of call open interest from `window_start` to `time`, USD. Unit: USD.
    */
-  oi_change_call_usd: number;
+  oi_change_call_usd: number | null;
   /**
-   * Change of put open interest over the bucket, USD. Unit: USD.
+   * Change of put open interest from `window_start` to `time`, USD. Unit: USD.
    */
-  oi_change_put_usd: number;
+  oi_change_put_usd: number | null;
   /**
-   * Change of total open interest over the bucket, USD. Unit: USD.
+   * Change of total open interest from `window_start` to `time`, USD. Unit: USD.
    */
-  oi_change_total_usd: number;
+  oi_change_total_usd: number | null;
   /**
    * `true` = the bucket is final and will never change; `false` = provisional (only with
    * `?live=1`).
@@ -4634,10 +4652,16 @@ export interface SymbolsCapabilitiesComputedMetricsNotApplicable {
    * (the candle of each value) and `time` (the candle of the last value).
    */
   indicators?: string | null;
-  trades_kline?: string | null;
   trades_kline_futures?: string | null;
-  cvd?: string | null;
   heatmap_clusters?: string | null;
+  /**
+   * Why this metric does not apply to the symbol (present only then).
+   */
+  cvd?: string;
+  /**
+   * Why this metric does not apply to the symbol (present only then).
+   */
+  trades_kline?: string;
   /** Fields added by the API after this SDK was released. */
   [extra: string]: unknown;
 }
@@ -5005,7 +5029,8 @@ export interface Trade {
    */
   quantity: number;
   /**
-   * Notional value: price × quantity. Unit: USD.
+   * Notional value: price × quantity, in the pair's quote currency (USDT for BTCUSDT), taken as
+   * USD. Unit: USD.
    */
   value_usd: number;
   /** Fields added by the API after this SDK was released. */
@@ -5131,7 +5156,7 @@ export const MODEL_SHAPES: Record<string, { dates: string[]; nested: Record<stri
   OptionsMaxPainHistoryItem: { dates: ["time"], nested: {} },
   OptionsOiCoverage: { dates: [], nested: {} },
   OptionsOi: { dates: ["time"], nested: {"coverage": "OptionsOiCoverage"} },
-  OptionsOiDelta: { dates: ["time"], nested: {} },
+  OptionsOiDelta: { dates: ["time", "window_start"], nested: {} },
   OptionsOiDeltaHistoryItem: { dates: ["time"], nested: {} },
   OptionsOiDistribution: { dates: ["time", "expiry"], nested: {} },
   OptionsOiHistoryItem: { dates: ["time"], nested: {} },

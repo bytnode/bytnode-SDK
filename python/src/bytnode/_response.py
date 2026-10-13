@@ -254,6 +254,55 @@ def next_params(params: dict[str, Any], nxt: Mapping[str, Any] | str) -> dict[st
     return out
 
 
+# A page the API could not compute in time (504 `upstream_timeout`) is asked again
+# with half the rows, down to `_MIN_PAGE`: a long read never dies on one heavy page.
+_SHRINKS = 4
+_MIN_PAGE = 10
+
+
+def _is_timeout(exc: Exception) -> bool:
+    from ._errors import ServerError
+
+    return isinstance(exc, ServerError) and (
+        getattr(exc, "status", None) == 504 or getattr(exc, "code", None) == "upstream_timeout"
+    )
+
+
+def _smaller(params: dict[str, Any]) -> dict[str, Any] | None:
+    limit = params.get("limit")
+    if not isinstance(limit, int) or limit <= _MIN_PAGE:
+        return None
+    return {**params, "limit": max(_MIN_PAGE, limit // 2)}
+
+
+def _fetch_shrinking(
+    fetch: Callable[[dict[str, Any]], Response[list[T]]], params: dict[str, Any]
+) -> tuple[Response[list[T]], dict[str, Any]]:
+    for _ in range(_SHRINKS):
+        try:
+            return fetch(params), params
+        except Exception as exc:
+            smaller = _smaller(params) if _is_timeout(exc) else None
+            if smaller is None:
+                raise
+            params = smaller
+    return fetch(params), params
+
+
+async def _afetch_shrinking(
+    fetch: Callable[[dict[str, Any]], Awaitable[Response[list[T]]]], params: dict[str, Any]
+) -> tuple[Response[list[T]], dict[str, Any]]:
+    for _ in range(_SHRINKS):
+        try:
+            return await fetch(params), params
+        except Exception as exc:
+            smaller = _smaller(params) if _is_timeout(exc) else None
+            if smaller is None:
+                raise
+            params = smaller
+    return await fetch(params), params
+
+
 class _IterBase(Generic[T]):
     def __init__(self, route: RouteSpec, params: dict[str, Any], max_items: int | None) -> None:
         self._route = route
@@ -284,10 +333,12 @@ class RowIterator(_IterBase[T]):
     def pages(self) -> Iterator[Response[list[T]]]:
         params, seen = dict(self._params), 0
         while True:
-            page = self._fetch(params)
+            page, params = _fetch_shrinking(self._fetch, params)
             yield page
             seen += len(page)
-            if not page.next or not len(page) or (self._max is not None and seen >= self._max):
+            # Only `next: null` ends the read: a page can be short, even empty, and
+            # still have a `next` (an ascending read that reached a dense period).
+            if not page.next or (self._max is not None and seen >= self._max):
                 return
             new = next_params(params, page.next)
             if new == params:  # a cursor that does not move would loop forever
@@ -328,10 +379,10 @@ class AsyncRowIterator(_IterBase[T]):
     async def pages(self) -> AsyncIterator[Response[list[T]]]:
         params, seen = dict(self._params), 0
         while True:
-            page = await self._fetch(params)
+            page, params = await _afetch_shrinking(self._fetch, params)
             yield page
             seen += len(page)
-            if not page.next or not len(page) or (self._max is not None and seen >= self._max):
+            if not page.next or (self._max is not None and seen >= self._max):
                 return
             new = next_params(params, page.next)
             if new == params:

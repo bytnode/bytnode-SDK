@@ -210,3 +210,44 @@ describe('snapshot and indicators', () => {
     expect(ind.bb({ period: 20, std: 2.5 }).defaultId()).toBe('bb_20_2p5');
   });
 });
+
+describe('the API key is never serialized', () => {
+  it('stays out of JSON.stringify, spreads and the Node inspector', async () => {
+    const { inspect } = await import('node:util');
+    const client = new Bytnode({ apiKey: 'cb_test_never_logged' });
+    expect(client.apiKey).toBe('cb_test_never_logged');
+    expect(JSON.stringify(client)).not.toContain('cb_test_never_logged');
+    expect(JSON.stringify({ ...client })).not.toContain('cb_test_never_logged');
+    expect(Object.keys(client)).not.toContain('apiKey');
+    expect(inspect(client, { depth: 5 })).not.toContain('cb_test_never_logged');
+  });
+});
+
+describe('pagination: short pages and timeouts', () => {
+  it('goes on after a short or empty page that has a next', async () => {
+    const { client } = fakeClient([
+      () => json(200, page(['2026-01-01T00:00:00.000Z'], '/v1/klines?symbol=BTCUSDT&timeframe=1h&since_ms=1767312000000&order=asc&limit=1000')),
+      () => json(200, page([], '/v1/klines?symbol=BTCUSDT&timeframe=1h&since_ms=1767398400000&order=asc&limit=1000')),
+      () => json(200, page(['2026-01-03T00:00:00.000Z', '2026-01-03T01:00:00.000Z'], null)),
+    ]);
+    const rows = await client.klines.iter({ symbol: 'BTCUSDT', timeframe: '1h', since: '2026-01-01' }).toArray();
+    expect(rows).toHaveLength(3);
+  });
+
+  it('asks a smaller page after a 504', async () => {
+    const limits: string[] = [];
+    let n = 0;
+    const fetchImpl = (async (input: RequestInfo | URL) => {
+      limits.push(new URL(String(input)).searchParams.get('limit') ?? '');
+      n += 1;
+      if (n === 1) {
+        return json(504, { status: 'error', server_time: '2026-10-13T00:00:00.000Z', error: { code: 'upstream_timeout', message: 'Took too long.' } });
+      }
+      return json(200, page(['2026-01-01T00:00:00.000Z'], null));
+    }) as typeof fetch;
+    const client = new Bytnode({ apiKey: 'cb_live_test_key', baseUrl: 'https://api.example.test', fetch: fetchImpl, maxRetries: 0 });
+    const rows = await client.klines.iter({ symbol: 'BTCUSDT', timeframe: '1h', since: '2026-01-01' }).toArray();
+    expect(rows).toHaveLength(1);
+    expect(limits).toEqual(['1000', '500']);
+  });
+});

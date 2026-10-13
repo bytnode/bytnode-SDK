@@ -122,6 +122,28 @@ export class ApiResponse<T> {
   }
 }
 
+// A page the API could not compute in time (504 `upstream_timeout`) is asked again
+// with half the rows, down to MIN_PAGE: a long read never dies on one heavy page.
+const SHRINKS = 4;
+const MIN_PAGE = 10;
+
+async function fetchShrinking<T>(
+  fetchPage: (params: Record<string, unknown>) => Promise<ApiResponse<T[]>>,
+  params: Record<string, unknown>,
+): Promise<[ApiResponse<T[]>, Record<string, unknown>]> {
+  let sent = params;
+  for (let i = 0; ; i++) {
+    try {
+      return [await fetchPage(sent), sent];
+    } catch (e) {
+      const timeout = e instanceof APIError && (e.status === 504 || e.code === 'upstream_timeout');
+      const limit = sent.limit;
+      if (!timeout || i >= SHRINKS || typeof limit !== 'number' || limit <= MIN_PAGE) throw e;
+      sent = { ...sent, limit: Math.max(MIN_PAGE, Math.floor(limit / 2)) };
+    }
+  }
+}
+
 /** Every row of a period, fetched page after page as you iterate: `for await (const row of it)`. */
 export class RowIterator<T> implements AsyncIterable<T> {
   constructor(
@@ -135,10 +157,13 @@ export class RowIterator<T> implements AsyncIterable<T> {
     let params = { ...this.params };
     let seen = 0;
     for (;;) {
-      const page = await this.fetchPage(params);
+      const [page, sent] = await fetchShrinking(this.fetchPage, params);
+      params = sent;
       yield page;
       seen += page.data.length;
-      if (!page.next || !page.data.length || (this.maxItems != null && seen >= this.maxItems)) return;
+      // Only `next: null` ends the read: a page can be short, even empty, and still
+      // have a `next` (an ascending read that reached a dense period).
+      if (!page.next || (this.maxItems != null && seen >= this.maxItems)) return;
       const next = nextParams(params, page.next);
       if (JSON.stringify(next) === JSON.stringify(params)) return; // a cursor that does not move would loop forever
       params = next;
@@ -253,7 +278,14 @@ export class Core {
   /** @internal overridable in tests */
   sleep: (ms: number) => Promise<void> = (ms) => new Promise((r) => setTimeout(r, ms));
 
-  constructor(readonly options: CoreOptions) {}
+  constructor(readonly options: CoreOptions) {
+    // The options hold the API key: never serialized with the client.
+    Object.defineProperty(this, 'options', { value: options, enumerable: false, writable: false });
+  }
+
+  toJSON(): { baseUrl: string } {
+    return { baseUrl: this.options.baseUrl };
+  }
 
   buildUrl(route: RouteSpec, params: Record<string, unknown> = {}): string {
     let path = route.path;

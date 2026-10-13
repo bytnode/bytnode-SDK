@@ -2950,14 +2950,16 @@ export interface KlinesResource {
   /**
    * GET /v1/klines — OHLCV candles
    *
-   * CLOSED candles of `timeframe` (required: `1m` to `1w`); the candle in progress is never
-   * served. OHLC from one reference SPOT market per symbol. `volume`, `buy_volume` and
+   * Candles of `timeframe` (required: `1m` to `1w`) that have ENDED: the candle in progress is
+   * never served. OHLC from one reference SPOT market per symbol. `volume`, `buy_volume` and
    * `sell_volume` cover ALL markets (spot + perpetual futures, summed across venues);
    * `volume_spot` / `volume_futures` and their buy/sell split cover one market. `is_closed`
-   * turns true once the candle's volumes are final (a few seconds after its end: until then
-   * they can be `null`). To sync incrementally, resume FROM the oldest row still `is_closed:
-   * false` (read it again), not after it. Most recent first, or oldest first with `order=asc`.
-   * Follow `next` to read the following page (it never repeats a row).
+   * says whether the candle's VOLUMES are final: `false` for a few seconds after its end (they
+   * can still be `null` or change), then `true` for good. To sync incrementally, resume FROM
+   * the oldest row still `is_closed: false` (read it again), not after it. Candles older than
+   * the trade history (BTCUSDT: before 2023-10-01, daily and weekly candles reach back to 2017)
+   * have `null` volumes. Most recent first, or oldest first with `order=asc`. Follow `next` to
+   * read the following page (it never repeats a row).
    */
   (params: KlinesParams, options?: RequestOptions): Promise<ApiResponse<Array<M.Kline>>>;
   /**
@@ -4672,7 +4674,9 @@ export interface OptionsOiDeltaResource {
   /**
    * GET /v1/options/oi/delta — Options open interest change
    *
-   * Change of call and put open interest over the latest bucket.
+   * Change of call and put open interest over a rolling `timeframe`: from the snapshot
+   * `window_start` (at least `timeframe` earlier) to the latest one (`time`). `window_s` is
+   * their actual distance, in seconds. Always final: a rolling value carries no `is_closed`.
    */
   (params: OptionsOiDeltaParams, options?: RequestOptions): Promise<ApiResponse<M.OptionsOiDelta | null>>;
   history: OptionsOiDeltaHistoryResource;
@@ -7788,4 +7792,4 @@ export const ROUTES: Record<string, string> = {
   "/v1/trades/spot": "trades.spot",
 };
 /** `info.version` of the contract this SDK was generated from. */
-export const API_VERSION = "2.4.0";
+export const API_VERSION = "2.5.0";

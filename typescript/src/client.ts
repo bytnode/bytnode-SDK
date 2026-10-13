@@ -51,7 +51,8 @@ export interface Bytnode extends Resources {}
  * `client.funding.rate.history(...)`.
  */
 export class Bytnode {
-  readonly apiKey: string;
+  /** Your API key (not enumerable: it is never serialized with the client). */
+  declare readonly apiKey: string;
   readonly baseUrl: string;
   readonly streamUrl: string;
   /** @internal */
@@ -60,14 +61,16 @@ export class Bytnode {
   constructor(options: ClientOptions = {}) {
     if (inBrowser && !options.dangerouslyAllowBrowser) {
       throw new BytnodeError(
-        'The BytNode REST API is server-side only: it sends no CORS headers, and an API key in a web page can be read by anyone. ' +
+        'Keep the BytNode API key server-side: an API key in a web page can be read by anyone. ' +
           'Call it from your backend (Node, Deno, Bun, a serverless function) and send your page only what it needs. ' +
           'Pass { dangerouslyAllowBrowser: true } to override.',
       );
     }
     const key = (options.apiKey ?? env('BYTNODE_API_KEY'))?.trim();
     if (!key) throw new MissingAPIKeyError();
-    this.apiKey = key;
+    // Not enumerable: `JSON.stringify(client)`, `{ ...client }` or a structured logger
+    // never write the key (see also `toJSON` and the Node inspector below).
+    Object.defineProperty(this, 'apiKey', { value: key, enumerable: false, writable: false });
     this.baseUrl = options.baseUrl ?? env('BYTNODE_BASE_URL') ?? DEFAULT_BASE_URL;
     this.streamUrl = options.streamUrl ?? env('BYTNODE_STREAM_URL') ?? 'wss://api.bytnode.com/ws';
     const fetchImpl = options.fetch ?? globalThis.fetch?.bind(globalThis);
@@ -81,6 +84,16 @@ export class Bytnode {
       fetch: fetchImpl,
     });
     Object.assign(this, createResources(this.core));
+  }
+
+  /** What `JSON.stringify(client)` writes: never the API key. */
+  toJSON(): { baseUrl: string; streamUrl: string } {
+    return { baseUrl: this.baseUrl, streamUrl: this.streamUrl };
+  }
+
+  /** What `console.log(client)` shows in Node: never the API key. */
+  [Symbol.for('nodejs.util.inspect.custom')](): string {
+    return `Bytnode { baseUrl: '${this.baseUrl}' }`;
   }
 
   /** Your rate limit and monthly quota, as announced by the last response. */
