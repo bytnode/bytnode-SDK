@@ -4,8 +4,8 @@ Official client libraries for the [BytNode](https://bytnode.com) crypto market-d
 
 | Language | Package | Install | Docs |
 |---|---|---|---|
-| Python 3.10+ | `bytnode` | `pip install https://github.com/bytnode/bytnode-SDK/releases/download/v0.2.1/bytnode-0.2.1-py3-none-any.whl` | [python/README.md](python/README.md) |
-| TypeScript / JavaScript (Node 18+, Deno, Bun) | `bytnode` | `npm install https://github.com/bytnode/bytnode-SDK/releases/download/v0.2.1/bytnode-0.2.1.tgz` | [typescript/README.md](typescript/README.md) |
+| Python 3.10+ | `bytnode` | `pip install https://github.com/bytnode/bytnode-SDK/releases/download/v0.2.2/bytnode-0.2.2-py3-none-any.whl` | [python/README.md](python/README.md) |
+| TypeScript / JavaScript (Node 18+, Deno, Bun) | `bytnode` | `npm install https://github.com/bytnode/bytnode-SDK/releases/download/v0.2.2/bytnode-0.2.2.tgz` | [typescript/README.md](typescript/README.md) |
 
 The packages are attached to each [GitHub release](https://github.com/bytnode/bytnode-SDK/releases);
 they are not on PyPI or npm yet.
@@ -14,7 +14,8 @@ they are not on PyPI or npm yet.
 from bytnode import Bytnode
 
 client = Bytnode()  # reads BYTNODE_API_KEY
-df = client.klines.iter("BTCUSDT", "1h", since="2026-01-01").to_pandas()
+rate = client.funding.rate("BTCUSDT")  # works on the free plan
+print(rate.data.rate_pct if rate.data else rate.unavailable)
 ```
 
 ```ts

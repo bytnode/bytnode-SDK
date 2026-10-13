@@ -53,8 +53,9 @@ class BasisHistoryResource(SyncResource):
                 bucket); `1m` gives one row per minute, aligned on the minute. Missing: 422
                 `missing_parameter`.
             limit: Number of rows to return, in the reading order (most recent first by
-                default). Also bounded by your plan's history window (403 `history_depth`
-                beyond it).
+                default). Bounded by your plan's history window: an explicit `limit` (or
+                `since_ms`) reaching beyond it returns 403 `history_depth`; without them the
+                page simply stops at the window.
             since: Lower time bound, inclusive. A `datetime` (naive = UTC), a `date`, an ISO
                 string (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
             until: Upper time bound, inclusive to the millisecond. A `datetime` (naive =
@@ -88,8 +89,9 @@ class BasisHistoryResource(SyncResource):
     ) -> RowIterator[m.BasisHistoryItem]:
         """Every row of `/v1/basis/history` over a period, following `next` page after page.
 
-        Pages are fetched lazily, `page_size` rows at a time (default: the route's
-        maximum, the fewest requests). With `since`, rows come oldest first unless
+        Pages are fetched lazily, `page_size` rows at a time (default with `since`: the
+        route's maximum; without it, the route's default page, which stops at your plan's
+        history window). With `since`, rows come oldest first unless
         `order` says otherwise. Call `.to_pandas()` / `.to_list()` to collect them.
 
         Args:
@@ -180,8 +182,9 @@ class BtcFeesHistoryResource(SyncResource):
 
         Args:
             limit: Number of rows to return, in the reading order (most recent first by
-                default). Also bounded by your plan's history window (403 `history_depth`
-                beyond it).
+                default). Bounded by your plan's history window: an explicit `limit` (or
+                `since_ms`) reaching beyond it returns 403 `history_depth`; without them the
+                page simply stops at the window.
             since: Lower time bound, inclusive. A `datetime` (naive = UTC), a `date`, an ISO
                 string (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
             until: Upper time bound, inclusive to the millisecond. A `datetime` (naive =
@@ -218,8 +221,9 @@ class BtcFeesHistoryResource(SyncResource):
     ) -> RowIterator[m.BtcFeesHistoryItem]:
         """Every row of `/v1/btc/fees/history` over a period, following `next` page after page.
 
-        Pages are fetched lazily, `page_size` rows at a time (default: the route's
-        maximum, the fewest requests). With `since`, rows come oldest first unless
+        Pages are fetched lazily, `page_size` rows at a time (default with `since`: the
+        route's maximum; without it, the route's default page, which stops at your plan's
+        history window). With `since`, rows come oldest first unless
         `order` says otherwise. Call `.to_pandas()` / `.to_list()` to collect them.
 
         Args:
@@ -299,8 +303,9 @@ class BtcMempoolHistoryResource(SyncResource):
 
         Args:
             limit: Number of rows to return, in the reading order (most recent first by
-                default). Also bounded by your plan's history window (403 `history_depth`
-                beyond it).
+                default). Bounded by your plan's history window: an explicit `limit` (or
+                `since_ms`) reaching beyond it returns 403 `history_depth`; without them the
+                page simply stops at the window.
             since: Lower time bound, inclusive. A `datetime` (naive = UTC), a `date`, an ISO
                 string (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
             until: Upper time bound, inclusive to the millisecond. A `datetime` (naive =
@@ -332,8 +337,9 @@ class BtcMempoolHistoryResource(SyncResource):
     ) -> RowIterator[m.BtcMempoolHistoryItem]:
         """Every row of `/v1/btc/mempool/history` over a period, following `next` page after page.
 
-        Pages are fetched lazily, `page_size` rows at a time (default: the route's
-        maximum, the fewest requests). With `since`, rows come oldest first unless
+        Pages are fetched lazily, `page_size` rows at a time (default with `since`: the
+        route's maximum; without it, the route's default page, which stops at your plan's
+        history window). With `since`, rows come oldest first unless
         `order` says otherwise. Call `.to_pandas()` / `.to_list()` to collect them.
 
         Args:
@@ -410,8 +416,9 @@ class BtcMiningHistoryResource(SyncResource):
 
         Args:
             limit: Number of rows to return, in the reading order (most recent first by
-                default). Also bounded by your plan's history window (403 `history_depth`
-                beyond it).
+                default). Bounded by your plan's history window: an explicit `limit` (or
+                `since_ms`) reaching beyond it returns 403 `history_depth`; without them the
+                page simply stops at the window.
             since: Lower time bound, inclusive. A `datetime` (naive = UTC), a `date`, an ISO
                 string (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
             until: Upper time bound, inclusive to the millisecond. A `datetime` (naive =
@@ -446,8 +453,9 @@ class BtcMiningHistoryResource(SyncResource):
     ) -> RowIterator[m.BtcMiningHistoryItem]:
         """Every row of `/v1/btc/mining/history` over a period, following `next` page after page.
 
-        Pages are fetched lazily, `page_size` rows at a time (default: the route's
-        maximum, the fewest requests). With `since`, rows come oldest first unless
+        Pages are fetched lazily, `page_size` rows at a time (default with `since`: the
+        route's maximum; without it, the route's default page, which stops at your plan's
+        history window). With `since`, rows come oldest first unless
         `order` says otherwise. Call `.to_pandas()` / `.to_list()` to collect them.
 
         Args:
@@ -526,8 +534,9 @@ class BtcNetworkHistoryResource(SyncResource):
 
         Args:
             limit: Number of rows to return, in the reading order (most recent first by
-                default). Also bounded by your plan's history window (403 `history_depth`
-                beyond it).
+                default). Bounded by your plan's history window: an explicit `limit` (or
+                `since_ms`) reaching beyond it returns 403 `history_depth`; without them the
+                page simply stops at the window.
             since: Lower time bound, inclusive. A `datetime` (naive = UTC), a `date`, an ISO
                 string (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
             until: Upper time bound, inclusive to the millisecond. A `datetime` (naive =
@@ -559,8 +568,9 @@ class BtcNetworkHistoryResource(SyncResource):
     ) -> RowIterator[m.BtcNetworkHistoryItem]:
         """Every row of `/v1/btc/network/history` over a period, following `next` page after page.
 
-        Pages are fetched lazily, `page_size` rows at a time (default: the route's
-        maximum, the fewest requests). With `since`, rows come oldest first unless
+        Pages are fetched lazily, `page_size` rows at a time (default with `since`: the
+        route's maximum; without it, the route's default page, which stops at your plan's
+        history window). With `since`, rows come oldest first unless
         `order` says otherwise. Call `.to_pandas()` / `.to_list()` to collect them.
 
         Args:
@@ -662,8 +672,9 @@ class BuysellRatioFuturesHistoryResource(SyncResource):
                 closed bucket, holding the totals of the WHOLE bucket. Missing: 422
                 `missing_parameter`.
             limit: Number of rows to return, in the reading order (most recent first by
-                default). Also bounded by your plan's history window (403 `history_depth`
-                beyond it).
+                default). Bounded by your plan's history window: an explicit `limit` (or
+                `since_ms`) reaching beyond it returns 403 `history_depth`; without them the
+                page simply stops at the window.
             since: Lower time bound, inclusive. A `datetime` (naive = UTC), a `date`, an ISO
                 string (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
             until: Upper time bound, inclusive to the millisecond. A `datetime` (naive =
@@ -697,8 +708,9 @@ class BuysellRatioFuturesHistoryResource(SyncResource):
     ) -> RowIterator[m.BuysellRatioHistoryItem]:
         """Every row of `/v1/buysell/ratio/futures/history` over a period, following `next` page after page.
 
-        Pages are fetched lazily, `page_size` rows at a time (default: the route's
-        maximum, the fewest requests). With `since`, rows come oldest first unless
+        Pages are fetched lazily, `page_size` rows at a time (default with `since`: the
+        route's maximum; without it, the route's default page, which stops at your plan's
+        history window). With `since`, rows come oldest first unless
         `order` says otherwise. Call `.to_pandas()` / `.to_list()` to collect them.
 
         Args:
@@ -802,8 +814,9 @@ class BuysellRatioHistoryResource(SyncResource):
                 closed bucket, holding the totals of the WHOLE bucket. Missing: 422
                 `missing_parameter`.
             limit: Number of rows to return, in the reading order (most recent first by
-                default). Also bounded by your plan's history window (403 `history_depth`
-                beyond it).
+                default). Bounded by your plan's history window: an explicit `limit` (or
+                `since_ms`) reaching beyond it returns 403 `history_depth`; without them the
+                page simply stops at the window.
             since: Lower time bound, inclusive. A `datetime` (naive = UTC), a `date`, an ISO
                 string (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
             until: Upper time bound, inclusive to the millisecond. A `datetime` (naive =
@@ -837,8 +850,9 @@ class BuysellRatioHistoryResource(SyncResource):
     ) -> RowIterator[m.BuysellRatioHistoryItem]:
         """Every row of `/v1/buysell/ratio/history` over a period, following `next` page after page.
 
-        Pages are fetched lazily, `page_size` rows at a time (default: the route's
-        maximum, the fewest requests). With `since`, rows come oldest first unless
+        Pages are fetched lazily, `page_size` rows at a time (default with `since`: the
+        route's maximum; without it, the route's default page, which stops at your plan's
+        history window). With `since`, rows come oldest first unless
         `order` says otherwise. Call `.to_pandas()` / `.to_list()` to collect them.
 
         Args:
@@ -898,8 +912,9 @@ class BuysellRatioSpotHistoryResource(SyncResource):
                 closed bucket, holding the totals of the WHOLE bucket. Missing: 422
                 `missing_parameter`.
             limit: Number of rows to return, in the reading order (most recent first by
-                default). Also bounded by your plan's history window (403 `history_depth`
-                beyond it).
+                default). Bounded by your plan's history window: an explicit `limit` (or
+                `since_ms`) reaching beyond it returns 403 `history_depth`; without them the
+                page simply stops at the window.
             since: Lower time bound, inclusive. A `datetime` (naive = UTC), a `date`, an ISO
                 string (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
             until: Upper time bound, inclusive to the millisecond. A `datetime` (naive =
@@ -933,8 +948,9 @@ class BuysellRatioSpotHistoryResource(SyncResource):
     ) -> RowIterator[m.BuysellRatioHistoryItem]:
         """Every row of `/v1/buysell/ratio/spot/history` over a period, following `next` page after page.
 
-        Pages are fetched lazily, `page_size` rows at a time (default: the route's
-        maximum, the fewest requests). With `since`, rows come oldest first unless
+        Pages are fetched lazily, `page_size` rows at a time (default with `since`: the
+        route's maximum; without it, the route's default page, which stops at your plan's
+        history window). With `since`, rows come oldest first unless
         `order` says otherwise. Call `.to_pandas()` / `.to_list()` to collect them.
 
         Args:
@@ -1083,10 +1099,12 @@ class CvdFuturesHistoryResource(SyncResource):
                 accepted list.
             timeframe: Bucket size, required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`.
                 Missing: 422 `missing_parameter`; other values: 422 `invalid_timeframe` with
-                the accepted list.
+                the accepted list. In any case (`1H` is `1h`), except `1M`: refused, since
+                elsewhere it means a month and here `1m` is one minute.
             limit: Number of rows to return, in the reading order (most recent first by
-                default). Also bounded by your plan's history window (403 `history_depth`
-                beyond it).
+                default). Bounded by your plan's history window: an explicit `limit` (or
+                `since_ms`) reaching beyond it returns 403 `history_depth`; without them the
+                page simply stops at the window.
             since: Lower time bound, inclusive. A `datetime` (naive = UTC), a `date`, an ISO
                 string (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
             until: Upper time bound, inclusive to the millisecond. A `datetime` (naive =
@@ -1120,8 +1138,9 @@ class CvdFuturesHistoryResource(SyncResource):
     ) -> RowIterator[m.Cvd]:
         """Every row of `/v1/cvd/futures/history` over a period, following `next` page after page.
 
-        Pages are fetched lazily, `page_size` rows at a time (default: the route's
-        maximum, the fewest requests). With `since`, rows come oldest first unless
+        Pages are fetched lazily, `page_size` rows at a time (default with `since`: the
+        route's maximum; without it, the route's default page, which stops at your plan's
+        history window). With `since`, rows come oldest first unless
         `order` says otherwise. Call `.to_pandas()` / `.to_list()` to collect them.
 
         Args:
@@ -1131,7 +1150,8 @@ class CvdFuturesHistoryResource(SyncResource):
                 accepted list.
             timeframe: Bucket size, required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`.
                 Missing: 422 `missing_parameter`; other values: 422 `invalid_timeframe` with
-                the accepted list.
+                the accepted list. In any case (`1H` is `1h`), except `1M`: refused, since
+                elsewhere it means a month and here `1m` is one minute.
             since: Lower time bound, inclusive. A `datetime` (naive = UTC), a `date`, an ISO
                 string (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
             until: Upper time bound, inclusive to the millisecond. A `datetime` (naive =
@@ -1181,7 +1201,8 @@ class CvdFuturesResource(SyncResource):
                 accepted list.
             timeframe: Bucket size, required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`.
                 Missing: 422 `missing_parameter`; other values: 422 `invalid_timeframe` with
-                the accepted list.
+                the accepted list. In any case (`1H` is `1h`), except `1M`: refused, since
+                elsewhere it means a month and here `1m` is one minute.
             live: `1` or `true` to return the CURRENT, still-open period computed on the fly
                 (`is_closed: false`). Default: the last closed period only.
             fields: Only return these fields of each row (a list or a comma-separated
@@ -1227,10 +1248,12 @@ class CvdHistoryResource(SyncResource):
                 accepted list.
             timeframe: Bucket size, required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`.
                 Missing: 422 `missing_parameter`; other values: 422 `invalid_timeframe` with
-                the accepted list.
+                the accepted list. In any case (`1H` is `1h`), except `1M`: refused, since
+                elsewhere it means a month and here `1m` is one minute.
             limit: Number of rows to return, in the reading order (most recent first by
-                default). Also bounded by your plan's history window (403 `history_depth`
-                beyond it).
+                default). Bounded by your plan's history window: an explicit `limit` (or
+                `since_ms`) reaching beyond it returns 403 `history_depth`; without them the
+                page simply stops at the window.
             since: Lower time bound, inclusive. A `datetime` (naive = UTC), a `date`, an ISO
                 string (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
             until: Upper time bound, inclusive to the millisecond. A `datetime` (naive =
@@ -1264,8 +1287,9 @@ class CvdHistoryResource(SyncResource):
     ) -> RowIterator[m.CvdHistoryItem]:
         """Every row of `/v1/cvd/history` over a period, following `next` page after page.
 
-        Pages are fetched lazily, `page_size` rows at a time (default: the route's
-        maximum, the fewest requests). With `since`, rows come oldest first unless
+        Pages are fetched lazily, `page_size` rows at a time (default with `since`: the
+        route's maximum; without it, the route's default page, which stops at your plan's
+        history window). With `since`, rows come oldest first unless
         `order` says otherwise. Call `.to_pandas()` / `.to_list()` to collect them.
 
         Args:
@@ -1275,7 +1299,8 @@ class CvdHistoryResource(SyncResource):
                 accepted list.
             timeframe: Bucket size, required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`.
                 Missing: 422 `missing_parameter`; other values: 422 `invalid_timeframe` with
-                the accepted list.
+                the accepted list. In any case (`1H` is `1h`), except `1M`: refused, since
+                elsewhere it means a month and here `1m` is one minute.
             since: Lower time bound, inclusive. A `datetime` (naive = UTC), a `date`, an ISO
                 string (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
             until: Upper time bound, inclusive to the millisecond. A `datetime` (naive =
@@ -1323,10 +1348,12 @@ class CvdSpotHistoryResource(SyncResource):
                 accepted list.
             timeframe: Bucket size, required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`.
                 Missing: 422 `missing_parameter`; other values: 422 `invalid_timeframe` with
-                the accepted list.
+                the accepted list. In any case (`1H` is `1h`), except `1M`: refused, since
+                elsewhere it means a month and here `1m` is one minute.
             limit: Number of rows to return, in the reading order (most recent first by
-                default). Also bounded by your plan's history window (403 `history_depth`
-                beyond it).
+                default). Bounded by your plan's history window: an explicit `limit` (or
+                `since_ms`) reaching beyond it returns 403 `history_depth`; without them the
+                page simply stops at the window.
             since: Lower time bound, inclusive. A `datetime` (naive = UTC), a `date`, an ISO
                 string (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
             until: Upper time bound, inclusive to the millisecond. A `datetime` (naive =
@@ -1360,8 +1387,9 @@ class CvdSpotHistoryResource(SyncResource):
     ) -> RowIterator[m.Cvd]:
         """Every row of `/v1/cvd/spot/history` over a period, following `next` page after page.
 
-        Pages are fetched lazily, `page_size` rows at a time (default: the route's
-        maximum, the fewest requests). With `since`, rows come oldest first unless
+        Pages are fetched lazily, `page_size` rows at a time (default with `since`: the
+        route's maximum; without it, the route's default page, which stops at your plan's
+        history window). With `since`, rows come oldest first unless
         `order` says otherwise. Call `.to_pandas()` / `.to_list()` to collect them.
 
         Args:
@@ -1371,7 +1399,8 @@ class CvdSpotHistoryResource(SyncResource):
                 accepted list.
             timeframe: Bucket size, required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`.
                 Missing: 422 `missing_parameter`; other values: 422 `invalid_timeframe` with
-                the accepted list.
+                the accepted list. In any case (`1H` is `1h`), except `1M`: refused, since
+                elsewhere it means a month and here `1m` is one minute.
             since: Lower time bound, inclusive. A `datetime` (naive = UTC), a `date`, an ISO
                 string (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
             until: Upper time bound, inclusive to the millisecond. A `datetime` (naive =
@@ -1421,7 +1450,8 @@ class CvdSpotResource(SyncResource):
                 accepted list.
             timeframe: Bucket size, required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`.
                 Missing: 422 `missing_parameter`; other values: 422 `invalid_timeframe` with
-                the accepted list.
+                the accepted list. In any case (`1H` is `1h`), except `1M`: refused, since
+                elsewhere it means a month and here `1m` is one minute.
             live: `1` or `true` to return the CURRENT, still-open period computed on the fly
                 (`is_closed: false`). Default: the last closed period only.
             fields: Only return these fields of each row (a list or a comma-separated
@@ -1474,7 +1504,8 @@ class CvdResource(SyncResource):
                 accepted list.
             timeframe: Bucket size, required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`.
                 Missing: 422 `missing_parameter`; other values: 422 `invalid_timeframe` with
-                the accepted list.
+                the accepted list. In any case (`1H` is `1h`), except `1M`: refused, since
+                elsewhere it means a month and here `1m` is one minute.
             live: `1` or `true` to return the CURRENT, still-open period computed on the fly
                 (`is_closed: false`). Default: the last closed period only.
             fields: Only return these fields of each row (a list or a comma-separated
@@ -1511,9 +1542,10 @@ class EtfFundamentalsHistoryResource(SyncResource):
         Args:
             asset: Asset, e.g. `BTC` or `ETH` (no quote currency), in any case (`eth` works;
                 the envelope gives the canonical form). Unknown: 422 `invalid_asset`.
-            limit: Number of balance-sheet DATES to return, most recent first by default: a
-                page holds every issuer's row for each of those dates, so it can hold more
-                than `limit` rows (one filing is never split across two pages).
+            limit: Number of rows to read, most recent first by default. A page holds EVERY
+                issuer's row of each balance-sheet date those rows reach, so it can hold a
+                few more than `limit` (a date is never split across two pages); `next` is
+                `null` on the last page.
             since: Lower time bound, inclusive. A `datetime` (naive = UTC), a `date`, an ISO
                 string (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
             until: Upper time bound, inclusive to the millisecond. A `datetime` (naive =
@@ -1548,8 +1580,9 @@ class EtfFundamentalsHistoryResource(SyncResource):
     ) -> RowIterator[m.EtfFundamentalsHistoryItem]:
         """Every row of `/v1/etf/fundamentals/history` over a period, following `next` page after page.
 
-        Pages are fetched lazily, `page_size` rows at a time (default: the route's
-        maximum, the fewest requests). With `since`, rows come oldest first unless
+        Pages are fetched lazily, `page_size` rows at a time (default with `since`: the
+        route's maximum; without it, the route's default page, which stops at your plan's
+        history window). With `since`, rows come oldest first unless
         `order` says otherwise. Call `.to_pandas()` / `.to_list()` to collect them.
 
         Args:
@@ -1642,8 +1675,9 @@ class EthDefiHistoryResource(SyncResource):
 
         Args:
             limit: Number of rows to return, in the reading order (most recent first by
-                default). Also bounded by your plan's history window (403 `history_depth`
-                beyond it).
+                default). Bounded by your plan's history window: an explicit `limit` (or
+                `since_ms`) reaching beyond it returns 403 `history_depth`; without them the
+                page simply stops at the window.
             since: Lower time bound, inclusive. A `datetime` (naive = UTC), a `date`, an ISO
                 string (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
             until: Upper time bound, inclusive to the millisecond. A `datetime` (naive =
@@ -1675,8 +1709,9 @@ class EthDefiHistoryResource(SyncResource):
     ) -> RowIterator[m.EthDefiHistoryItem]:
         """Every row of `/v1/eth/defi/history` over a period, following `next` page after page.
 
-        Pages are fetched lazily, `page_size` rows at a time (default: the route's
-        maximum, the fewest requests). With `since`, rows come oldest first unless
+        Pages are fetched lazily, `page_size` rows at a time (default with `since`: the
+        route's maximum; without it, the route's default page, which stops at your plan's
+        history window). With `since`, rows come oldest first unless
         `order` says otherwise. Call `.to_pandas()` / `.to_list()` to collect them.
 
         Args:
@@ -1751,8 +1786,9 @@ class EthDeflationHistoryResource(SyncResource):
 
         Args:
             limit: Number of rows to return, in the reading order (most recent first by
-                default). Also bounded by your plan's history window (403 `history_depth`
-                beyond it).
+                default). Bounded by your plan's history window: an explicit `limit` (or
+                `since_ms`) reaching beyond it returns 403 `history_depth`; without them the
+                page simply stops at the window.
             since: Lower time bound, inclusive. A `datetime` (naive = UTC), a `date`, an ISO
                 string (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
             until: Upper time bound, inclusive to the millisecond. A `datetime` (naive =
@@ -1784,8 +1820,9 @@ class EthDeflationHistoryResource(SyncResource):
     ) -> RowIterator[m.EthDeflationHistoryItem]:
         """Every row of `/v1/eth/deflation/history` over a period, following `next` page after page.
 
-        Pages are fetched lazily, `page_size` rows at a time (default: the route's
-        maximum, the fewest requests). With `since`, rows come oldest first unless
+        Pages are fetched lazily, `page_size` rows at a time (default with `since`: the
+        route's maximum; without it, the route's default page, which stops at your plan's
+        history window). With `since`, rows come oldest first unless
         `order` says otherwise. Call `.to_pandas()` / `.to_list()` to collect them.
 
         Args:
@@ -1860,8 +1897,9 @@ class EthGasHistoryResource(SyncResource):
 
         Args:
             limit: Number of rows to return, in the reading order (most recent first by
-                default). Also bounded by your plan's history window (403 `history_depth`
-                beyond it).
+                default). Bounded by your plan's history window: an explicit `limit` (or
+                `since_ms`) reaching beyond it returns 403 `history_depth`; without them the
+                page simply stops at the window.
             since: Lower time bound, inclusive. A `datetime` (naive = UTC), a `date`, an ISO
                 string (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
             until: Upper time bound, inclusive to the millisecond. A `datetime` (naive =
@@ -1893,8 +1931,9 @@ class EthGasHistoryResource(SyncResource):
     ) -> RowIterator[m.EthGasHistoryItem]:
         """Every row of `/v1/eth/gas/history` over a period, following `next` page after page.
 
-        Pages are fetched lazily, `page_size` rows at a time (default: the route's
-        maximum, the fewest requests). With `since`, rows come oldest first unless
+        Pages are fetched lazily, `page_size` rows at a time (default with `since`: the
+        route's maximum; without it, the route's default page, which stops at your plan's
+        history window). With `since`, rows come oldest first unless
         `order` says otherwise. Call `.to_pandas()` / `.to_list()` to collect them.
 
         Args:
@@ -1969,8 +2008,9 @@ class EthGasMomentumHistoryResource(SyncResource):
 
         Args:
             limit: Number of rows to return, in the reading order (most recent first by
-                default). Also bounded by your plan's history window (403 `history_depth`
-                beyond it).
+                default). Bounded by your plan's history window: an explicit `limit` (or
+                `since_ms`) reaching beyond it returns 403 `history_depth`; without them the
+                page simply stops at the window.
             since: Lower time bound, inclusive. A `datetime` (naive = UTC), a `date`, an ISO
                 string (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
             until: Upper time bound, inclusive to the millisecond. A `datetime` (naive =
@@ -2002,8 +2042,9 @@ class EthGasMomentumHistoryResource(SyncResource):
     ) -> RowIterator[m.EthGasMomentumHistoryItem]:
         """Every row of `/v1/eth/gas-momentum/history` over a period, following `next` page after page.
 
-        Pages are fetched lazily, `page_size` rows at a time (default: the route's
-        maximum, the fewest requests). With `since`, rows come oldest first unless
+        Pages are fetched lazily, `page_size` rows at a time (default with `since`: the
+        route's maximum; without it, the route's default page, which stops at your plan's
+        history window). With `since`, rows come oldest first unless
         `order` says otherwise. Call `.to_pandas()` / `.to_list()` to collect them.
 
         Args:
@@ -2078,8 +2119,9 @@ class EthRatioHistoryResource(SyncResource):
 
         Args:
             limit: Number of rows to return, in the reading order (most recent first by
-                default). Also bounded by your plan's history window (403 `history_depth`
-                beyond it).
+                default). Bounded by your plan's history window: an explicit `limit` (or
+                `since_ms`) reaching beyond it returns 403 `history_depth`; without them the
+                page simply stops at the window.
             since: Lower time bound, inclusive. A `datetime` (naive = UTC), a `date`, an ISO
                 string (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
             until: Upper time bound, inclusive to the millisecond. A `datetime` (naive =
@@ -2111,8 +2153,9 @@ class EthRatioHistoryResource(SyncResource):
     ) -> RowIterator[m.EthRatioHistoryItem]:
         """Every row of `/v1/eth/ratio/history` over a period, following `next` page after page.
 
-        Pages are fetched lazily, `page_size` rows at a time (default: the route's
-        maximum, the fewest requests). With `since`, rows come oldest first unless
+        Pages are fetched lazily, `page_size` rows at a time (default with `since`: the
+        route's maximum; without it, the route's default page, which stops at your plan's
+        history window). With `since`, rows come oldest first unless
         `order` says otherwise. Call `.to_pandas()` / `.to_list()` to collect them.
 
         Args:
@@ -2187,8 +2230,9 @@ class EthSqueezeHistoryResource(SyncResource):
 
         Args:
             limit: Number of rows to return, in the reading order (most recent first by
-                default). Also bounded by your plan's history window (403 `history_depth`
-                beyond it).
+                default). Bounded by your plan's history window: an explicit `limit` (or
+                `since_ms`) reaching beyond it returns 403 `history_depth`; without them the
+                page simply stops at the window.
             since: Lower time bound, inclusive. A `datetime` (naive = UTC), a `date`, an ISO
                 string (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
             until: Upper time bound, inclusive to the millisecond. A `datetime` (naive =
@@ -2220,8 +2264,9 @@ class EthSqueezeHistoryResource(SyncResource):
     ) -> RowIterator[m.EthSqueezeHistoryItem]:
         """Every row of `/v1/eth/squeeze/history` over a period, following `next` page after page.
 
-        Pages are fetched lazily, `page_size` rows at a time (default: the route's
-        maximum, the fewest requests). With `since`, rows come oldest first unless
+        Pages are fetched lazily, `page_size` rows at a time (default with `since`: the
+        route's maximum; without it, the route's default page, which stops at your plan's
+        history window). With `since`, rows come oldest first unless
         `order` says otherwise. Call `.to_pandas()` / `.to_list()` to collect them.
 
         Args:
@@ -2296,8 +2341,9 @@ class EthStakingHistoryResource(SyncResource):
 
         Args:
             limit: Number of rows to return, in the reading order (most recent first by
-                default). Also bounded by your plan's history window (403 `history_depth`
-                beyond it).
+                default). Bounded by your plan's history window: an explicit `limit` (or
+                `since_ms`) reaching beyond it returns 403 `history_depth`; without them the
+                page simply stops at the window.
             since: Lower time bound, inclusive. A `datetime` (naive = UTC), a `date`, an ISO
                 string (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
             until: Upper time bound, inclusive to the millisecond. A `datetime` (naive =
@@ -2329,8 +2375,9 @@ class EthStakingHistoryResource(SyncResource):
     ) -> RowIterator[m.EthStakingHistoryItem]:
         """Every row of `/v1/eth/staking/history` over a period, following `next` page after page.
 
-        Pages are fetched lazily, `page_size` rows at a time (default: the route's
-        maximum, the fewest requests). With `since`, rows come oldest first unless
+        Pages are fetched lazily, `page_size` rows at a time (default with `since`: the
+        route's maximum; without it, the route's default page, which stops at your plan's
+        history window). With `since`, rows come oldest first unless
         `order` says otherwise. Call `.to_pandas()` / `.to_list()` to collect them.
 
         Args:
@@ -2406,8 +2453,9 @@ class EthSupplyHistoryResource(SyncResource):
 
         Args:
             limit: Number of rows to return, in the reading order (most recent first by
-                default). Also bounded by your plan's history window (403 `history_depth`
-                beyond it).
+                default). Bounded by your plan's history window: an explicit `limit` (or
+                `since_ms`) reaching beyond it returns 403 `history_depth`; without them the
+                page simply stops at the window.
             since: Lower time bound, inclusive. A `datetime` (naive = UTC), a `date`, an ISO
                 string (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
             until: Upper time bound, inclusive to the millisecond. A `datetime` (naive =
@@ -2439,8 +2487,9 @@ class EthSupplyHistoryResource(SyncResource):
     ) -> RowIterator[m.EthSupplyHistoryItem]:
         """Every row of `/v1/eth/supply/history` over a period, following `next` page after page.
 
-        Pages are fetched lazily, `page_size` rows at a time (default: the route's
-        maximum, the fewest requests). With `since`, rows come oldest first unless
+        Pages are fetched lazily, `page_size` rows at a time (default with `since`: the
+        route's maximum; without it, the route's default page, which stops at your plan's
+        history window). With `since`, rows come oldest first unless
         `order` says otherwise. Call `.to_pandas()` / `.to_list()` to collect them.
 
         Args:
@@ -2540,8 +2589,9 @@ class FearGreedHistoryResource(SyncResource):
 
         Args:
             limit: Number of rows to return, in the reading order (most recent first by
-                default). Also bounded by your plan's history window (403 `history_depth`
-                beyond it).
+                default). Bounded by your plan's history window: an explicit `limit` (or
+                `since_ms`) reaching beyond it returns 403 `history_depth`; without them the
+                page simply stops at the window.
             since: Lower time bound, inclusive. A `datetime` (naive = UTC), a `date`, an ISO
                 string (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
             until: Upper time bound, inclusive to the millisecond. A `datetime` (naive =
@@ -2573,8 +2623,9 @@ class FearGreedHistoryResource(SyncResource):
     ) -> RowIterator[m.FearGreedHistoryItem]:
         """Every row of `/v1/fear-greed/history` over a period, following `next` page after page.
 
-        Pages are fetched lazily, `page_size` rows at a time (default: the route's
-        maximum, the fewest requests). With `since`, rows come oldest first unless
+        Pages are fetched lazily, `page_size` rows at a time (default with `since`: the
+        route's maximum; without it, the route's default page, which stops at your plan's
+        history window). With `since`, rows come oldest first unless
         `order` says otherwise. Call `.to_pandas()` / `.to_list()` to collect them.
 
         Args:
@@ -2657,8 +2708,9 @@ class FundingCumulativeHistoryResource(SyncResource):
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
             limit: Number of rows to return, in the reading order (most recent first by
-                default). Also bounded by your plan's history window (403 `history_depth`
-                beyond it).
+                default). Bounded by your plan's history window: an explicit `limit` (or
+                `since_ms`) reaching beyond it returns 403 `history_depth`; without them the
+                page simply stops at the window.
             since: Lower time bound, inclusive. A `datetime` (naive = UTC), a `date`, an ISO
                 string (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
             until: Upper time bound, inclusive to the millisecond. A `datetime` (naive =
@@ -2691,8 +2743,9 @@ class FundingCumulativeHistoryResource(SyncResource):
     ) -> RowIterator[m.FundingCumulativeHistoryItem]:
         """Every row of `/v1/funding/cumulative/history` over a period, following `next` page after page.
 
-        Pages are fetched lazily, `page_size` rows at a time (default: the route's
-        maximum, the fewest requests). With `since`, rows come oldest first unless
+        Pages are fetched lazily, `page_size` rows at a time (default with `since`: the
+        route's maximum; without it, the route's default page, which stops at your plan's
+        history window). With `since`, rows come oldest first unless
         `order` says otherwise. Call `.to_pandas()` / `.to_list()` to collect them.
 
         Args:
@@ -2813,8 +2866,9 @@ class FundingRateHistoryResource(SyncResource):
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
             limit: Number of rows to return, in the reading order (most recent first by
-                default). Also bounded by your plan's history window (403 `history_depth`
-                beyond it).
+                default). Bounded by your plan's history window: an explicit `limit` (or
+                `since_ms`) reaching beyond it returns 403 `history_depth`; without them the
+                page simply stops at the window.
             since: Lower time bound, inclusive. A `datetime` (naive = UTC), a `date`, an ISO
                 string (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
             until: Upper time bound, inclusive to the millisecond. A `datetime` (naive =
@@ -2847,8 +2901,9 @@ class FundingRateHistoryResource(SyncResource):
     ) -> RowIterator[m.FundingRate]:
         """Every row of `/v1/funding/rate/history` over a period, following `next` page after page.
 
-        Pages are fetched lazily, `page_size` rows at a time (default: the route's
-        maximum, the fewest requests). With `since`, rows come oldest first unless
+        Pages are fetched lazily, `page_size` rows at a time (default with `since`: the
+        route's maximum; without it, the route's default page, which stops at your plan's
+        history window). With `since`, rows come oldest first unless
         `order` says otherwise. Call `.to_pandas()` / `.to_list()` to collect them.
 
         Args:
@@ -2935,7 +2990,7 @@ class FundingResource(SyncResource):
 class GlobalMarketHistoryResource(SyncResource):
     """`/v1/global/history`."""
 
-    _route = RouteSpec(path='/v1/global/history', method='GET', shape='list', model=m.GlobalHistoryItem, paginated=True, path_params=(), max_limit=1000, range_mode=False)
+    _route = RouteSpec(path='/v1/global/history', method='GET', shape='list', model=m.GlobalMarketHistoryItem, paginated=True, path_params=(), max_limit=1000, range_mode=False)
 
     def __call__(
         self,
@@ -2948,7 +3003,7 @@ class GlobalMarketHistoryResource(SyncResource):
         timeframe: CoarseTimeframe | None = None,
         fields: Fields | None = None,
         request_options: RequestOptions | None = None,
-    ) -> Response[list[m.GlobalHistoryItem]]:
+    ) -> Response[list[m.GlobalMarketHistoryItem]]:
         """GET /v1/global/history — Total crypto market history
 
         Most recent first, or oldest first with `order=asc`. Follow `next` to read the
@@ -2956,8 +3011,9 @@ class GlobalMarketHistoryResource(SyncResource):
 
         Args:
             limit: Number of rows to return, in the reading order (most recent first by
-                default). Also bounded by your plan's history window (403 `history_depth`
-                beyond it).
+                default). Bounded by your plan's history window: an explicit `limit` (or
+                `since_ms`) reaching beyond it returns 403 `history_depth`; without them the
+                page simply stops at the window.
             since: Lower time bound, inclusive. A `datetime` (naive = UTC), a `date`, an ISO
                 string (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
             until: Upper time bound, inclusive to the millisecond. A `datetime` (naive =
@@ -2991,11 +3047,12 @@ class GlobalMarketHistoryResource(SyncResource):
         page_size: int | None = None,
         max_items: int | None = None,
         request_options: RequestOptions | None = None,
-    ) -> RowIterator[m.GlobalHistoryItem]:
+    ) -> RowIterator[m.GlobalMarketHistoryItem]:
         """Every row of `/v1/global/history` over a period, following `next` page after page.
 
-        Pages are fetched lazily, `page_size` rows at a time (default: the route's
-        maximum, the fewest requests). With `since`, rows come oldest first unless
+        Pages are fetched lazily, `page_size` rows at a time (default with `since`: the
+        route's maximum; without it, the route's default page, which stops at your plan's
+        history window). With `since`, rows come oldest first unless
         `order` says otherwise. Call `.to_pandas()` / `.to_list()` to collect them.
 
         Args:
@@ -3105,8 +3162,9 @@ class HeatmapClustersHistoryResource(SyncResource):
                 bucket); `1m` gives one row per minute, aligned on the minute. Missing: 422
                 `missing_parameter`.
             limit: Number of rows to return, in the reading order (most recent first by
-                default). Also bounded by your plan's history window (403 `history_depth`
-                beyond it).
+                default). Bounded by your plan's history window: an explicit `limit` (or
+                `since_ms`) reaching beyond it returns 403 `history_depth`; without them the
+                page simply stops at the window.
             since: Lower time bound, inclusive. A `datetime` (naive = UTC), a `date`, an ISO
                 string (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
             until: Upper time bound, inclusive to the millisecond. A `datetime` (naive =
@@ -3140,8 +3198,9 @@ class HeatmapClustersHistoryResource(SyncResource):
     ) -> RowIterator[m.HeatmapClustersHistoryItem]:
         """Every row of `/v1/heatmap/clusters/history` over a period, following `next` page after page.
 
-        Pages are fetched lazily, `page_size` rows at a time (default: the route's
-        maximum, the fewest requests). With `since`, rows come oldest first unless
+        Pages are fetched lazily, `page_size` rows at a time (default with `since`: the
+        route's maximum; without it, the route's default page, which stops at your plan's
+        history window). With `since`, rows come oldest first unless
         `order` says otherwise. Call `.to_pandas()` / `.to_list()` to collect them.
 
         Args:
@@ -3307,8 +3366,9 @@ class KlinesResource(SyncResource):
                 `missing_parameter`; other values: 422 `invalid_timeframe` with the accepted
                 list.
             limit: Number of rows to return, in the reading order (most recent first by
-                default). Also bounded by your plan's history window (403 `history_depth`
-                beyond it).
+                default). Bounded by your plan's history window: an explicit `limit` (or
+                `since_ms`) reaching beyond it returns 403 `history_depth`; without them the
+                page simply stops at the window.
             since: Lower time bound, inclusive. A `datetime` (naive = UTC), a `date`, an ISO
                 string (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
             until: Upper time bound, inclusive to the millisecond. A `datetime` (naive =
@@ -3342,8 +3402,9 @@ class KlinesResource(SyncResource):
     ) -> RowIterator[m.Kline]:
         """Every row of `/v1/klines` over a period, following `next` page after page.
 
-        Pages are fetched lazily, `page_size` rows at a time (default: the route's
-        maximum, the fewest requests). With `since`, rows come oldest first unless
+        Pages are fetched lazily, `page_size` rows at a time (default with `since`: the
+        route's maximum; without it, the route's default page, which stops at your plan's
+        history window). With `since`, rows come oldest first unless
         `order` says otherwise. Call `.to_pandas()` / `.to_list()` to collect them.
 
         Args:
@@ -3437,8 +3498,9 @@ class LiquidationsCumulativeHistoryResource(SyncResource):
                 closed bucket, holding the totals of the WHOLE bucket. Missing: 422
                 `missing_parameter`.
             limit: Number of rows to return, in the reading order (most recent first by
-                default). Also bounded by your plan's history window (403 `history_depth`
-                beyond it).
+                default). Bounded by your plan's history window: an explicit `limit` (or
+                `since_ms`) reaching beyond it returns 403 `history_depth`; without them the
+                page simply stops at the window.
             since: Lower time bound, inclusive. A `datetime` (naive = UTC), a `date`, an ISO
                 string (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
             until: Upper time bound, inclusive to the millisecond. A `datetime` (naive =
@@ -3472,8 +3534,9 @@ class LiquidationsCumulativeHistoryResource(SyncResource):
     ) -> RowIterator[m.LiquidationsCumulativeHistoryItem]:
         """Every row of `/v1/liquidations/cumulative/history` over a period, following `next` page after page.
 
-        Pages are fetched lazily, `page_size` rows at a time (default: the route's
-        maximum, the fewest requests). With `since`, rows come oldest first unless
+        Pages are fetched lazily, `page_size` rows at a time (default with `since`: the
+        route's maximum; without it, the route's default page, which stops at your plan's
+        history window). With `since`, rows come oldest first unless
         `order` says otherwise. Call `.to_pandas()` / `.to_list()` to collect them.
 
         Args:
@@ -3566,8 +3629,9 @@ class LiquidationsEventsResource(SyncResource):
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
             limit: Number of rows to return, in the reading order (most recent first by
-                default). Also bounded by your plan's history window (403 `history_depth`
-                beyond it).
+                default). Bounded by your plan's history window: an explicit `limit` (or
+                `since_ms`) reaching beyond it returns 403 `history_depth`; without them the
+                page simply stops at the window.
             min_usd: Optional minimum notional in USD: only liquidations of at least this
                 size are returned. `limit` always counts events.
             fields: Only return these fields of each row (a list or a comma-separated
@@ -3615,8 +3679,9 @@ class LiquidationsRatioHistoryResource(SyncResource):
                 bucket); `1m` gives one row per minute, aligned on the minute. Missing: 422
                 `missing_parameter`.
             limit: Number of rows to return, in the reading order (most recent first by
-                default). Also bounded by your plan's history window (403 `history_depth`
-                beyond it).
+                default). Bounded by your plan's history window: an explicit `limit` (or
+                `since_ms`) reaching beyond it returns 403 `history_depth`; without them the
+                page simply stops at the window.
             since: Lower time bound, inclusive. A `datetime` (naive = UTC), a `date`, an ISO
                 string (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
             until: Upper time bound, inclusive to the millisecond. A `datetime` (naive =
@@ -3650,8 +3715,9 @@ class LiquidationsRatioHistoryResource(SyncResource):
     ) -> RowIterator[m.LiquidationsRatioHistoryItem]:
         """Every row of `/v1/liquidations/ratio/history` over a period, following `next` page after page.
 
-        Pages are fetched lazily, `page_size` rows at a time (default: the route's
-        maximum, the fewest requests). With `since`, rows come oldest first unless
+        Pages are fetched lazily, `page_size` rows at a time (default with `since`: the
+        route's maximum; without it, the route's default page, which stops at your plan's
+        history window). With `since`, rows come oldest first unless
         `order` says otherwise. Call `.to_pandas()` / `.to_list()` to collect them.
 
         Args:
@@ -3784,8 +3850,9 @@ class MacroHistoryResource(SyncResource):
             series: FRED series id, e.g. `DGS10`, `CPIAUCSL`, `WALCL`. The list: `GET
                 /v1/macro/series`.
             limit: Number of rows to return, in the reading order (most recent first by
-                default). Also bounded by your plan's history window (403 `history_depth`
-                beyond it).
+                default). Bounded by your plan's history window: an explicit `limit` (or
+                `since_ms`) reaching beyond it returns 403 `history_depth`; without them the
+                page simply stops at the window.
             since: Lower time bound, inclusive. A `datetime` (naive = UTC), a `date`, an ISO
                 string (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
             until: Upper time bound, inclusive to the millisecond. A `datetime` (naive =
@@ -3818,8 +3885,9 @@ class MacroHistoryResource(SyncResource):
     ) -> RowIterator[m.MacroHistoryItem]:
         """Every row of `/v1/macro/history` over a period, following `next` page after page.
 
-        Pages are fetched lazily, `page_size` rows at a time (default: the route's
-        maximum, the fewest requests). With `since`, rows come oldest first unless
+        Pages are fetched lazily, `page_size` rows at a time (default with `since`: the
+        route's maximum; without it, the route's default page, which stops at your plan's
+        history window). With `since`, rows come oldest first unless
         `order` says otherwise. Call `.to_pandas()` / `.to_list()` to collect them.
 
         Args:
@@ -3873,8 +3941,9 @@ class MacroIntradayHistoryResource(SyncResource):
             timeframe: Candle size, required. Each series serves only the timeframes listed
                 in its catalogue entry; others return 422 `timeframe_not_served`.
             limit: Number of rows to return, in the reading order (most recent first by
-                default). Also bounded by your plan's history window (403 `history_depth`
-                beyond it).
+                default). Bounded by your plan's history window: an explicit `limit` (or
+                `since_ms`) reaching beyond it returns 403 `history_depth`; without them the
+                page simply stops at the window.
             since: Lower time bound, inclusive. A `datetime` (naive = UTC), a `date`, an ISO
                 string (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
             until: Upper time bound, inclusive to the millisecond. A `datetime` (naive =
@@ -3908,8 +3977,9 @@ class MacroIntradayHistoryResource(SyncResource):
     ) -> RowIterator[m.MacroIntraday]:
         """Every row of `/v1/macro/intraday/history` over a period, following `next` page after page.
 
-        Pages are fetched lazily, `page_size` rows at a time (default: the route's
-        maximum, the fewest requests). With `since`, rows come oldest first unless
+        Pages are fetched lazily, `page_size` rows at a time (default with `since`: the
+        route's maximum; without it, the route's default page, which stops at your plan's
+        history window). With `since`, rows come oldest first unless
         `order` says otherwise. Call `.to_pandas()` / `.to_list()` to collect them.
 
         Args:
@@ -4022,8 +4092,9 @@ class MacroNetLiquidityHistoryResource(SyncResource):
 
         Args:
             limit: Number of rows to return, in the reading order (most recent first by
-                default). Also bounded by your plan's history window (403 `history_depth`
-                beyond it).
+                default). Bounded by your plan's history window: an explicit `limit` (or
+                `since_ms`) reaching beyond it returns 403 `history_depth`; without them the
+                page simply stops at the window.
             since: Lower time bound, inclusive. A `datetime` (naive = UTC), a `date`, an ISO
                 string (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
             until: Upper time bound, inclusive to the millisecond. A `datetime` (naive =
@@ -4055,8 +4126,9 @@ class MacroNetLiquidityHistoryResource(SyncResource):
     ) -> RowIterator[m.MacroNetLiquidityHistoryItem]:
         """Every row of `/v1/macro/net-liquidity/history` over a period, following `next` page after page.
 
-        Pages are fetched lazily, `page_size` rows at a time (default: the route's
-        maximum, the fewest requests). With `since`, rows come oldest first unless
+        Pages are fetched lazily, `page_size` rows at a time (default with `since`: the
+        route's maximum; without it, the route's default page, which stops at your plan's
+        history window). With `since`, rows come oldest first unless
         `order` says otherwise. Call `.to_pandas()` / `.to_list()` to collect them.
 
         Args:
@@ -4243,8 +4315,9 @@ class OiDeltaHistoryResource(SyncResource):
                 bucket); `1m` gives one row per minute, aligned on the minute. Missing: 422
                 `missing_parameter`.
             limit: Number of rows to return, in the reading order (most recent first by
-                default). Also bounded by your plan's history window (403 `history_depth`
-                beyond it).
+                default). Bounded by your plan's history window: an explicit `limit` (or
+                `since_ms`) reaching beyond it returns 403 `history_depth`; without them the
+                page simply stops at the window.
             since: Lower time bound, inclusive. A `datetime` (naive = UTC), a `date`, an ISO
                 string (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
             until: Upper time bound, inclusive to the millisecond. A `datetime` (naive =
@@ -4278,8 +4351,9 @@ class OiDeltaHistoryResource(SyncResource):
     ) -> RowIterator[m.OiDeltaHistoryItem]:
         """Every row of `/v1/oi/delta/history` over a period, following `next` page after page.
 
-        Pages are fetched lazily, `page_size` rows at a time (default: the route's
-        maximum, the fewest requests). With `since`, rows come oldest first unless
+        Pages are fetched lazily, `page_size` rows at a time (default with `since`: the
+        route's maximum; without it, the route's default page, which stops at your plan's
+        history window). With `since`, rows come oldest first unless
         `order` says otherwise. Call `.to_pandas()` / `.to_list()` to collect them.
 
         Args:
@@ -4385,8 +4459,9 @@ class OiHistoryResource(SyncResource):
                 bucket); `1m` gives one row per minute, aligned on the minute. Missing: 422
                 `missing_parameter`.
             limit: Number of rows to return, in the reading order (most recent first by
-                default). Also bounded by your plan's history window (403 `history_depth`
-                beyond it).
+                default). Bounded by your plan's history window: an explicit `limit` (or
+                `since_ms`) reaching beyond it returns 403 `history_depth`; without them the
+                page simply stops at the window.
             since: Lower time bound, inclusive. A `datetime` (naive = UTC), a `date`, an ISO
                 string (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
             until: Upper time bound, inclusive to the millisecond. A `datetime` (naive =
@@ -4420,8 +4495,9 @@ class OiHistoryResource(SyncResource):
     ) -> RowIterator[m.OiHistoryItem]:
         """Every row of `/v1/oi/history` over a period, following `next` page after page.
 
-        Pages are fetched lazily, `page_size` rows at a time (default: the route's
-        maximum, the fewest requests). With `since`, rows come oldest first unless
+        Pages are fetched lazily, `page_size` rows at a time (default with `since`: the
+        route's maximum; without it, the route's default page, which stops at your plan's
+        history window). With `since`, rows come oldest first unless
         `order` says otherwise. Call `.to_pandas()` / `.to_list()` to collect them.
 
         Args:
@@ -4513,8 +4589,9 @@ class OnchainActiveAddressesHistoryResource(SyncResource):
 
         Args:
             limit: Number of rows to return, in the reading order (most recent first by
-                default). Also bounded by your plan's history window (403 `history_depth`
-                beyond it).
+                default). Bounded by your plan's history window: an explicit `limit` (or
+                `since_ms`) reaching beyond it returns 403 `history_depth`; without them the
+                page simply stops at the window.
             since: Lower time bound, inclusive. A `datetime` (naive = UTC), a `date`, an ISO
                 string (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
             until: Upper time bound, inclusive to the millisecond. A `datetime` (naive =
@@ -4546,8 +4623,9 @@ class OnchainActiveAddressesHistoryResource(SyncResource):
     ) -> RowIterator[m.OnchainActiveAddressesHistoryItem]:
         """Every row of `/v1/onchain/active-addresses/history` over a period, following `next` page after page.
 
-        Pages are fetched lazily, `page_size` rows at a time (default: the route's
-        maximum, the fewest requests). With `since`, rows come oldest first unless
+        Pages are fetched lazily, `page_size` rows at a time (default with `since`: the
+        route's maximum; without it, the route's default page, which stops at your plan's
+        history window). With `since`, rows come oldest first unless
         `order` says otherwise. Call `.to_pandas()` / `.to_list()` to collect them.
 
         Args:
@@ -4622,8 +4700,9 @@ class OnchainMinerStressHistoryResource(SyncResource):
 
         Args:
             limit: Number of rows to return, in the reading order (most recent first by
-                default). Also bounded by your plan's history window (403 `history_depth`
-                beyond it).
+                default). Bounded by your plan's history window: an explicit `limit` (or
+                `since_ms`) reaching beyond it returns 403 `history_depth`; without them the
+                page simply stops at the window.
             since: Lower time bound, inclusive. A `datetime` (naive = UTC), a `date`, an ISO
                 string (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
             until: Upper time bound, inclusive to the millisecond. A `datetime` (naive =
@@ -4655,8 +4734,9 @@ class OnchainMinerStressHistoryResource(SyncResource):
     ) -> RowIterator[m.OnchainMinerStressHistoryItem]:
         """Every row of `/v1/onchain/miner-stress/history` over a period, following `next` page after page.
 
-        Pages are fetched lazily, `page_size` rows at a time (default: the route's
-        maximum, the fewest requests). With `since`, rows come oldest first unless
+        Pages are fetched lazily, `page_size` rows at a time (default with `since`: the
+        route's maximum; without it, the route's default page, which stops at your plan's
+        history window). With `since`, rows come oldest first unless
         `order` says otherwise. Call `.to_pandas()` / `.to_list()` to collect them.
 
         Args:
@@ -4732,8 +4812,9 @@ class OnchainMvrvHistoryResource(SyncResource):
 
         Args:
             limit: Number of rows to return, in the reading order (most recent first by
-                default). Also bounded by your plan's history window (403 `history_depth`
-                beyond it).
+                default). Bounded by your plan's history window: an explicit `limit` (or
+                `since_ms`) reaching beyond it returns 403 `history_depth`; without them the
+                page simply stops at the window.
             since: Lower time bound, inclusive. A `datetime` (naive = UTC), a `date`, an ISO
                 string (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
             until: Upper time bound, inclusive to the millisecond. A `datetime` (naive =
@@ -4765,8 +4846,9 @@ class OnchainMvrvHistoryResource(SyncResource):
     ) -> RowIterator[m.OnchainMvrvHistoryItem]:
         """Every row of `/v1/onchain/mvrv/history` over a period, following `next` page after page.
 
-        Pages are fetched lazily, `page_size` rows at a time (default: the route's
-        maximum, the fewest requests). With `since`, rows come oldest first unless
+        Pages are fetched lazily, `page_size` rows at a time (default with `since`: the
+        route's maximum; without it, the route's default page, which stops at your plan's
+        history window). With `since`, rows come oldest first unless
         `order` says otherwise. Call `.to_pandas()` / `.to_list()` to collect them.
 
         Args:
@@ -4841,8 +4923,9 @@ class OnchainNvtHistoryResource(SyncResource):
 
         Args:
             limit: Number of rows to return, in the reading order (most recent first by
-                default). Also bounded by your plan's history window (403 `history_depth`
-                beyond it).
+                default). Bounded by your plan's history window: an explicit `limit` (or
+                `since_ms`) reaching beyond it returns 403 `history_depth`; without them the
+                page simply stops at the window.
             since: Lower time bound, inclusive. A `datetime` (naive = UTC), a `date`, an ISO
                 string (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
             until: Upper time bound, inclusive to the millisecond. A `datetime` (naive =
@@ -4874,8 +4957,9 @@ class OnchainNvtHistoryResource(SyncResource):
     ) -> RowIterator[m.OnchainNvtHistoryItem]:
         """Every row of `/v1/onchain/nvt/history` over a period, following `next` page after page.
 
-        Pages are fetched lazily, `page_size` rows at a time (default: the route's
-        maximum, the fewest requests). With `since`, rows come oldest first unless
+        Pages are fetched lazily, `page_size` rows at a time (default with `since`: the
+        route's maximum; without it, the route's default page, which stops at your plan's
+        history window). With `since`, rows come oldest first unless
         `order` says otherwise. Call `.to_pandas()` / `.to_list()` to collect them.
 
         Args:
@@ -5032,8 +5116,9 @@ class OptionsIvKlinesResource(SyncResource):
                 is not served on options). Missing: 422 `missing_parameter`; other values:
                 422 `invalid_timeframe`.
             limit: Number of rows to return, in the reading order (most recent first by
-                default). Also bounded by your plan's history window (403 `history_depth`
-                beyond it).
+                default). Bounded by your plan's history window: an explicit `limit` (or
+                `since_ms`) reaching beyond it returns 403 `history_depth`; without them the
+                page simply stops at the window.
             since: Lower time bound, inclusive. A `datetime` (naive = UTC), a `date`, an ISO
                 string (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
             until: Upper time bound, inclusive to the millisecond. A `datetime` (naive =
@@ -5067,8 +5152,9 @@ class OptionsIvKlinesResource(SyncResource):
     ) -> RowIterator[m.OptionsIvKline]:
         """Every row of `/v1/options/iv/klines` over a period, following `next` page after page.
 
-        Pages are fetched lazily, `page_size` rows at a time (default: the route's
-        maximum, the fewest requests). With `since`, rows come oldest first unless
+        Pages are fetched lazily, `page_size` rows at a time (default with `since`: the
+        route's maximum; without it, the route's default page, which stops at your plan's
+        history window). With `since`, rows come oldest first unless
         `order` says otherwise. Call `.to_pandas()` / `.to_list()` to collect them.
 
         Args:
@@ -5161,8 +5247,9 @@ class OptionsMaxPainHistoryResource(SyncResource):
                 (`2026-10-30T08:00:00.000Z`). Missing: 422 `missing_expiry`, and the error
                 lists the active expiries.
             limit: Number of rows to return, in the reading order (most recent first by
-                default). Also bounded by your plan's history window (403 `history_depth`
-                beyond it).
+                default). Bounded by your plan's history window: an explicit `limit` (or
+                `since_ms`) reaching beyond it returns 403 `history_depth`; without them the
+                page simply stops at the window.
             since: Lower time bound, inclusive. A `datetime` (naive = UTC), a `date`, an ISO
                 string (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
             until: Upper time bound, inclusive to the millisecond. A `datetime` (naive =
@@ -5196,8 +5283,9 @@ class OptionsMaxPainHistoryResource(SyncResource):
     ) -> RowIterator[m.OptionsMaxPainHistoryItem]:
         """Every row of `/v1/options/max-pain/history` over a period, following `next` page after page.
 
-        Pages are fetched lazily, `page_size` rows at a time (default: the route's
-        maximum, the fewest requests). With `since`, rows come oldest first unless
+        Pages are fetched lazily, `page_size` rows at a time (default with `since`: the
+        route's maximum; without it, the route's default page, which stops at your plan's
+        history window). With `since`, rows come oldest first unless
         `order` says otherwise. Call `.to_pandas()` / `.to_list()` to collect them.
 
         Args:
@@ -5288,8 +5376,9 @@ class OptionsOiDeltaHistoryResource(SyncResource):
                 is not served on options). Missing: 422 `missing_parameter`; other values:
                 422 `invalid_timeframe`.
             limit: Number of rows to return, in the reading order (most recent first by
-                default). Also bounded by your plan's history window (403 `history_depth`
-                beyond it).
+                default). Bounded by your plan's history window: an explicit `limit` (or
+                `since_ms`) reaching beyond it returns 403 `history_depth`; without them the
+                page simply stops at the window.
             since: Lower time bound, inclusive. A `datetime` (naive = UTC), a `date`, an ISO
                 string (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
             until: Upper time bound, inclusive to the millisecond. A `datetime` (naive =
@@ -5323,8 +5412,9 @@ class OptionsOiDeltaHistoryResource(SyncResource):
     ) -> RowIterator[m.OptionsOiDeltaHistoryItem]:
         """Every row of `/v1/options/oi/delta/history` over a period, following `next` page after page.
 
-        Pages are fetched lazily, `page_size` rows at a time (default: the route's
-        maximum, the fewest requests). With `since`, rows come oldest first unless
+        Pages are fetched lazily, `page_size` rows at a time (default with `since`: the
+        route's maximum; without it, the route's default page, which stops at your plan's
+        history window). With `since`, rows come oldest first unless
         `order` says otherwise. Call `.to_pandas()` / `.to_list()` to collect them.
 
         Args:
@@ -5449,8 +5539,9 @@ class OptionsOiHistoryResource(SyncResource):
                 is not served on options). Missing: 422 `missing_parameter`; other values:
                 422 `invalid_timeframe`.
             limit: Number of rows to return, in the reading order (most recent first by
-                default). Also bounded by your plan's history window (403 `history_depth`
-                beyond it).
+                default). Bounded by your plan's history window: an explicit `limit` (or
+                `since_ms`) reaching beyond it returns 403 `history_depth`; without them the
+                page simply stops at the window.
             since: Lower time bound, inclusive. A `datetime` (naive = UTC), a `date`, an ISO
                 string (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
             until: Upper time bound, inclusive to the millisecond. A `datetime` (naive =
@@ -5484,8 +5575,9 @@ class OptionsOiHistoryResource(SyncResource):
     ) -> RowIterator[m.OptionsOiHistoryItem]:
         """Every row of `/v1/options/oi/history` over a period, following `next` page after page.
 
-        Pages are fetched lazily, `page_size` rows at a time (default: the route's
-        maximum, the fewest requests). With `since`, rows come oldest first unless
+        Pages are fetched lazily, `page_size` rows at a time (default with `since`: the
+        route's maximum; without it, the route's default page, which stops at your plan's
+        history window). With `since`, rows come oldest first unless
         `order` says otherwise. Call `.to_pandas()` / `.to_list()` to collect them.
 
         Args:
@@ -5579,8 +5671,9 @@ class OptionsPcRatioHistoryResource(SyncResource):
                 is not served on options). Missing: 422 `missing_parameter`; other values:
                 422 `invalid_timeframe`.
             limit: Number of rows to return, in the reading order (most recent first by
-                default). Also bounded by your plan's history window (403 `history_depth`
-                beyond it).
+                default). Bounded by your plan's history window: an explicit `limit` (or
+                `since_ms`) reaching beyond it returns 403 `history_depth`; without them the
+                page simply stops at the window.
             since: Lower time bound, inclusive. A `datetime` (naive = UTC), a `date`, an ISO
                 string (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
             until: Upper time bound, inclusive to the millisecond. A `datetime` (naive =
@@ -5614,8 +5707,9 @@ class OptionsPcRatioHistoryResource(SyncResource):
     ) -> RowIterator[m.OptionsPcRatioHistoryItem]:
         """Every row of `/v1/options/pc-ratio/history` over a period, following `next` page after page.
 
-        Pages are fetched lazily, `page_size` rows at a time (default: the route's
-        maximum, the fewest requests). With `since`, rows come oldest first unless
+        Pages are fetched lazily, `page_size` rows at a time (default with `since`: the
+        route's maximum; without it, the route's default page, which stops at your plan's
+        history window). With `since`, rows come oldest first unless
         `order` says otherwise. Call `.to_pandas()` / `.to_list()` to collect them.
 
         Args:
@@ -5733,8 +5827,9 @@ class OptionsVolumeHistoryResource(SyncResource):
                 is not served on options). Missing: 422 `missing_parameter`; other values:
                 422 `invalid_timeframe`.
             limit: Number of rows to return, in the reading order (most recent first by
-                default). Also bounded by your plan's history window (403 `history_depth`
-                beyond it).
+                default). Bounded by your plan's history window: an explicit `limit` (or
+                `since_ms`) reaching beyond it returns 403 `history_depth`; without them the
+                page simply stops at the window.
             since: Lower time bound, inclusive. A `datetime` (naive = UTC), a `date`, an ISO
                 string (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
             until: Upper time bound, inclusive to the millisecond. A `datetime` (naive =
@@ -5768,8 +5863,9 @@ class OptionsVolumeHistoryResource(SyncResource):
     ) -> RowIterator[m.OptionsVolumeHistoryItem]:
         """Every row of `/v1/options/volume/history` over a period, following `next` page after page.
 
-        Pages are fetched lazily, `page_size` rows at a time (default: the route's
-        maximum, the fewest requests). With `since`, rows come oldest first unless
+        Pages are fetched lazily, `page_size` rows at a time (default with `since`: the
+        route's maximum; without it, the route's default page, which stops at your plan's
+        history window). With `since`, rows come oldest first unless
         `order` says otherwise. Call `.to_pandas()` / `.to_list()` to collect them.
 
         Args:
@@ -5884,10 +5980,12 @@ class OrderbookFuturesHistoryResource(SyncResource):
                 accepted list.
             timeframe: Bucket size, required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`.
                 Missing: 422 `missing_parameter`; other values: 422 `invalid_timeframe` with
-                the accepted list.
+                the accepted list. In any case (`1H` is `1h`), except `1M`: refused, since
+                elsewhere it means a month and here `1m` is one minute.
             limit: Number of rows to return, in the reading order (most recent first by
-                default). Also bounded by your plan's history window (403 `history_depth`
-                beyond it).
+                default). Bounded by your plan's history window: an explicit `limit` (or
+                `since_ms`) reaching beyond it returns 403 `history_depth`; without them the
+                page simply stops at the window.
             since: Lower time bound, inclusive. A `datetime` (naive = UTC), a `date`, an ISO
                 string (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
             until: Upper time bound, inclusive to the millisecond. A `datetime` (naive =
@@ -5921,8 +6019,9 @@ class OrderbookFuturesHistoryResource(SyncResource):
     ) -> RowIterator[m.Orderbook]:
         """Every row of `/v1/orderbook/futures/history` over a period, following `next` page after page.
 
-        Pages are fetched lazily, `page_size` rows at a time (default: the route's
-        maximum, the fewest requests). With `since`, rows come oldest first unless
+        Pages are fetched lazily, `page_size` rows at a time (default with `since`: the
+        route's maximum; without it, the route's default page, which stops at your plan's
+        history window). With `since`, rows come oldest first unless
         `order` says otherwise. Call `.to_pandas()` / `.to_list()` to collect them.
 
         Args:
@@ -5932,7 +6031,8 @@ class OrderbookFuturesHistoryResource(SyncResource):
                 accepted list.
             timeframe: Bucket size, required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`.
                 Missing: 422 `missing_parameter`; other values: 422 `invalid_timeframe` with
-                the accepted list.
+                the accepted list. In any case (`1H` is `1h`), except `1M`: refused, since
+                elsewhere it means a month and here `1m` is one minute.
             since: Lower time bound, inclusive. A `datetime` (naive = UTC), a `date`, an ISO
                 string (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
             until: Upper time bound, inclusive to the millisecond. A `datetime` (naive =
@@ -5981,7 +6081,8 @@ class OrderbookFuturesResource(SyncResource):
                 accepted list.
             timeframe: Bucket size, required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`.
                 Missing: 422 `missing_parameter`; other values: 422 `invalid_timeframe` with
-                the accepted list.
+                the accepted list. In any case (`1H` is `1h`), except `1M`: refused, since
+                elsewhere it means a month and here `1m` is one minute.
             fields: Only return these fields of each row (a list or a comma-separated
                 string; dotted paths reach nested keys). Rows are then partial and not
                 validated.
@@ -6022,10 +6123,12 @@ class OrderbookHistoryResource(SyncResource):
                 accepted list.
             timeframe: Bucket size, required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`.
                 Missing: 422 `missing_parameter`; other values: 422 `invalid_timeframe` with
-                the accepted list.
+                the accepted list. In any case (`1H` is `1h`), except `1M`: refused, since
+                elsewhere it means a month and here `1m` is one minute.
             limit: Number of rows to return, in the reading order (most recent first by
-                default). Also bounded by your plan's history window (403 `history_depth`
-                beyond it).
+                default). Bounded by your plan's history window: an explicit `limit` (or
+                `since_ms`) reaching beyond it returns 403 `history_depth`; without them the
+                page simply stops at the window.
             since: Lower time bound, inclusive. A `datetime` (naive = UTC), a `date`, an ISO
                 string (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
             until: Upper time bound, inclusive to the millisecond. A `datetime` (naive =
@@ -6059,8 +6162,9 @@ class OrderbookHistoryResource(SyncResource):
     ) -> RowIterator[m.Orderbook]:
         """Every row of `/v1/orderbook/history` over a period, following `next` page after page.
 
-        Pages are fetched lazily, `page_size` rows at a time (default: the route's
-        maximum, the fewest requests). With `since`, rows come oldest first unless
+        Pages are fetched lazily, `page_size` rows at a time (default with `since`: the
+        route's maximum; without it, the route's default page, which stops at your plan's
+        history window). With `since`, rows come oldest first unless
         `order` says otherwise. Call `.to_pandas()` / `.to_list()` to collect them.
 
         Args:
@@ -6070,7 +6174,8 @@ class OrderbookHistoryResource(SyncResource):
                 accepted list.
             timeframe: Bucket size, required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`.
                 Missing: 422 `missing_parameter`; other values: 422 `invalid_timeframe` with
-                the accepted list.
+                the accepted list. In any case (`1H` is `1h`), except `1M`: refused, since
+                elsewhere it means a month and here `1m` is one minute.
             since: Lower time bound, inclusive. A `datetime` (naive = UTC), a `date`, an ISO
                 string (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
             until: Upper time bound, inclusive to the millisecond. A `datetime` (naive =
@@ -6118,10 +6223,12 @@ class OrderbookSpotHistoryResource(SyncResource):
                 accepted list.
             timeframe: Bucket size, required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`.
                 Missing: 422 `missing_parameter`; other values: 422 `invalid_timeframe` with
-                the accepted list.
+                the accepted list. In any case (`1H` is `1h`), except `1M`: refused, since
+                elsewhere it means a month and here `1m` is one minute.
             limit: Number of rows to return, in the reading order (most recent first by
-                default). Also bounded by your plan's history window (403 `history_depth`
-                beyond it).
+                default). Bounded by your plan's history window: an explicit `limit` (or
+                `since_ms`) reaching beyond it returns 403 `history_depth`; without them the
+                page simply stops at the window.
             since: Lower time bound, inclusive. A `datetime` (naive = UTC), a `date`, an ISO
                 string (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
             until: Upper time bound, inclusive to the millisecond. A `datetime` (naive =
@@ -6155,8 +6262,9 @@ class OrderbookSpotHistoryResource(SyncResource):
     ) -> RowIterator[m.Orderbook]:
         """Every row of `/v1/orderbook/spot/history` over a period, following `next` page after page.
 
-        Pages are fetched lazily, `page_size` rows at a time (default: the route's
-        maximum, the fewest requests). With `since`, rows come oldest first unless
+        Pages are fetched lazily, `page_size` rows at a time (default with `since`: the
+        route's maximum; without it, the route's default page, which stops at your plan's
+        history window). With `since`, rows come oldest first unless
         `order` says otherwise. Call `.to_pandas()` / `.to_list()` to collect them.
 
         Args:
@@ -6166,7 +6274,8 @@ class OrderbookSpotHistoryResource(SyncResource):
                 accepted list.
             timeframe: Bucket size, required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`.
                 Missing: 422 `missing_parameter`; other values: 422 `invalid_timeframe` with
-                the accepted list.
+                the accepted list. In any case (`1H` is `1h`), except `1M`: refused, since
+                elsewhere it means a month and here `1m` is one minute.
             since: Lower time bound, inclusive. A `datetime` (naive = UTC), a `date`, an ISO
                 string (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
             until: Upper time bound, inclusive to the millisecond. A `datetime` (naive =
@@ -6215,7 +6324,8 @@ class OrderbookSpotResource(SyncResource):
                 accepted list.
             timeframe: Bucket size, required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`.
                 Missing: 422 `missing_parameter`; other values: 422 `invalid_timeframe` with
-                the accepted list.
+                the accepted list. In any case (`1H` is `1h`), except `1M`: refused, since
+                elsewhere it means a month and here `1m` is one minute.
             fields: Only return these fields of each row (a list or a comma-separated
                 string; dotted paths reach nested keys). Rows are then partial and not
                 validated.
@@ -6264,7 +6374,8 @@ class OrderbookResource(SyncResource):
                 accepted list.
             timeframe: Bucket size, required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`.
                 Missing: 422 `missing_parameter`; other values: 422 `invalid_timeframe` with
-                the accepted list.
+                the accepted list. In any case (`1H` is `1h`), except `1M`: refused, since
+                elsewhere it means a month and here `1m` is one minute.
             fields: Only return these fields of each row (a list or a comma-separated
                 string; dotted paths reach nested keys). Rows are then partial and not
                 validated.
@@ -6368,16 +6479,20 @@ class SnapshotResource(SyncResource):
         flow, derivatives, liquidations, macro, on-chain, options. Each query key is a field
         and its value a depth: `funding_rate=1` (or `=true`). Multi-timeframe fields take
         `@tf`: `klines@1h=24`, `cvd@1h=24`; `klines` also takes `1w`. Every field has the
-        name and the response of its route: at depth 1, the object of a latest-value route
-        (`basis`, `cvd@1h`, `orderbook@1m`…); above 1, the list of its `/history`; a field
-        whose route serves only its latest value accepts depth 1 alone (422
-        `depth_too_large` beyond). A market field serves all markets (the route without
-        `/spot` or `/futures`). Call it with only `symbol` to get `available_fields` (fields
-        without a timeframe), `available_multi_tf_fields`, `timeframes`,
-        `timeframes_by_field` and `max_depth`. An empty field carries `unavailable`
-        (`not_applicable`, `no_api_key` or `no_data`) so 'no measure' is never mistaken for
-        'nothing happened'. Response: `symbol`, `data` (an object keyed by field name) and
-        `partial` (true if a field failed).
+        name of its route and, at depth 1, its response: the object of a latest-value route
+        (`basis`, `cvd@1h`, `orderbook@1m`…). A depth above 1 is accepted only where
+        `max_depth` gives a ceiling: a multi-timeframe field returns the latest N rows of
+        its `/history` at that timeframe; the series `trades_spot`, `trades_futures`,
+        `trades_kline_futures_seconds` and `liquidations_events` their latest N rows;
+        `basis`, `oi_delta` and `liquidations_cumulative` their latest N one-minute values,
+        each shaped like the latest value. Any other field serves its latest value alone:
+        422 `depth_too_large` above 1, naming its `/history` route when it has one. A market
+        field serves all markets (the route without `/spot` or `/futures`). Call it with
+        only `symbol` to get `available_fields` (fields without a timeframe),
+        `available_multi_tf_fields`, `timeframes`, `timeframes_by_field` and `max_depth`. An
+        empty field carries `unavailable` (`not_applicable`, `no_api_key` or `no_data`) so
+        'no measure' is never mistaken for 'nothing happened'. Response: `symbol`, `data`
+        (an object keyed by field name) and `partial` (true if a field failed).
 
         Each field takes a depth: `True` for the latest value, or `N` for the N latest rows.
         Multi-timeframe fields take a mapping: `klines={"1h": 24, "1d": 7}`.
@@ -6487,10 +6602,12 @@ class SpreadInterexchangeHistoryResource(SyncResource):
                 accepted list.
             timeframe: Bucket size, required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`.
                 Missing: 422 `missing_parameter`; other values: 422 `invalid_timeframe` with
-                the accepted list.
+                the accepted list. In any case (`1H` is `1h`), except `1M`: refused, since
+                elsewhere it means a month and here `1m` is one minute.
             limit: Number of rows to return, in the reading order (most recent first by
-                default). Also bounded by your plan's history window (403 `history_depth`
-                beyond it).
+                default). Bounded by your plan's history window: an explicit `limit` (or
+                `since_ms`) reaching beyond it returns 403 `history_depth`; without them the
+                page simply stops at the window.
             since: Lower time bound, inclusive. A `datetime` (naive = UTC), a `date`, an ISO
                 string (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
             until: Upper time bound, inclusive to the millisecond. A `datetime` (naive =
@@ -6524,8 +6641,9 @@ class SpreadInterexchangeHistoryResource(SyncResource):
     ) -> RowIterator[m.SpreadInterexchange]:
         """Every row of `/v1/spread/interexchange/history` over a period, following `next` page after page.
 
-        Pages are fetched lazily, `page_size` rows at a time (default: the route's
-        maximum, the fewest requests). With `since`, rows come oldest first unless
+        Pages are fetched lazily, `page_size` rows at a time (default with `since`: the
+        route's maximum; without it, the route's default page, which stops at your plan's
+        history window). With `since`, rows come oldest first unless
         `order` says otherwise. Call `.to_pandas()` / `.to_list()` to collect them.
 
         Args:
@@ -6535,7 +6653,8 @@ class SpreadInterexchangeHistoryResource(SyncResource):
                 accepted list.
             timeframe: Bucket size, required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`.
                 Missing: 422 `missing_parameter`; other values: 422 `invalid_timeframe` with
-                the accepted list.
+                the accepted list. In any case (`1H` is `1h`), except `1M`: refused, since
+                elsewhere it means a month and here `1m` is one minute.
             since: Lower time bound, inclusive. A `datetime` (naive = UTC), a `date`, an ISO
                 string (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
             until: Upper time bound, inclusive to the millisecond. A `datetime` (naive =
@@ -6587,7 +6706,8 @@ class SpreadInterexchangeResource(SyncResource):
                 accepted list.
             timeframe: Bucket size, required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`.
                 Missing: 422 `missing_parameter`; other values: 422 `invalid_timeframe` with
-                the accepted list.
+                the accepted list. In any case (`1H` is `1h`), except `1M`: refused, since
+                elsewhere it means a month and here `1m` is one minute.
             live: `1` or `true` to return the CURRENT, still-open period computed on the fly
                 (`is_closed: false`). Default: the last closed period only.
             fields: Only return these fields of each row (a list or a comma-separated
@@ -6722,8 +6842,9 @@ class TokenomicsHistoryResource(SyncResource):
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
             limit: Number of rows to return, in the reading order (most recent first by
-                default). Also bounded by your plan's history window (403 `history_depth`
-                beyond it).
+                default). Bounded by your plan's history window: an explicit `limit` (or
+                `since_ms`) reaching beyond it returns 403 `history_depth`; without them the
+                page simply stops at the window.
             since: Lower time bound, inclusive. A `datetime` (naive = UTC), a `date`, an ISO
                 string (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
             until: Upper time bound, inclusive to the millisecond. A `datetime` (naive =
@@ -6756,8 +6877,9 @@ class TokenomicsHistoryResource(SyncResource):
     ) -> RowIterator[m.TokenomicsHistoryItem]:
         """Every row of `/v1/tokenomics/history` over a period, following `next` page after page.
 
-        Pages are fetched lazily, `page_size` rows at a time (default: the route's
-        maximum, the fewest requests). With `since`, rows come oldest first unless
+        Pages are fetched lazily, `page_size` rows at a time (default with `since`: the
+        route's maximum; without it, the route's default page, which stops at your plan's
+        history window). With `since`, rows come oldest first unless
         `order` says otherwise. Call `.to_pandas()` / `.to_list()` to collect them.
 
         Args:
@@ -6850,10 +6972,12 @@ class TradesKlineFuturesHistoryResource(SyncResource):
                 accepted list.
             timeframe: Bucket size, required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`.
                 Missing: 422 `missing_parameter`; other values: 422 `invalid_timeframe` with
-                the accepted list.
+                the accepted list. In any case (`1H` is `1h`), except `1M`: refused, since
+                elsewhere it means a month and here `1m` is one minute.
             limit: Number of rows to return, in the reading order (most recent first by
-                default). Also bounded by your plan's history window (403 `history_depth`
-                beyond it).
+                default). Bounded by your plan's history window: an explicit `limit` (or
+                `since_ms`) reaching beyond it returns 403 `history_depth`; without them the
+                page simply stops at the window.
             since: Lower time bound, inclusive. A `datetime` (naive = UTC), a `date`, an ISO
                 string (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
             until: Upper time bound, inclusive to the millisecond. A `datetime` (naive =
@@ -6887,8 +7011,9 @@ class TradesKlineFuturesHistoryResource(SyncResource):
     ) -> RowIterator[m.TradesKline]:
         """Every row of `/v1/trades-kline/futures/history` over a period, following `next` page after page.
 
-        Pages are fetched lazily, `page_size` rows at a time (default: the route's
-        maximum, the fewest requests). With `since`, rows come oldest first unless
+        Pages are fetched lazily, `page_size` rows at a time (default with `since`: the
+        route's maximum; without it, the route's default page, which stops at your plan's
+        history window). With `since`, rows come oldest first unless
         `order` says otherwise. Call `.to_pandas()` / `.to_list()` to collect them.
 
         Args:
@@ -6898,7 +7023,8 @@ class TradesKlineFuturesHistoryResource(SyncResource):
                 accepted list.
             timeframe: Bucket size, required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`.
                 Missing: 422 `missing_parameter`; other values: 422 `invalid_timeframe` with
-                the accepted list.
+                the accepted list. In any case (`1H` is `1h`), except `1M`: refused, since
+                elsewhere it means a month and here `1m` is one minute.
             since: Lower time bound, inclusive. A `datetime` (naive = UTC), a `date`, an ISO
                 string (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
             until: Upper time bound, inclusive to the millisecond. A `datetime` (naive =
@@ -6981,8 +7107,9 @@ class TradesKlineFuturesSecondsResource(SyncResource):
     ) -> RowIterator[m.TradesKlineSecond]:
         """Every row of `/v1/trades-kline/futures/seconds` over a period, following `next` page after page.
 
-        Pages are fetched lazily, `page_size` rows at a time (default: the route's
-        maximum, the fewest requests). With `since`, rows come oldest first unless
+        Pages are fetched lazily, `page_size` rows at a time (default with `since`: the
+        route's maximum; without it, the route's default page, which stops at your plan's
+        history window). With `since`, rows come oldest first unless
         `order` says otherwise. Call `.to_pandas()` / `.to_list()` to collect them.
 
         Args:
@@ -7044,7 +7171,8 @@ class TradesKlineFuturesResource(SyncResource):
                 accepted list.
             timeframe: Bucket size, required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`.
                 Missing: 422 `missing_parameter`; other values: 422 `invalid_timeframe` with
-                the accepted list.
+                the accepted list. In any case (`1H` is `1h`), except `1M`: refused, since
+                elsewhere it means a month and here `1m` is one minute.
             live: `1` or `true` to return the CURRENT, still-open period computed on the fly
                 (`is_closed: false`). Default: the last closed period only.
             fields: Only return these fields of each row (a list or a comma-separated
@@ -7086,10 +7214,12 @@ class TradesKlineHistoryResource(SyncResource):
                 accepted list.
             timeframe: Bucket size, required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`.
                 Missing: 422 `missing_parameter`; other values: 422 `invalid_timeframe` with
-                the accepted list.
+                the accepted list. In any case (`1H` is `1h`), except `1M`: refused, since
+                elsewhere it means a month and here `1m` is one minute.
             limit: Number of rows to return, in the reading order (most recent first by
-                default). Also bounded by your plan's history window (403 `history_depth`
-                beyond it).
+                default). Bounded by your plan's history window: an explicit `limit` (or
+                `since_ms`) reaching beyond it returns 403 `history_depth`; without them the
+                page simply stops at the window.
             since: Lower time bound, inclusive. A `datetime` (naive = UTC), a `date`, an ISO
                 string (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
             until: Upper time bound, inclusive to the millisecond. A `datetime` (naive =
@@ -7123,8 +7253,9 @@ class TradesKlineHistoryResource(SyncResource):
     ) -> RowIterator[m.TradesKline]:
         """Every row of `/v1/trades-kline/history` over a period, following `next` page after page.
 
-        Pages are fetched lazily, `page_size` rows at a time (default: the route's
-        maximum, the fewest requests). With `since`, rows come oldest first unless
+        Pages are fetched lazily, `page_size` rows at a time (default with `since`: the
+        route's maximum; without it, the route's default page, which stops at your plan's
+        history window). With `since`, rows come oldest first unless
         `order` says otherwise. Call `.to_pandas()` / `.to_list()` to collect them.
 
         Args:
@@ -7134,7 +7265,8 @@ class TradesKlineHistoryResource(SyncResource):
                 accepted list.
             timeframe: Bucket size, required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`.
                 Missing: 422 `missing_parameter`; other values: 422 `invalid_timeframe` with
-                the accepted list.
+                the accepted list. In any case (`1H` is `1h`), except `1M`: refused, since
+                elsewhere it means a month and here `1m` is one minute.
             since: Lower time bound, inclusive. A `datetime` (naive = UTC), a `date`, an ISO
                 string (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
             until: Upper time bound, inclusive to the millisecond. A `datetime` (naive =
@@ -7184,10 +7316,12 @@ class TradesKlineSpotHistoryResource(SyncResource):
                 accepted list.
             timeframe: Bucket size, required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`.
                 Missing: 422 `missing_parameter`; other values: 422 `invalid_timeframe` with
-                the accepted list.
+                the accepted list. In any case (`1H` is `1h`), except `1M`: refused, since
+                elsewhere it means a month and here `1m` is one minute.
             limit: Number of rows to return, in the reading order (most recent first by
-                default). Also bounded by your plan's history window (403 `history_depth`
-                beyond it).
+                default). Bounded by your plan's history window: an explicit `limit` (or
+                `since_ms`) reaching beyond it returns 403 `history_depth`; without them the
+                page simply stops at the window.
             since: Lower time bound, inclusive. A `datetime` (naive = UTC), a `date`, an ISO
                 string (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
             until: Upper time bound, inclusive to the millisecond. A `datetime` (naive =
@@ -7221,8 +7355,9 @@ class TradesKlineSpotHistoryResource(SyncResource):
     ) -> RowIterator[m.TradesKline]:
         """Every row of `/v1/trades-kline/spot/history` over a period, following `next` page after page.
 
-        Pages are fetched lazily, `page_size` rows at a time (default: the route's
-        maximum, the fewest requests). With `since`, rows come oldest first unless
+        Pages are fetched lazily, `page_size` rows at a time (default with `since`: the
+        route's maximum; without it, the route's default page, which stops at your plan's
+        history window). With `since`, rows come oldest first unless
         `order` says otherwise. Call `.to_pandas()` / `.to_list()` to collect them.
 
         Args:
@@ -7232,7 +7367,8 @@ class TradesKlineSpotHistoryResource(SyncResource):
                 accepted list.
             timeframe: Bucket size, required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`.
                 Missing: 422 `missing_parameter`; other values: 422 `invalid_timeframe` with
-                the accepted list.
+                the accepted list. In any case (`1H` is `1h`), except `1M`: refused, since
+                elsewhere it means a month and here `1m` is one minute.
             since: Lower time bound, inclusive. A `datetime` (naive = UTC), a `date`, an ISO
                 string (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
             until: Upper time bound, inclusive to the millisecond. A `datetime` (naive =
@@ -7283,7 +7419,8 @@ class TradesKlineSpotResource(SyncResource):
                 accepted list.
             timeframe: Bucket size, required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`.
                 Missing: 422 `missing_parameter`; other values: 422 `invalid_timeframe` with
-                the accepted list.
+                the accepted list. In any case (`1H` is `1h`), except `1M`: refused, since
+                elsewhere it means a month and here `1m` is one minute.
             live: `1` or `true` to return the CURRENT, still-open period computed on the fly
                 (`is_closed: false`). Default: the last closed period only.
             fields: Only return these fields of each row (a list or a comma-separated
@@ -7333,7 +7470,8 @@ class TradesKlineResource(SyncResource):
                 accepted list.
             timeframe: Bucket size, required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`.
                 Missing: 422 `missing_parameter`; other values: 422 `invalid_timeframe` with
-                the accepted list.
+                the accepted list. In any case (`1H` is `1h`), except `1M`: refused, since
+                elsewhere it means a month and here `1m` is one minute.
             live: `1` or `true` to return the CURRENT, still-open period computed on the fly
                 (`is_closed: false`). Default: the last closed period only.
             fields: Only return these fields of each row (a list or a comma-separated
@@ -7377,8 +7515,9 @@ class TradesAvgSizeFuturesHistoryResource(SyncResource):
                 bucket); `1m` gives one row per minute, aligned on the minute. Missing: 422
                 `missing_parameter`.
             limit: Number of rows to return, in the reading order (most recent first by
-                default). Also bounded by your plan's history window (403 `history_depth`
-                beyond it).
+                default). Bounded by your plan's history window: an explicit `limit` (or
+                `since_ms`) reaching beyond it returns 403 `history_depth`; without them the
+                page simply stops at the window.
             since: Lower time bound, inclusive. A `datetime` (naive = UTC), a `date`, an ISO
                 string (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
             until: Upper time bound, inclusive to the millisecond. A `datetime` (naive =
@@ -7412,8 +7551,9 @@ class TradesAvgSizeFuturesHistoryResource(SyncResource):
     ) -> RowIterator[m.TradesAvgSizeHistoryItem]:
         """Every row of `/v1/trades/avg-size/futures/history` over a period, following `next` page after page.
 
-        Pages are fetched lazily, `page_size` rows at a time (default: the route's
-        maximum, the fewest requests). With `since`, rows come oldest first unless
+        Pages are fetched lazily, `page_size` rows at a time (default with `since`: the
+        route's maximum; without it, the route's default page, which stops at your plan's
+        history window). With `since`, rows come oldest first unless
         `order` says otherwise. Call `.to_pandas()` / `.to_list()` to collect them.
 
         Args:
@@ -7520,8 +7660,9 @@ class TradesAvgSizeHistoryResource(SyncResource):
                 bucket); `1m` gives one row per minute, aligned on the minute. Missing: 422
                 `missing_parameter`.
             limit: Number of rows to return, in the reading order (most recent first by
-                default). Also bounded by your plan's history window (403 `history_depth`
-                beyond it).
+                default). Bounded by your plan's history window: an explicit `limit` (or
+                `since_ms`) reaching beyond it returns 403 `history_depth`; without them the
+                page simply stops at the window.
             since: Lower time bound, inclusive. A `datetime` (naive = UTC), a `date`, an ISO
                 string (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
             until: Upper time bound, inclusive to the millisecond. A `datetime` (naive =
@@ -7555,8 +7696,9 @@ class TradesAvgSizeHistoryResource(SyncResource):
     ) -> RowIterator[m.TradesAvgSizeHistoryItem]:
         """Every row of `/v1/trades/avg-size/history` over a period, following `next` page after page.
 
-        Pages are fetched lazily, `page_size` rows at a time (default: the route's
-        maximum, the fewest requests). With `since`, rows come oldest first unless
+        Pages are fetched lazily, `page_size` rows at a time (default with `since`: the
+        route's maximum; without it, the route's default page, which stops at your plan's
+        history window). With `since`, rows come oldest first unless
         `order` says otherwise. Call `.to_pandas()` / `.to_list()` to collect them.
 
         Args:
@@ -7618,8 +7760,9 @@ class TradesAvgSizeSpotHistoryResource(SyncResource):
                 bucket); `1m` gives one row per minute, aligned on the minute. Missing: 422
                 `missing_parameter`.
             limit: Number of rows to return, in the reading order (most recent first by
-                default). Also bounded by your plan's history window (403 `history_depth`
-                beyond it).
+                default). Bounded by your plan's history window: an explicit `limit` (or
+                `since_ms`) reaching beyond it returns 403 `history_depth`; without them the
+                page simply stops at the window.
             since: Lower time bound, inclusive. A `datetime` (naive = UTC), a `date`, an ISO
                 string (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
             until: Upper time bound, inclusive to the millisecond. A `datetime` (naive =
@@ -7653,8 +7796,9 @@ class TradesAvgSizeSpotHistoryResource(SyncResource):
     ) -> RowIterator[m.TradesAvgSizeHistoryItem]:
         """Every row of `/v1/trades/avg-size/spot/history` over a period, following `next` page after page.
 
-        Pages are fetched lazily, `page_size` rows at a time (default: the route's
-        maximum, the fewest requests). With `since`, rows come oldest first unless
+        Pages are fetched lazily, `page_size` rows at a time (default with `since`: the
+        route's maximum; without it, the route's default page, which stops at your plan's
+        history window). With `since`, rows come oldest first unless
         `order` says otherwise. Call `.to_pandas()` / `.to_list()` to collect them.
 
         Args:
@@ -7800,8 +7944,9 @@ class TradesFuturesResource(SyncResource):
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
             limit: Number of rows to return, in the reading order (most recent first by
-                default). Also bounded by your plan's history window (403 `history_depth`
-                beyond it).
+                default). Bounded by your plan's history window: an explicit `limit` (or
+                `since_ms`) reaching beyond it returns 403 `history_depth`; without them the
+                page simply stops at the window.
             since: Lower time bound, inclusive. A `datetime` (naive = UTC), a `date`, an ISO
                 string (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
             until: Upper time bound, inclusive to the millisecond. A `datetime` (naive =
@@ -7839,8 +7984,9 @@ class TradesFuturesResource(SyncResource):
     ) -> RowIterator[m.Trade]:
         """Every row of `/v1/trades/futures` over a period, following `next` page after page.
 
-        Pages are fetched lazily, `page_size` rows at a time (default: the route's
-        maximum, the fewest requests). With `since`, rows come oldest first unless
+        Pages are fetched lazily, `page_size` rows at a time (default with `since`: the
+        route's maximum; without it, the route's default page, which stops at your plan's
+        history window). With `since`, rows come oldest first unless
         `order` says otherwise. Call `.to_pandas()` / `.to_list()` to collect them.
 
         Args:
@@ -7900,8 +8046,9 @@ class TradesLargeResource(SyncResource):
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
             limit: Number of rows to return, in the reading order (most recent first by
-                default). Also bounded by your plan's history window (403 `history_depth`
-                beyond it).
+                default). Bounded by your plan's history window: an explicit `limit` (or
+                `since_ms`) reaching beyond it returns 403 `history_depth`; without them the
+                page simply stops at the window.
             since: Lower time bound, inclusive. A `datetime` (naive = UTC), a `date`, an ISO
                 string (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
             until: Upper time bound, inclusive to the millisecond. A `datetime` (naive =
@@ -7941,8 +8088,9 @@ class TradesLargeResource(SyncResource):
     ) -> RowIterator[m.Trade]:
         """Every row of `/v1/trades/large` over a period, following `next` page after page.
 
-        Pages are fetched lazily, `page_size` rows at a time (default: the route's
-        maximum, the fewest requests). With `since`, rows come oldest first unless
+        Pages are fetched lazily, `page_size` rows at a time (default with `since`: the
+        route's maximum; without it, the route's default page, which stops at your plan's
+        history window). With `since`, rows come oldest first unless
         `order` says otherwise. Call `.to_pandas()` / `.to_list()` to collect them.
 
         Args:
@@ -8005,8 +8153,9 @@ class TradesSpotResource(SyncResource):
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
             limit: Number of rows to return, in the reading order (most recent first by
-                default). Also bounded by your plan's history window (403 `history_depth`
-                beyond it).
+                default). Bounded by your plan's history window: an explicit `limit` (or
+                `since_ms`) reaching beyond it returns 403 `history_depth`; without them the
+                page simply stops at the window.
             since: Lower time bound, inclusive. A `datetime` (naive = UTC), a `date`, an ISO
                 string (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
             until: Upper time bound, inclusive to the millisecond. A `datetime` (naive =
@@ -8044,8 +8193,9 @@ class TradesSpotResource(SyncResource):
     ) -> RowIterator[m.Trade]:
         """Every row of `/v1/trades/spot` over a period, following `next` page after page.
 
-        Pages are fetched lazily, `page_size` rows at a time (default: the route's
-        maximum, the fewest requests). With `since`, rows come oldest first unless
+        Pages are fetched lazily, `page_size` rows at a time (default with `since`: the
+        route's maximum; without it, the route's default page, which stops at your plan's
+        history window). With `since`, rows come oldest first unless
         `order` says otherwise. Call `.to_pandas()` / `.to_list()` to collect them.
 
         Args:

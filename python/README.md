@@ -5,8 +5,8 @@ order flow, derivatives, liquidations, options, macro, on-chain and ETF data —
 you, one call away from a pandas DataFrame, plus the real-time WebSocket stream.
 
 ```bash
-pip install https://github.com/bytnode/bytnode-SDK/releases/download/v0.2.1/bytnode-0.2.1-py3-none-any.whl
-# with pandas: pip install "bytnode[pandas] @ https://github.com/bytnode/bytnode-SDK/releases/download/v0.2.1/bytnode-0.2.1-py3-none-any.whl"
+pip install https://github.com/bytnode/bytnode-SDK/releases/download/v0.2.2/bytnode-0.2.2-py3-none-any.whl
+# with pandas: pip install "bytnode[pandas] @ https://github.com/bytnode/bytnode-SDK/releases/download/v0.2.2/bytnode-0.2.2-py3-none-any.whl"
 export BYTNODE_API_KEY=cb_live_...   # create one at https://bytnode.com/dashboard/keys
 ```
 
@@ -18,7 +18,10 @@ client = Bytnode()                                   # reads BYTNODE_API_KEY
 candles = client.klines("BTCUSDT", "1h", limit=24)
 print(candles.data[0].close, candles.data[0].time)   # typed rows, datetimes in UTC
 
-df = client.klines.iter("BTCUSDT", "1h", since="2026-01-01").to_pandas()   # every page, one DataFrame
+from datetime import datetime, timedelta, timezone
+
+since = datetime.now(timezone.utc) - timedelta(hours=12)              # inside every plan's window
+df = client.klines.iter("BTCUSDT", "1h", since=since).to_pandas()     # every page, one DataFrame (pip install pandas)
 ```
 
 Python 3.10+. Synchronous and `asyncio` clients. Fully typed (`py.typed`, mypy strict).
@@ -47,7 +50,7 @@ Every route of the [API reference](https://bytnode.com/docs) is an attribute nam
 | `GET /v1/klines` | `client.klines(symbol, timeframe, ...)` |
 | `GET /v1/funding/rate` | `client.funding.rate(symbol)` |
 | `GET /v1/funding/rate/history` | `client.funding.rate.history(symbol, ...)` |
-| `GET /v1/options/max-pain/history` | `client.options.max_pain.history("2026-12-25", asset="BTC")` |
+| `GET /v1/options/max-pain/history` | `client.options.max_pain.history("BTC", "2026-12-25")` |
 | `GET /v1/symbols/{symbol}/capabilities` | `client.symbols.capabilities("BTCUSDT")` |
 | `GET /v1/global` | `client.global_market()` (`global` is a Python keyword) |
 
@@ -86,19 +89,21 @@ or epoch milliseconds:
 
 ```python
 page = client.funding.rate.history("BTCUSDT", since="2026-09-01", until="2026-10-01", limit=100)
-page.next   # parameters of the following page, or None
+page.next   # relative URL of the following page, or None (iter() follows it for you)
 ```
 
 `.iter()` follows `next` for you, page after page, and yields rows lazily:
 
 ```python
-for row in client.klines.iter("ETHUSDT", "4h", since="2026-01-01"):
+from datetime import datetime, timedelta, timezone
+
+for row in client.klines.iter("ETHUSDT", "4h", since=datetime.now(timezone.utc) - timedelta(days=3)):
     ...
 
 rows = client.oi.history.iter("BTCUSDT", "1h", since="2026-10-01", max_items=500).to_list()
 ```
 
-- Pages are as large as the route allows (fewest requests, least quota); `page_size=` changes it.
+- With `since`, pages are as large as the route allows (fewest requests, least quota); without it, the route's default page, which stops at your plan's history window instead of exceeding it. `page_size=` changes it.
 - With `since`, rows come oldest first (`order="asc"`); without, most recent first.
 - `.pages()` yields each page's `Response` (rate limit, `server_time`...).
 - An integer that looks like seconds is refused: `since=1767225600` raises with the millisecond value
@@ -110,7 +115,10 @@ How far back you can read depends on your plan (a `PermissionDeniedError` with c
 ## pandas
 
 ```python
-df = client.klines.iter("BTCUSDT", "1d", since="2025-01-01").to_pandas()
+# `to_pandas()` needs pandas: pip install pandas (or install the wheel with the [pandas] extra)
+from datetime import datetime, timedelta, timezone
+
+df = client.klines.iter("BTCUSDT", "1d", since=datetime.now(timezone.utc) - timedelta(days=20)).to_pandas()
 df["close"].pct_change().rolling(20).std()
 ```
 
@@ -144,9 +152,11 @@ except InvalidRequestError as e:      # 400 / 422
 All inherit from `bytnode.BytnodeError`; HTTP ones from `bytnode.APIError` (`status`, `code`,
 `message`, `param`, `details`, `reason`, `headers`, `body`). Branch on `e.code` — stable, listed in
 `bytnode.types.ErrorCode` — never on the message. Every error carries `request_id` (quote it to
-support). A value the SDK can check before sending (an unknown timeframe, an indicator parameter
-out of range) raises a plain `ValueError` at once, without a request: it is a bug in the calling
-code, not an API answer. If the API serves a newer MAJOR contract than the SDK, a `BytnodeWarning`
+support). A value the SDK checks before sending (an indicator parameter out of range, a time in
+seconds instead of milliseconds) raises a plain `ValueError` at once, without a request: it is a bug
+in the calling code, not an API answer. Closed values such as `timeframe` are typed (`mypy` refuses
+`"60m"`); sent anyway, they come back from the API as a 422 (`invalid_timeframe`, with the accepted
+values). If the API serves a newer MAJOR contract than the SDK, a `BytnodeWarning`
 says so once.
 
 ## Retries, timeouts and rate limits
@@ -173,8 +183,10 @@ multi-timeframe fields take a mapping:
 
 ```python
 snap = client.snapshot("BTCUSDT", funding_rate=True, basis=5, klines={"1h": 24, "1d": 7})
-snap.data.funding_rate.rate_pct      # typed like /v1/funding/rate
-snap.data.klines_1h[0].close         # or snap.data["klines@1h"]
+funding = snap.data.funding_rate     # a depth-1-only field: the object of /v1/funding/rate, or None
+bars = snap.data.klines_1h           # Kline | list[Kline] | None: a list above depth 1
+if isinstance(bars, list):
+    print(bars[0].close)
 client.snapshot.catalog("BTCUSDT").meta["available_fields"]
 ```
 

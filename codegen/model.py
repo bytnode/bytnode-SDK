@@ -490,7 +490,9 @@ class Builder:
         by_path = {r.path: r for r in routes}
         snapshot_fields = self.snapshot_fields(by_path)
         self.presence(routes, snapshot_fields)
-        err = self.spec["components"]["schemas"]["Error"]["properties"]["error"]["properties"]["code"]
+        # `ApiError` since contract 2.1.0 (`Error` before: a reserved word of several generators).
+        schemas = self.spec["components"]["schemas"]
+        err = (schemas.get("ApiError") or schemas["Error"])["properties"]["error"]["properties"]["code"]
         return Api(
             version=self.spec["info"]["version"],
             title=self.spec["info"]["title"],

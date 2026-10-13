@@ -5,7 +5,7 @@ API: candles, order flow, derivatives, liquidations, options, macro, on-chain an
 typed, paginated for you, plus the real-time WebSocket stream.
 
 ```bash
-npm install https://github.com/bytnode/bytnode-SDK/releases/download/v0.2.1/bytnode-0.2.1.tgz
+npm install https://github.com/bytnode/bytnode-SDK/releases/download/v0.2.2/bytnode-0.2.2.tgz
 export BYTNODE_API_KEY=cb_live_...   # create one at https://bytnode.com/dashboard/keys
 ```
 
@@ -17,7 +17,8 @@ const client = new Bytnode(); // reads BYTNODE_API_KEY
 const candles = await client.klines({ symbol: 'BTCUSDT', timeframe: '1h', limit: 24 });
 console.log(candles.data[0].close, candles.data[0].time); // typed rows, times are Date
 
-for await (const row of client.funding.rate.history.iter({ symbol: 'BTCUSDT', since: '2026-01-01' })) {
+const since = new Date(Date.now() - 7 * 86_400_000); // inside every plan's window
+for await (const row of client.funding.rate.history.iter({ symbol: 'BTCUSDT', since })) {
   console.log(row.time, row.rate_pct);
 }
 ```
@@ -72,10 +73,10 @@ Time bounds take a `Date`, an ISO string (`'2026-01-01'`, naive = UTC) or epoch 
 
 ```ts
 const page = await client.oi.history({ symbol: 'BTCUSDT', timeframe: '1h', since: '2026-10-01', limit: 100 });
-page.next; // parameters of the following page, or null
+page.next; // relative URL of the following page, or null (.iter() follows it for you)
 
 // .iter() follows `next` for you, page after page:
-const rows = await client.klines.iter({ symbol: 'ETHUSDT', timeframe: '4h', since: '2026-01-01' }).toArray();
+const rows = await client.klines.iter({ symbol: 'ETHUSDT', timeframe: '4h', since: new Date(Date.now() - 3 * 86_400_000) }).toArray();
 for await (const page of client.cvd.history.iter({ symbol: 'BTCUSDT', timeframe: '1h', since: '2026-10-01' }).pages()) {
   console.log(page.data.length, page.rateLimit?.quotaRemaining);
 }
@@ -112,7 +113,7 @@ All extend `BytnodeError`; HTTP ones `APIError` (`status`, `code`, `param`, `det
 `headers`, `body`). Branch on `code` (type `ErrorCode`), never on the message.
 
 
-Every error carries `requestId` (quote it to support). A value the SDK can check before sending (an unknown timeframe, an indicator parameter out of range) throws a plain `RangeError` at once, without a request: it is a bug in the calling code, not an API answer. If the API serves a newer MAJOR contract than the SDK, a warning says so once.
+Every error carries `requestId` (quote it to support). A value the SDK checks before sending (an indicator parameter out of range, a time in seconds instead of milliseconds) throws a plain `RangeError` at once, without a request: it is a bug in the calling code, not an API answer. Closed values such as `timeframe` are typed (`tsc` refuses `'60m'`); sent anyway, they come back from the API as a 422 (`invalid_timeframe`, with the accepted values). If the API serves a newer MAJOR contract than the SDK, a warning says so once.
 
 ## Retries, timeouts and rate limits
 
@@ -130,8 +131,9 @@ client.lastRateLimit; // { limit, remaining, resetSeconds, quotaLimit, quotaRema
 
 ```ts
 const snap = await client.snapshot({ symbol: 'BTCUSDT', funding_rate: true, basis: 5, klines: { '1h': 24, '1d': 7 } });
-snap.data.funding_rate;   // typed like /v1/funding/rate
-snap.data['klines@1h'];   // Kline[]
+snap.data.funding_rate;   // a depth-1-only field: the object of /v1/funding/rate, or null
+const bars = snap.data['klines@1h']; // Kline | Kline[] | null: a list above depth 1
+if (Array.isArray(bars)) console.log(bars[0].close);
 (await client.snapshot.catalog({ symbol: 'BTCUSDT' })).meta.available_fields;
 ```
 

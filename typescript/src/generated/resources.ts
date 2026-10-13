@@ -57,7 +57,7 @@ const R_FUNDING_NEXT: RouteSpec = {"path": "/v1/funding/next", "method": "GET", 
 const R_FUNDING_RATE: RouteSpec = {"path": "/v1/funding/rate", "method": "GET", "shape": "object", "model": "FundingRate", "paginated": false, "pathParams": [], "maxLimit": null, "rangeMode": false, "wire": {}};
 const R_FUNDING_RATE_HISTORY: RouteSpec = {"path": "/v1/funding/rate/history", "method": "GET", "shape": "list", "model": "FundingRate", "paginated": true, "pathParams": [], "maxLimit": 1000, "rangeMode": false, "wire": {"since": "since_ms", "until": "until_ms", "before": "before_ms"}};
 const R_GLOBAL_MARKET: RouteSpec = {"path": "/v1/global", "method": "GET", "shape": "object", "model": "GlobalMarket", "paginated": false, "pathParams": [], "maxLimit": null, "rangeMode": false, "wire": {}};
-const R_GLOBAL_MARKET_HISTORY: RouteSpec = {"path": "/v1/global/history", "method": "GET", "shape": "list", "model": "GlobalHistoryItem", "paginated": true, "pathParams": [], "maxLimit": 1000, "rangeMode": false, "wire": {"since": "since_ms", "until": "until_ms", "before": "before_ms"}};
+const R_GLOBAL_MARKET_HISTORY: RouteSpec = {"path": "/v1/global/history", "method": "GET", "shape": "list", "model": "GlobalMarketHistoryItem", "paginated": true, "pathParams": [], "maxLimit": 1000, "rangeMode": false, "wire": {"since": "since_ms", "until": "until_ms", "before": "before_ms"}};
 const R_HEALTH: RouteSpec = {"path": "/v1/health", "method": "GET", "shape": "object", "model": "Health", "paginated": false, "pathParams": [], "maxLimit": null, "rangeMode": false, "wire": {}};
 const R_HEATMAP_CLUSTERS: RouteSpec = {"path": "/v1/heatmap/clusters", "method": "GET", "shape": "object", "model": "HeatmapClusters", "paginated": false, "pathParams": [], "maxLimit": null, "rangeMode": false, "wire": {}};
 const R_HEATMAP_CLUSTERS_HISTORY: RouteSpec = {"path": "/v1/heatmap/clusters/history", "method": "GET", "shape": "list", "model": "HeatmapClustersHistoryItem", "paginated": true, "pathParams": [], "maxLimit": 1000, "rangeMode": false, "wire": {"since": "since_ms", "until": "until_ms", "before": "before_ms"}};
@@ -150,8 +150,9 @@ export interface BasisHistoryParams {
    */
   until?: TimeLike;
   /**
-   * Number of rows to return, in the reading order (most recent first by default). Also bounded
-   * by your plan's history window (403 `history_depth` beyond it).
+   * Number of rows to return, in the reading order (most recent first by default). Bounded by
+   * your plan's history window: an explicit `limit` (or `since_ms`) reaching beyond it returns
+   * 403 `history_depth`; without them the page simply stops at the window.
    */
   limit?: number;
   /**
@@ -270,8 +271,9 @@ export interface BtcFeesHistoryParams {
    */
   until?: TimeLike;
   /**
-   * Number of rows to return, in the reading order (most recent first by default). Also bounded
-   * by your plan's history window (403 `history_depth` beyond it).
+   * Number of rows to return, in the reading order (most recent first by default). Bounded by
+   * your plan's history window: an explicit `limit` (or `since_ms`) reaching beyond it returns
+   * 403 `history_depth`; without them the page simply stops at the window.
    */
   limit?: number;
   /**
@@ -371,8 +373,9 @@ export interface BtcMempoolHistoryParams {
    */
   until?: TimeLike;
   /**
-   * Number of rows to return, in the reading order (most recent first by default). Also bounded
-   * by your plan's history window (403 `history_depth` beyond it).
+   * Number of rows to return, in the reading order (most recent first by default). Bounded by
+   * your plan's history window: an explicit `limit` (or `since_ms`) reaching beyond it returns
+   * 403 `history_depth`; without them the page simply stops at the window.
    */
   limit?: number;
   /**
@@ -465,8 +468,9 @@ export interface BtcMiningHistoryParams {
    */
   until?: TimeLike;
   /**
-   * Number of rows to return, in the reading order (most recent first by default). Also bounded
-   * by your plan's history window (403 `history_depth` beyond it).
+   * Number of rows to return, in the reading order (most recent first by default). Bounded by
+   * your plan's history window: an explicit `limit` (or `since_ms`) reaching beyond it returns
+   * 403 `history_depth`; without them the page simply stops at the window.
    */
   limit?: number;
   /**
@@ -560,8 +564,9 @@ export interface BtcNetworkHistoryParams {
    */
   until?: TimeLike;
   /**
-   * Number of rows to return, in the reading order (most recent first by default). Also bounded
-   * by your plan's history window (403 `history_depth` beyond it).
+   * Number of rows to return, in the reading order (most recent first by default). Bounded by
+   * your plan's history window: an explicit `limit` (or `since_ms`) reaching beyond it returns
+   * 403 `history_depth`; without them the page simply stops at the window.
    */
   limit?: number;
   /**
@@ -657,8 +662,9 @@ export interface BuysellRatioFuturesHistoryParams {
    */
   until?: TimeLike;
   /**
-   * Number of rows to return, in the reading order (most recent first by default). Also bounded
-   * by your plan's history window (403 `history_depth` beyond it).
+   * Number of rows to return, in the reading order (most recent first by default). Bounded by
+   * your plan's history window: an explicit `limit` (or `since_ms`) reaching beyond it returns
+   * 403 `history_depth`; without them the page simply stops at the window.
    */
   limit?: number;
   /**
@@ -773,8 +779,9 @@ export interface BuysellRatioHistoryParams {
    */
   until?: TimeLike;
   /**
-   * Number of rows to return, in the reading order (most recent first by default). Also bounded
-   * by your plan's history window (403 `history_depth` beyond it).
+   * Number of rows to return, in the reading order (most recent first by default). Bounded by
+   * your plan's history window: an explicit `limit` (or `since_ms`) reaching beyond it returns
+   * 403 `history_depth`; without them the page simply stops at the window.
    */
   limit?: number;
   /**
@@ -871,8 +878,9 @@ export interface BuysellRatioSpotHistoryParams {
    */
   until?: TimeLike;
   /**
-   * Number of rows to return, in the reading order (most recent first by default). Also bounded
-   * by your plan's history window (403 `history_depth` beyond it).
+   * Number of rows to return, in the reading order (most recent first by default). Bounded by
+   * your plan's history window: an explicit `limit` (or `since_ms`) reaching beyond it returns
+   * 403 `history_depth`; without them the page simply stops at the window.
    */
   limit?: number;
   /**
@@ -1015,7 +1023,9 @@ export interface BuysellResource {
 export interface CvdFuturesHistoryParams {
   /**
    * Bucket size, required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. Missing: 422
-   * `missing_parameter`; other values: 422 `invalid_timeframe` with the accepted list.
+   * `missing_parameter`; other values: 422 `invalid_timeframe` with the accepted list. In any
+   * case (`1H` is `1h`), except `1M`: refused, since elsewhere it means a month and here `1m`
+   * is one minute.
    */
   timeframe: Timeframe;
   /**
@@ -1028,8 +1038,9 @@ export interface CvdFuturesHistoryParams {
    */
   until?: TimeLike;
   /**
-   * Number of rows to return, in the reading order (most recent first by default). Also bounded
-   * by your plan's history window (403 `history_depth` beyond it).
+   * Number of rows to return, in the reading order (most recent first by default). Bounded by
+   * your plan's history window: an explicit `limit` (or `since_ms`) reaching beyond it returns
+   * 403 `history_depth`; without them the page simply stops at the window.
    */
   limit?: number;
   /**
@@ -1057,7 +1068,9 @@ export interface CvdFuturesHistoryParams {
 export interface CvdFuturesHistoryIterParams {
   /**
    * Bucket size, required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. Missing: 422
-   * `missing_parameter`; other values: 422 `invalid_timeframe` with the accepted list.
+   * `missing_parameter`; other values: 422 `invalid_timeframe` with the accepted list. In any
+   * case (`1H` is `1h`), except `1M`: refused, since elsewhere it means a month and here `1m`
+   * is one minute.
    */
   timeframe: Timeframe;
   /**
@@ -1106,7 +1119,9 @@ export interface CvdFuturesHistoryResource {
 export interface CvdFuturesParams {
   /**
    * Bucket size, required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. Missing: 422
-   * `missing_parameter`; other values: 422 `invalid_timeframe` with the accepted list.
+   * `missing_parameter`; other values: 422 `invalid_timeframe` with the accepted list. In any
+   * case (`1H` is `1h`), except `1M`: refused, since elsewhere it means a month and here `1m`
+   * is one minute.
    */
   timeframe: Timeframe;
   /**
@@ -1140,7 +1155,9 @@ export interface CvdFuturesResource {
 export interface CvdHistoryParams {
   /**
    * Bucket size, required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. Missing: 422
-   * `missing_parameter`; other values: 422 `invalid_timeframe` with the accepted list.
+   * `missing_parameter`; other values: 422 `invalid_timeframe` with the accepted list. In any
+   * case (`1H` is `1h`), except `1M`: refused, since elsewhere it means a month and here `1m`
+   * is one minute.
    */
   timeframe: Timeframe;
   /**
@@ -1153,8 +1170,9 @@ export interface CvdHistoryParams {
    */
   until?: TimeLike;
   /**
-   * Number of rows to return, in the reading order (most recent first by default). Also bounded
-   * by your plan's history window (403 `history_depth` beyond it).
+   * Number of rows to return, in the reading order (most recent first by default). Bounded by
+   * your plan's history window: an explicit `limit` (or `since_ms`) reaching beyond it returns
+   * 403 `history_depth`; without them the page simply stops at the window.
    */
   limit?: number;
   /**
@@ -1182,7 +1200,9 @@ export interface CvdHistoryParams {
 export interface CvdHistoryIterParams {
   /**
    * Bucket size, required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. Missing: 422
-   * `missing_parameter`; other values: 422 `invalid_timeframe` with the accepted list.
+   * `missing_parameter`; other values: 422 `invalid_timeframe` with the accepted list. In any
+   * case (`1H` is `1h`), except `1M`: refused, since elsewhere it means a month and here `1m`
+   * is one minute.
    */
   timeframe: Timeframe;
   /**
@@ -1236,7 +1256,9 @@ export interface CvdHistoryResource {
 export interface CvdSpotHistoryParams {
   /**
    * Bucket size, required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. Missing: 422
-   * `missing_parameter`; other values: 422 `invalid_timeframe` with the accepted list.
+   * `missing_parameter`; other values: 422 `invalid_timeframe` with the accepted list. In any
+   * case (`1H` is `1h`), except `1M`: refused, since elsewhere it means a month and here `1m`
+   * is one minute.
    */
   timeframe: Timeframe;
   /**
@@ -1249,8 +1271,9 @@ export interface CvdSpotHistoryParams {
    */
   until?: TimeLike;
   /**
-   * Number of rows to return, in the reading order (most recent first by default). Also bounded
-   * by your plan's history window (403 `history_depth` beyond it).
+   * Number of rows to return, in the reading order (most recent first by default). Bounded by
+   * your plan's history window: an explicit `limit` (or `since_ms`) reaching beyond it returns
+   * 403 `history_depth`; without them the page simply stops at the window.
    */
   limit?: number;
   /**
@@ -1278,7 +1301,9 @@ export interface CvdSpotHistoryParams {
 export interface CvdSpotHistoryIterParams {
   /**
    * Bucket size, required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. Missing: 422
-   * `missing_parameter`; other values: 422 `invalid_timeframe` with the accepted list.
+   * `missing_parameter`; other values: 422 `invalid_timeframe` with the accepted list. In any
+   * case (`1H` is `1h`), except `1M`: refused, since elsewhere it means a month and here `1m`
+   * is one minute.
    */
   timeframe: Timeframe;
   /**
@@ -1327,7 +1352,9 @@ export interface CvdSpotHistoryResource {
 export interface CvdSpotParams {
   /**
    * Bucket size, required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. Missing: 422
-   * `missing_parameter`; other values: 422 `invalid_timeframe` with the accepted list.
+   * `missing_parameter`; other values: 422 `invalid_timeframe` with the accepted list. In any
+   * case (`1H` is `1h`), except `1M`: refused, since elsewhere it means a month and here `1m`
+   * is one minute.
    */
   timeframe: Timeframe;
   /**
@@ -1361,7 +1388,9 @@ export interface CvdSpotResource {
 export interface CvdParams {
   /**
    * Bucket size, required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. Missing: 422
-   * `missing_parameter`; other values: 422 `invalid_timeframe` with the accepted list.
+   * `missing_parameter`; other values: 422 `invalid_timeframe` with the accepted list. In any
+   * case (`1H` is `1h`), except `1M`: refused, since elsewhere it means a month and here `1m`
+   * is one minute.
    */
   timeframe: Timeframe;
   /**
@@ -1416,9 +1445,9 @@ export interface EtfFundamentalsHistoryParams {
    */
   until?: TimeLike;
   /**
-   * Number of balance-sheet DATES to return, most recent first by default: a page holds every
-   * issuer's row for each of those dates, so it can hold more than `limit` rows (one filing is
-   * never split across two pages).
+   * Number of rows to read, most recent first by default. A page holds EVERY issuer's row of
+   * each balance-sheet date those rows reach, so it can hold a few more than `limit` (a date is
+   * never split across two pages); `next` is `null` on the last page.
    */
   limit?: number;
   /**
@@ -1530,8 +1559,9 @@ export interface EthDefiHistoryParams {
    */
   until?: TimeLike;
   /**
-   * Number of rows to return, in the reading order (most recent first by default). Also bounded
-   * by your plan's history window (403 `history_depth` beyond it).
+   * Number of rows to return, in the reading order (most recent first by default). Bounded by
+   * your plan's history window: an explicit `limit` (or `since_ms`) reaching beyond it returns
+   * 403 `history_depth`; without them the page simply stops at the window.
    */
   limit?: number;
   /**
@@ -1618,8 +1648,9 @@ export interface EthDeflationHistoryParams {
    */
   until?: TimeLike;
   /**
-   * Number of rows to return, in the reading order (most recent first by default). Also bounded
-   * by your plan's history window (403 `history_depth` beyond it).
+   * Number of rows to return, in the reading order (most recent first by default). Bounded by
+   * your plan's history window: an explicit `limit` (or `since_ms`) reaching beyond it returns
+   * 403 `history_depth`; without them the page simply stops at the window.
    */
   limit?: number;
   /**
@@ -1706,8 +1737,9 @@ export interface EthGasHistoryParams {
    */
   until?: TimeLike;
   /**
-   * Number of rows to return, in the reading order (most recent first by default). Also bounded
-   * by your plan's history window (403 `history_depth` beyond it).
+   * Number of rows to return, in the reading order (most recent first by default). Bounded by
+   * your plan's history window: an explicit `limit` (or `since_ms`) reaching beyond it returns
+   * 403 `history_depth`; without them the page simply stops at the window.
    */
   limit?: number;
   /**
@@ -1794,8 +1826,9 @@ export interface EthGasMomentumHistoryParams {
    */
   until?: TimeLike;
   /**
-   * Number of rows to return, in the reading order (most recent first by default). Also bounded
-   * by your plan's history window (403 `history_depth` beyond it).
+   * Number of rows to return, in the reading order (most recent first by default). Bounded by
+   * your plan's history window: an explicit `limit` (or `since_ms`) reaching beyond it returns
+   * 403 `history_depth`; without them the page simply stops at the window.
    */
   limit?: number;
   /**
@@ -1882,8 +1915,9 @@ export interface EthRatioHistoryParams {
    */
   until?: TimeLike;
   /**
-   * Number of rows to return, in the reading order (most recent first by default). Also bounded
-   * by your plan's history window (403 `history_depth` beyond it).
+   * Number of rows to return, in the reading order (most recent first by default). Bounded by
+   * your plan's history window: an explicit `limit` (or `since_ms`) reaching beyond it returns
+   * 403 `history_depth`; without them the page simply stops at the window.
    */
   limit?: number;
   /**
@@ -1970,8 +2004,9 @@ export interface EthSqueezeHistoryParams {
    */
   until?: TimeLike;
   /**
-   * Number of rows to return, in the reading order (most recent first by default). Also bounded
-   * by your plan's history window (403 `history_depth` beyond it).
+   * Number of rows to return, in the reading order (most recent first by default). Bounded by
+   * your plan's history window: an explicit `limit` (or `since_ms`) reaching beyond it returns
+   * 403 `history_depth`; without them the page simply stops at the window.
    */
   limit?: number;
   /**
@@ -2058,8 +2093,9 @@ export interface EthStakingHistoryParams {
    */
   until?: TimeLike;
   /**
-   * Number of rows to return, in the reading order (most recent first by default). Also bounded
-   * by your plan's history window (403 `history_depth` beyond it).
+   * Number of rows to return, in the reading order (most recent first by default). Bounded by
+   * your plan's history window: an explicit `limit` (or `since_ms`) reaching beyond it returns
+   * 403 `history_depth`; without them the page simply stops at the window.
    */
   limit?: number;
   /**
@@ -2147,8 +2183,9 @@ export interface EthSupplyHistoryParams {
    */
   until?: TimeLike;
   /**
-   * Number of rows to return, in the reading order (most recent first by default). Also bounded
-   * by your plan's history window (403 `history_depth` beyond it).
+   * Number of rows to return, in the reading order (most recent first by default). Bounded by
+   * your plan's history window: an explicit `limit` (or `since_ms`) reaching beyond it returns
+   * 403 `history_depth`; without them the page simply stops at the window.
    */
   limit?: number;
   /**
@@ -2247,8 +2284,9 @@ export interface FearGreedHistoryParams {
    */
   until?: TimeLike;
   /**
-   * Number of rows to return, in the reading order (most recent first by default). Also bounded
-   * by your plan's history window (403 `history_depth` beyond it).
+   * Number of rows to return, in the reading order (most recent first by default). Bounded by
+   * your plan's history window: an explicit `limit` (or `since_ms`) reaching beyond it returns
+   * 403 `history_depth`; without them the page simply stops at the window.
    */
   limit?: number;
   /**
@@ -2335,8 +2373,9 @@ export interface FundingCumulativeHistoryParams {
    */
   until?: TimeLike;
   /**
-   * Number of rows to return, in the reading order (most recent first by default). Also bounded
-   * by your plan's history window (403 `history_depth` beyond it).
+   * Number of rows to return, in the reading order (most recent first by default). Bounded by
+   * your plan's history window: an explicit `limit` (or `since_ms`) reaching beyond it returns
+   * 403 `history_depth`; without them the page simply stops at the window.
    */
   limit?: number;
   /**
@@ -2468,8 +2507,9 @@ export interface FundingRateHistoryParams {
    */
   until?: TimeLike;
   /**
-   * Number of rows to return, in the reading order (most recent first by default). Also bounded
-   * by your plan's history window (403 `history_depth` beyond it).
+   * Number of rows to return, in the reading order (most recent first by default). Bounded by
+   * your plan's history window: an explicit `limit` (or `since_ms`) reaching beyond it returns
+   * 403 `history_depth`; without them the page simply stops at the window.
    */
   limit?: number;
   /**
@@ -2591,8 +2631,9 @@ export interface GlobalMarketHistoryParams {
    */
   until?: TimeLike;
   /**
-   * Number of rows to return, in the reading order (most recent first by default). Also bounded
-   * by your plan's history window (403 `history_depth` beyond it).
+   * Number of rows to return, in the reading order (most recent first by default). Bounded by
+   * your plan's history window: an explicit `limit` (or `since_ms`) reaching beyond it returns
+   * 403 `history_depth`; without them the page simply stops at the window.
    */
   limit?: number;
   /**
@@ -2654,12 +2695,12 @@ export interface GlobalMarketHistoryResource {
    * Most recent first, or oldest first with `order=asc`. Follow `next` to read the following
    * page (it never repeats a row).
    */
-  (params?: GlobalMarketHistoryParams, options?: RequestOptions): Promise<ApiResponse<Array<M.GlobalHistoryItem>>>;
+  (params?: GlobalMarketHistoryParams, options?: RequestOptions): Promise<ApiResponse<Array<M.GlobalMarketHistoryItem>>>;
   /**
    * Every row of `/v1/global/history` over a period, following `next` page after page (`for
    * await`).
    */
-  iter(params?: GlobalMarketHistoryIterOptions, options?: RequestOptions): RowIterator<M.GlobalHistoryItem>;
+  iter(params?: GlobalMarketHistoryIterOptions, options?: RequestOptions): RowIterator<M.GlobalMarketHistoryItem>;
 }
 
 export interface GlobalMarketParams {
@@ -2704,8 +2745,9 @@ export interface HeatmapClustersHistoryParams {
    */
   until?: TimeLike;
   /**
-   * Number of rows to return, in the reading order (most recent first by default). Also bounded
-   * by your plan's history window (403 `history_depth` beyond it).
+   * Number of rows to return, in the reading order (most recent first by default). Bounded by
+   * your plan's history window: an explicit `limit` (or `since_ms`) reaching beyond it returns
+   * 403 `history_depth`; without them the page simply stops at the window.
    */
   limit?: number;
   /**
@@ -2841,8 +2883,9 @@ export interface KlinesParams {
    */
   until?: TimeLike;
   /**
-   * Number of rows to return, in the reading order (most recent first by default). Also bounded
-   * by your plan's history window (403 `history_depth` beyond it).
+   * Number of rows to return, in the reading order (most recent first by default). Bounded by
+   * your plan's history window: an explicit `limit` (or `since_ms`) reaching beyond it returns
+   * 403 `history_depth`; without them the page simply stops at the window.
    */
   limit?: number;
   /**
@@ -2957,8 +3000,9 @@ export interface LiquidationsCumulativeHistoryParams {
    */
   until?: TimeLike;
   /**
-   * Number of rows to return, in the reading order (most recent first by default). Also bounded
-   * by your plan's history window (403 `history_depth` beyond it).
+   * Number of rows to return, in the reading order (most recent first by default). Bounded by
+   * your plan's history window: an explicit `limit` (or `since_ms`) reaching beyond it returns
+   * 403 `history_depth`; without them the page simply stops at the window.
    */
   limit?: number;
   /**
@@ -3067,8 +3111,9 @@ export interface LiquidationsCumulativeResource {
 
 export interface LiquidationsEventsParams {
   /**
-   * Number of rows to return, in the reading order (most recent first by default). Also bounded
-   * by your plan's history window (403 `history_depth` beyond it).
+   * Number of rows to return, in the reading order (most recent first by default). Bounded by
+   * your plan's history window: an explicit `limit` (or `since_ms`) reaching beyond it returns
+   * 403 `history_depth`; without them the page simply stops at the window.
    */
   limit?: number;
   /**
@@ -3112,8 +3157,9 @@ export interface LiquidationsRatioHistoryParams {
    */
   until?: TimeLike;
   /**
-   * Number of rows to return, in the reading order (most recent first by default). Also bounded
-   * by your plan's history window (403 `history_depth` beyond it).
+   * Number of rows to return, in the reading order (most recent first by default). Bounded by
+   * your plan's history window: an explicit `limit` (or `since_ms`) reaching beyond it returns
+   * 403 `history_depth`; without them the page simply stops at the window.
    */
   limit?: number;
   /**
@@ -3259,8 +3305,9 @@ export interface MacroHistoryParams {
    */
   until?: TimeLike;
   /**
-   * Number of rows to return, in the reading order (most recent first by default). Also bounded
-   * by your plan's history window (403 `history_depth` beyond it).
+   * Number of rows to return, in the reading order (most recent first by default). Bounded by
+   * your plan's history window: an explicit `limit` (or `since_ms`) reaching beyond it returns
+   * 403 `history_depth`; without them the page simply stops at the window.
    */
   limit?: number;
   /**
@@ -3337,8 +3384,9 @@ export interface MacroIntradayHistoryParams {
    */
   until?: TimeLike;
   /**
-   * Number of rows to return, in the reading order (most recent first by default). Also bounded
-   * by your plan's history window (403 `history_depth` beyond it).
+   * Number of rows to return, in the reading order (most recent first by default). Bounded by
+   * your plan's history window: an explicit `limit` (or `since_ms`) reaching beyond it returns
+   * 403 `history_depth`; without them the page simply stops at the window.
    */
   limit?: number;
   /**
@@ -3469,8 +3517,9 @@ export interface MacroNetLiquidityHistoryParams {
    */
   until?: TimeLike;
   /**
-   * Number of rows to return, in the reading order (most recent first by default). Also bounded
-   * by your plan's history window (403 `history_depth` beyond it).
+   * Number of rows to return, in the reading order (most recent first by default). Bounded by
+   * your plan's history window: an explicit `limit` (or `since_ms`) reaching beyond it returns
+   * 403 `history_depth`; without them the page simply stops at the window.
    */
   limit?: number;
   /**
@@ -3628,8 +3677,9 @@ export interface OiDeltaHistoryParams {
    */
   until?: TimeLike;
   /**
-   * Number of rows to return, in the reading order (most recent first by default). Also bounded
-   * by your plan's history window (403 `history_depth` beyond it).
+   * Number of rows to return, in the reading order (most recent first by default). Bounded by
+   * your plan's history window: an explicit `limit` (or `since_ms`) reaching beyond it returns
+   * 403 `history_depth`; without them the page simply stops at the window.
    */
   limit?: number;
   /**
@@ -3747,8 +3797,9 @@ export interface OiHistoryParams {
    */
   until?: TimeLike;
   /**
-   * Number of rows to return, in the reading order (most recent first by default). Also bounded
-   * by your plan's history window (403 `history_depth` beyond it).
+   * Number of rows to return, in the reading order (most recent first by default). Bounded by
+   * your plan's history window: an explicit `limit` (or `since_ms`) reaching beyond it returns
+   * 403 `history_depth`; without them the page simply stops at the window.
    */
   limit?: number;
   /**
@@ -3874,8 +3925,9 @@ export interface OnchainActiveAddressesHistoryParams {
    */
   until?: TimeLike;
   /**
-   * Number of rows to return, in the reading order (most recent first by default). Also bounded
-   * by your plan's history window (403 `history_depth` beyond it).
+   * Number of rows to return, in the reading order (most recent first by default). Bounded by
+   * your plan's history window: an explicit `limit` (or `since_ms`) reaching beyond it returns
+   * 403 `history_depth`; without them the page simply stops at the window.
    */
   limit?: number;
   /**
@@ -3962,8 +4014,9 @@ export interface OnchainMinerStressHistoryParams {
    */
   until?: TimeLike;
   /**
-   * Number of rows to return, in the reading order (most recent first by default). Also bounded
-   * by your plan's history window (403 `history_depth` beyond it).
+   * Number of rows to return, in the reading order (most recent first by default). Bounded by
+   * your plan's history window: an explicit `limit` (or `since_ms`) reaching beyond it returns
+   * 403 `history_depth`; without them the page simply stops at the window.
    */
   limit?: number;
   /**
@@ -4051,8 +4104,9 @@ export interface OnchainMvrvHistoryParams {
    */
   until?: TimeLike;
   /**
-   * Number of rows to return, in the reading order (most recent first by default). Also bounded
-   * by your plan's history window (403 `history_depth` beyond it).
+   * Number of rows to return, in the reading order (most recent first by default). Bounded by
+   * your plan's history window: an explicit `limit` (or `since_ms`) reaching beyond it returns
+   * 403 `history_depth`; without them the page simply stops at the window.
    */
   limit?: number;
   /**
@@ -4139,8 +4193,9 @@ export interface OnchainNvtHistoryParams {
    */
   until?: TimeLike;
   /**
-   * Number of rows to return, in the reading order (most recent first by default). Also bounded
-   * by your plan's history window (403 `history_depth` beyond it).
+   * Number of rows to return, in the reading order (most recent first by default). Bounded by
+   * your plan's history window: an explicit `limit` (or `since_ms`) reaching beyond it returns
+   * 403 `history_depth`; without them the page simply stops at the window.
    */
   limit?: number;
   /**
@@ -4286,8 +4341,9 @@ export interface OptionsIvKlinesParams {
    */
   until?: TimeLike;
   /**
-   * Number of rows to return, in the reading order (most recent first by default). Also bounded
-   * by your plan's history window (403 `history_depth` beyond it).
+   * Number of rows to return, in the reading order (most recent first by default). Bounded by
+   * your plan's history window: an explicit `limit` (or `since_ms`) reaching beyond it returns
+   * 403 `history_depth`; without them the page simply stops at the window.
    */
   limit?: number;
   /**
@@ -4403,8 +4459,9 @@ export interface OptionsMaxPainHistoryParams {
    */
   until?: TimeLike;
   /**
-   * Number of rows to return, in the reading order (most recent first by default). Also bounded
-   * by your plan's history window (403 `history_depth` beyond it).
+   * Number of rows to return, in the reading order (most recent first by default). Bounded by
+   * your plan's history window: an explicit `limit` (or `since_ms`) reaching beyond it returns
+   * 403 `history_depth`; without them the page simply stops at the window.
    */
   limit?: number;
   /**
@@ -4518,8 +4575,9 @@ export interface OptionsOiDeltaHistoryParams {
    */
   until?: TimeLike;
   /**
-   * Number of rows to return, in the reading order (most recent first by default). Also bounded
-   * by your plan's history window (403 `history_depth` beyond it).
+   * Number of rows to return, in the reading order (most recent first by default). Bounded by
+   * your plan's history window: an explicit `limit` (or `since_ms`) reaching beyond it returns
+   * 403 `history_depth`; without them the page simply stops at the window.
    */
   limit?: number;
   /**
@@ -4663,8 +4721,9 @@ export interface OptionsOiHistoryParams {
    */
   until?: TimeLike;
   /**
-   * Number of rows to return, in the reading order (most recent first by default). Also bounded
-   * by your plan's history window (403 `history_depth` beyond it).
+   * Number of rows to return, in the reading order (most recent first by default). Bounded by
+   * your plan's history window: an explicit `limit` (or `since_ms`) reaching beyond it returns
+   * 403 `history_depth`; without them the page simply stops at the window.
    */
   limit?: number;
   /**
@@ -4778,8 +4837,9 @@ export interface OptionsPcRatioHistoryParams {
    */
   until?: TimeLike;
   /**
-   * Number of rows to return, in the reading order (most recent first by default). Also bounded
-   * by your plan's history window (403 `history_depth` beyond it).
+   * Number of rows to return, in the reading order (most recent first by default). Bounded by
+   * your plan's history window: an explicit `limit` (or `since_ms`) reaching beyond it returns
+   * 403 `history_depth`; without them the page simply stops at the window.
    */
   limit?: number;
   /**
@@ -4914,8 +4974,9 @@ export interface OptionsVolumeHistoryParams {
    */
   until?: TimeLike;
   /**
-   * Number of rows to return, in the reading order (most recent first by default). Also bounded
-   * by your plan's history window (403 `history_depth` beyond it).
+   * Number of rows to return, in the reading order (most recent first by default). Bounded by
+   * your plan's history window: an explicit `limit` (or `since_ms`) reaching beyond it returns
+   * 403 `history_depth`; without them the page simply stops at the window.
    */
   limit?: number;
   /**
@@ -5026,7 +5087,9 @@ export interface OptionsResource {
 export interface OrderbookFuturesHistoryParams {
   /**
    * Bucket size, required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. Missing: 422
-   * `missing_parameter`; other values: 422 `invalid_timeframe` with the accepted list.
+   * `missing_parameter`; other values: 422 `invalid_timeframe` with the accepted list. In any
+   * case (`1H` is `1h`), except `1M`: refused, since elsewhere it means a month and here `1m`
+   * is one minute.
    */
   timeframe: Timeframe;
   /**
@@ -5039,8 +5102,9 @@ export interface OrderbookFuturesHistoryParams {
    */
   until?: TimeLike;
   /**
-   * Number of rows to return, in the reading order (most recent first by default). Also bounded
-   * by your plan's history window (403 `history_depth` beyond it).
+   * Number of rows to return, in the reading order (most recent first by default). Bounded by
+   * your plan's history window: an explicit `limit` (or `since_ms`) reaching beyond it returns
+   * 403 `history_depth`; without them the page simply stops at the window.
    */
   limit?: number;
   /**
@@ -5068,7 +5132,9 @@ export interface OrderbookFuturesHistoryParams {
 export interface OrderbookFuturesHistoryIterParams {
   /**
    * Bucket size, required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. Missing: 422
-   * `missing_parameter`; other values: 422 `invalid_timeframe` with the accepted list.
+   * `missing_parameter`; other values: 422 `invalid_timeframe` with the accepted list. In any
+   * case (`1H` is `1h`), except `1M`: refused, since elsewhere it means a month and here `1m`
+   * is one minute.
    */
   timeframe: Timeframe;
   /**
@@ -5118,7 +5184,9 @@ export interface OrderbookFuturesHistoryResource {
 export interface OrderbookFuturesParams {
   /**
    * Bucket size, required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. Missing: 422
-   * `missing_parameter`; other values: 422 `invalid_timeframe` with the accepted list.
+   * `missing_parameter`; other values: 422 `invalid_timeframe` with the accepted list. In any
+   * case (`1H` is `1h`), except `1M`: refused, since elsewhere it means a month and here `1m`
+   * is one minute.
    */
   timeframe: Timeframe;
   /**
@@ -5148,7 +5216,9 @@ export interface OrderbookFuturesResource {
 export interface OrderbookHistoryParams {
   /**
    * Bucket size, required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. Missing: 422
-   * `missing_parameter`; other values: 422 `invalid_timeframe` with the accepted list.
+   * `missing_parameter`; other values: 422 `invalid_timeframe` with the accepted list. In any
+   * case (`1H` is `1h`), except `1M`: refused, since elsewhere it means a month and here `1m`
+   * is one minute.
    */
   timeframe: Timeframe;
   /**
@@ -5161,8 +5231,9 @@ export interface OrderbookHistoryParams {
    */
   until?: TimeLike;
   /**
-   * Number of rows to return, in the reading order (most recent first by default). Also bounded
-   * by your plan's history window (403 `history_depth` beyond it).
+   * Number of rows to return, in the reading order (most recent first by default). Bounded by
+   * your plan's history window: an explicit `limit` (or `since_ms`) reaching beyond it returns
+   * 403 `history_depth`; without them the page simply stops at the window.
    */
   limit?: number;
   /**
@@ -5190,7 +5261,9 @@ export interface OrderbookHistoryParams {
 export interface OrderbookHistoryIterParams {
   /**
    * Bucket size, required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. Missing: 422
-   * `missing_parameter`; other values: 422 `invalid_timeframe` with the accepted list.
+   * `missing_parameter`; other values: 422 `invalid_timeframe` with the accepted list. In any
+   * case (`1H` is `1h`), except `1M`: refused, since elsewhere it means a month and here `1m`
+   * is one minute.
    */
   timeframe: Timeframe;
   /**
@@ -5241,7 +5314,9 @@ export interface OrderbookHistoryResource {
 export interface OrderbookSpotHistoryParams {
   /**
    * Bucket size, required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. Missing: 422
-   * `missing_parameter`; other values: 422 `invalid_timeframe` with the accepted list.
+   * `missing_parameter`; other values: 422 `invalid_timeframe` with the accepted list. In any
+   * case (`1H` is `1h`), except `1M`: refused, since elsewhere it means a month and here `1m`
+   * is one minute.
    */
   timeframe: Timeframe;
   /**
@@ -5254,8 +5329,9 @@ export interface OrderbookSpotHistoryParams {
    */
   until?: TimeLike;
   /**
-   * Number of rows to return, in the reading order (most recent first by default). Also bounded
-   * by your plan's history window (403 `history_depth` beyond it).
+   * Number of rows to return, in the reading order (most recent first by default). Bounded by
+   * your plan's history window: an explicit `limit` (or `since_ms`) reaching beyond it returns
+   * 403 `history_depth`; without them the page simply stops at the window.
    */
   limit?: number;
   /**
@@ -5283,7 +5359,9 @@ export interface OrderbookSpotHistoryParams {
 export interface OrderbookSpotHistoryIterParams {
   /**
    * Bucket size, required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. Missing: 422
-   * `missing_parameter`; other values: 422 `invalid_timeframe` with the accepted list.
+   * `missing_parameter`; other values: 422 `invalid_timeframe` with the accepted list. In any
+   * case (`1H` is `1h`), except `1M`: refused, since elsewhere it means a month and here `1m`
+   * is one minute.
    */
   timeframe: Timeframe;
   /**
@@ -5332,7 +5410,9 @@ export interface OrderbookSpotHistoryResource {
 export interface OrderbookSpotParams {
   /**
    * Bucket size, required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. Missing: 422
-   * `missing_parameter`; other values: 422 `invalid_timeframe` with the accepted list.
+   * `missing_parameter`; other values: 422 `invalid_timeframe` with the accepted list. In any
+   * case (`1H` is `1h`), except `1M`: refused, since elsewhere it means a month and here `1m`
+   * is one minute.
    */
   timeframe: Timeframe;
   /**
@@ -5361,7 +5441,9 @@ export interface OrderbookSpotResource {
 export interface OrderbookParams {
   /**
    * Bucket size, required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. Missing: 422
-   * `missing_parameter`; other values: 422 `invalid_timeframe` with the accepted list.
+   * `missing_parameter`; other values: 422 `invalid_timeframe` with the accepted list. In any
+   * case (`1H` is `1h`), except `1M`: refused, since elsewhere it means a month and here `1m`
+   * is one minute.
    */
   timeframe: Timeframe;
   /**
@@ -5858,7 +5940,9 @@ export interface SnapshotResource {
 export interface SpreadInterexchangeHistoryParams {
   /**
    * Bucket size, required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. Missing: 422
-   * `missing_parameter`; other values: 422 `invalid_timeframe` with the accepted list.
+   * `missing_parameter`; other values: 422 `invalid_timeframe` with the accepted list. In any
+   * case (`1H` is `1h`), except `1M`: refused, since elsewhere it means a month and here `1m`
+   * is one minute.
    */
   timeframe: Timeframe;
   /**
@@ -5871,8 +5955,9 @@ export interface SpreadInterexchangeHistoryParams {
    */
   until?: TimeLike;
   /**
-   * Number of rows to return, in the reading order (most recent first by default). Also bounded
-   * by your plan's history window (403 `history_depth` beyond it).
+   * Number of rows to return, in the reading order (most recent first by default). Bounded by
+   * your plan's history window: an explicit `limit` (or `since_ms`) reaching beyond it returns
+   * 403 `history_depth`; without them the page simply stops at the window.
    */
   limit?: number;
   /**
@@ -5900,7 +5985,9 @@ export interface SpreadInterexchangeHistoryParams {
 export interface SpreadInterexchangeHistoryIterParams {
   /**
    * Bucket size, required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. Missing: 422
-   * `missing_parameter`; other values: 422 `invalid_timeframe` with the accepted list.
+   * `missing_parameter`; other values: 422 `invalid_timeframe` with the accepted list. In any
+   * case (`1H` is `1h`), except `1M`: refused, since elsewhere it means a month and here `1m`
+   * is one minute.
    */
   timeframe: Timeframe;
   /**
@@ -5950,7 +6037,9 @@ export interface SpreadInterexchangeHistoryResource {
 export interface SpreadInterexchangeParams {
   /**
    * Bucket size, required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. Missing: 422
-   * `missing_parameter`; other values: 422 `invalid_timeframe` with the accepted list.
+   * `missing_parameter`; other values: 422 `invalid_timeframe` with the accepted list. In any
+   * case (`1H` is `1h`), except `1M`: refused, since elsewhere it means a month and here `1m`
+   * is one minute.
    */
   timeframe: Timeframe;
   /**
@@ -6058,8 +6147,9 @@ export interface TokenomicsHistoryParams {
    */
   until?: TimeLike;
   /**
-   * Number of rows to return, in the reading order (most recent first by default). Also bounded
-   * by your plan's history window (403 `history_depth` beyond it).
+   * Number of rows to return, in the reading order (most recent first by default). Bounded by
+   * your plan's history window: an explicit `limit` (or `since_ms`) reaching beyond it returns
+   * 403 `history_depth`; without them the page simply stops at the window.
    */
   limit?: number;
   /**
@@ -6163,7 +6253,9 @@ export interface TradesKlineFuturesHistoryParams {
   symbol: string;
   /**
    * Bucket size, required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. Missing: 422
-   * `missing_parameter`; other values: 422 `invalid_timeframe` with the accepted list.
+   * `missing_parameter`; other values: 422 `invalid_timeframe` with the accepted list. In any
+   * case (`1H` is `1h`), except `1M`: refused, since elsewhere it means a month and here `1m`
+   * is one minute.
    */
   timeframe: Timeframe;
   /**
@@ -6176,8 +6268,9 @@ export interface TradesKlineFuturesHistoryParams {
    */
   until?: TimeLike;
   /**
-   * Number of rows to return, in the reading order (most recent first by default). Also bounded
-   * by your plan's history window (403 `history_depth` beyond it).
+   * Number of rows to return, in the reading order (most recent first by default). Bounded by
+   * your plan's history window: an explicit `limit` (or `since_ms`) reaching beyond it returns
+   * 403 `history_depth`; without them the page simply stops at the window.
    */
   limit?: number;
   /**
@@ -6205,7 +6298,9 @@ export interface TradesKlineFuturesHistoryIterParams {
   symbol: string;
   /**
    * Bucket size, required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. Missing: 422
-   * `missing_parameter`; other values: 422 `invalid_timeframe` with the accepted list.
+   * `missing_parameter`; other values: 422 `invalid_timeframe` with the accepted list. In any
+   * case (`1H` is `1h`), except `1M`: refused, since elsewhere it means a month and here `1m`
+   * is one minute.
    */
   timeframe: Timeframe;
   /**
@@ -6339,7 +6434,9 @@ export interface TradesKlineFuturesParams {
   symbol: string;
   /**
    * Bucket size, required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. Missing: 422
-   * `missing_parameter`; other values: 422 `invalid_timeframe` with the accepted list.
+   * `missing_parameter`; other values: 422 `invalid_timeframe` with the accepted list. In any
+   * case (`1H` is `1h`), except `1M`: refused, since elsewhere it means a month and here `1m`
+   * is one minute.
    */
   timeframe: Timeframe;
   /**
@@ -6376,7 +6473,9 @@ export interface TradesKlineHistoryParams {
   symbol: string;
   /**
    * Bucket size, required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. Missing: 422
-   * `missing_parameter`; other values: 422 `invalid_timeframe` with the accepted list.
+   * `missing_parameter`; other values: 422 `invalid_timeframe` with the accepted list. In any
+   * case (`1H` is `1h`), except `1M`: refused, since elsewhere it means a month and here `1m`
+   * is one minute.
    */
   timeframe: Timeframe;
   /**
@@ -6389,8 +6488,9 @@ export interface TradesKlineHistoryParams {
    */
   until?: TimeLike;
   /**
-   * Number of rows to return, in the reading order (most recent first by default). Also bounded
-   * by your plan's history window (403 `history_depth` beyond it).
+   * Number of rows to return, in the reading order (most recent first by default). Bounded by
+   * your plan's history window: an explicit `limit` (or `since_ms`) reaching beyond it returns
+   * 403 `history_depth`; without them the page simply stops at the window.
    */
   limit?: number;
   /**
@@ -6418,7 +6518,9 @@ export interface TradesKlineHistoryIterParams {
   symbol: string;
   /**
    * Bucket size, required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. Missing: 422
-   * `missing_parameter`; other values: 422 `invalid_timeframe` with the accepted list.
+   * `missing_parameter`; other values: 422 `invalid_timeframe` with the accepted list. In any
+   * case (`1H` is `1h`), except `1M`: refused, since elsewhere it means a month and here `1m`
+   * is one minute.
    */
   timeframe: Timeframe;
   /**
@@ -6468,7 +6570,9 @@ export interface TradesKlineSpotHistoryParams {
   symbol: string;
   /**
    * Bucket size, required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. Missing: 422
-   * `missing_parameter`; other values: 422 `invalid_timeframe` with the accepted list.
+   * `missing_parameter`; other values: 422 `invalid_timeframe` with the accepted list. In any
+   * case (`1H` is `1h`), except `1M`: refused, since elsewhere it means a month and here `1m`
+   * is one minute.
    */
   timeframe: Timeframe;
   /**
@@ -6481,8 +6585,9 @@ export interface TradesKlineSpotHistoryParams {
    */
   until?: TimeLike;
   /**
-   * Number of rows to return, in the reading order (most recent first by default). Also bounded
-   * by your plan's history window (403 `history_depth` beyond it).
+   * Number of rows to return, in the reading order (most recent first by default). Bounded by
+   * your plan's history window: an explicit `limit` (or `since_ms`) reaching beyond it returns
+   * 403 `history_depth`; without them the page simply stops at the window.
    */
   limit?: number;
   /**
@@ -6510,7 +6615,9 @@ export interface TradesKlineSpotHistoryIterParams {
   symbol: string;
   /**
    * Bucket size, required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. Missing: 422
-   * `missing_parameter`; other values: 422 `invalid_timeframe` with the accepted list.
+   * `missing_parameter`; other values: 422 `invalid_timeframe` with the accepted list. In any
+   * case (`1H` is `1h`), except `1M`: refused, since elsewhere it means a month and here `1m`
+   * is one minute.
    */
   timeframe: Timeframe;
   /**
@@ -6560,7 +6667,9 @@ export interface TradesKlineSpotParams {
   symbol: string;
   /**
    * Bucket size, required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. Missing: 422
-   * `missing_parameter`; other values: 422 `invalid_timeframe` with the accepted list.
+   * `missing_parameter`; other values: 422 `invalid_timeframe` with the accepted list. In any
+   * case (`1H` is `1h`), except `1M`: refused, since elsewhere it means a month and here `1m`
+   * is one minute.
    */
   timeframe: Timeframe;
   /**
@@ -6595,7 +6704,9 @@ export interface TradesKlineParams {
   symbol: string;
   /**
    * Bucket size, required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. Missing: 422
-   * `missing_parameter`; other values: 422 `invalid_timeframe` with the accepted list.
+   * `missing_parameter`; other values: 422 `invalid_timeframe` with the accepted list. In any
+   * case (`1H` is `1h`), except `1M`: refused, since elsewhere it means a month and here `1m`
+   * is one minute.
    */
   timeframe: Timeframe;
   /**
@@ -6637,8 +6748,9 @@ export interface TradesAvgSizeFuturesHistoryParams {
    */
   until?: TimeLike;
   /**
-   * Number of rows to return, in the reading order (most recent first by default). Also bounded
-   * by your plan's history window (403 `history_depth` beyond it).
+   * Number of rows to return, in the reading order (most recent first by default). Bounded by
+   * your plan's history window: an explicit `limit` (or `since_ms`) reaching beyond it returns
+   * 403 `history_depth`; without them the page simply stops at the window.
    */
   limit?: number;
   /**
@@ -6756,8 +6868,9 @@ export interface TradesAvgSizeHistoryParams {
    */
   until?: TimeLike;
   /**
-   * Number of rows to return, in the reading order (most recent first by default). Also bounded
-   * by your plan's history window (403 `history_depth` beyond it).
+   * Number of rows to return, in the reading order (most recent first by default). Bounded by
+   * your plan's history window: an explicit `limit` (or `since_ms`) reaching beyond it returns
+   * 403 `history_depth`; without them the page simply stops at the window.
    */
   limit?: number;
   /**
@@ -6857,8 +6970,9 @@ export interface TradesAvgSizeSpotHistoryParams {
    */
   until?: TimeLike;
   /**
-   * Number of rows to return, in the reading order (most recent first by default). Also bounded
-   * by your plan's history window (403 `history_depth` beyond it).
+   * Number of rows to return, in the reading order (most recent first by default). Bounded by
+   * your plan's history window: an explicit `limit` (or `since_ms`) reaching beyond it returns
+   * 403 `history_depth`; without them the page simply stops at the window.
    */
   limit?: number;
   /**
@@ -6996,8 +7110,9 @@ export interface TradesAvgSizeResource {
 
 export interface TradesFuturesParams {
   /**
-   * Number of rows to return, in the reading order (most recent first by default). Also bounded
-   * by your plan's history window (403 `history_depth` beyond it).
+   * Number of rows to return, in the reading order (most recent first by default). Bounded by
+   * your plan's history window: an explicit `limit` (or `since_ms`) reaching beyond it returns
+   * 403 `history_depth`; without them the page simply stops at the window.
    */
   limit?: number;
   /**
@@ -7096,8 +7211,9 @@ export interface TradesLargeParams {
    */
   min_usd?: number;
   /**
-   * Number of rows to return, in the reading order (most recent first by default). Also bounded
-   * by your plan's history window (403 `history_depth` beyond it).
+   * Number of rows to return, in the reading order (most recent first by default). Bounded by
+   * your plan's history window: an explicit `limit` (or `since_ms`) reaching beyond it returns
+   * 403 `history_depth`; without them the page simply stops at the window.
    */
   limit?: number;
   /**
@@ -7193,8 +7309,9 @@ export interface TradesLargeResource {
 
 export interface TradesSpotParams {
   /**
-   * Number of rows to return, in the reading order (most recent first by default). Also bounded
-   * by your plan's history window (403 `history_depth` beyond it).
+   * Number of rows to return, in the reading order (most recent first by default). Bounded by
+   * your plan's history window: an explicit `limit` (or `since_ms`) reaching beyond it returns
+   * 403 `history_depth`; without them the page simply stops at the window.
    */
   limit?: number;
   /**
@@ -7671,4 +7788,4 @@ export const ROUTES: Record<string, string> = {
   "/v1/trades/spot": "trades.spot",
 };
 /** `info.version` of the contract this SDK was generated from. */
-export const API_VERSION = "2.0.0";
+export const API_VERSION = "2.2.0";

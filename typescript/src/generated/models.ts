@@ -15,7 +15,8 @@ export interface Basis {
    */
   time: Date;
   /**
-   * Futures price - spot price. Unit: quote currency (USDT for BTCUSDT).
+   * Futures price - spot price, in the quote currency (USDT for BTCUSDT), like the two prices.
+   * Unit: quote currency (USDT for BTCUSDT).
    */
   basis_value: number;
   /**
@@ -40,13 +41,13 @@ export interface Basis {
  */
 export interface BasisHistoryItem {
   /**
-   * Without `timeframe`: the instant of the one-minute measurement. With `timeframe`: start of
-   * the bucket, the value aggregating the bucket's minutes. Unit: ISO 8601 UTC, milliseconds
-   * (2026-09-28T14:00:00.000Z).
+   * Start of the bucket of `timeframe`; the value is the LAST one of the bucket's minutes.
+   * Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).
    */
   time: Date;
   /**
-   * Futures price - spot price. Unit: quote currency (USDT for BTCUSDT).
+   * Futures price - spot price, in the quote currency (USDT for BTCUSDT), like the two prices.
+   * Unit: quote currency (USDT for BTCUSDT).
    */
   basis_value: number;
   /**
@@ -150,12 +151,12 @@ export interface BtcFees {
    */
   minimum_fee_sat_vb: number;
   /**
-   * Same fee rates, unrounded. Unit: satoshis per virtual byte (sat/vB).
+   * Same fee rates, unrounded.
    */
   precise: BtcFeesPrecise;
   /**
    * `ratio` = fastest / economy fee rate, and its `label`: `normal` (<= 2), `elevated` (> 2),
-   * `congested` (> 5). Unit: dimensionless ratio.
+   * `congested` (> 5).
    */
   fee_pressure: BtcFeesFeePressure;
   /** Fields added by the API after this SDK was released. */
@@ -247,13 +248,13 @@ export interface BtcMempool {
    */
   total_fee_sats: number;
   /**
-   * `[fee_rate, vsize]` pairs: how much virtual size waits at each fee rate. Unit: satoshis per
-   * virtual byte (sat/vB).
+   * `[fee_rate, vsize]` pairs: how much virtual size (virtual bytes) waits at each fee rate
+   * (sat/vB).
    */
   fee_histogram: Array<Array<number>>;
   /**
    * Mempool size change over 1 h, 4 h and 24 h, and its `label` (`filling`, `draining`,
-   * `stable`). Unit: virtual bytes.
+   * `stable`).
    */
   trend: BtcMempoolTrend;
   /** Fields added by the API after this SDK was released. */
@@ -388,7 +389,7 @@ export interface BtcMining {
    */
   time: Date;
   /**
-   * Mining pool concentration over the last period. Unit: percent (58.5 = 58.5 %).
+   * Mining pool concentration over the last period.
    */
   concentration: BtcMiningConcentration;
   /**
@@ -1807,7 +1808,7 @@ export interface GlobalMarket {
 /**
  * Row of `/v1/global/history`.
  */
-export interface GlobalHistoryItem {
+export interface GlobalMarketHistoryItem {
   /**
    * The instant the source states for each measurement. Unit: ISO 8601 UTC, milliseconds
    * (2026-09-28T14:00:00.000Z).
@@ -1907,9 +1908,8 @@ export interface HeatmapClusters {
  */
 export interface HeatmapClustersHistoryItem {
   /**
-   * Without `timeframe`: the instant of the one-minute measurement. With `timeframe`: start of
-   * the bucket, the value aggregating the bucket's minutes. Unit: ISO 8601 UTC, milliseconds
-   * (2026-09-28T14:00:00.000Z).
+   * Start of the bucket of `timeframe`; the value is the LAST one of the bucket's minutes.
+   * Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).
    */
   time: Date;
   /**
@@ -2073,56 +2073,6 @@ export interface LimitsHistoryItem {
 }
 
 /**
- * The per-minute rate, as a token bucket; `null` = unlimited or unmetered key. The same values
- * as the `RateLimit` headers (`debit` policy).
- */
-export interface LimitsRate {
-  /**
-   * Capacity of the bucket: requests you can send at once. Unit: count.
-   */
-  burst: number | null;
-  /**
-   * Seconds to refill the bucket from empty. Unit: seconds.
-   */
-  refill_s: number | null;
-  /**
-   * Requests left right now (after this one). Unit: count.
-   */
-  remaining: number | null;
-  /**
-   * Seconds until fully restored. Unit: seconds.
-   */
-  reset_s: number | null;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
-}
-
-/**
- * The monthly quota; `null` = unlimited or unmetered key. The same values as the `RateLimit`
- * headers (`mensuel` policy). It resets on the 1st of the month, 00:00 UTC.
- */
-export interface LimitsQuota {
-  /**
-   * Requests included per calendar month. Unit: count.
-   */
-  monthly: number | null;
-  /**
-   * Length of the current calendar month, in seconds. Unit: seconds.
-   */
-  month_length_s: number | null;
-  /**
-   * Requests left right now (after this one). Unit: count.
-   */
-  remaining: number | null;
-  /**
-   * Seconds until fully restored. Unit: seconds.
-   */
-  reset_s: number | null;
-  /** Fields added by the API after this SDK was released. */
-  [extra: string]: unknown;
-}
-
-/**
  * Row of `/v1/limits`.
  */
 export interface Limits {
@@ -2136,7 +2086,7 @@ export interface Limits {
    * `snapshot`, `indicators`, `macro`, `options`, `onchain`, `etf`, `tokenomics`, `sentiment`);
    * `null` = all of them. A route outside them answers 403 `plan_family`.
    */
-  families: Array<string> | null;
+  families: number | string | null;
   /**
    * History window per timeframe, one object per timeframe the API serves.
    */
@@ -2155,12 +2105,12 @@ export interface Limits {
    * The per-minute rate, as a token bucket; `null` = unlimited or unmetered key. The same
    * values as the `RateLimit` headers (`debit` policy).
    */
-  rate: LimitsRate | null;
+  rate: number | string | null;
   /**
    * The monthly quota; `null` = unlimited or unmetered key. The same values as the `RateLimit`
    * headers (`mensuel` policy). It resets on the 1st of the month, 00:00 UTC.
    */
-  quota: LimitsQuota | null;
+  quota: number | string | null;
   /** Fields added by the API after this SDK was released. */
   [extra: string]: unknown;
 }
@@ -2325,8 +2275,8 @@ export interface LiquidationsRatio {
  */
 export interface LiquidationsRatioHistoryItem {
   /**
-   * Without `timeframe`: the instant of the one-minute measurement. With `timeframe`: start of
-   * the bucket, the value aggregating the bucket's minutes. Unit: ISO 8601 UTC, milliseconds
+   * Start of the bucket of `timeframe`, the value aggregating the bucket's minutes; the row
+   * covers `window_start` to `window_start + window_s`. Unit: ISO 8601 UTC, milliseconds
    * (2026-09-28T14:00:00.000Z).
    */
   time: Date;
@@ -2360,6 +2310,17 @@ export interface LiquidationsRatioHistoryItem {
    * `?live=1`).
    */
   is_closed: boolean;
+  /**
+   * Start of the window the value covers (inclusive), aligned on the minute. The route's `time`
+   * says whether it is dated at the start or at the end of this window. Unit: ISO 8601 UTC,
+   * milliseconds (2026-09-28T14:00:00.000Z).
+   */
+  window_start: Date;
+  /**
+   * Length of that window, in seconds: it runs from `window_start` to `window_start + window_s`
+   * (excluded). Unit: seconds.
+   */
+  window_s: number;
   /** Fields added by the API after this SDK was released. */
   [extra: string]: unknown;
 }
@@ -2623,16 +2584,16 @@ export interface MacroCorrelationsCorrelationsVix {
  */
 export interface MacroCorrelationsCorrelations {
   /**
-   * US Dollar Index. Unit: index points.
+   * US Dollar Index.
    */
   dxy: MacroCorrelationsCorrelationsDxy;
   /**
-   * S&P 500. Unit: index points.
+   * S&P 500.
    */
   sp500: MacroCorrelationsCorrelationsSp500;
   gold: MacroCorrelationsCorrelationsGold;
   /**
-   * CBOE Volatility Index. Unit: index points.
+   * CBOE Volatility Index.
    */
   vix: MacroCorrelationsCorrelationsVix;
   /** Fields added by the API after this SDK was released. */
@@ -2665,7 +2626,7 @@ export interface MacroCorrelations {
   method: string;
   /**
    * Pearson correlation from -1 to 1, per macro series and window, with `sample_count` = number
-   * of common days. Unit: dimensionless ratio.
+   * of common days.
    */
   correlations: MacroCorrelationsCorrelations;
   /** Fields added by the API after this SDK was released. */
@@ -2789,8 +2750,7 @@ export interface MacroIntradaySeriesInfo {
    */
   history_start_date: string;
   /**
-   * Last candle available, per timeframe. Unit: ISO 8601 UTC, milliseconds
-   * (2026-09-28T14:00:00.000Z).
+   * Last candle available, per timeframe.
    */
   last_candle_at: MacroIntradaySeriesInfoLastCandleAt;
   /** Fields added by the API after this SDK was released. */
@@ -3097,16 +3057,16 @@ export interface MacroRiskSignalsGold {
  */
 export interface MacroRiskSignals {
   /**
-   * CBOE Volatility Index. Unit: index points.
+   * CBOE Volatility Index.
    */
   vix: MacroRiskSignalsVix;
   /**
-   * US Dollar Index. Unit: index points.
+   * US Dollar Index.
    */
   dxy: MacroRiskSignalsDxy;
   yield_curve: MacroRiskSignalsYieldCurve;
   /**
-   * S&P 500. Unit: index points.
+   * S&P 500.
    */
   sp500: MacroRiskSignalsSp500;
   gold: MacroRiskSignalsGold;
@@ -3305,8 +3265,8 @@ export interface OiDelta {
  */
 export interface OiDeltaHistoryItem {
   /**
-   * Without `timeframe`: the instant of the one-minute measurement. With `timeframe`: start of
-   * the bucket, the value aggregating the bucket's minutes. Unit: ISO 8601 UTC, milliseconds
+   * Start of the bucket of `timeframe`, the value aggregating the bucket's minutes; the row
+   * covers `window_start` to `window_start + window_s`. Unit: ISO 8601 UTC, milliseconds
    * (2026-09-28T14:00:00.000Z).
    */
   time: Date;
@@ -3338,6 +3298,17 @@ export interface OiDeltaHistoryItem {
    * `?live=1`).
    */
   is_closed: boolean;
+  /**
+   * Start of the window the value covers (inclusive), aligned on the minute. The route's `time`
+   * says whether it is dated at the start or at the end of this window. Unit: ISO 8601 UTC,
+   * milliseconds (2026-09-28T14:00:00.000Z).
+   */
+  window_start: Date;
+  /**
+   * Length of that window, in seconds: it runs from `window_start` to `window_start + window_s`
+   * (excluded). Unit: seconds.
+   */
+  window_s: number;
   /** Fields added by the API after this SDK was released. */
   [extra: string]: unknown;
 }
@@ -3621,6 +3592,11 @@ export interface OnchainNvtHistoryItem {
  */
 export interface OptionsExpiry {
   /**
+   * Point-in-time value: the instant of the options snapshot (all venues read together). Unit:
+   * ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).
+   */
+  time: Date;
+  /**
    * Expiry instant (08:00 UTC). Pass its date part (`YYYY-MM-DD`) as the `expiry` parameter.
    * Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).
    */
@@ -3774,6 +3750,11 @@ export interface OptionsIvKline {
  * Row of `/v1/options/max-pain`.
  */
 export interface OptionsMaxPain {
+  /**
+   * Point-in-time value: the instant of the options snapshot (all venues read together). Unit:
+   * ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).
+   */
+  time: Date;
   /**
    * Expiry instant (08:00 UTC). Pass its date part (`YYYY-MM-DD`) as the `expiry` parameter.
    * Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).
@@ -3944,6 +3925,11 @@ export interface OptionsOiDeltaHistoryItem {
  */
 export interface OptionsOiDistribution {
   /**
+   * Point-in-time value: the instant of the options snapshot (all venues read together). Unit:
+   * ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).
+   */
+  time: Date;
+  /**
    * Expiry instant (08:00 UTC). Pass its date part (`YYYY-MM-DD`) as the `expiry` parameter.
    * Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).
    */
@@ -4038,6 +4024,10 @@ export interface OptionsPcRatioHistoryItem {
    * more calls than puts. Unit: puts / calls.
    */
   put_call_ratio: number;
+  /**
+   * `bullish` (put_call_ratio < 0.7), `neutral`, or `bearish` (put_call_ratio > 1).
+   */
+  label: string;
   /**
    * `true` = the bucket is final and will never change; `false` = provisional (only with
    * `?live=1`).
@@ -4298,13 +4288,37 @@ export interface Orderbook {
  * Price change over each window, keyed by window (`1m` … `1w`), in percent.
  */
 export interface PriceChangeChangesPct {
+  /**
+   * Unit: percent.
+   */
   "1m": number;
+  /**
+   * Unit: percent.
+   */
   "5m": number;
+  /**
+   * Unit: percent.
+   */
   "15m": number;
+  /**
+   * Unit: percent.
+   */
   "30m": number;
+  /**
+   * Unit: percent.
+   */
   "1h": number;
+  /**
+   * Unit: percent.
+   */
   "4h": number | null;
+  /**
+   * Unit: percent.
+   */
   "1d": number | null;
+  /**
+   * Unit: percent.
+   */
   "1w": number | null;
   /** Fields added by the API after this SDK was released. */
   [extra: string]: unknown;
@@ -4326,8 +4340,7 @@ export interface PriceChange {
    */
   price: number;
   /**
-   * Price change over each window, keyed by window (`1m` … `1w`), in percent. Unit: percent
-   * (58.5 = 58.5 %).
+   * Price change over each window, keyed by window (`1m` … `1w`), in percent.
    */
   changes_pct: PriceChangeChangesPct;
   /** Fields added by the API after this SDK was released. */
@@ -4419,13 +4432,11 @@ export interface SpreadInterexchange {
    */
   max_spread_bps: number;
   /**
-   * Venue with the highest price over the bucket, and that price (`{venue, price}`). Unit:
-   * quote currency (USDT for BTCUSDT).
+   * Venue with the highest price over the bucket, and that price (`{venue, price}`).
    */
   high: SpreadInterexchangeHigh;
   /**
-   * Venue with the lowest price over the bucket, and that price (`{venue, price}`). Unit: quote
-   * currency (USDT for BTCUSDT).
+   * Venue with the lowest price over the bucket, and that price (`{venue, price}`).
    */
   low: SpreadInterexchangeLow;
   /**
@@ -4860,9 +4871,9 @@ export interface TradesAvgSize {
  */
 export interface TradesAvgSizeHistoryItem {
   /**
-   * Without `timeframe`: start of the one-minute candle. With `timeframe`: start of the bucket
-   * the row covers: a 1h bucket at 14:00 covers 14:00:00 to 14:59:59.999. Unit: ISO 8601 UTC,
-   * milliseconds (2026-09-28T14:00:00.000Z).
+   * Start of the bucket of `timeframe`, the value aggregating the bucket's minutes; the row
+   * covers `window_start` to `window_start + window_s`. Unit: ISO 8601 UTC, milliseconds
+   * (2026-09-28T14:00:00.000Z).
    */
   time: Date;
   /**
@@ -4897,6 +4908,17 @@ export interface TradesAvgSizeHistoryItem {
    * `?live=1`).
    */
   is_closed: boolean;
+  /**
+   * Start of the window the value covers (inclusive), aligned on the minute. The route's `time`
+   * says whether it is dated at the start or at the end of this window. Unit: ISO 8601 UTC,
+   * milliseconds (2026-09-28T14:00:00.000Z).
+   */
+  window_start: Date;
+  /**
+   * Length of that window, in seconds: it runs from `window_start` to `window_start + window_s`
+   * (excluded). Unit: seconds.
+   */
+  window_s: number;
   /** Fields added by the API after this SDK was released. */
   [extra: string]: unknown;
 }
@@ -4986,20 +5008,18 @@ export const MODEL_SHAPES: Record<string, { dates: string[]; nested: Record<stri
   FundingNext: { dates: ["time"], nested: {} },
   FundingRate: { dates: ["time", "period_end", "settled_at"], nested: {} },
   GlobalMarket: { dates: ["time"], nested: {} },
-  GlobalHistoryItem: { dates: ["time"], nested: {} },
+  GlobalMarketHistoryItem: { dates: ["time"], nested: {} },
   Health: { dates: [], nested: {} },
   HeatmapClusters: { dates: ["time"], nested: {} },
   HeatmapClustersHistoryItem: { dates: ["time"], nested: {} },
   Kline: { dates: ["time"], nested: {} },
   LimitsHistoryItem: { dates: [], nested: {} },
-  LimitsRate: { dates: [], nested: {} },
-  LimitsQuota: { dates: [], nested: {} },
-  Limits: { dates: [], nested: {"history": "LimitsHistoryItem", "rate": "LimitsRate", "quota": "LimitsQuota"} },
+  Limits: { dates: [], nested: {"history": "LimitsHistoryItem"} },
   LiquidationsCumulative: { dates: ["time", "window_start"], nested: {} },
   LiquidationsCumulativeHistoryItem: { dates: ["time", "window_start"], nested: {} },
   LiquidationEvent: { dates: ["time"], nested: {} },
   LiquidationsRatio: { dates: ["time", "window_start"], nested: {} },
-  LiquidationsRatioHistoryItem: { dates: ["time"], nested: {} },
+  LiquidationsRatioHistoryItem: { dates: ["time", "window_start"], nested: {} },
   Macro: { dates: ["time"], nested: {} },
   MacroCorrelationsCorrelationsDxy30d: { dates: ["time"], nested: {} },
   MacroCorrelationsCorrelationsDxy90d: { dates: ["time"], nested: {} },
@@ -5037,7 +5057,7 @@ export const MODEL_SHAPES: Record<string, { dates: string[]; nested: Record<stri
   MacroSeriesInfo: { dates: ["time"], nested: {} },
   Oi: { dates: ["time"], nested: {} },
   OiDelta: { dates: ["time", "window_start"], nested: {} },
-  OiDeltaHistoryItem: { dates: ["time"], nested: {} },
+  OiDeltaHistoryItem: { dates: ["time", "window_start"], nested: {} },
   OiHistoryItem: { dates: ["time"], nested: {} },
   OnchainActiveAddresses: { dates: ["time"], nested: {} },
   OnchainActiveAddressesHistoryItem: { dates: ["time"], nested: {} },
@@ -5047,18 +5067,18 @@ export const MODEL_SHAPES: Record<string, { dates: string[]; nested: Record<stri
   OnchainMvrvHistoryItem: { dates: ["time"], nested: {} },
   OnchainNvt: { dates: ["time"], nested: {} },
   OnchainNvtHistoryItem: { dates: ["time"], nested: {} },
-  OptionsExpiry: { dates: ["expiry"], nested: {} },
+  OptionsExpiry: { dates: ["time", "expiry"], nested: {} },
   OptionsGreeksCoverage: { dates: [], nested: {} },
   OptionsGreeks: { dates: ["time"], nested: {"coverage": "OptionsGreeksCoverage"} },
   OptionsIv: { dates: ["time"], nested: {} },
   OptionsIvKline: { dates: ["time"], nested: {} },
-  OptionsMaxPain: { dates: ["expiry"], nested: {} },
+  OptionsMaxPain: { dates: ["time", "expiry"], nested: {} },
   OptionsMaxPainHistoryItem: { dates: ["time"], nested: {} },
   OptionsOiCoverage: { dates: [], nested: {} },
   OptionsOi: { dates: ["time"], nested: {"coverage": "OptionsOiCoverage"} },
   OptionsOiDelta: { dates: ["time"], nested: {} },
   OptionsOiDeltaHistoryItem: { dates: ["time"], nested: {} },
-  OptionsOiDistribution: { dates: ["expiry"], nested: {} },
+  OptionsOiDistribution: { dates: ["time", "expiry"], nested: {} },
   OptionsOiHistoryItem: { dates: ["time"], nested: {} },
   OptionsPcRatio: { dates: ["time"], nested: {} },
   OptionsPcRatioHistoryItem: { dates: ["time"], nested: {} },
@@ -5087,6 +5107,6 @@ export const MODEL_SHAPES: Record<string, { dates: string[]; nested: Record<stri
   TradesKline: { dates: ["time"], nested: {} },
   TradesKlineSecond: { dates: ["time"], nested: {} },
   TradesAvgSize: { dates: ["time", "window_start"], nested: {} },
-  TradesAvgSizeHistoryItem: { dates: ["time"], nested: {} },
+  TradesAvgSizeHistoryItem: { dates: ["time", "window_start"], nested: {} },
   Trade: { dates: ["time"], nested: {} },
 };

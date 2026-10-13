@@ -4,6 +4,27 @@ All notable changes to the BytNode SDKs. Both packages share one version number.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow
 [Semantic Versioning](https://semver.org/).
 
+## [0.2.2] — 2026-10-13
+
+Generated from contract `2.2.0` (additions only since 2.0.0: no route, field or value removed or renamed).
+
+### Changed
+
+- `.iter()` without `since` no longer asks for the route's maximum page (`limit=1000`): it uses the
+  route's default page, which stops at your plan's history window instead of being refused with
+  403 `history_depth` on a small plan. With `since`, pages stay as large as the route allows.
+- A snapshot field that only accepts depth 1 is typed as its route's object (or `null`), no longer
+  `T | T[]`.
+- `data.indicators` of `POST /v1/indicators` is typed as a mapping `id -> IndicatorResult`.
+- The model of `/v1/global/history` rows is `GlobalMarketHistoryItem` (was `GlobalHistoryItem`), like
+  `GlobalMarket` for `/v1/global`.
+
+### Fixed
+
+- README: `options.max_pain.history(asset, expiry)` argument order, `next` is a relative URL, the
+  values checked locally (indicator parameters, seconds) versus those the API refuses (`timeframe`),
+  snapshot typing, and examples that run on the free plan.
+
 ## [0.2.1] — 2026-10-13
 
 Generated from contract `2.0.0` as republished on 2026-10-13 (same routes, more precise schemas).

@@ -334,8 +334,9 @@ def emit_route_methods(r: Route, sync: bool) -> list[str]:
         lines.append(f"    ) -> {it}[m.{r.model}]:" if r.model else f"    ) -> {it}[Any]:")
         lines.append(f'        """Every row of `{r.path}` over a period, following `next` page after page.')
         lines.append("")
-        lines.append("        Pages are fetched lazily, `page_size` rows at a time (default: the route's")
-        lines.append("        maximum, the fewest requests). With `since`, rows come oldest first unless")
+        lines.append("        Pages are fetched lazily, `page_size` rows at a time (default with `since`: the")
+        lines.append("        route's maximum; without it, the route's default page, which stops at your plan's")
+        lines.append("        history window). With `since`, rows come oldest first unless")
         lines.append("        `order` says otherwise. Call `.to_pandas()` / `.to_list()` to collect them.")
         lines.extend(
             esc(x)

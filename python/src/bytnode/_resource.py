@@ -20,8 +20,12 @@ def _iter_params(route: RouteSpec, params: dict[str, Any], page_size: int | None
         if page_size < 1 or (route.max_limit and page_size > route.max_limit):
             raise ValueError(f"page_size must be between 1 and {route.max_limit}")
         out["limit"] = page_size
-    elif route.max_limit:
-        out["limit"] = route.max_limit  # the fewest requests, the least quota
+    elif route.max_limit and ("since_ms" in out or route.range_mode):
+        # The largest pages (fewest requests, least quota) when the period is
+        # bounded by `since`. Without it, the route's own default page: it stops
+        # at your plan's history window, where `limit=1000` would be refused
+        # with 403 `history_depth` on a small plan.
+        out["limit"] = route.max_limit
     if "order" not in out:
         if "since_ms" in out:
             out["order"] = "asc"  # a period read from its start comes in chronological order

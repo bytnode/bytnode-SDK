@@ -25,7 +25,7 @@ export interface RequestOptions {
 }
 
 export interface IterOptions {
-  /** Rows per request (`limit`), up to the route's maximum (the default: fewest requests). */
+  /** Rows per request (`limit`), up to the route's maximum (the default with `since`: fewest requests). */
   pageSize?: number;
   /** Stop after this many rows. */
   maxItems?: number;
@@ -362,8 +362,11 @@ export class Core {
         throw new RangeError(`pageSize must be between 1 and ${route.maxLimit}`);
       }
       out.limit = pageSize;
-    } else if (route.maxLimit) {
-      out.limit = route.maxLimit; // the fewest requests, the least quota
+    } else if (route.maxLimit && (rest.since != null || out.since_ms != null || route.rangeMode)) {
+      // The largest pages (fewest requests, least quota) when the period is bounded
+      // by `since`. Without it, the route's own default page: it stops at your
+      // plan's history window, where `limit=1000` would be refused (403 history_depth).
+      out.limit = route.maxLimit;
     }
     if (out.order == null) {
       if (out.since_ms != null) out.order = 'asc'; // a period read from its start comes in chronological order

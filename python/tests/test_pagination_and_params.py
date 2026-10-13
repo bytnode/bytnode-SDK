@@ -96,7 +96,10 @@ def test_iter_understands_next_as_a_url(respx_mock: respx.MockRouter, client: By
         ]
     )
     assert len(client.klines.iter("BTCUSDT", "1h").to_list()) == 2
-    second = route.calls[1].request.url.params
+    first, second = (c.request.url.params for c in route.calls)
+    # Without `since`, no `limit=1000`: the route's default page stops at the plan's
+    # history window instead of being refused (403 history_depth) on a small plan.
+    assert "limit" not in first
     assert second["before_ms"] == "1767229200000" and second["symbol"] == "BTCUSDT"
 
 
