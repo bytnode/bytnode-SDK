@@ -126,8 +126,8 @@ How far back you can read depends on your plan (a `PermissionDeniedError` with c
 # `to_pandas()` needs pandas: pip install pandas (or install the wheel with the [pandas] extra)
 from datetime import datetime, timedelta, timezone
 
-df = client.klines.history.iter("BTCUSDT", "1d", since=datetime.now(timezone.utc) - timedelta(days=20)).to_pandas()
-df["close"].pct_change().rolling(20).std()
+df = client.klines.history.iter("BTCUSDT", "1d", since=datetime.now(timezone.utc) - timedelta(days=29)).to_pandas()  # inside the Free plan's 30-day daily window
+df["close"].pct_change().rolling(7).std()  # 7-day volatility
 ```
 
 `to_pandas()` exists on every response and iterator: indexed by `time` (UTC), ascending, one column
