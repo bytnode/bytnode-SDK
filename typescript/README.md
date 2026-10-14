@@ -119,7 +119,7 @@ All extend `BytnodeError`; HTTP ones `APIError` (`status`, `code`, `param`, `det
 `headers`, `body`). Branch on `code` (type `ErrorCode`), never on the message.
 
 
-Every error carries `requestId` (quote it to support). A value the SDK checks before sending (an indicator parameter out of range, a time in seconds instead of milliseconds) throws a plain `RangeError` at once, without a request: it is a bug in the calling code, not an API answer. Closed values such as `timeframe` are typed (`tsc` refuses `'60m'`); sent anyway, they come back from the API as a 422 (`invalid_timeframe`, with the accepted values). If the API serves a newer MAJOR contract than the SDK, a warning says so once.
+Every error carries `requestId` (quote it to support). A value the SDK checks before sending (an indicator parameter out of range, a time in seconds instead of milliseconds) throws a plain `RangeError` at once, without a request: it is a bug in the calling code, not an API answer. Closed values such as `timeframe` are typed (`tsc` refuses `'60m'`); sent anyway, they come back from the API as a 422 (`invalid_timeframe`, with the accepted values). If the API serves another MAJOR contract than the SDK, or a newer MINOR one (additions the SDK does not type yet), a warning says so once.
 
 ## Retries, timeouts and rate limits
 

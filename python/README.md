@@ -25,6 +25,8 @@ from datetime import datetime, timedelta, timezone
 
 since = datetime.now(timezone.utc) - timedelta(hours=12)                      # inside every plan's window
 df = client.klines.history.iter("BTCUSDT", "1h", since=since).to_pandas()     # every page, one DataFrame (pip install pandas)
+
+client.close()                                       # or: with Bytnode() as client: ...
 ```
 
 Python 3.10+. Synchronous and `asyncio` clients. Fully typed (`py.typed`, mypy strict).
@@ -164,8 +166,8 @@ support). A value the SDK checks before sending (an indicator parameter out of r
 seconds instead of milliseconds) raises a plain `ValueError` at once, without a request: it is a bug
 in the calling code, not an API answer. Closed values such as `timeframe` are typed (`mypy` refuses
 `"60m"`); sent anyway, they come back from the API as a 422 (`invalid_timeframe`, with the accepted
-values). If the API serves a newer MAJOR contract than the SDK, a `BytnodeWarning`
-says so once.
+values). If the API serves another MAJOR contract than the SDK, or a newer MINOR one
+(additions the SDK does not type yet), a `BytnodeWarning` says so once.
 
 ## Retries, timeouts and rate limits
 

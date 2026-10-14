@@ -13,9 +13,9 @@ they are not on PyPI or npm yet.
 ```python
 from bytnode import Bytnode
 
-client = Bytnode()  # reads BYTNODE_API_KEY
-rate = client.funding.rate("BTCUSDT")  # works on the free plan
-print(rate.data.rate_pct if rate.data else rate.unavailable)
+with Bytnode() as client:  # reads BYTNODE_API_KEY; closes its connections on exit
+    rate = client.funding.rate("BTCUSDT")  # works on the free plan
+    print(rate.data.rate_pct if rate.data else rate.unavailable)
 ```
 
 ```ts
