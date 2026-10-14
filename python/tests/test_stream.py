@@ -34,12 +34,12 @@ def book(seq: int) -> str:
     data = {
         "bids": [[82999.0, 1.5]],
         "asks": [[83001.0, 2.0]],
-        "mid_avg": 83000.0,
+        "avg_mid_price": 83000.0,
         "avg_spread_bps": 0.03,
         "is_crossed": False,
         "crossed_bps": 0.0,
     }
-    return json.dumps({"channel": "book.futures.BTCUSDT", "server_time": T, "seq": seq, "data": data})
+    return json.dumps({"channel": "orderbook.futures.BTCUSDT", "server_time": T, "seq": seq, "data": data})
 
 
 class FakeStream:
@@ -78,9 +78,8 @@ class FakeStream:
             if frame["op"] == "subscribe":
                 bad = [c for c in frame["channels"] if c.endswith("FAKE")]
                 if bad:
-                    conn.send(
-                        json.dumps({"op": "error", "code": "invalid_symbol", "message": f"Unknown symbol in {bad[0]}"})
-                    )
+                    erreur = {"code": "invalid_symbol", "message": f"Unknown symbol in {bad[0]}", "param": "channels"}
+                    conn.send(json.dumps({"op": "error", "error": erreur}))
                     continue
                 active |= set(frame["channels"])
                 conn.send(json.dumps({"op": "subscribed", "channels": sorted(active)}))
@@ -115,7 +114,7 @@ def _sync(url: str, key: str = "cb_live_k") -> Bytnode:
 
 def test_channel_helpers() -> None:
     assert ch.trades("btcusdt") == "trades.futures.BTCUSDT"
-    assert ch.book("ETHUSDT", market="spot") == "book.spot.ETHUSDT"
+    assert ch.book("ETHUSDT", market="spot") == "orderbook.spot.ETHUSDT"
     assert ch.liquidations("solusdt") == "liquidations.SOLUSDT"
     with pytest.raises(ValueError):
         ch.trades("BTCUSDT", market="perp")  # type: ignore[arg-type]
@@ -129,7 +128,7 @@ def test_sync_stream_typed_messages_and_gaps(server: Any) -> None:
 
     url, fake = server([script])
     with _sync(url).stream("trades.futures.btcusdt", ch.book("BTCUSDT"), depth=3, reconnect=False) as s:
-        assert s.channels == ["book.futures.BTCUSDT", "trades.futures.BTCUSDT"]
+        assert s.channels == ["orderbook.futures.BTCUSDT", "trades.futures.BTCUSDT"]
         msgs = []
         with pytest.raises(StreamError, match="closed"):
             for m in s:
@@ -137,7 +136,7 @@ def test_sync_stream_typed_messages_and_gaps(server: Any) -> None:
     assert fake.keys == ["cb_live_k"]  # the key travels in a header, never in the URL
     assert fake.frames[0] == {
         "op": "subscribe",
-        "channels": ["book.futures.BTCUSDT", "trades.futures.BTCUSDT"],
+        "channels": ["orderbook.futures.BTCUSDT", "trades.futures.BTCUSDT"],
         "depth": 3,
     }
     assert [type(m) for m in msgs] == [TradesMessage, TradesMessage, BookMessage, TradesMessage]

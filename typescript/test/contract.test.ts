@@ -22,7 +22,7 @@ function method(client: any, dotted: string): any {
 
 describe('contract', () => {
   it('maps every route to a method', () => {
-    expect(OPS).toHaveLength(129);
+    expect(OPS).toHaveLength(131);
     expect(Object.keys(ROUTES).sort()).toEqual(OPS.map((o) => o.path).sort());
   });
 
@@ -32,7 +32,7 @@ describe('contract', () => {
     expect(typeof fn).toBe('function');
     let resp: any;
     if (path === '/v1/snapshot') resp = await fn({ symbol: 'BTCUSDT', funding_rate: true, klines: { '1h': 2 } });
-    else if (path === '/v1/indicators') resp = await fn({ symbol: 'BTCUSDT', timeframe: '1h', indicators: [ind.rsi(14), ind.macd()], results: 3 });
+    else if (path === '/v1/indicators') resp = await fn({ symbol: 'BTCUSDT', timeframe: '1h', indicators: [ind.rsi(14), ind.macd()], limit: 3 });
     else {
       const params: Record<string, string> = {};
       const forced = FORCE_REQUIRED[path] ?? [];

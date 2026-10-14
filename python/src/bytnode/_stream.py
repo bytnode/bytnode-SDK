@@ -53,14 +53,12 @@ class StreamLiquidation(BytnodeModel):
 
 
 class StreamBook(BytnodeModel):
-    """The consolidated order book: `[price, quantity]` levels re-centred on `mid_avg`."""
+    """The consolidated order book: `[price, quantity]` levels re-centred on `avg_mid_price`."""
 
     bids: list[tuple[float, float]] = PydField(default_factory=list, description="Decreasing prices.")
     asks: list[tuple[float, float]] = PydField(default_factory=list, description="Increasing prices.")
-    mid_avg: float | None = PydField(None, description="Reference price.")
+    avg_mid_price: float | None = PydField(None, description="Average of the venues' mid prices (the reference price).")
     avg_spread_bps: float | None = PydField(None, description="Average per-venue spread, in basis points.")
-    is_crossed: bool | None = None
-    crossed_bps: float | None = None
 
 
 class StreamMessage(BytnodeModel):
@@ -73,7 +71,7 @@ class StreamMessage(BytnodeModel):
 
     @property
     def kind(self) -> str:
-        """`trades`, `liquidations` or `book`."""
+        """`trades`, `liquidations` or `orderbook`."""
         return self.channel.split(".", 1)[0]
 
     @property
@@ -104,15 +102,33 @@ AnyMessage = Union[TradesMessage, LiquidationsMessage, BookMessage]
 
 def parse_message(obj: dict[str, Any]) -> AnyMessage:
     kind = str(obj.get("channel", "")).split(".", 1)[0]
-    if kind == "book":
+    if kind == "orderbook":
         return BookMessage.model_validate(obj)
     if kind == "liquidations":
         return LiquidationsMessage.model_validate(obj)
     return TradesMessage.model_validate(obj)
 
 
+def _stream_error(obj: dict[str, Any]) -> StreamError:
+    """An `op: error` frame: `{error: {code, message, param, details}}` since contract 3.0.0
+    (the flat `code` / `message` of earlier versions is still read)."""
+    nested = obj.get("error")
+    detail: dict[str, Any] = nested if isinstance(nested, dict) else obj
+    return StreamError(
+        str(detail.get("message") or "stream error"),
+        code=detail.get("code"),
+        param=detail.get("param"),
+        details=detail.get("details"),
+    )
+
+
 def normalize_channel(channel: str) -> str:
     """`trades.futures.btcusdt` -> `trades.futures.BTCUSDT` (the API is case-insensitive)."""
+    if not isinstance(channel, str):
+        raise TypeError(
+            f"a channel is a string such as 'trades.futures.BTCUSDT', got {type(channel).__name__}: "
+            "pass channels as separate arguments, stream(a, b), or unpack a list, stream(*names)"
+        )
     parts = channel.strip().split(".")
     if len(parts) < 2:
         raise ValueError(f"invalid channel {channel!r}: expected e.g. 'trades.futures.BTCUSDT' (see bytnode.channels)")
@@ -130,9 +146,9 @@ def classify_close(code: int | None, reason: str) -> BytnodeError | None:
     """The error to raise for a closing code, or `None` when reconnecting is the right move."""
     if code == 4001:
         return StreamError(reason or "key refused", code="invalid_api_key", close_code=code)
+    if code == 4005 or (code == 4003 and "slow" in reason.lower()):
+        return None  # the client fell behind (4005 since contract 3.0.0): reconnect, it starts fresh
     if code == 4003:
-        if "slow" in reason.lower():
-            return None  # the client fell behind: reconnect, it starts fresh
         return ConnectionLimitError(
             reason or "the plan's ceiling of simultaneous connections is reached",
             code="connection_limit",
@@ -287,7 +303,7 @@ class AsyncStream:
         op = obj.get("op")
         if op is not None:
             if op == "error":
-                err = StreamError(obj.get("message") or "stream error", code=obj.get("code"))
+                err = _stream_error(obj)
                 if self._pending:
                     self._pending.popleft().set_exception(err)
                 else:
@@ -480,7 +496,7 @@ class SyncStream:
             obj = json.loads(raw)
             reply = obj.get("op")
             if reply == "error":
-                raise StreamError(obj.get("message") or "stream error", code=obj.get("code"))
+                raise _stream_error(obj)
             if reply in ("subscribed", "unsubscribed"):
                 self._tracker.active = list(obj.get("channels") or [])
                 return obj  # type: ignore[no-any-return]

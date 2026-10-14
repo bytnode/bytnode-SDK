@@ -11,14 +11,21 @@ from pydantic import Field as PydField
 from .._models_base import BytnodeModel
 
 
+class IndicatorRow(BytnodeModel):
+    """One value of an indicator at one candle: `time` and `value`, or `time` and the named
+    outputs of a multi-output indicator (`macd`, `signal`, `histogram`; `upper`, `middle`,
+    `lower`...), which are extra attributes."""
+
+    time: datetime = PydField(description="Start of the candle of this value.")
+    value: float | None = PydField(None, description="The value of a single-output indicator.")
+
+
 class IndicatorValue(BytnodeModel):
     """One computed indicator. Its parameters (`period`, `fast`...) are extra attributes."""
 
-    time: datetime | None = PydField(None, description="Start of the candle of the LAST value of `values`.")
     type: str | None = PydField(None, description="Indicator type.")
-    values: list[float | None] | dict[str, list[float | None]] = PydField(
-        default_factory=list,
-        description="Values oldest to newest; a mapping of series for multi-output indicators (MACD, Bollinger...).",
+    values: list[IndicatorRow] = PydField(
+        default_factory=list, description="One row per candle, most recent first (`limit` rows)."
     )
 
 

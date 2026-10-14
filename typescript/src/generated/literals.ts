@@ -52,8 +52,15 @@ export const OrderValues = ["asc", "desc"] as const;
 export type MiningDataset = "concentration" | "rewards" | "difficulty" | "fee_rates";
 export const MiningDatasetValues = ["concentration", "rewards", "difficulty", "fee_rates"] as const;
 
+/**
+ * The pairs served by this contract version (`GET /v1/symbols` gives the live list). The
+ * `symbol` parameter is an OPEN string: a pair added later is not a breaking change.
+ */
+export type KnownSymbol = "ADAUSDT" | "AVAXUSDT" | "BNBUSDT" | "BTCUSDT" | "DOGEUSDT" | "ETHUSDT" | "GRAMUSDT" | "HBARUSDT" | "HYPEUSDT" | "LINKUSDT" | "LTCUSDT" | "NEARUSDT" | "SOLUSDT" | "SUIUSDT" | "TAOUSDT" | "TRXUSDT" | "UNIUSDT" | "USDCUSDT" | "USDTUSDC" | "XLMUSDT" | "XMRUSDT" | "XRPUSDT";
+export const KnownSymbolValues = ["ADAUSDT", "AVAXUSDT", "BNBUSDT", "BTCUSDT", "DOGEUSDT", "ETHUSDT", "GRAMUSDT", "HBARUSDT", "HYPEUSDT", "LINKUSDT", "LTCUSDT", "NEARUSDT", "SOLUSDT", "SUIUSDT", "TAOUSDT", "TRXUSDT", "UNIUSDT", "USDCUSDT", "USDTUSDC", "XLMUSDT", "XMRUSDT", "XRPUSDT"] as const;
+
 /** The technical indicators served by `POST /v1/indicators`. */
 export type IndicatorType = "ad" | "adosc" | "adx" | "atr" | "bb" | "cci" | "donchian" | "ema" | "ichimoku" | "keltner" | "macd" | "mfi" | "obv" | "roc" | "rsi" | "sar" | "sma" | "stoch" | "willr";
 
 /** Stable machine-readable `error.code` values. Branch on them, never on the message. */
-export type ErrorCode = "depth_too_large" | "edge_rate_limited" | "history_depth" | "insufficient_data" | "internal_error" | "invalid_api_key" | "invalid_asset" | "invalid_channel" | "invalid_depth" | "invalid_indicator" | "invalid_message" | "invalid_parameter" | "invalid_series" | "invalid_symbol" | "invalid_time_range" | "invalid_timeframe" | "method_not_allowed" | "missing_expiry" | "missing_parameter" | "not_applicable" | "not_authenticated" | "not_found" | "plan_family" | "plan_websocket" | "quota_exceeded" | "rate_limited" | "repeated_parameter" | "service_unavailable" | "timeframe_not_served" | "unknown_field" | "unknown_parameter" | "upstream_timeout";
+export type ErrorCode = "depth_too_large" | "edge_rate_limited" | "history_depth" | "insufficient_data" | "internal_error" | "invalid_api_key" | "invalid_asset" | "invalid_channel" | "invalid_depth" | "invalid_indicator" | "invalid_message" | "invalid_parameter" | "invalid_series" | "invalid_symbol" | "invalid_time_range" | "invalid_timeframe" | "method_not_allowed" | "missing_api_key" | "missing_parameter" | "not_applicable" | "not_authenticated" | "not_found" | "plan_family" | "plan_websocket" | "quota_exceeded" | "rate_limited" | "repeated_parameter" | "service_unavailable" | "timeframe_not_served" | "unknown_field" | "unknown_parameter" | "upstream_timeout";

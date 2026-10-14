@@ -28,8 +28,9 @@ TIME_PARAMS = {"since_ms": "since", "until_ms": "until", "before_ms": "before"}
 # --------------------------------------------------------------------------- types
 
 
-# Contract schema names that would collide with a language built-in in the SDKs.
-MODEL_RENAMES: dict[str, str] = {"Symbol": "SymbolInfo"}
+# Contract schema names that would collide with a language built-in in the SDKs:
+# `Symbol` (the enum of the served pairs, 3.1.0) would shadow JavaScript's `Symbol`.
+MODEL_RENAMES: dict[str, str] = {"Symbol": "KnownSymbol"}
 
 @dataclass
 class TypeRef:
@@ -296,13 +297,32 @@ class Builder:
             return rule["literal"]
         return None
 
+    def open_enum(self, schema: dict[str, Any]) -> TypeRef | None:
+        """`anyOf: [$ref <string enum>, {type: string}]`: the values known to this contract
+        version, the parameter staying OPEN (a pair added later is not a breaking change).
+        The enum becomes a named literal (`KnownSymbol`), the type `KnownSymbol | str`."""
+        opts = schema.get("anyOf") or []
+        refs = [o for o in opts if "$ref" in o]
+        if len(opts) != 2 or len(refs) != 1 or {"type": "string"} not in opts:
+            return None
+        target, name = self.resolve(refs[0])
+        if not name or target.get("type") != "string" or not target.get("enum"):
+            return None
+        values = tuple(target["enum"])
+        if name not in self.literals:
+            self.literals[name] = Literal(name, values, (target.get("description") or "").strip())
+        return TypeRef("literal", name=name, values=values)
+
     def param(self, path: str, prm: dict[str, Any]) -> Param:
         prm, _ = self.resolve(prm)
         wire = prm["name"]
         schema, _ = self.resolve(prm.get("schema", {}))
         lit = self.literal_for(path, prm)
+        known = None if lit else self.open_enum(schema)
         if lit:
             t = TypeRef("literal", name=lit, values=self.literals[lit].values)
+        elif known is not None:
+            t = TypeRef("union", options=(known, TypeRef("str")))
         elif schema.get("enum"):
             # the contract closes the set; a known literal with the same values names it
             values = tuple(schema["enum"])
@@ -518,7 +538,13 @@ class Builder:
 
 def param_literals(api: Api) -> list[str]:
     """Names of the literals used by route parameters (the resource modules import them)."""
-    return sorted({p.type.name for r in api.routes for p in r.params if p.type.kind == "literal" and p.type.name})
+    names = set()
+    for r in api.routes:
+        for p in r.params:
+            for t in (p.type, *p.type.options):
+                if t.kind == "literal" and t.name:
+                    names.add(t.name)
+    return sorted(names)
 
 
 def load() -> Api:

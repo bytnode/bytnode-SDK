@@ -15,7 +15,7 @@ from .._types import Depth, Fields, RequestOptions, TimeLike
 from .._indicator_spec import IndicatorSpec
 from . import models as m
 from .indicators_result import IndicatorsResult
-from .literals import Asset, CoarseTimeframe, IntradayTimeframe, KlineTimeframe, MiningDataset, OptionsTimeframe, Order, Timeframe
+from .literals import Asset, CoarseTimeframe, IntradayTimeframe, KlineTimeframe, KnownSymbol, MiningDataset, OptionsTimeframe, Order, Timeframe
 from .snapshot import SnapshotData
 
 
@@ -26,7 +26,7 @@ class BasisHistoryResource(SyncResource):
 
     def __call__(
         self,
-        symbol: str,
+        symbol: KnownSymbol | str,
         timeframe: Timeframe,
         *,
         limit: int | None = None,
@@ -49,9 +49,11 @@ class BasisHistoryResource(SyncResource):
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
             timeframe: Required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. One row per
-                closed bucket, aggregating its minutes (`sample_count` = minutes in the
-                bucket); `1m` gives one row per minute, aligned on the minute. Missing: 422
-                `missing_parameter`.
+                closed bucket: for a STATE (basis, open interest, heatmap) the value of its
+                LAST minute — its close —, for a FLOW (open-interest change, liquidations,
+                trade sizes) the total over its minutes; `sample_count` = minutes with data
+                in the bucket. `1m` gives one row per minute, aligned on the minute.
+                Missing: 422 `missing_parameter`.
             limit: Number of rows to return, in the reading order (most recent first by
                 default). Bounded by your plan's history window: an explicit `limit` (or
                 `since_ms`) reaching beyond it returns 403 `history_depth`; without them the
@@ -76,7 +78,7 @@ class BasisHistoryResource(SyncResource):
 
     def iter(
         self,
-        symbol: str,
+        symbol: KnownSymbol | str,
         timeframe: Timeframe,
         *,
         since: TimeLike | None = None,
@@ -85,6 +87,7 @@ class BasisHistoryResource(SyncResource):
         fields: Fields | None = None,
         page_size: int | None = None,
         max_items: int | None = None,
+        limit: int | None = None,
         request_options: RequestOptions | None = None,
     ) -> RowIterator[m.BasisHistoryItem]:
         """Every row of `/v1/basis/history` over a period, following `next` page after page.
@@ -100,9 +103,11 @@ class BasisHistoryResource(SyncResource):
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
             timeframe: Required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. One row per
-                closed bucket, aggregating its minutes (`sample_count` = minutes in the
-                bucket); `1m` gives one row per minute, aligned on the minute. Missing: 422
-                `missing_parameter`.
+                closed bucket: for a STATE (basis, open interest, heatmap) the value of its
+                LAST minute — its close —, for a FLOW (open-interest change, liquidations,
+                trade sizes) the total over its minutes; `sample_count` = minutes with data
+                in the bucket. `1m` gives one row per minute, aligned on the minute.
+                Missing: 422 `missing_parameter`.
             since: Lower time bound, inclusive. A `datetime` (naive = UTC), a `date`, an ISO
                 string (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
             until: Upper time bound, inclusive to the millisecond. A `datetime` (naive =
@@ -116,9 +121,11 @@ class BasisHistoryResource(SyncResource):
                 validated.
             page_size: Rows per request (`limit`), up to the route's maximum.
             max_items: Stop after this many rows.
+            limit: The same as `max_items` (the name the other methods use for a number of
+                rows).
             request_options: Per-request `timeout`, `max_retries` or extra `headers`.
         """
-        return self._iter(self._route, {'symbol': symbol, 'timeframe': timeframe, 'since_ms': since, 'until_ms': until, 'order': order, 'fields': fields}, page_size=page_size, max_items=max_items, request_options=request_options)
+        return self._iter(self._route, {'symbol': symbol, 'timeframe': timeframe, 'since_ms': since, 'until_ms': until, 'order': order, 'fields': fields}, page_size=page_size, max_items=max_items if max_items is not None else limit, request_options=request_options)
 
 
 class BasisResource(SyncResource):
@@ -134,7 +141,7 @@ class BasisResource(SyncResource):
 
     def __call__(
         self,
-        symbol: str,
+        symbol: KnownSymbol | str,
         *,
         fields: Fields | None = None,
         request_options: RequestOptions | None = None,
@@ -156,6 +163,120 @@ class BasisResource(SyncResource):
             request_options: Per-request `timeout`, `max_retries` or extra `headers`.
         """
         return self._call(self._route, {'symbol': symbol, 'fields': fields}, request_options)
+
+
+class BtcActiveAddressesHistoryResource(SyncResource):
+    """`/v1/btc/active-addresses/history`."""
+
+    _route = RouteSpec(path='/v1/btc/active-addresses/history', method='GET', shape='list', model=m.BtcActiveAddressesHistoryItem, paginated=True, path_params=(), max_limit=1000, range_mode=False)
+
+    def __call__(
+        self,
+        *,
+        limit: int | None = None,
+        since: TimeLike | None = None,
+        until: TimeLike | None = None,
+        before: TimeLike | None = None,
+        order: Order | None = None,
+        fields: Fields | None = None,
+        request_options: RequestOptions | None = None,
+    ) -> Response[list[m.BtcActiveAddressesHistoryItem]]:
+        """GET /v1/btc/active-addresses/history — Active addresses history
+
+        One point per day. Most recent first, or oldest first with `order=asc`. Follow
+        `next` to read the following page (it never repeats a row).
+
+        Args:
+            limit: Number of rows to return, in the reading order (most recent first by
+                default). Bounded by your plan's history window: an explicit `limit` (or
+                `since_ms`) reaching beyond it returns 403 `history_depth`; without them the
+                page simply stops at the window.
+            since: Lower time bound, inclusive. A `datetime` (naive = UTC), a `date`, an ISO
+                string (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
+            until: Upper time bound, inclusive to the millisecond. A `datetime` (naive =
+                UTC), a `date`, an ISO string (`2026-01-01`, `2026-01-01T12:00:00Z`) or
+                epoch milliseconds.
+            before: Upper time bound, exclusive (rows strictly before it). Not combinable
+                with `until`. A `datetime` (naive = UTC), a `date`, an ISO string
+                (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
+            order: Reading order: `desc` (most recent first, the default) or `asc` (oldest
+                first, reading forward from `since_ms`, which is then required). Follow
+                `next` to read the following page.
+            fields: Only return these fields of each row (a list or a comma-separated
+                string; dotted paths reach nested keys). Rows are then partial and not
+                validated.
+            request_options: Per-request `timeout`, `max_retries` or extra `headers`.
+        """
+        return self._call(self._route, {'limit': limit, 'since_ms': since, 'until_ms': until, 'before_ms': before, 'order': order, 'fields': fields}, request_options)
+
+    def iter(
+        self,
+        *,
+        since: TimeLike | None = None,
+        until: TimeLike | None = None,
+        order: Order | None = None,
+        fields: Fields | None = None,
+        page_size: int | None = None,
+        max_items: int | None = None,
+        limit: int | None = None,
+        request_options: RequestOptions | None = None,
+    ) -> RowIterator[m.BtcActiveAddressesHistoryItem]:
+        """Every row of `/v1/btc/active-addresses/history` over a period, following `next` page after page.
+
+        Pages are fetched lazily, `page_size` rows at a time (default with `since`: the
+        route's maximum; without it, the route's default page, which stops at your plan's
+        history window). With `since`, rows come oldest first unless
+        `order` says otherwise. Call `.to_pandas()` / `.to_list()` to collect them.
+
+        Args:
+            since: Lower time bound, inclusive. A `datetime` (naive = UTC), a `date`, an ISO
+                string (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
+            until: Upper time bound, inclusive to the millisecond. A `datetime` (naive =
+                UTC), a `date`, an ISO string (`2026-01-01`, `2026-01-01T12:00:00Z`) or
+                epoch milliseconds.
+            order: Reading order: `desc` (most recent first, the default) or `asc` (oldest
+                first, reading forward from `since_ms`, which is then required). Follow
+                `next` to read the following page.
+            fields: Only return these fields of each row (a list or a comma-separated
+                string; dotted paths reach nested keys). Rows are then partial and not
+                validated.
+            page_size: Rows per request (`limit`), up to the route's maximum.
+            max_items: Stop after this many rows.
+            limit: The same as `max_items` (the name the other methods use for a number of
+                rows).
+            request_options: Per-request `timeout`, `max_retries` or extra `headers`.
+        """
+        return self._iter(self._route, {'since_ms': since, 'until_ms': until, 'order': order, 'fields': fields}, page_size=page_size, max_items=max_items if max_items is not None else limit, request_options=request_options)
+
+
+class BtcActiveAddressesResource(SyncResource):
+    """`/v1/btc/active-addresses` and its sub-routes."""
+
+    history: BtcActiveAddressesHistoryResource
+
+    def __init__(self, client: Any) -> None:
+        super().__init__(client)
+        self.history = BtcActiveAddressesHistoryResource(client)
+
+    _route = RouteSpec(path='/v1/btc/active-addresses', method='GET', shape='object', model=m.BtcActiveAddresses, paginated=False, path_params=(), max_limit=None, range_mode=False)
+
+    def __call__(
+        self,
+        *,
+        fields: Fields | None = None,
+        request_options: RequestOptions | None = None,
+    ) -> Response[m.BtcActiveAddresses | None]:
+        """GET /v1/btc/active-addresses — Bitcoin active addresses
+
+        Daily active addresses, 7- and 30-day averages and momentum.
+
+        Args:
+            fields: Only return these fields of each row (a list or a comma-separated
+                string; dotted paths reach nested keys). Rows are then partial and not
+                validated.
+            request_options: Per-request `timeout`, `max_retries` or extra `headers`.
+        """
+        return self._call(self._route, {'fields': fields}, request_options)
 
 
 class BtcFeesHistoryResource(SyncResource):
@@ -217,6 +338,7 @@ class BtcFeesHistoryResource(SyncResource):
         fields: Fields | None = None,
         page_size: int | None = None,
         max_items: int | None = None,
+        limit: int | None = None,
         request_options: RequestOptions | None = None,
     ) -> RowIterator[m.BtcFeesHistoryItem]:
         """Every row of `/v1/btc/fees/history` over a period, following `next` page after page.
@@ -244,9 +366,11 @@ class BtcFeesHistoryResource(SyncResource):
                 validated.
             page_size: Rows per request (`limit`), up to the route's maximum.
             max_items: Stop after this many rows.
+            limit: The same as `max_items` (the name the other methods use for a number of
+                rows).
             request_options: Per-request `timeout`, `max_retries` or extra `headers`.
         """
-        return self._iter(self._route, {'since_ms': since, 'until_ms': until, 'order': order, 'timeframe': timeframe, 'fields': fields}, page_size=page_size, max_items=max_items, request_options=request_options)
+        return self._iter(self._route, {'since_ms': since, 'until_ms': until, 'order': order, 'timeframe': timeframe, 'fields': fields}, page_size=page_size, max_items=max_items if max_items is not None else limit, request_options=request_options)
 
 
 class BtcFeesResource(SyncResource):
@@ -269,7 +393,8 @@ class BtcFeesResource(SyncResource):
         """GET /v1/btc/fees — Recommended Bitcoin fees
 
         Fee rates for each confirmation target (sat/vB): the rounded rates under the same
-        names as the history, the unrounded ones under `precise`, and the fee pressure.
+        names as the history, the unrounded ones as `<name>_precise_sat_vb`, and the fee
+        pressure (`fastest_economy_ratio` and its label).
 
         Args:
             fields: Only return these fields of each row (a list or a comma-separated
@@ -333,6 +458,7 @@ class BtcMempoolHistoryResource(SyncResource):
         fields: Fields | None = None,
         page_size: int | None = None,
         max_items: int | None = None,
+        limit: int | None = None,
         request_options: RequestOptions | None = None,
     ) -> RowIterator[m.BtcMempoolHistoryItem]:
         """Every row of `/v1/btc/mempool/history` over a period, following `next` page after page.
@@ -356,9 +482,11 @@ class BtcMempoolHistoryResource(SyncResource):
                 validated.
             page_size: Rows per request (`limit`), up to the route's maximum.
             max_items: Stop after this many rows.
+            limit: The same as `max_items` (the name the other methods use for a number of
+                rows).
             request_options: Per-request `timeout`, `max_retries` or extra `headers`.
         """
-        return self._iter(self._route, {'since_ms': since, 'until_ms': until, 'order': order, 'fields': fields}, page_size=page_size, max_items=max_items, request_options=request_options)
+        return self._iter(self._route, {'since_ms': since, 'until_ms': until, 'order': order, 'fields': fields}, page_size=page_size, max_items=max_items if max_items is not None else limit, request_options=request_options)
 
 
 class BtcMempoolResource(SyncResource):
@@ -449,6 +577,7 @@ class BtcMiningHistoryResource(SyncResource):
         fields: Fields | None = None,
         page_size: int | None = None,
         max_items: int | None = None,
+        limit: int | None = None,
         request_options: RequestOptions | None = None,
     ) -> RowIterator[m.BtcMiningHistoryItem]:
         """Every row of `/v1/btc/mining/history` over a period, following `next` page after page.
@@ -474,9 +603,11 @@ class BtcMiningHistoryResource(SyncResource):
                 validated.
             page_size: Rows per request (`limit`), up to the route's maximum.
             max_items: Stop after this many rows.
+            limit: The same as `max_items` (the name the other methods use for a number of
+                rows).
             request_options: Per-request `timeout`, `max_retries` or extra `headers`.
         """
-        return self._iter(self._route, {'since_ms': since, 'until_ms': until, 'order': order, 'dataset': dataset, 'fields': fields}, page_size=page_size, max_items=max_items, request_options=request_options)
+        return self._iter(self._route, {'since_ms': since, 'until_ms': until, 'order': order, 'dataset': dataset, 'fields': fields}, page_size=page_size, max_items=max_items if max_items is not None else limit, request_options=request_options)
 
 
 class BtcMiningResource(SyncResource):
@@ -499,8 +630,122 @@ class BtcMiningResource(SyncResource):
         """GET /v1/btc/mining — Mining pool concentration
 
         Share of the largest pools, pool ranking and the latest block reward in sats and
-        USD, with the BTC price AT THAT BLOCK (`btc_price_usd_at_block`, `block_height`,
-        `block_timestamp`) — not the current price (see `/v1/klines`).
+        USD, with the BTC price AT THAT BLOCK (`latest_reward.btc_price_usd`, with its
+        `block_height` and `time`) — not the current price (see `/v1/klines`).
+
+        Args:
+            fields: Only return these fields of each row (a list or a comma-separated
+                string; dotted paths reach nested keys). Rows are then partial and not
+                validated.
+            request_options: Per-request `timeout`, `max_retries` or extra `headers`.
+        """
+        return self._call(self._route, {'fields': fields}, request_options)
+
+
+class BtcMvrvHistoryResource(SyncResource):
+    """`/v1/btc/mvrv/history`."""
+
+    _route = RouteSpec(path='/v1/btc/mvrv/history', method='GET', shape='list', model=m.BtcMvrvHistoryItem, paginated=True, path_params=(), max_limit=1000, range_mode=False)
+
+    def __call__(
+        self,
+        *,
+        limit: int | None = None,
+        since: TimeLike | None = None,
+        until: TimeLike | None = None,
+        before: TimeLike | None = None,
+        order: Order | None = None,
+        fields: Fields | None = None,
+        request_options: RequestOptions | None = None,
+    ) -> Response[list[m.BtcMvrvHistoryItem]]:
+        """GET /v1/btc/mvrv/history — MVRV history
+
+        One point per day. Most recent first, or oldest first with `order=asc`. Follow
+        `next` to read the following page (it never repeats a row).
+
+        Args:
+            limit: Number of rows to return, in the reading order (most recent first by
+                default). Bounded by your plan's history window: an explicit `limit` (or
+                `since_ms`) reaching beyond it returns 403 `history_depth`; without them the
+                page simply stops at the window.
+            since: Lower time bound, inclusive. A `datetime` (naive = UTC), a `date`, an ISO
+                string (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
+            until: Upper time bound, inclusive to the millisecond. A `datetime` (naive =
+                UTC), a `date`, an ISO string (`2026-01-01`, `2026-01-01T12:00:00Z`) or
+                epoch milliseconds.
+            before: Upper time bound, exclusive (rows strictly before it). Not combinable
+                with `until`. A `datetime` (naive = UTC), a `date`, an ISO string
+                (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
+            order: Reading order: `desc` (most recent first, the default) or `asc` (oldest
+                first, reading forward from `since_ms`, which is then required). Follow
+                `next` to read the following page.
+            fields: Only return these fields of each row (a list or a comma-separated
+                string; dotted paths reach nested keys). Rows are then partial and not
+                validated.
+            request_options: Per-request `timeout`, `max_retries` or extra `headers`.
+        """
+        return self._call(self._route, {'limit': limit, 'since_ms': since, 'until_ms': until, 'before_ms': before, 'order': order, 'fields': fields}, request_options)
+
+    def iter(
+        self,
+        *,
+        since: TimeLike | None = None,
+        until: TimeLike | None = None,
+        order: Order | None = None,
+        fields: Fields | None = None,
+        page_size: int | None = None,
+        max_items: int | None = None,
+        limit: int | None = None,
+        request_options: RequestOptions | None = None,
+    ) -> RowIterator[m.BtcMvrvHistoryItem]:
+        """Every row of `/v1/btc/mvrv/history` over a period, following `next` page after page.
+
+        Pages are fetched lazily, `page_size` rows at a time (default with `since`: the
+        route's maximum; without it, the route's default page, which stops at your plan's
+        history window). With `since`, rows come oldest first unless
+        `order` says otherwise. Call `.to_pandas()` / `.to_list()` to collect them.
+
+        Args:
+            since: Lower time bound, inclusive. A `datetime` (naive = UTC), a `date`, an ISO
+                string (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
+            until: Upper time bound, inclusive to the millisecond. A `datetime` (naive =
+                UTC), a `date`, an ISO string (`2026-01-01`, `2026-01-01T12:00:00Z`) or
+                epoch milliseconds.
+            order: Reading order: `desc` (most recent first, the default) or `asc` (oldest
+                first, reading forward from `since_ms`, which is then required). Follow
+                `next` to read the following page.
+            fields: Only return these fields of each row (a list or a comma-separated
+                string; dotted paths reach nested keys). Rows are then partial and not
+                validated.
+            page_size: Rows per request (`limit`), up to the route's maximum.
+            max_items: Stop after this many rows.
+            limit: The same as `max_items` (the name the other methods use for a number of
+                rows).
+            request_options: Per-request `timeout`, `max_retries` or extra `headers`.
+        """
+        return self._iter(self._route, {'since_ms': since, 'until_ms': until, 'order': order, 'fields': fields}, page_size=page_size, max_items=max_items if max_items is not None else limit, request_options=request_options)
+
+
+class BtcMvrvResource(SyncResource):
+    """`/v1/btc/mvrv` and its sub-routes."""
+
+    history: BtcMvrvHistoryResource
+
+    def __init__(self, client: Any) -> None:
+        super().__init__(client)
+        self.history = BtcMvrvHistoryResource(client)
+
+    _route = RouteSpec(path='/v1/btc/mvrv', method='GET', shape='object', model=m.BtcMvrv, paginated=False, path_params=(), max_limit=None, range_mode=False)
+
+    def __call__(
+        self,
+        *,
+        fields: Fields | None = None,
+        request_options: RequestOptions | None = None,
+    ) -> Response[m.BtcMvrv | None]:
+        """GET /v1/btc/mvrv — Bitcoin MVRV
+
+        Market value / realised value with its zone and 30-day momentum. Daily.
 
         Args:
             fields: Only return these fields of each row (a list or a comma-separated
@@ -564,6 +809,7 @@ class BtcNetworkHistoryResource(SyncResource):
         fields: Fields | None = None,
         page_size: int | None = None,
         max_items: int | None = None,
+        limit: int | None = None,
         request_options: RequestOptions | None = None,
     ) -> RowIterator[m.BtcNetworkHistoryItem]:
         """Every row of `/v1/btc/network/history` over a period, following `next` page after page.
@@ -587,9 +833,11 @@ class BtcNetworkHistoryResource(SyncResource):
                 validated.
             page_size: Rows per request (`limit`), up to the route's maximum.
             max_items: Stop after this many rows.
+            limit: The same as `max_items` (the name the other methods use for a number of
+                rows).
             request_options: Per-request `timeout`, `max_retries` or extra `headers`.
         """
-        return self._iter(self._route, {'since_ms': since, 'until_ms': until, 'order': order, 'fields': fields}, page_size=page_size, max_items=max_items, request_options=request_options)
+        return self._iter(self._route, {'since_ms': since, 'until_ms': until, 'order': order, 'fields': fields}, page_size=page_size, max_items=max_items if max_items is not None else limit, request_options=request_options)
 
 
 class BtcNetworkResource(SyncResource):
@@ -623,31 +871,269 @@ class BtcNetworkResource(SyncResource):
         return self._call(self._route, {'fields': fields}, request_options)
 
 
-class BtcResource(SyncResource):
-    """`/v1/btc` and its sub-routes."""
+class BtcNvtHistoryResource(SyncResource):
+    """`/v1/btc/nvt/history`."""
 
-    fees: BtcFeesResource
-    mempool: BtcMempoolResource
-    mining: BtcMiningResource
-    network: BtcNetworkResource
-
-    def __init__(self, client: Any) -> None:
-        super().__init__(client)
-        self.fees = BtcFeesResource(client)
-        self.mempool = BtcMempoolResource(client)
-        self.mining = BtcMiningResource(client)
-        self.network = BtcNetworkResource(client)
-
-
-
-class BuysellRatioFuturesHistoryResource(SyncResource):
-    """`/v1/buysell/ratio/futures/history`."""
-
-    _route = RouteSpec(path='/v1/buysell/ratio/futures/history', method='GET', shape='list', model=m.BuysellRatioHistoryItem, paginated=True, path_params=(), max_limit=1000, range_mode=False)
+    _route = RouteSpec(path='/v1/btc/nvt/history', method='GET', shape='list', model=m.BtcNvtHistoryItem, paginated=True, path_params=(), max_limit=1000, range_mode=False)
 
     def __call__(
         self,
-        symbol: str,
+        *,
+        limit: int | None = None,
+        since: TimeLike | None = None,
+        until: TimeLike | None = None,
+        before: TimeLike | None = None,
+        order: Order | None = None,
+        fields: Fields | None = None,
+        request_options: RequestOptions | None = None,
+    ) -> Response[list[m.BtcNvtHistoryItem]]:
+        """GET /v1/btc/nvt/history — NVT history
+
+        One point per day. Most recent first, or oldest first with `order=asc`. Follow
+        `next` to read the following page (it never repeats a row).
+
+        Args:
+            limit: Number of rows to return, in the reading order (most recent first by
+                default). Bounded by your plan's history window: an explicit `limit` (or
+                `since_ms`) reaching beyond it returns 403 `history_depth`; without them the
+                page simply stops at the window.
+            since: Lower time bound, inclusive. A `datetime` (naive = UTC), a `date`, an ISO
+                string (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
+            until: Upper time bound, inclusive to the millisecond. A `datetime` (naive =
+                UTC), a `date`, an ISO string (`2026-01-01`, `2026-01-01T12:00:00Z`) or
+                epoch milliseconds.
+            before: Upper time bound, exclusive (rows strictly before it). Not combinable
+                with `until`. A `datetime` (naive = UTC), a `date`, an ISO string
+                (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
+            order: Reading order: `desc` (most recent first, the default) or `asc` (oldest
+                first, reading forward from `since_ms`, which is then required). Follow
+                `next` to read the following page.
+            fields: Only return these fields of each row (a list or a comma-separated
+                string; dotted paths reach nested keys). Rows are then partial and not
+                validated.
+            request_options: Per-request `timeout`, `max_retries` or extra `headers`.
+        """
+        return self._call(self._route, {'limit': limit, 'since_ms': since, 'until_ms': until, 'before_ms': before, 'order': order, 'fields': fields}, request_options)
+
+    def iter(
+        self,
+        *,
+        since: TimeLike | None = None,
+        until: TimeLike | None = None,
+        order: Order | None = None,
+        fields: Fields | None = None,
+        page_size: int | None = None,
+        max_items: int | None = None,
+        limit: int | None = None,
+        request_options: RequestOptions | None = None,
+    ) -> RowIterator[m.BtcNvtHistoryItem]:
+        """Every row of `/v1/btc/nvt/history` over a period, following `next` page after page.
+
+        Pages are fetched lazily, `page_size` rows at a time (default with `since`: the
+        route's maximum; without it, the route's default page, which stops at your plan's
+        history window). With `since`, rows come oldest first unless
+        `order` says otherwise. Call `.to_pandas()` / `.to_list()` to collect them.
+
+        Args:
+            since: Lower time bound, inclusive. A `datetime` (naive = UTC), a `date`, an ISO
+                string (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
+            until: Upper time bound, inclusive to the millisecond. A `datetime` (naive =
+                UTC), a `date`, an ISO string (`2026-01-01`, `2026-01-01T12:00:00Z`) or
+                epoch milliseconds.
+            order: Reading order: `desc` (most recent first, the default) or `asc` (oldest
+                first, reading forward from `since_ms`, which is then required). Follow
+                `next` to read the following page.
+            fields: Only return these fields of each row (a list or a comma-separated
+                string; dotted paths reach nested keys). Rows are then partial and not
+                validated.
+            page_size: Rows per request (`limit`), up to the route's maximum.
+            max_items: Stop after this many rows.
+            limit: The same as `max_items` (the name the other methods use for a number of
+                rows).
+            request_options: Per-request `timeout`, `max_retries` or extra `headers`.
+        """
+        return self._iter(self._route, {'since_ms': since, 'until_ms': until, 'order': order, 'fields': fields}, page_size=page_size, max_items=max_items if max_items is not None else limit, request_options=request_options)
+
+
+class BtcNvtResource(SyncResource):
+    """`/v1/btc/nvt` and its sub-routes."""
+
+    history: BtcNvtHistoryResource
+
+    def __init__(self, client: Any) -> None:
+        super().__init__(client)
+        self.history = BtcNvtHistoryResource(client)
+
+    _route = RouteSpec(path='/v1/btc/nvt', method='GET', shape='object', model=m.BtcNvt, paginated=False, path_params=(), max_limit=None, range_mode=False)
+
+    def __call__(
+        self,
+        *,
+        fields: Fields | None = None,
+        request_options: RequestOptions | None = None,
+    ) -> Response[m.BtcNvt | None]:
+        """GET /v1/btc/nvt — Bitcoin NVT
+
+        Network value to transactions ratio and its 90-day NVT Signal, derived on demand.
+        Daily.
+
+        Args:
+            fields: Only return these fields of each row (a list or a comma-separated
+                string; dotted paths reach nested keys). Rows are then partial and not
+                validated.
+            request_options: Per-request `timeout`, `max_retries` or extra `headers`.
+        """
+        return self._call(self._route, {'fields': fields}, request_options)
+
+
+class BtcRevenuePerDifficultyHistoryResource(SyncResource):
+    """`/v1/btc/revenue-per-difficulty/history`."""
+
+    _route = RouteSpec(path='/v1/btc/revenue-per-difficulty/history', method='GET', shape='list', model=m.BtcRevenuePerDifficultyHistoryItem, paginated=True, path_params=(), max_limit=1000, range_mode=False)
+
+    def __call__(
+        self,
+        *,
+        limit: int | None = None,
+        since: TimeLike | None = None,
+        until: TimeLike | None = None,
+        before: TimeLike | None = None,
+        order: Order | None = None,
+        fields: Fields | None = None,
+        request_options: RequestOptions | None = None,
+    ) -> Response[list[m.BtcRevenuePerDifficultyHistoryItem]]:
+        """GET /v1/btc/revenue-per-difficulty/history — Revenue per difficulty history
+
+        One point per day. Most recent first, or oldest first with `order=asc`. Follow
+        `next` to read the following page (it never repeats a row).
+
+        Args:
+            limit: Number of rows to return, in the reading order (most recent first by
+                default). Bounded by your plan's history window: an explicit `limit` (or
+                `since_ms`) reaching beyond it returns 403 `history_depth`; without them the
+                page simply stops at the window.
+            since: Lower time bound, inclusive. A `datetime` (naive = UTC), a `date`, an ISO
+                string (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
+            until: Upper time bound, inclusive to the millisecond. A `datetime` (naive =
+                UTC), a `date`, an ISO string (`2026-01-01`, `2026-01-01T12:00:00Z`) or
+                epoch milliseconds.
+            before: Upper time bound, exclusive (rows strictly before it). Not combinable
+                with `until`. A `datetime` (naive = UTC), a `date`, an ISO string
+                (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
+            order: Reading order: `desc` (most recent first, the default) or `asc` (oldest
+                first, reading forward from `since_ms`, which is then required). Follow
+                `next` to read the following page.
+            fields: Only return these fields of each row (a list or a comma-separated
+                string; dotted paths reach nested keys). Rows are then partial and not
+                validated.
+            request_options: Per-request `timeout`, `max_retries` or extra `headers`.
+        """
+        return self._call(self._route, {'limit': limit, 'since_ms': since, 'until_ms': until, 'before_ms': before, 'order': order, 'fields': fields}, request_options)
+
+    def iter(
+        self,
+        *,
+        since: TimeLike | None = None,
+        until: TimeLike | None = None,
+        order: Order | None = None,
+        fields: Fields | None = None,
+        page_size: int | None = None,
+        max_items: int | None = None,
+        limit: int | None = None,
+        request_options: RequestOptions | None = None,
+    ) -> RowIterator[m.BtcRevenuePerDifficultyHistoryItem]:
+        """Every row of `/v1/btc/revenue-per-difficulty/history` over a period, following `next` page after page.
+
+        Pages are fetched lazily, `page_size` rows at a time (default with `since`: the
+        route's maximum; without it, the route's default page, which stops at your plan's
+        history window). With `since`, rows come oldest first unless
+        `order` says otherwise. Call `.to_pandas()` / `.to_list()` to collect them.
+
+        Args:
+            since: Lower time bound, inclusive. A `datetime` (naive = UTC), a `date`, an ISO
+                string (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
+            until: Upper time bound, inclusive to the millisecond. A `datetime` (naive =
+                UTC), a `date`, an ISO string (`2026-01-01`, `2026-01-01T12:00:00Z`) or
+                epoch milliseconds.
+            order: Reading order: `desc` (most recent first, the default) or `asc` (oldest
+                first, reading forward from `since_ms`, which is then required). Follow
+                `next` to read the following page.
+            fields: Only return these fields of each row (a list or a comma-separated
+                string; dotted paths reach nested keys). Rows are then partial and not
+                validated.
+            page_size: Rows per request (`limit`), up to the route's maximum.
+            max_items: Stop after this many rows.
+            limit: The same as `max_items` (the name the other methods use for a number of
+                rows).
+            request_options: Per-request `timeout`, `max_retries` or extra `headers`.
+        """
+        return self._iter(self._route, {'since_ms': since, 'until_ms': until, 'order': order, 'fields': fields}, page_size=page_size, max_items=max_items if max_items is not None else limit, request_options=request_options)
+
+
+class BtcRevenuePerDifficultyResource(SyncResource):
+    """`/v1/btc/revenue-per-difficulty` and its sub-routes."""
+
+    history: BtcRevenuePerDifficultyHistoryResource
+
+    def __init__(self, client: Any) -> None:
+        super().__init__(client)
+        self.history = BtcRevenuePerDifficultyHistoryResource(client)
+
+    _route = RouteSpec(path='/v1/btc/revenue-per-difficulty', method='GET', shape='object', model=m.BtcRevenuePerDifficulty, paginated=False, path_params=(), max_limit=None, range_mode=False)
+
+    def __call__(
+        self,
+        *,
+        fields: Fields | None = None,
+        request_options: RequestOptions | None = None,
+    ) -> Response[m.BtcRevenuePerDifficulty | None]:
+        """GET /v1/btc/revenue-per-difficulty — Bitcoin revenue per difficulty
+
+        Miner revenue per unit of difficulty (`revenue_per_difficulty_usd`) against its
+        30-day average, and its reading: `healthy`, `stress` or `capitulation`. Daily.
+
+        Args:
+            fields: Only return these fields of each row (a list or a comma-separated
+                string; dotted paths reach nested keys). Rows are then partial and not
+                validated.
+            request_options: Per-request `timeout`, `max_retries` or extra `headers`.
+        """
+        return self._call(self._route, {'fields': fields}, request_options)
+
+
+class BtcResource(SyncResource):
+    """`/v1/btc` and its sub-routes."""
+
+    active_addresses: BtcActiveAddressesResource
+    fees: BtcFeesResource
+    mempool: BtcMempoolResource
+    mining: BtcMiningResource
+    mvrv: BtcMvrvResource
+    network: BtcNetworkResource
+    nvt: BtcNvtResource
+    revenue_per_difficulty: BtcRevenuePerDifficultyResource
+
+    def __init__(self, client: Any) -> None:
+        super().__init__(client)
+        self.active_addresses = BtcActiveAddressesResource(client)
+        self.fees = BtcFeesResource(client)
+        self.mempool = BtcMempoolResource(client)
+        self.mining = BtcMiningResource(client)
+        self.mvrv = BtcMvrvResource(client)
+        self.network = BtcNetworkResource(client)
+        self.nvt = BtcNvtResource(client)
+        self.revenue_per_difficulty = BtcRevenuePerDifficultyResource(client)
+
+
+
+class BuySellRatioFuturesHistoryResource(SyncResource):
+    """`/v1/buy-sell-ratio/futures/history`."""
+
+    _route = RouteSpec(path='/v1/buy-sell-ratio/futures/history', method='GET', shape='list', model=m.BuySellRatioHistoryItem, paginated=True, path_params=(), max_limit=1000, range_mode=False)
+
+    def __call__(
+        self,
+        symbol: KnownSymbol | str,
         timeframe: Timeframe,
         *,
         limit: int | None = None,
@@ -657,10 +1143,10 @@ class BuysellRatioFuturesHistoryResource(SyncResource):
         order: Order | None = None,
         fields: Fields | None = None,
         request_options: RequestOptions | None = None,
-    ) -> Response[list[m.BuysellRatioHistoryItem]]:
-        """GET /v1/buysell/ratio/futures/history — Buy/sell ratio history, perpetual futures only
+    ) -> Response[list[m.BuySellRatioHistoryItem]]:
+        """GET /v1/buy-sell-ratio/futures/history — Buy/sell ratio history, perpetual futures only
 
-        Perpetual futures market only. Same as `/v1/buysell/ratio/history`, which serves
+        Perpetual futures market only. Same as `/v1/buy-sell-ratio/history`, which serves
         every market.
 
         Args:
@@ -695,7 +1181,7 @@ class BuysellRatioFuturesHistoryResource(SyncResource):
 
     def iter(
         self,
-        symbol: str,
+        symbol: KnownSymbol | str,
         timeframe: Timeframe,
         *,
         since: TimeLike | None = None,
@@ -704,9 +1190,10 @@ class BuysellRatioFuturesHistoryResource(SyncResource):
         fields: Fields | None = None,
         page_size: int | None = None,
         max_items: int | None = None,
+        limit: int | None = None,
         request_options: RequestOptions | None = None,
-    ) -> RowIterator[m.BuysellRatioHistoryItem]:
-        """Every row of `/v1/buysell/ratio/futures/history` over a period, following `next` page after page.
+    ) -> RowIterator[m.BuySellRatioHistoryItem]:
+        """Every row of `/v1/buy-sell-ratio/futures/history` over a period, following `next` page after page.
 
         Pages are fetched lazily, `page_size` rows at a time (default with `since`: the
         route's maximum; without it, the route's default page, which stops at your plan's
@@ -734,32 +1221,35 @@ class BuysellRatioFuturesHistoryResource(SyncResource):
                 validated.
             page_size: Rows per request (`limit`), up to the route's maximum.
             max_items: Stop after this many rows.
+            limit: The same as `max_items` (the name the other methods use for a number of
+                rows).
             request_options: Per-request `timeout`, `max_retries` or extra `headers`.
         """
-        return self._iter(self._route, {'symbol': symbol, 'timeframe': timeframe, 'since_ms': since, 'until_ms': until, 'order': order, 'fields': fields}, page_size=page_size, max_items=max_items, request_options=request_options)
+        return self._iter(self._route, {'symbol': symbol, 'timeframe': timeframe, 'since_ms': since, 'until_ms': until, 'order': order, 'fields': fields}, page_size=page_size, max_items=max_items if max_items is not None else limit, request_options=request_options)
 
 
-class BuysellRatioFuturesResource(SyncResource):
-    """`/v1/buysell/ratio/futures` and its sub-routes."""
+class BuySellRatioFuturesResource(SyncResource):
+    """`/v1/buy-sell-ratio/futures` and its sub-routes."""
 
-    history: BuysellRatioFuturesHistoryResource
+    history: BuySellRatioFuturesHistoryResource
 
     def __init__(self, client: Any) -> None:
         super().__init__(client)
-        self.history = BuysellRatioFuturesHistoryResource(client)
+        self.history = BuySellRatioFuturesHistoryResource(client)
 
-    _route = RouteSpec(path='/v1/buysell/ratio/futures', method='GET', shape='object', model=m.BuysellRatio, paginated=False, path_params=(), max_limit=None, range_mode=False)
+    _route = RouteSpec(path='/v1/buy-sell-ratio/futures', method='GET', shape='object', model=m.BuySellRatio, paginated=False, path_params=(), max_limit=None, range_mode=False)
 
     def __call__(
         self,
-        symbol: str,
+        symbol: KnownSymbol | str,
+        timeframe: Timeframe,
         *,
         fields: Fields | None = None,
         request_options: RequestOptions | None = None,
-    ) -> Response[m.BuysellRatio | None]:
-        """GET /v1/buysell/ratio/futures — Buy/sell volume ratio, perpetual futures only
+    ) -> Response[m.BuySellRatio | None]:
+        """GET /v1/buy-sell-ratio/futures — Buy/sell volume ratio, perpetual futures only
 
-        Perpetual futures market only. Same as `/v1/buysell/ratio`, which serves every
+        Perpetual futures market only. Same as `/v1/buy-sell-ratio`, which serves every
         market.
 
         Args:
@@ -767,22 +1257,26 @@ class BuysellRatioFuturesResource(SyncResource):
                 /v1/symbols`. Case-insensitive (`btcusdt` works; the envelope gives the
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
+            timeframe: Bucket size, required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`.
+                Missing: 422 `missing_parameter`; other values: 422 `invalid_timeframe` with
+                the accepted list. In any case (`1H` is `1h`), except `1M`: refused, since
+                elsewhere it means a month and here `1m` is one minute.
             fields: Only return these fields of each row (a list or a comma-separated
                 string; dotted paths reach nested keys). Rows are then partial and not
                 validated.
             request_options: Per-request `timeout`, `max_retries` or extra `headers`.
         """
-        return self._call(self._route, {'symbol': symbol, 'fields': fields}, request_options)
+        return self._call(self._route, {'symbol': symbol, 'timeframe': timeframe, 'fields': fields}, request_options)
 
 
-class BuysellRatioHistoryResource(SyncResource):
-    """`/v1/buysell/ratio/history`."""
+class BuySellRatioHistoryResource(SyncResource):
+    """`/v1/buy-sell-ratio/history`."""
 
-    _route = RouteSpec(path='/v1/buysell/ratio/history', method='GET', shape='list', model=m.BuysellRatioHistoryItem, paginated=True, path_params=(), max_limit=1000, range_mode=False)
+    _route = RouteSpec(path='/v1/buy-sell-ratio/history', method='GET', shape='list', model=m.BuySellRatioHistoryItem, paginated=True, path_params=(), max_limit=1000, range_mode=False)
 
     def __call__(
         self,
-        symbol: str,
+        symbol: KnownSymbol | str,
         timeframe: Timeframe,
         *,
         limit: int | None = None,
@@ -792,8 +1286,8 @@ class BuysellRatioHistoryResource(SyncResource):
         order: Order | None = None,
         fields: Fields | None = None,
         request_options: RequestOptions | None = None,
-    ) -> Response[list[m.BuysellRatioHistoryItem]]:
-        """GET /v1/buysell/ratio/history — Buy/sell ratio history
+    ) -> Response[list[m.BuySellRatioHistoryItem]]:
+        """GET /v1/buy-sell-ratio/history — Buy/sell ratio history
 
         One row per closed bucket of `timeframe` (required): the taker buy and sell volumes
         of the WHOLE bucket — the same volumes as `/v1/cvd/history` for the same market and
@@ -837,7 +1331,7 @@ class BuysellRatioHistoryResource(SyncResource):
 
     def iter(
         self,
-        symbol: str,
+        symbol: KnownSymbol | str,
         timeframe: Timeframe,
         *,
         since: TimeLike | None = None,
@@ -846,9 +1340,10 @@ class BuysellRatioHistoryResource(SyncResource):
         fields: Fields | None = None,
         page_size: int | None = None,
         max_items: int | None = None,
+        limit: int | None = None,
         request_options: RequestOptions | None = None,
-    ) -> RowIterator[m.BuysellRatioHistoryItem]:
-        """Every row of `/v1/buysell/ratio/history` over a period, following `next` page after page.
+    ) -> RowIterator[m.BuySellRatioHistoryItem]:
+        """Every row of `/v1/buy-sell-ratio/history` over a period, following `next` page after page.
 
         Pages are fetched lazily, `page_size` rows at a time (default with `since`: the
         route's maximum; without it, the route's default page, which stops at your plan's
@@ -876,19 +1371,21 @@ class BuysellRatioHistoryResource(SyncResource):
                 validated.
             page_size: Rows per request (`limit`), up to the route's maximum.
             max_items: Stop after this many rows.
+            limit: The same as `max_items` (the name the other methods use for a number of
+                rows).
             request_options: Per-request `timeout`, `max_retries` or extra `headers`.
         """
-        return self._iter(self._route, {'symbol': symbol, 'timeframe': timeframe, 'since_ms': since, 'until_ms': until, 'order': order, 'fields': fields}, page_size=page_size, max_items=max_items, request_options=request_options)
+        return self._iter(self._route, {'symbol': symbol, 'timeframe': timeframe, 'since_ms': since, 'until_ms': until, 'order': order, 'fields': fields}, page_size=page_size, max_items=max_items if max_items is not None else limit, request_options=request_options)
 
 
-class BuysellRatioSpotHistoryResource(SyncResource):
-    """`/v1/buysell/ratio/spot/history`."""
+class BuySellRatioSpotHistoryResource(SyncResource):
+    """`/v1/buy-sell-ratio/spot/history`."""
 
-    _route = RouteSpec(path='/v1/buysell/ratio/spot/history', method='GET', shape='list', model=m.BuysellRatioHistoryItem, paginated=True, path_params=(), max_limit=1000, range_mode=False)
+    _route = RouteSpec(path='/v1/buy-sell-ratio/spot/history', method='GET', shape='list', model=m.BuySellRatioHistoryItem, paginated=True, path_params=(), max_limit=1000, range_mode=False)
 
     def __call__(
         self,
-        symbol: str,
+        symbol: KnownSymbol | str,
         timeframe: Timeframe,
         *,
         limit: int | None = None,
@@ -898,10 +1395,10 @@ class BuysellRatioSpotHistoryResource(SyncResource):
         order: Order | None = None,
         fields: Fields | None = None,
         request_options: RequestOptions | None = None,
-    ) -> Response[list[m.BuysellRatioHistoryItem]]:
-        """GET /v1/buysell/ratio/spot/history — Buy/sell ratio history, spot only
+    ) -> Response[list[m.BuySellRatioHistoryItem]]:
+        """GET /v1/buy-sell-ratio/spot/history — Buy/sell ratio history, spot only
 
-        Spot market only. Same as `/v1/buysell/ratio/history`, which serves every market.
+        Spot market only. Same as `/v1/buy-sell-ratio/history`, which serves every market.
 
         Args:
             symbol: Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET
@@ -935,7 +1432,7 @@ class BuysellRatioSpotHistoryResource(SyncResource):
 
     def iter(
         self,
-        symbol: str,
+        symbol: KnownSymbol | str,
         timeframe: Timeframe,
         *,
         since: TimeLike | None = None,
@@ -944,9 +1441,10 @@ class BuysellRatioSpotHistoryResource(SyncResource):
         fields: Fields | None = None,
         page_size: int | None = None,
         max_items: int | None = None,
+        limit: int | None = None,
         request_options: RequestOptions | None = None,
-    ) -> RowIterator[m.BuysellRatioHistoryItem]:
-        """Every row of `/v1/buysell/ratio/spot/history` over a period, following `next` page after page.
+    ) -> RowIterator[m.BuySellRatioHistoryItem]:
+        """Every row of `/v1/buy-sell-ratio/spot/history` over a period, following `next` page after page.
 
         Pages are fetched lazily, `page_size` rows at a time (default with `since`: the
         route's maximum; without it, the route's default page, which stops at your plan's
@@ -974,73 +1472,82 @@ class BuysellRatioSpotHistoryResource(SyncResource):
                 validated.
             page_size: Rows per request (`limit`), up to the route's maximum.
             max_items: Stop after this many rows.
+            limit: The same as `max_items` (the name the other methods use for a number of
+                rows).
             request_options: Per-request `timeout`, `max_retries` or extra `headers`.
         """
-        return self._iter(self._route, {'symbol': symbol, 'timeframe': timeframe, 'since_ms': since, 'until_ms': until, 'order': order, 'fields': fields}, page_size=page_size, max_items=max_items, request_options=request_options)
+        return self._iter(self._route, {'symbol': symbol, 'timeframe': timeframe, 'since_ms': since, 'until_ms': until, 'order': order, 'fields': fields}, page_size=page_size, max_items=max_items if max_items is not None else limit, request_options=request_options)
 
 
-class BuysellRatioSpotResource(SyncResource):
-    """`/v1/buysell/ratio/spot` and its sub-routes."""
+class BuySellRatioSpotResource(SyncResource):
+    """`/v1/buy-sell-ratio/spot` and its sub-routes."""
 
-    history: BuysellRatioSpotHistoryResource
+    history: BuySellRatioSpotHistoryResource
 
     def __init__(self, client: Any) -> None:
         super().__init__(client)
-        self.history = BuysellRatioSpotHistoryResource(client)
+        self.history = BuySellRatioSpotHistoryResource(client)
 
-    _route = RouteSpec(path='/v1/buysell/ratio/spot', method='GET', shape='object', model=m.BuysellRatio, paginated=False, path_params=(), max_limit=None, range_mode=False)
+    _route = RouteSpec(path='/v1/buy-sell-ratio/spot', method='GET', shape='object', model=m.BuySellRatio, paginated=False, path_params=(), max_limit=None, range_mode=False)
 
     def __call__(
         self,
-        symbol: str,
+        symbol: KnownSymbol | str,
+        timeframe: Timeframe,
         *,
         fields: Fields | None = None,
         request_options: RequestOptions | None = None,
-    ) -> Response[m.BuysellRatio | None]:
-        """GET /v1/buysell/ratio/spot — Buy/sell volume ratio, spot only
+    ) -> Response[m.BuySellRatio | None]:
+        """GET /v1/buy-sell-ratio/spot — Buy/sell volume ratio, spot only
 
-        Spot market only. Same as `/v1/buysell/ratio`, which serves every market.
+        Spot market only. Same as `/v1/buy-sell-ratio`, which serves every market.
 
         Args:
             symbol: Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET
                 /v1/symbols`. Case-insensitive (`btcusdt` works; the envelope gives the
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
+            timeframe: Bucket size, required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`.
+                Missing: 422 `missing_parameter`; other values: 422 `invalid_timeframe` with
+                the accepted list. In any case (`1H` is `1h`), except `1M`: refused, since
+                elsewhere it means a month and here `1m` is one minute.
             fields: Only return these fields of each row (a list or a comma-separated
                 string; dotted paths reach nested keys). Rows are then partial and not
                 validated.
             request_options: Per-request `timeout`, `max_retries` or extra `headers`.
         """
-        return self._call(self._route, {'symbol': symbol, 'fields': fields}, request_options)
+        return self._call(self._route, {'symbol': symbol, 'timeframe': timeframe, 'fields': fields}, request_options)
 
 
-class BuysellRatioResource(SyncResource):
-    """`/v1/buysell/ratio` and its sub-routes."""
+class BuySellRatioResource(SyncResource):
+    """`/v1/buy-sell-ratio` and its sub-routes."""
 
-    futures: BuysellRatioFuturesResource
-    history: BuysellRatioHistoryResource
-    spot: BuysellRatioSpotResource
+    futures: BuySellRatioFuturesResource
+    history: BuySellRatioHistoryResource
+    spot: BuySellRatioSpotResource
 
     def __init__(self, client: Any) -> None:
         super().__init__(client)
-        self.futures = BuysellRatioFuturesResource(client)
-        self.history = BuysellRatioHistoryResource(client)
-        self.spot = BuysellRatioSpotResource(client)
+        self.futures = BuySellRatioFuturesResource(client)
+        self.history = BuySellRatioHistoryResource(client)
+        self.spot = BuySellRatioSpotResource(client)
 
-    _route = RouteSpec(path='/v1/buysell/ratio', method='GET', shape='object', model=m.BuysellRatio, paginated=False, path_params=(), max_limit=None, range_mode=False)
+    _route = RouteSpec(path='/v1/buy-sell-ratio', method='GET', shape='object', model=m.BuySellRatio, paginated=False, path_params=(), max_limit=None, range_mode=False)
 
     def __call__(
         self,
-        symbol: str,
+        symbol: KnownSymbol | str,
+        timeframe: Timeframe,
         *,
         fields: Fields | None = None,
         request_options: RequestOptions | None = None,
-    ) -> Response[m.BuysellRatio | None]:
-        """GET /v1/buysell/ratio — Buy/sell volume ratio
+    ) -> Response[m.BuySellRatio | None]:
+        """GET /v1/buy-sell-ratio — Buy/sell volume ratio
 
-        Taker buy share of volume over the last closed 5-minute window, all venues. Above
-        0.5 = buyers dominate. The window starts at `window_start`, lasts `window_s` and is
-        aligned on the minute; `time` is its end. The market is in the PATH: no suffix = all
+        Taker buy share of volume (`buy_ratio`, a fraction) of the latest CLOSED bucket of
+        `timeframe` (required), all venues: the first row of `/v1/buy-sell-ratio/history`
+        for the same `timeframe`, and the same buy and sell volumes as `/v1/cvd` for that
+        bucket. Above 0.5 = buyers dominate. The market is in the PATH: no suffix = all
         markets (spot + perpetual futures), `/spot`, `/futures`; the envelope says which
         (`market`). Spot base-asset quantities are measured since 2026-09-27: before that
         date, spot and all-market buy/sell volumes are estimated from USD amounts
@@ -1051,23 +1558,47 @@ class BuysellRatioResource(SyncResource):
                 /v1/symbols`. Case-insensitive (`btcusdt` works; the envelope gives the
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
+            timeframe: Bucket size, required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`.
+                Missing: 422 `missing_parameter`; other values: 422 `invalid_timeframe` with
+                the accepted list. In any case (`1H` is `1h`), except `1M`: refused, since
+                elsewhere it means a month and here `1m` is one minute.
+            fields: Only return these fields of each row (a list or a comma-separated
+                string; dotted paths reach nested keys). Rows are then partial and not
+                validated.
+            request_options: Per-request `timeout`, `max_retries` or extra `headers`.
+        """
+        return self._call(self._route, {'symbol': symbol, 'timeframe': timeframe, 'fields': fields}, request_options)
+
+
+class CapabilitiesResource(SyncResource):
+    """`/v1/capabilities`."""
+
+    _route = RouteSpec(path='/v1/capabilities', method='GET', shape='object', model=m.Capabilities, paginated=False, path_params=(), max_limit=None, range_mode=False)
+
+    def __call__(
+        self,
+        symbol: KnownSymbol | str,
+        *,
+        fields: Fields | None = None,
+        request_options: RequestOptions | None = None,
+    ) -> Response[m.Capabilities | None]:
+        """GET /v1/capabilities — What a symbol supports
+
+        Which raw feeds were active over the last 24 h for `symbol` (required), and which
+        derived metrics are available, blocked (with the missing feeds) or not applicable
+        (stablecoins have no futures). Feed names are those of `/v1/status`.
+
+        Args:
+            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET
+                /v1/symbols`. Case-insensitive (`btcusdt` works; the envelope gives the
+                canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
+                accepted list.
             fields: Only return these fields of each row (a list or a comma-separated
                 string; dotted paths reach nested keys). Rows are then partial and not
                 validated.
             request_options: Per-request `timeout`, `max_retries` or extra `headers`.
         """
         return self._call(self._route, {'symbol': symbol, 'fields': fields}, request_options)
-
-
-class BuysellResource(SyncResource):
-    """`/v1/buysell` and its sub-routes."""
-
-    ratio: BuysellRatioResource
-
-    def __init__(self, client: Any) -> None:
-        super().__init__(client)
-        self.ratio = BuysellRatioResource(client)
-
 
 
 class CvdFuturesHistoryResource(SyncResource):
@@ -1077,7 +1608,7 @@ class CvdFuturesHistoryResource(SyncResource):
 
     def __call__(
         self,
-        symbol: str,
+        symbol: KnownSymbol | str,
         timeframe: Timeframe,
         *,
         limit: int | None = None,
@@ -1125,7 +1656,7 @@ class CvdFuturesHistoryResource(SyncResource):
 
     def iter(
         self,
-        symbol: str,
+        symbol: KnownSymbol | str,
         timeframe: Timeframe,
         *,
         since: TimeLike | None = None,
@@ -1134,6 +1665,7 @@ class CvdFuturesHistoryResource(SyncResource):
         fields: Fields | None = None,
         page_size: int | None = None,
         max_items: int | None = None,
+        limit: int | None = None,
         request_options: RequestOptions | None = None,
     ) -> RowIterator[m.Cvd]:
         """Every row of `/v1/cvd/futures/history` over a period, following `next` page after page.
@@ -1165,9 +1697,11 @@ class CvdFuturesHistoryResource(SyncResource):
                 validated.
             page_size: Rows per request (`limit`), up to the route's maximum.
             max_items: Stop after this many rows.
+            limit: The same as `max_items` (the name the other methods use for a number of
+                rows).
             request_options: Per-request `timeout`, `max_retries` or extra `headers`.
         """
-        return self._iter(self._route, {'symbol': symbol, 'timeframe': timeframe, 'since_ms': since, 'until_ms': until, 'order': order, 'fields': fields}, page_size=page_size, max_items=max_items, request_options=request_options)
+        return self._iter(self._route, {'symbol': symbol, 'timeframe': timeframe, 'since_ms': since, 'until_ms': until, 'order': order, 'fields': fields}, page_size=page_size, max_items=max_items if max_items is not None else limit, request_options=request_options)
 
 
 class CvdFuturesResource(SyncResource):
@@ -1183,7 +1717,7 @@ class CvdFuturesResource(SyncResource):
 
     def __call__(
         self,
-        symbol: str,
+        symbol: KnownSymbol | str,
         timeframe: Timeframe,
         *,
         live: bool | None = None,
@@ -1220,7 +1754,7 @@ class CvdHistoryResource(SyncResource):
 
     def __call__(
         self,
-        symbol: str,
+        symbol: KnownSymbol | str,
         timeframe: Timeframe,
         *,
         limit: int | None = None,
@@ -1274,7 +1808,7 @@ class CvdHistoryResource(SyncResource):
 
     def iter(
         self,
-        symbol: str,
+        symbol: KnownSymbol | str,
         timeframe: Timeframe,
         *,
         since: TimeLike | None = None,
@@ -1283,6 +1817,7 @@ class CvdHistoryResource(SyncResource):
         fields: Fields | None = None,
         page_size: int | None = None,
         max_items: int | None = None,
+        limit: int | None = None,
         request_options: RequestOptions | None = None,
     ) -> RowIterator[m.CvdHistoryItem]:
         """Every row of `/v1/cvd/history` over a period, following `next` page after page.
@@ -1314,9 +1849,11 @@ class CvdHistoryResource(SyncResource):
                 validated.
             page_size: Rows per request (`limit`), up to the route's maximum.
             max_items: Stop after this many rows.
+            limit: The same as `max_items` (the name the other methods use for a number of
+                rows).
             request_options: Per-request `timeout`, `max_retries` or extra `headers`.
         """
-        return self._iter(self._route, {'symbol': symbol, 'timeframe': timeframe, 'since_ms': since, 'until_ms': until, 'order': order, 'fields': fields}, page_size=page_size, max_items=max_items, request_options=request_options)
+        return self._iter(self._route, {'symbol': symbol, 'timeframe': timeframe, 'since_ms': since, 'until_ms': until, 'order': order, 'fields': fields}, page_size=page_size, max_items=max_items if max_items is not None else limit, request_options=request_options)
 
 
 class CvdSpotHistoryResource(SyncResource):
@@ -1326,7 +1863,7 @@ class CvdSpotHistoryResource(SyncResource):
 
     def __call__(
         self,
-        symbol: str,
+        symbol: KnownSymbol | str,
         timeframe: Timeframe,
         *,
         limit: int | None = None,
@@ -1374,7 +1911,7 @@ class CvdSpotHistoryResource(SyncResource):
 
     def iter(
         self,
-        symbol: str,
+        symbol: KnownSymbol | str,
         timeframe: Timeframe,
         *,
         since: TimeLike | None = None,
@@ -1383,6 +1920,7 @@ class CvdSpotHistoryResource(SyncResource):
         fields: Fields | None = None,
         page_size: int | None = None,
         max_items: int | None = None,
+        limit: int | None = None,
         request_options: RequestOptions | None = None,
     ) -> RowIterator[m.Cvd]:
         """Every row of `/v1/cvd/spot/history` over a period, following `next` page after page.
@@ -1414,9 +1952,11 @@ class CvdSpotHistoryResource(SyncResource):
                 validated.
             page_size: Rows per request (`limit`), up to the route's maximum.
             max_items: Stop after this many rows.
+            limit: The same as `max_items` (the name the other methods use for a number of
+                rows).
             request_options: Per-request `timeout`, `max_retries` or extra `headers`.
         """
-        return self._iter(self._route, {'symbol': symbol, 'timeframe': timeframe, 'since_ms': since, 'until_ms': until, 'order': order, 'fields': fields}, page_size=page_size, max_items=max_items, request_options=request_options)
+        return self._iter(self._route, {'symbol': symbol, 'timeframe': timeframe, 'since_ms': since, 'until_ms': until, 'order': order, 'fields': fields}, page_size=page_size, max_items=max_items if max_items is not None else limit, request_options=request_options)
 
 
 class CvdSpotResource(SyncResource):
@@ -1432,7 +1972,7 @@ class CvdSpotResource(SyncResource):
 
     def __call__(
         self,
-        symbol: str,
+        symbol: KnownSymbol | str,
         timeframe: Timeframe,
         *,
         live: bool | None = None,
@@ -1479,7 +2019,7 @@ class CvdResource(SyncResource):
 
     def __call__(
         self,
-        symbol: str,
+        symbol: KnownSymbol | str,
         timeframe: Timeframe,
         *,
         live: bool | None = None,
@@ -1576,6 +2116,7 @@ class EtfFundamentalsHistoryResource(SyncResource):
         fields: Fields | None = None,
         page_size: int | None = None,
         max_items: int | None = None,
+        limit: int | None = None,
         request_options: RequestOptions | None = None,
     ) -> RowIterator[m.EtfFundamentalsHistoryItem]:
         """Every row of `/v1/etf/fundamentals/history` over a period, following `next` page after page.
@@ -1602,9 +2143,11 @@ class EtfFundamentalsHistoryResource(SyncResource):
                 validated.
             page_size: Rows per request (`limit`), up to the route's maximum.
             max_items: Stop after this many rows.
+            limit: The same as `max_items` (the name the other methods use for a number of
+                rows).
             request_options: Per-request `timeout`, `max_retries` or extra `headers`.
         """
-        return self._iter(self._route, {'asset': asset, 'since_ms': since, 'until_ms': until, 'order': order, 'ticker': ticker, 'fields': fields}, page_size=page_size, max_items=max_items, request_options=request_options)
+        return self._iter(self._route, {'asset': asset, 'since_ms': since, 'until_ms': until, 'order': order, 'ticker': ticker, 'fields': fields}, page_size=page_size, max_items=max_items if max_items is not None else limit, request_options=request_options)
 
 
 class EtfFundamentalsResource(SyncResource):
@@ -1705,6 +2248,7 @@ class EthDefiHistoryResource(SyncResource):
         fields: Fields | None = None,
         page_size: int | None = None,
         max_items: int | None = None,
+        limit: int | None = None,
         request_options: RequestOptions | None = None,
     ) -> RowIterator[m.EthDefiHistoryItem]:
         """Every row of `/v1/eth/defi/history` over a period, following `next` page after page.
@@ -1728,9 +2272,11 @@ class EthDefiHistoryResource(SyncResource):
                 validated.
             page_size: Rows per request (`limit`), up to the route's maximum.
             max_items: Stop after this many rows.
+            limit: The same as `max_items` (the name the other methods use for a number of
+                rows).
             request_options: Per-request `timeout`, `max_retries` or extra `headers`.
         """
-        return self._iter(self._route, {'since_ms': since, 'until_ms': until, 'order': order, 'fields': fields}, page_size=page_size, max_items=max_items, request_options=request_options)
+        return self._iter(self._route, {'since_ms': since, 'until_ms': until, 'order': order, 'fields': fields}, page_size=page_size, max_items=max_items if max_items is not None else limit, request_options=request_options)
 
 
 class EthDefiResource(SyncResource):
@@ -1816,6 +2362,7 @@ class EthDeflationHistoryResource(SyncResource):
         fields: Fields | None = None,
         page_size: int | None = None,
         max_items: int | None = None,
+        limit: int | None = None,
         request_options: RequestOptions | None = None,
     ) -> RowIterator[m.EthDeflationHistoryItem]:
         """Every row of `/v1/eth/deflation/history` over a period, following `next` page after page.
@@ -1839,9 +2386,11 @@ class EthDeflationHistoryResource(SyncResource):
                 validated.
             page_size: Rows per request (`limit`), up to the route's maximum.
             max_items: Stop after this many rows.
+            limit: The same as `max_items` (the name the other methods use for a number of
+                rows).
             request_options: Per-request `timeout`, `max_retries` or extra `headers`.
         """
-        return self._iter(self._route, {'since_ms': since, 'until_ms': until, 'order': order, 'fields': fields}, page_size=page_size, max_items=max_items, request_options=request_options)
+        return self._iter(self._route, {'since_ms': since, 'until_ms': until, 'order': order, 'fields': fields}, page_size=page_size, max_items=max_items if max_items is not None else limit, request_options=request_options)
 
 
 class EthDeflationResource(SyncResource):
@@ -1927,6 +2476,7 @@ class EthGasHistoryResource(SyncResource):
         fields: Fields | None = None,
         page_size: int | None = None,
         max_items: int | None = None,
+        limit: int | None = None,
         request_options: RequestOptions | None = None,
     ) -> RowIterator[m.EthGasHistoryItem]:
         """Every row of `/v1/eth/gas/history` over a period, following `next` page after page.
@@ -1950,9 +2500,11 @@ class EthGasHistoryResource(SyncResource):
                 validated.
             page_size: Rows per request (`limit`), up to the route's maximum.
             max_items: Stop after this many rows.
+            limit: The same as `max_items` (the name the other methods use for a number of
+                rows).
             request_options: Per-request `timeout`, `max_retries` or extra `headers`.
         """
-        return self._iter(self._route, {'since_ms': since, 'until_ms': until, 'order': order, 'fields': fields}, page_size=page_size, max_items=max_items, request_options=request_options)
+        return self._iter(self._route, {'since_ms': since, 'until_ms': until, 'order': order, 'fields': fields}, page_size=page_size, max_items=max_items if max_items is not None else limit, request_options=request_options)
 
 
 class EthGasResource(SyncResource):
@@ -2038,6 +2590,7 @@ class EthGasMomentumHistoryResource(SyncResource):
         fields: Fields | None = None,
         page_size: int | None = None,
         max_items: int | None = None,
+        limit: int | None = None,
         request_options: RequestOptions | None = None,
     ) -> RowIterator[m.EthGasMomentumHistoryItem]:
         """Every row of `/v1/eth/gas-momentum/history` over a period, following `next` page after page.
@@ -2061,9 +2614,11 @@ class EthGasMomentumHistoryResource(SyncResource):
                 validated.
             page_size: Rows per request (`limit`), up to the route's maximum.
             max_items: Stop after this many rows.
+            limit: The same as `max_items` (the name the other methods use for a number of
+                rows).
             request_options: Per-request `timeout`, `max_retries` or extra `headers`.
         """
-        return self._iter(self._route, {'since_ms': since, 'until_ms': until, 'order': order, 'fields': fields}, page_size=page_size, max_items=max_items, request_options=request_options)
+        return self._iter(self._route, {'since_ms': since, 'until_ms': until, 'order': order, 'fields': fields}, page_size=page_size, max_items=max_items if max_items is not None else limit, request_options=request_options)
 
 
 class EthGasMomentumResource(SyncResource):
@@ -2096,10 +2651,10 @@ class EthGasMomentumResource(SyncResource):
         return self._call(self._route, {'fields': fields}, request_options)
 
 
-class EthRatioHistoryResource(SyncResource):
-    """`/v1/eth/ratio/history`."""
+class EthPriceBtcHistoryResource(SyncResource):
+    """`/v1/eth/price-btc/history`."""
 
-    _route = RouteSpec(path='/v1/eth/ratio/history', method='GET', shape='list', model=m.EthRatioHistoryItem, paginated=True, path_params=(), max_limit=1000, range_mode=False)
+    _route = RouteSpec(path='/v1/eth/price-btc/history', method='GET', shape='list', model=m.EthPriceBtcHistoryItem, paginated=True, path_params=(), max_limit=1000, range_mode=False)
 
     def __call__(
         self,
@@ -2111,8 +2666,8 @@ class EthRatioHistoryResource(SyncResource):
         order: Order | None = None,
         fields: Fields | None = None,
         request_options: RequestOptions | None = None,
-    ) -> Response[list[m.EthRatioHistoryItem]]:
-        """GET /v1/eth/ratio/history — ETH/BTC ratio history
+    ) -> Response[list[m.EthPriceBtcHistoryItem]]:
+        """GET /v1/eth/price-btc/history — ETH price in BTC history
 
         One row per day. Most recent first, or oldest first with `order=asc`. Follow `next`
         to read the following page (it never repeats a row).
@@ -2149,9 +2704,10 @@ class EthRatioHistoryResource(SyncResource):
         fields: Fields | None = None,
         page_size: int | None = None,
         max_items: int | None = None,
+        limit: int | None = None,
         request_options: RequestOptions | None = None,
-    ) -> RowIterator[m.EthRatioHistoryItem]:
-        """Every row of `/v1/eth/ratio/history` over a period, following `next` page after page.
+    ) -> RowIterator[m.EthPriceBtcHistoryItem]:
+        """Every row of `/v1/eth/price-btc/history` over a period, following `next` page after page.
 
         Pages are fetched lazily, `page_size` rows at a time (default with `since`: the
         route's maximum; without it, the route's default page, which stops at your plan's
@@ -2172,31 +2728,34 @@ class EthRatioHistoryResource(SyncResource):
                 validated.
             page_size: Rows per request (`limit`), up to the route's maximum.
             max_items: Stop after this many rows.
+            limit: The same as `max_items` (the name the other methods use for a number of
+                rows).
             request_options: Per-request `timeout`, `max_retries` or extra `headers`.
         """
-        return self._iter(self._route, {'since_ms': since, 'until_ms': until, 'order': order, 'fields': fields}, page_size=page_size, max_items=max_items, request_options=request_options)
+        return self._iter(self._route, {'since_ms': since, 'until_ms': until, 'order': order, 'fields': fields}, page_size=page_size, max_items=max_items if max_items is not None else limit, request_options=request_options)
 
 
-class EthRatioResource(SyncResource):
-    """`/v1/eth/ratio` and its sub-routes."""
+class EthPriceBtcResource(SyncResource):
+    """`/v1/eth/price-btc` and its sub-routes."""
 
-    history: EthRatioHistoryResource
+    history: EthPriceBtcHistoryResource
 
     def __init__(self, client: Any) -> None:
         super().__init__(client)
-        self.history = EthRatioHistoryResource(client)
+        self.history = EthPriceBtcHistoryResource(client)
 
-    _route = RouteSpec(path='/v1/eth/ratio', method='GET', shape='object', model=m.EthRatio, paginated=False, path_params=(), max_limit=None, range_mode=False)
+    _route = RouteSpec(path='/v1/eth/price-btc', method='GET', shape='object', model=m.EthPriceBtc, paginated=False, path_params=(), max_limit=None, range_mode=False)
 
     def __call__(
         self,
         *,
         fields: Fields | None = None,
         request_options: RequestOptions | None = None,
-    ) -> Response[m.EthRatio | None]:
-        """GET /v1/eth/ratio — ETH/BTC ratio
+    ) -> Response[m.EthPriceBtc | None]:
+        """GET /v1/eth/price-btc — ETH price in BTC
 
-        ETH/BTC price ratio, its 7-day momentum and which asset outperforms.
+        The ETH price in BTC (`eth_price_btc`), with both USD prices, its 7-day change and
+        which asset outperforms.
 
         Args:
             fields: Only return these fields of each row (a list or a comma-separated
@@ -2260,6 +2819,7 @@ class EthSqueezeHistoryResource(SyncResource):
         fields: Fields | None = None,
         page_size: int | None = None,
         max_items: int | None = None,
+        limit: int | None = None,
         request_options: RequestOptions | None = None,
     ) -> RowIterator[m.EthSqueezeHistoryItem]:
         """Every row of `/v1/eth/squeeze/history` over a period, following `next` page after page.
@@ -2283,9 +2843,11 @@ class EthSqueezeHistoryResource(SyncResource):
                 validated.
             page_size: Rows per request (`limit`), up to the route's maximum.
             max_items: Stop after this many rows.
+            limit: The same as `max_items` (the name the other methods use for a number of
+                rows).
             request_options: Per-request `timeout`, `max_retries` or extra `headers`.
         """
-        return self._iter(self._route, {'since_ms': since, 'until_ms': until, 'order': order, 'fields': fields}, page_size=page_size, max_items=max_items, request_options=request_options)
+        return self._iter(self._route, {'since_ms': since, 'until_ms': until, 'order': order, 'fields': fields}, page_size=page_size, max_items=max_items if max_items is not None else limit, request_options=request_options)
 
 
 class EthSqueezeResource(SyncResource):
@@ -2371,6 +2933,7 @@ class EthStakingHistoryResource(SyncResource):
         fields: Fields | None = None,
         page_size: int | None = None,
         max_items: int | None = None,
+        limit: int | None = None,
         request_options: RequestOptions | None = None,
     ) -> RowIterator[m.EthStakingHistoryItem]:
         """Every row of `/v1/eth/staking/history` over a period, following `next` page after page.
@@ -2394,9 +2957,11 @@ class EthStakingHistoryResource(SyncResource):
                 validated.
             page_size: Rows per request (`limit`), up to the route's maximum.
             max_items: Stop after this many rows.
+            limit: The same as `max_items` (the name the other methods use for a number of
+                rows).
             request_options: Per-request `timeout`, `max_retries` or extra `headers`.
         """
-        return self._iter(self._route, {'since_ms': since, 'until_ms': until, 'order': order, 'fields': fields}, page_size=page_size, max_items=max_items, request_options=request_options)
+        return self._iter(self._route, {'since_ms': since, 'until_ms': until, 'order': order, 'fields': fields}, page_size=page_size, max_items=max_items if max_items is not None else limit, request_options=request_options)
 
 
 class EthStakingResource(SyncResource):
@@ -2483,6 +3048,7 @@ class EthSupplyHistoryResource(SyncResource):
         fields: Fields | None = None,
         page_size: int | None = None,
         max_items: int | None = None,
+        limit: int | None = None,
         request_options: RequestOptions | None = None,
     ) -> RowIterator[m.EthSupplyHistoryItem]:
         """Every row of `/v1/eth/supply/history` over a period, following `next` page after page.
@@ -2506,9 +3072,11 @@ class EthSupplyHistoryResource(SyncResource):
                 validated.
             page_size: Rows per request (`limit`), up to the route's maximum.
             max_items: Stop after this many rows.
+            limit: The same as `max_items` (the name the other methods use for a number of
+                rows).
             request_options: Per-request `timeout`, `max_retries` or extra `headers`.
         """
-        return self._iter(self._route, {'since_ms': since, 'until_ms': until, 'order': order, 'fields': fields}, page_size=page_size, max_items=max_items, request_options=request_options)
+        return self._iter(self._route, {'since_ms': since, 'until_ms': until, 'order': order, 'fields': fields}, page_size=page_size, max_items=max_items if max_items is not None else limit, request_options=request_options)
 
 
 class EthSupplyResource(SyncResource):
@@ -2548,7 +3116,7 @@ class EthResource(SyncResource):
     deflation: EthDeflationResource
     gas: EthGasResource
     gas_momentum: EthGasMomentumResource
-    ratio: EthRatioResource
+    price_btc: EthPriceBtcResource
     squeeze: EthSqueezeResource
     staking: EthStakingResource
     supply: EthSupplyResource
@@ -2559,7 +3127,7 @@ class EthResource(SyncResource):
         self.deflation = EthDeflationResource(client)
         self.gas = EthGasResource(client)
         self.gas_momentum = EthGasMomentumResource(client)
-        self.ratio = EthRatioResource(client)
+        self.price_btc = EthPriceBtcResource(client)
         self.squeeze = EthSqueezeResource(client)
         self.staking = EthStakingResource(client)
         self.supply = EthSupplyResource(client)
@@ -2619,6 +3187,7 @@ class FearGreedHistoryResource(SyncResource):
         fields: Fields | None = None,
         page_size: int | None = None,
         max_items: int | None = None,
+        limit: int | None = None,
         request_options: RequestOptions | None = None,
     ) -> RowIterator[m.FearGreedHistoryItem]:
         """Every row of `/v1/fear-greed/history` over a period, following `next` page after page.
@@ -2642,9 +3211,11 @@ class FearGreedHistoryResource(SyncResource):
                 validated.
             page_size: Rows per request (`limit`), up to the route's maximum.
             max_items: Stop after this many rows.
+            limit: The same as `max_items` (the name the other methods use for a number of
+                rows).
             request_options: Per-request `timeout`, `max_retries` or extra `headers`.
         """
-        return self._iter(self._route, {'since_ms': since, 'until_ms': until, 'order': order, 'fields': fields}, page_size=page_size, max_items=max_items, request_options=request_options)
+        return self._iter(self._route, {'since_ms': since, 'until_ms': until, 'order': order, 'fields': fields}, page_size=page_size, max_items=max_items if max_items is not None else limit, request_options=request_options)
 
 
 class FearGreedResource(SyncResource):
@@ -2684,7 +3255,7 @@ class FundingCumulativeHistoryResource(SyncResource):
 
     def __call__(
         self,
-        symbol: str,
+        symbol: KnownSymbol | str,
         *,
         limit: int | None = None,
         since: TimeLike | None = None,
@@ -2731,7 +3302,7 @@ class FundingCumulativeHistoryResource(SyncResource):
 
     def iter(
         self,
-        symbol: str,
+        symbol: KnownSymbol | str,
         *,
         since: TimeLike | None = None,
         until: TimeLike | None = None,
@@ -2739,6 +3310,7 @@ class FundingCumulativeHistoryResource(SyncResource):
         fields: Fields | None = None,
         page_size: int | None = None,
         max_items: int | None = None,
+        limit: int | None = None,
         request_options: RequestOptions | None = None,
     ) -> RowIterator[m.FundingCumulativeHistoryItem]:
         """Every row of `/v1/funding/cumulative/history` over a period, following `next` page after page.
@@ -2766,9 +3338,11 @@ class FundingCumulativeHistoryResource(SyncResource):
                 validated.
             page_size: Rows per request (`limit`), up to the route's maximum.
             max_items: Stop after this many rows.
+            limit: The same as `max_items` (the name the other methods use for a number of
+                rows).
             request_options: Per-request `timeout`, `max_retries` or extra `headers`.
         """
-        return self._iter(self._route, {'symbol': symbol, 'since_ms': since, 'until_ms': until, 'order': order, 'fields': fields}, page_size=page_size, max_items=max_items, request_options=request_options)
+        return self._iter(self._route, {'symbol': symbol, 'since_ms': since, 'until_ms': until, 'order': order, 'fields': fields}, page_size=page_size, max_items=max_items if max_items is not None else limit, request_options=request_options)
 
 
 class FundingCumulativeResource(SyncResource):
@@ -2784,7 +3358,7 @@ class FundingCumulativeResource(SyncResource):
 
     def __call__(
         self,
-        symbol: str,
+        symbol: KnownSymbol | str,
         *,
         fields: Fields | None = None,
         request_options: RequestOptions | None = None,
@@ -2815,7 +3389,7 @@ class FundingNextResource(SyncResource):
 
     def __call__(
         self,
-        symbol: str,
+        symbol: KnownSymbol | str,
         *,
         fields: Fields | None = None,
         request_options: RequestOptions | None = None,
@@ -2844,7 +3418,7 @@ class FundingRateHistoryResource(SyncResource):
 
     def __call__(
         self,
-        symbol: str,
+        symbol: KnownSymbol | str,
         *,
         limit: int | None = None,
         since: TimeLike | None = None,
@@ -2856,9 +3430,9 @@ class FundingRateHistoryResource(SyncResource):
     ) -> Response[list[m.FundingRate]]:
         """GET /v1/funding/rate/history — Settled funding history
 
-        One row per settled 8-hour window (`time` = start of the period), with `period_end`
-        and `settled_at`. Most recent first, or oldest first with `order=asc`. Follow `next`
-        to read the following page (it never repeats a row).
+        One row per settled 8-hour window (`time` = start of the period), with
+        `period_end_at` and `settled_at`. Most recent first, or oldest first with
+        `order=asc`. Follow `next` to read the following page (it never repeats a row).
 
         Args:
             symbol: Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET
@@ -2889,7 +3463,7 @@ class FundingRateHistoryResource(SyncResource):
 
     def iter(
         self,
-        symbol: str,
+        symbol: KnownSymbol | str,
         *,
         since: TimeLike | None = None,
         until: TimeLike | None = None,
@@ -2897,6 +3471,7 @@ class FundingRateHistoryResource(SyncResource):
         fields: Fields | None = None,
         page_size: int | None = None,
         max_items: int | None = None,
+        limit: int | None = None,
         request_options: RequestOptions | None = None,
     ) -> RowIterator[m.FundingRate]:
         """Every row of `/v1/funding/rate/history` over a period, following `next` page after page.
@@ -2924,9 +3499,11 @@ class FundingRateHistoryResource(SyncResource):
                 validated.
             page_size: Rows per request (`limit`), up to the route's maximum.
             max_items: Stop after this many rows.
+            limit: The same as `max_items` (the name the other methods use for a number of
+                rows).
             request_options: Per-request `timeout`, `max_retries` or extra `headers`.
         """
-        return self._iter(self._route, {'symbol': symbol, 'since_ms': since, 'until_ms': until, 'order': order, 'fields': fields}, page_size=page_size, max_items=max_items, request_options=request_options)
+        return self._iter(self._route, {'symbol': symbol, 'since_ms': since, 'until_ms': until, 'order': order, 'fields': fields}, page_size=page_size, max_items=max_items if max_items is not None else limit, request_options=request_options)
 
 
 class FundingRateResource(SyncResource):
@@ -2942,7 +3519,7 @@ class FundingRateResource(SyncResource):
 
     def __call__(
         self,
-        symbol: str,
+        symbol: KnownSymbol | str,
         *,
         live: bool | None = None,
         fields: Fields | None = None,
@@ -2987,7 +3564,7 @@ class FundingResource(SyncResource):
 
 
 
-class GlobalMarketHistoryResource(SyncResource):
+class GlobalHistoryResource(SyncResource):
     """`/v1/global/history`."""
 
     _route = RouteSpec(path='/v1/global/history', method='GET', shape='list', model=m.GlobalMarketHistoryItem, paginated=True, path_params=(), max_limit=1000, range_mode=False)
@@ -3046,6 +3623,7 @@ class GlobalMarketHistoryResource(SyncResource):
         fields: Fields | None = None,
         page_size: int | None = None,
         max_items: int | None = None,
+        limit: int | None = None,
         request_options: RequestOptions | None = None,
     ) -> RowIterator[m.GlobalMarketHistoryItem]:
         """Every row of `/v1/global/history` over a period, following `next` page after page.
@@ -3073,19 +3651,21 @@ class GlobalMarketHistoryResource(SyncResource):
                 validated.
             page_size: Rows per request (`limit`), up to the route's maximum.
             max_items: Stop after this many rows.
+            limit: The same as `max_items` (the name the other methods use for a number of
+                rows).
             request_options: Per-request `timeout`, `max_retries` or extra `headers`.
         """
-        return self._iter(self._route, {'since_ms': since, 'until_ms': until, 'order': order, 'timeframe': timeframe, 'fields': fields}, page_size=page_size, max_items=max_items, request_options=request_options)
+        return self._iter(self._route, {'since_ms': since, 'until_ms': until, 'order': order, 'timeframe': timeframe, 'fields': fields}, page_size=page_size, max_items=max_items if max_items is not None else limit, request_options=request_options)
 
 
-class GlobalMarketResource(SyncResource):
+class GlobalResource(SyncResource):
     """`/v1/global` and its sub-routes."""
 
-    history: GlobalMarketHistoryResource
+    history: GlobalHistoryResource
 
     def __init__(self, client: Any) -> None:
         super().__init__(client)
-        self.history = GlobalMarketHistoryResource(client)
+        self.history = GlobalHistoryResource(client)
 
     _route = RouteSpec(path='/v1/global', method='GET', shape='object', model=m.GlobalMarket, paginated=False, path_params=(), max_limit=None, range_mode=False)
 
@@ -3120,7 +3700,8 @@ class HealthResource(SyncResource):
     ) -> Response[m.Health | None]:
         """GET /v1/health — Service health
 
-        Liveness of the API and its database. No key needed, counted for nobody.
+        Liveness of the API and its database (`data.database`). No key needed, counted for
+        nobody.
 
         Args:
             request_options: Per-request `timeout`, `max_retries` or extra `headers`.
@@ -3135,7 +3716,7 @@ class HeatmapClustersHistoryResource(SyncResource):
 
     def __call__(
         self,
-        symbol: str,
+        symbol: KnownSymbol | str,
         timeframe: Timeframe,
         *,
         limit: int | None = None,
@@ -3158,9 +3739,11 @@ class HeatmapClustersHistoryResource(SyncResource):
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
             timeframe: Required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. One row per
-                closed bucket, aggregating its minutes (`sample_count` = minutes in the
-                bucket); `1m` gives one row per minute, aligned on the minute. Missing: 422
-                `missing_parameter`.
+                closed bucket: for a STATE (basis, open interest, heatmap) the value of its
+                LAST minute — its close —, for a FLOW (open-interest change, liquidations,
+                trade sizes) the total over its minutes; `sample_count` = minutes with data
+                in the bucket. `1m` gives one row per minute, aligned on the minute.
+                Missing: 422 `missing_parameter`.
             limit: Number of rows to return, in the reading order (most recent first by
                 default). Bounded by your plan's history window: an explicit `limit` (or
                 `since_ms`) reaching beyond it returns 403 `history_depth`; without them the
@@ -3185,7 +3768,7 @@ class HeatmapClustersHistoryResource(SyncResource):
 
     def iter(
         self,
-        symbol: str,
+        symbol: KnownSymbol | str,
         timeframe: Timeframe,
         *,
         since: TimeLike | None = None,
@@ -3194,6 +3777,7 @@ class HeatmapClustersHistoryResource(SyncResource):
         fields: Fields | None = None,
         page_size: int | None = None,
         max_items: int | None = None,
+        limit: int | None = None,
         request_options: RequestOptions | None = None,
     ) -> RowIterator[m.HeatmapClustersHistoryItem]:
         """Every row of `/v1/heatmap/clusters/history` over a period, following `next` page after page.
@@ -3209,9 +3793,11 @@ class HeatmapClustersHistoryResource(SyncResource):
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
             timeframe: Required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. One row per
-                closed bucket, aggregating its minutes (`sample_count` = minutes in the
-                bucket); `1m` gives one row per minute, aligned on the minute. Missing: 422
-                `missing_parameter`.
+                closed bucket: for a STATE (basis, open interest, heatmap) the value of its
+                LAST minute — its close —, for a FLOW (open-interest change, liquidations,
+                trade sizes) the total over its minutes; `sample_count` = minutes with data
+                in the bucket. `1m` gives one row per minute, aligned on the minute.
+                Missing: 422 `missing_parameter`.
             since: Lower time bound, inclusive. A `datetime` (naive = UTC), a `date`, an ISO
                 string (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
             until: Upper time bound, inclusive to the millisecond. A `datetime` (naive =
@@ -3225,9 +3811,11 @@ class HeatmapClustersHistoryResource(SyncResource):
                 validated.
             page_size: Rows per request (`limit`), up to the route's maximum.
             max_items: Stop after this many rows.
+            limit: The same as `max_items` (the name the other methods use for a number of
+                rows).
             request_options: Per-request `timeout`, `max_retries` or extra `headers`.
         """
-        return self._iter(self._route, {'symbol': symbol, 'timeframe': timeframe, 'since_ms': since, 'until_ms': until, 'order': order, 'fields': fields}, page_size=page_size, max_items=max_items, request_options=request_options)
+        return self._iter(self._route, {'symbol': symbol, 'timeframe': timeframe, 'since_ms': since, 'until_ms': until, 'order': order, 'fields': fields}, page_size=page_size, max_items=max_items if max_items is not None else limit, request_options=request_options)
 
 
 class HeatmapClustersResource(SyncResource):
@@ -3243,7 +3831,7 @@ class HeatmapClustersResource(SyncResource):
 
     def __call__(
         self,
-        symbol: str,
+        symbol: KnownSymbol | str,
         *,
         fields: Fields | None = None,
         request_options: RequestOptions | None = None,
@@ -3290,29 +3878,29 @@ class IndicatorsResource(SyncResource):
         timeframe: KlineTimeframe,
         indicators: Sequence[IndicatorSpec | Mapping[str, Any]],
         *,
-        results: int | None = None,
+        limit: int | None = None,
         request_options: RequestOptions | None = None,
     ) -> Response[IndicatorsResult | None]:
         """POST /v1/indicators — Compute technical indicators
 
         POST a JSON body: `symbol`, `timeframe`, `limit` (values per indicator, 1 to 1000,
-        default 1; `results` is accepted as a synonym) and `indicators`, a list of `{id,
-        type, <parameters flat>}` — e.g. `{"id": "rsi_14", "type": "rsi", "period": 14}`.
-        `id` is your own name for the result (1 to 64 characters among letters, digits, `_`,
-        `-`, `.`), unique in the call: `data.indicators` is keyed by it, and a type may
-        appear any number of times. A nested `"parameters": {...}` object is also accepted;
-        an unknown body field is a 422 `unknown_parameter`. Computed on the same candles as
-        `/v1/klines`; `limit + warm-up` is capped at 1000 candles. Each result gives
-        `values` OLDEST FIRST (the order of a chart) with `times`, the candle of each value,
-        and `time`, the candle of the last one. Errors on the indicators are 422
-        `invalid_indicator`. On a stablecoin: 200, `data: null`, `unavailable:
-        "not_applicable"`.
+        default 1) and `indicators`, a list of `{id, type, <parameters flat>}` — e.g.
+        `{"id": "rsi_14", "type": "rsi", "period": 14}`. `id` is your own name for the
+        result (1 to 64 characters among letters, digits, `_`, `-`, `.`), unique in the
+        call: `data.indicators` is keyed by it, and a type may appear any number of times.
+        Parameters go FLAT in the indicator object; an unknown body field is a 422
+        `unknown_parameter`. Computed on the same candles as `/v1/klines/history`; `limit +
+        warm-up` is capped at 1000 candles. Each result gives `values`: one row per candle,
+        MOST RECENT FIRST like every list of the API — `{time, value}`, or the named outputs
+        of a multi-output indicator (`{time, macd, signal, histogram}`). Errors on the
+        indicators are 422 `invalid_indicator`. On a stablecoin: 200, `data: null`,
+        `unavailable: "not_applicable"`.
 
         Build the indicator list with `bytnode.indicators` (typed, checked locally):
 
             from bytnode import indicators as ind
-            res = client.indicators("BTCUSDT", "1h", [ind.rsi(14), ind.macd(), ind.bb(20, std=2.5)], results=50)
-            res.data.indicators["rsi_14"].values
+            res = client.indicators("BTCUSDT", "1h", [ind.rsi(14), ind.macd(), ind.bb(20, std=2.5)], limit=50)
+            res.data.indicators["rsi_14"].values[0].value  # the latest candle (rows newest first)
             res.to_pandas()  # one column per output, indexed by candle time
 
         Args:
@@ -3320,21 +3908,21 @@ class IndicatorsResource(SyncResource):
             timeframe: Candle size, `1m` to `1w`.
             indicators: Up to 50 specs, from `bytnode.indicators` or plain dicts
                 (`{"type": "rsi", "period": 14}`). Ids are generated when missing.
-            results: Values per indicator, 1 to 1000 (default 1).
+            limit: Rows per indicator, 1 to 1000 (default 1), most recent first.
             request_options: Per-request `timeout`, `max_retries` or extra `headers`.
         """
-        return self._indicators(self._route, symbol, timeframe, indicators, results, request_options)
+        return self._indicators(self._route, symbol, timeframe, indicators, limit, request_options)
 
 
-class KlinesResource(SyncResource):
-    """`/v1/klines`."""
+class KlinesHistoryResource(SyncResource):
+    """`/v1/klines/history`."""
 
-    _route = RouteSpec(path='/v1/klines', method='GET', shape='list', model=m.Kline, paginated=True, path_params=(), max_limit=1000, range_mode=False)
+    _route = RouteSpec(path='/v1/klines/history', method='GET', shape='list', model=m.KlineHistoryItem, paginated=True, path_params=(), max_limit=1000, range_mode=False)
 
     def __call__(
         self,
-        symbol: str,
-        timeframe: KlineTimeframe,
+        symbol: KnownSymbol | str,
+        timeframe: Timeframe,
         *,
         limit: int | None = None,
         since: TimeLike | None = None,
@@ -3343,8 +3931,8 @@ class KlinesResource(SyncResource):
         order: Order | None = None,
         fields: Fields | None = None,
         request_options: RequestOptions | None = None,
-    ) -> Response[list[m.Kline]]:
-        """GET /v1/klines — OHLCV candles
+    ) -> Response[list[m.KlineHistoryItem]]:
+        """GET /v1/klines/history — OHLCV candles
 
         Candles of `timeframe` (required: `1m` to `1w`) that have ENDED: the candle in
         progress is never served. OHLC from one reference SPOT market per symbol. `volume`,
@@ -3391,8 +3979,8 @@ class KlinesResource(SyncResource):
 
     def iter(
         self,
-        symbol: str,
-        timeframe: KlineTimeframe,
+        symbol: KnownSymbol | str,
+        timeframe: Timeframe,
         *,
         since: TimeLike | None = None,
         until: TimeLike | None = None,
@@ -3400,9 +3988,10 @@ class KlinesResource(SyncResource):
         fields: Fields | None = None,
         page_size: int | None = None,
         max_items: int | None = None,
+        limit: int | None = None,
         request_options: RequestOptions | None = None,
-    ) -> RowIterator[m.Kline]:
-        """Every row of `/v1/klines` over a period, following `next` page after page.
+    ) -> RowIterator[m.KlineHistoryItem]:
+        """Every row of `/v1/klines/history` over a period, following `next` page after page.
 
         Pages are fetched lazily, `page_size` rows at a time (default with `since`: the
         route's maximum; without it, the route's default page, which stops at your plan's
@@ -3431,9 +4020,53 @@ class KlinesResource(SyncResource):
                 validated.
             page_size: Rows per request (`limit`), up to the route's maximum.
             max_items: Stop after this many rows.
+            limit: The same as `max_items` (the name the other methods use for a number of
+                rows).
             request_options: Per-request `timeout`, `max_retries` or extra `headers`.
         """
-        return self._iter(self._route, {'symbol': symbol, 'timeframe': timeframe, 'since_ms': since, 'until_ms': until, 'order': order, 'fields': fields}, page_size=page_size, max_items=max_items, request_options=request_options)
+        return self._iter(self._route, {'symbol': symbol, 'timeframe': timeframe, 'since_ms': since, 'until_ms': until, 'order': order, 'fields': fields}, page_size=page_size, max_items=max_items if max_items is not None else limit, request_options=request_options)
+
+
+class KlinesResource(SyncResource):
+    """`/v1/klines` and its sub-routes."""
+
+    history: KlinesHistoryResource
+
+    def __init__(self, client: Any) -> None:
+        super().__init__(client)
+        self.history = KlinesHistoryResource(client)
+
+    _route = RouteSpec(path='/v1/klines', method='GET', shape='object', model=m.Kline, paginated=False, path_params=(), max_limit=None, range_mode=False)
+
+    def __call__(
+        self,
+        symbol: KnownSymbol | str,
+        timeframe: KlineTimeframe,
+        *,
+        fields: Fields | None = None,
+        request_options: RequestOptions | None = None,
+    ) -> Response[m.Kline | None]:
+        """GET /v1/klines — Latest OHLCV candle
+
+        The latest CLOSED candle of `timeframe` (required: `1m` to `1w`): the first row of
+        `/v1/klines/history`, an object. OHLC from one reference SPOT market per symbol;
+        `volume`, `buy_volume` and `sell_volume` cover ALL markets.
+
+        Args:
+            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET
+                /v1/symbols`. Case-insensitive (`btcusdt` works; the envelope gives the
+                canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
+                accepted list.
+            timeframe: Candle size, required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h`, `1d` or
+                `1w` (weekly candles start on Monday 00:00 UTC). Missing: 422
+                `missing_parameter`; other values: 422 `invalid_timeframe` with the accepted
+                list.
+            fields: Only return these fields of each row (a list or a comma-separated
+                string; dotted paths reach nested keys). Rows are then partial and not
+                validated.
+            request_options: Per-request `timeout`, `max_retries` or extra `headers`.
+        """
+        return self._call(self._route, {'symbol': symbol, 'timeframe': timeframe, 'fields': fields}, request_options)
 
 
 class LimitsResource(SyncResource):
@@ -3451,11 +4084,13 @@ class LimitsResource(SyncResource):
 
         What your key may do, read from the plan that served THIS request: `plan`, the data
         `families` it includes (`null` = all), the history window per `timeframe`
-        (`window_minutes`, `null` = unlimited), the tick-by-tick window, the number of
-        individual liquidations, and the per-minute `rate` and monthly `quota` with what is
-        left. Use it to size `limit` and `since_ms` before paging instead of discovering the
-        window through a 403 `history_depth`. Free: not counted in your quota. With an
-        unmetered key, every limit is `null`.
+        (`window_s`, in seconds, `null` = unlimited), the window of individual trades
+        (`trades_window_s`), the number of individual liquidations
+        (`liquidations_events_count`), and the per-minute `rate` and monthly `quota` with
+        what is left (`remaining_count`). `0` = not in your plan, `null` = no limit. Use it
+        to size `limit` and `since_ms` before paging instead of discovering the window
+        through a 403 `history_depth`. Free: not counted in your quota. With an unmetered
+        key, every limit is `null`.
 
         Args:
             fields: Only return these fields of each row (a list or a comma-separated
@@ -3466,6 +4101,162 @@ class LimitsResource(SyncResource):
         return self._call(self._route, {'fields': fields}, request_options)
 
 
+class LiquidationsBigSmallRatioHistoryResource(SyncResource):
+    """`/v1/liquidations/big-small-ratio/history`."""
+
+    _route = RouteSpec(path='/v1/liquidations/big-small-ratio/history', method='GET', shape='list', model=m.LiquidationsBigSmallRatioHistoryItem, paginated=True, path_params=(), max_limit=1000, range_mode=False)
+
+    def __call__(
+        self,
+        symbol: KnownSymbol | str,
+        timeframe: Timeframe,
+        *,
+        limit: int | None = None,
+        since: TimeLike | None = None,
+        until: TimeLike | None = None,
+        before: TimeLike | None = None,
+        order: Order | None = None,
+        fields: Fields | None = None,
+        request_options: RequestOptions | None = None,
+    ) -> Response[list[m.LiquidationsBigSmallRatioHistoryItem]]:
+        """GET /v1/liquidations/big-small-ratio/history — Big vs small liquidations history
+
+        One row per closed bucket of `timeframe` (required). History depth is a number of
+        rows per plan, whatever the timeframe: the last 100 on Free, 500 on Traders, 1,000
+        on Financial, 10,000 on Startup (1,000 per page at most: follow `next`); a larger
+        `limit`, or a bound beyond those rows, returns 403 `history_depth`. Most recent
+        first, or oldest first with `order=asc`. Follow `next` to read the following page
+        (it never repeats a row).
+
+        Args:
+            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET
+                /v1/symbols`. Case-insensitive (`btcusdt` works; the envelope gives the
+                canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
+                accepted list.
+            timeframe: Required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. One row per
+                closed bucket: for a STATE (basis, open interest, heatmap) the value of its
+                LAST minute — its close —, for a FLOW (open-interest change, liquidations,
+                trade sizes) the total over its minutes; `sample_count` = minutes with data
+                in the bucket. `1m` gives one row per minute, aligned on the minute.
+                Missing: 422 `missing_parameter`.
+            limit: Number of rows to return, in the reading order (most recent first by
+                default). Bounded by your plan's history window: an explicit `limit` (or
+                `since_ms`) reaching beyond it returns 403 `history_depth`; without them the
+                page simply stops at the window.
+            since: Lower time bound, inclusive. A `datetime` (naive = UTC), a `date`, an ISO
+                string (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
+            until: Upper time bound, inclusive to the millisecond. A `datetime` (naive =
+                UTC), a `date`, an ISO string (`2026-01-01`, `2026-01-01T12:00:00Z`) or
+                epoch milliseconds.
+            before: Upper time bound, exclusive (rows strictly before it). Not combinable
+                with `until`. A `datetime` (naive = UTC), a `date`, an ISO string
+                (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
+            order: Reading order: `desc` (most recent first, the default) or `asc` (oldest
+                first, reading forward from `since_ms`, which is then required). Follow
+                `next` to read the following page.
+            fields: Only return these fields of each row (a list or a comma-separated
+                string; dotted paths reach nested keys). Rows are then partial and not
+                validated.
+            request_options: Per-request `timeout`, `max_retries` or extra `headers`.
+        """
+        return self._call(self._route, {'symbol': symbol, 'timeframe': timeframe, 'limit': limit, 'since_ms': since, 'until_ms': until, 'before_ms': before, 'order': order, 'fields': fields}, request_options)
+
+    def iter(
+        self,
+        symbol: KnownSymbol | str,
+        timeframe: Timeframe,
+        *,
+        since: TimeLike | None = None,
+        until: TimeLike | None = None,
+        order: Order | None = None,
+        fields: Fields | None = None,
+        page_size: int | None = None,
+        max_items: int | None = None,
+        limit: int | None = None,
+        request_options: RequestOptions | None = None,
+    ) -> RowIterator[m.LiquidationsBigSmallRatioHistoryItem]:
+        """Every row of `/v1/liquidations/big-small-ratio/history` over a period, following `next` page after page.
+
+        Pages are fetched lazily, `page_size` rows at a time (default with `since`: the
+        route's maximum; without it, the route's default page, which stops at your plan's
+        history window). With `since`, rows come oldest first unless
+        `order` says otherwise. Call `.to_pandas()` / `.to_list()` to collect them.
+
+        Args:
+            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET
+                /v1/symbols`. Case-insensitive (`btcusdt` works; the envelope gives the
+                canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
+                accepted list.
+            timeframe: Required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. One row per
+                closed bucket: for a STATE (basis, open interest, heatmap) the value of its
+                LAST minute — its close —, for a FLOW (open-interest change, liquidations,
+                trade sizes) the total over its minutes; `sample_count` = minutes with data
+                in the bucket. `1m` gives one row per minute, aligned on the minute.
+                Missing: 422 `missing_parameter`.
+            since: Lower time bound, inclusive. A `datetime` (naive = UTC), a `date`, an ISO
+                string (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
+            until: Upper time bound, inclusive to the millisecond. A `datetime` (naive =
+                UTC), a `date`, an ISO string (`2026-01-01`, `2026-01-01T12:00:00Z`) or
+                epoch milliseconds.
+            order: Reading order: `desc` (most recent first, the default) or `asc` (oldest
+                first, reading forward from `since_ms`, which is then required). Follow
+                `next` to read the following page.
+            fields: Only return these fields of each row (a list or a comma-separated
+                string; dotted paths reach nested keys). Rows are then partial and not
+                validated.
+            page_size: Rows per request (`limit`), up to the route's maximum.
+            max_items: Stop after this many rows.
+            limit: The same as `max_items` (the name the other methods use for a number of
+                rows).
+            request_options: Per-request `timeout`, `max_retries` or extra `headers`.
+        """
+        return self._iter(self._route, {'symbol': symbol, 'timeframe': timeframe, 'since_ms': since, 'until_ms': until, 'order': order, 'fields': fields}, page_size=page_size, max_items=max_items if max_items is not None else limit, request_options=request_options)
+
+
+class LiquidationsBigSmallRatioResource(SyncResource):
+    """`/v1/liquidations/big-small-ratio` and its sub-routes."""
+
+    history: LiquidationsBigSmallRatioHistoryResource
+
+    def __init__(self, client: Any) -> None:
+        super().__init__(client)
+        self.history = LiquidationsBigSmallRatioHistoryResource(client)
+
+    _route = RouteSpec(path='/v1/liquidations/big-small-ratio', method='GET', shape='object', model=m.LiquidationsBigSmallRatio, paginated=False, path_params=(), max_limit=None, range_mode=False)
+
+    def __call__(
+        self,
+        symbol: KnownSymbol | str,
+        timeframe: Timeframe,
+        *,
+        fields: Fields | None = None,
+        request_options: RequestOptions | None = None,
+    ) -> Response[m.LiquidationsBigSmallRatio | None]:
+        """GET /v1/liquidations/big-small-ratio — Big vs small liquidations
+
+        Liquidations of 100,000 USD or more versus smaller ones over the latest CLOSED
+        bucket of `timeframe` (required) that had liquidations — the first row of
+        `/v1/liquidations/big-small-ratio/history` for the same `timeframe` (`time` = its
+        start, `is_closed: true`): counts, USD and `big_small_ratio`. A high ratio = large
+        positions are being flushed.
+
+        Args:
+            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET
+                /v1/symbols`. Case-insensitive (`btcusdt` works; the envelope gives the
+                canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
+                accepted list.
+            timeframe: Bucket size, required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`.
+                Missing: 422 `missing_parameter`; other values: 422 `invalid_timeframe` with
+                the accepted list. In any case (`1H` is `1h`), except `1M`: refused, since
+                elsewhere it means a month and here `1m` is one minute.
+            fields: Only return these fields of each row (a list or a comma-separated
+                string; dotted paths reach nested keys). Rows are then partial and not
+                validated.
+            request_options: Per-request `timeout`, `max_retries` or extra `headers`.
+        """
+        return self._call(self._route, {'symbol': symbol, 'timeframe': timeframe, 'fields': fields}, request_options)
+
+
 class LiquidationsCumulativeHistoryResource(SyncResource):
     """`/v1/liquidations/cumulative/history`."""
 
@@ -3473,7 +4264,7 @@ class LiquidationsCumulativeHistoryResource(SyncResource):
 
     def __call__(
         self,
-        symbol: str,
+        symbol: KnownSymbol | str,
         timeframe: Timeframe,
         *,
         limit: int | None = None,
@@ -3523,7 +4314,7 @@ class LiquidationsCumulativeHistoryResource(SyncResource):
 
     def iter(
         self,
-        symbol: str,
+        symbol: KnownSymbol | str,
         timeframe: Timeframe,
         *,
         since: TimeLike | None = None,
@@ -3532,6 +4323,7 @@ class LiquidationsCumulativeHistoryResource(SyncResource):
         fields: Fields | None = None,
         page_size: int | None = None,
         max_items: int | None = None,
+        limit: int | None = None,
         request_options: RequestOptions | None = None,
     ) -> RowIterator[m.LiquidationsCumulativeHistoryItem]:
         """Every row of `/v1/liquidations/cumulative/history` over a period, following `next` page after page.
@@ -3562,9 +4354,11 @@ class LiquidationsCumulativeHistoryResource(SyncResource):
                 validated.
             page_size: Rows per request (`limit`), up to the route's maximum.
             max_items: Stop after this many rows.
+            limit: The same as `max_items` (the name the other methods use for a number of
+                rows).
             request_options: Per-request `timeout`, `max_retries` or extra `headers`.
         """
-        return self._iter(self._route, {'symbol': symbol, 'timeframe': timeframe, 'since_ms': since, 'until_ms': until, 'order': order, 'fields': fields}, page_size=page_size, max_items=max_items, request_options=request_options)
+        return self._iter(self._route, {'symbol': symbol, 'timeframe': timeframe, 'since_ms': since, 'until_ms': until, 'order': order, 'fields': fields}, page_size=page_size, max_items=max_items if max_items is not None else limit, request_options=request_options)
 
 
 class LiquidationsCumulativeResource(SyncResource):
@@ -3580,15 +4374,16 @@ class LiquidationsCumulativeResource(SyncResource):
 
     def __call__(
         self,
-        symbol: str,
+        symbol: KnownSymbol | str,
         *,
         fields: Fields | None = None,
         request_options: RequestOptions | None = None,
     ) -> Response[m.LiquidationsCumulative | None]:
         """GET /v1/liquidations/cumulative — Liquidations over the last 5 minutes
 
-        Longs and shorts liquidated, USD, all venues, over the last closed 5-minute window
-        (from `window_start`, `window_s` long), aligned on the minute; `time` is its end.
+        Longs and shorts liquidated, USD, all venues, over the last closed 5-minute ROLLING
+        window, aligned on the minute: `time` is its END, `window_start_at` its start,
+        `window_s` its length.
 
         Args:
             symbol: Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET
@@ -3610,7 +4405,7 @@ class LiquidationsEventsResource(SyncResource):
 
     def __call__(
         self,
-        symbol: str,
+        symbol: KnownSymbol | str,
         *,
         limit: int | None = None,
         min_usd: float | None = None,
@@ -3620,10 +4415,12 @@ class LiquidationsEventsResource(SyncResource):
         """GET /v1/liquidations/events — Individual liquidations
 
         Forced liquidations across futures venues, one row per event, most recent first.
-        `limit` is a number of events (with `min_usd`: events of at least that size).
-        History depth: the events within your plan's `1h` history window (`GET /v1/limits`),
-        at most 1,000 per call; a larger `limit`, or a plan that sets a count
-        (`liquidation_events`), is refused with 403 `history_depth` beyond it.
+        `limit` is a number of events (with `min_usd`: events of at least that size), from
+        the latest: your plan reads the latest 100 (Free), 500 (Traders), 1,000 (Financial)
+        or 10,000 (Startup) events (`liquidations_events_count` of `GET /v1/limits`); a
+        larger `limit` is refused with 403 `history_depth`. 10,000 is the route's maximum.
+        No date bounds or pagination: the WebSocket channel `liquidations.<SYMBOL>` carries
+        them live.
 
         Args:
             symbol: Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET
@@ -3644,160 +4441,18 @@ class LiquidationsEventsResource(SyncResource):
         return self._call(self._route, {'symbol': symbol, 'limit': limit, 'min_usd': min_usd, 'fields': fields}, request_options)
 
 
-class LiquidationsRatioHistoryResource(SyncResource):
-    """`/v1/liquidations/ratio/history`."""
-
-    _route = RouteSpec(path='/v1/liquidations/ratio/history', method='GET', shape='list', model=m.LiquidationsRatioHistoryItem, paginated=True, path_params=(), max_limit=1000, range_mode=False)
-
-    def __call__(
-        self,
-        symbol: str,
-        timeframe: Timeframe,
-        *,
-        limit: int | None = None,
-        since: TimeLike | None = None,
-        until: TimeLike | None = None,
-        before: TimeLike | None = None,
-        order: Order | None = None,
-        fields: Fields | None = None,
-        request_options: RequestOptions | None = None,
-    ) -> Response[list[m.LiquidationsRatioHistoryItem]]:
-        """GET /v1/liquidations/ratio/history — Big vs small liquidations history
-
-        One row per closed bucket of `timeframe` (required). History depth is a number of
-        rows per plan, whatever the timeframe: the last 100 on Free, 500 on Traders, 1,000
-        on Financial, 10,000 on Startup (1,000 per page at most: follow `next`); a larger
-        `limit`, or a bound beyond those rows, returns 403 `history_depth`. Most recent
-        first, or oldest first with `order=asc`. Follow `next` to read the following page
-        (it never repeats a row).
-
-        Args:
-            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET
-                /v1/symbols`. Case-insensitive (`btcusdt` works; the envelope gives the
-                canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
-                accepted list.
-            timeframe: Required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. One row per
-                closed bucket, aggregating its minutes (`sample_count` = minutes in the
-                bucket); `1m` gives one row per minute, aligned on the minute. Missing: 422
-                `missing_parameter`.
-            limit: Number of rows to return, in the reading order (most recent first by
-                default). Bounded by your plan's history window: an explicit `limit` (or
-                `since_ms`) reaching beyond it returns 403 `history_depth`; without them the
-                page simply stops at the window.
-            since: Lower time bound, inclusive. A `datetime` (naive = UTC), a `date`, an ISO
-                string (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
-            until: Upper time bound, inclusive to the millisecond. A `datetime` (naive =
-                UTC), a `date`, an ISO string (`2026-01-01`, `2026-01-01T12:00:00Z`) or
-                epoch milliseconds.
-            before: Upper time bound, exclusive (rows strictly before it). Not combinable
-                with `until`. A `datetime` (naive = UTC), a `date`, an ISO string
-                (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
-            order: Reading order: `desc` (most recent first, the default) or `asc` (oldest
-                first, reading forward from `since_ms`, which is then required). Follow
-                `next` to read the following page.
-            fields: Only return these fields of each row (a list or a comma-separated
-                string; dotted paths reach nested keys). Rows are then partial and not
-                validated.
-            request_options: Per-request `timeout`, `max_retries` or extra `headers`.
-        """
-        return self._call(self._route, {'symbol': symbol, 'timeframe': timeframe, 'limit': limit, 'since_ms': since, 'until_ms': until, 'before_ms': before, 'order': order, 'fields': fields}, request_options)
-
-    def iter(
-        self,
-        symbol: str,
-        timeframe: Timeframe,
-        *,
-        since: TimeLike | None = None,
-        until: TimeLike | None = None,
-        order: Order | None = None,
-        fields: Fields | None = None,
-        page_size: int | None = None,
-        max_items: int | None = None,
-        request_options: RequestOptions | None = None,
-    ) -> RowIterator[m.LiquidationsRatioHistoryItem]:
-        """Every row of `/v1/liquidations/ratio/history` over a period, following `next` page after page.
-
-        Pages are fetched lazily, `page_size` rows at a time (default with `since`: the
-        route's maximum; without it, the route's default page, which stops at your plan's
-        history window). With `since`, rows come oldest first unless
-        `order` says otherwise. Call `.to_pandas()` / `.to_list()` to collect them.
-
-        Args:
-            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET
-                /v1/symbols`. Case-insensitive (`btcusdt` works; the envelope gives the
-                canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
-                accepted list.
-            timeframe: Required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. One row per
-                closed bucket, aggregating its minutes (`sample_count` = minutes in the
-                bucket); `1m` gives one row per minute, aligned on the minute. Missing: 422
-                `missing_parameter`.
-            since: Lower time bound, inclusive. A `datetime` (naive = UTC), a `date`, an ISO
-                string (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
-            until: Upper time bound, inclusive to the millisecond. A `datetime` (naive =
-                UTC), a `date`, an ISO string (`2026-01-01`, `2026-01-01T12:00:00Z`) or
-                epoch milliseconds.
-            order: Reading order: `desc` (most recent first, the default) or `asc` (oldest
-                first, reading forward from `since_ms`, which is then required). Follow
-                `next` to read the following page.
-            fields: Only return these fields of each row (a list or a comma-separated
-                string; dotted paths reach nested keys). Rows are then partial and not
-                validated.
-            page_size: Rows per request (`limit`), up to the route's maximum.
-            max_items: Stop after this many rows.
-            request_options: Per-request `timeout`, `max_retries` or extra `headers`.
-        """
-        return self._iter(self._route, {'symbol': symbol, 'timeframe': timeframe, 'since_ms': since, 'until_ms': until, 'order': order, 'fields': fields}, page_size=page_size, max_items=max_items, request_options=request_options)
-
-
-class LiquidationsRatioResource(SyncResource):
-    """`/v1/liquidations/ratio` and its sub-routes."""
-
-    history: LiquidationsRatioHistoryResource
-
-    def __init__(self, client: Any) -> None:
-        super().__init__(client)
-        self.history = LiquidationsRatioHistoryResource(client)
-
-    _route = RouteSpec(path='/v1/liquidations/ratio', method='GET', shape='object', model=m.LiquidationsRatio, paginated=False, path_params=(), max_limit=None, range_mode=False)
-
-    def __call__(
-        self,
-        symbol: str,
-        *,
-        fields: Fields | None = None,
-        request_options: RequestOptions | None = None,
-    ) -> Response[m.LiquidationsRatio | None]:
-        """GET /v1/liquidations/ratio — Big vs small liquidations
-
-        Liquidations of 100,000 USD or more versus smaller ones over the latest closed
-        minute with liquidations: counts, USD and ratio. A high ratio = large positions are
-        being flushed.
-
-        Args:
-            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET
-                /v1/symbols`. Case-insensitive (`btcusdt` works; the envelope gives the
-                canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
-                accepted list.
-            fields: Only return these fields of each row (a list or a comma-separated
-                string; dotted paths reach nested keys). Rows are then partial and not
-                validated.
-            request_options: Per-request `timeout`, `max_retries` or extra `headers`.
-        """
-        return self._call(self._route, {'symbol': symbol, 'fields': fields}, request_options)
-
-
 class LiquidationsResource(SyncResource):
     """`/v1/liquidations` and its sub-routes."""
 
+    big_small_ratio: LiquidationsBigSmallRatioResource
     cumulative: LiquidationsCumulativeResource
     events: LiquidationsEventsResource
-    ratio: LiquidationsRatioResource
 
     def __init__(self, client: Any) -> None:
         super().__init__(client)
+        self.big_small_ratio = LiquidationsBigSmallRatioResource(client)
         self.cumulative = LiquidationsCumulativeResource(client)
         self.events = LiquidationsEventsResource(client)
-        self.ratio = LiquidationsRatioResource(client)
 
 
 
@@ -3883,6 +4538,7 @@ class MacroHistoryResource(SyncResource):
         fields: Fields | None = None,
         page_size: int | None = None,
         max_items: int | None = None,
+        limit: int | None = None,
         request_options: RequestOptions | None = None,
     ) -> RowIterator[m.MacroHistoryItem]:
         """Every row of `/v1/macro/history` over a period, following `next` page after page.
@@ -3908,9 +4564,11 @@ class MacroHistoryResource(SyncResource):
                 validated.
             page_size: Rows per request (`limit`), up to the route's maximum.
             max_items: Stop after this many rows.
+            limit: The same as `max_items` (the name the other methods use for a number of
+                rows).
             request_options: Per-request `timeout`, `max_retries` or extra `headers`.
         """
-        return self._iter(self._route, {'series': series, 'since_ms': since, 'until_ms': until, 'order': order, 'fields': fields}, page_size=page_size, max_items=max_items, request_options=request_options)
+        return self._iter(self._route, {'series': series, 'since_ms': since, 'until_ms': until, 'order': order, 'fields': fields}, page_size=page_size, max_items=max_items if max_items is not None else limit, request_options=request_options)
 
 
 class MacroIntradayHistoryResource(SyncResource):
@@ -3975,6 +4633,7 @@ class MacroIntradayHistoryResource(SyncResource):
         fields: Fields | None = None,
         page_size: int | None = None,
         max_items: int | None = None,
+        limit: int | None = None,
         request_options: RequestOptions | None = None,
     ) -> RowIterator[m.MacroIntraday]:
         """Every row of `/v1/macro/intraday/history` over a period, following `next` page after page.
@@ -4003,9 +4662,11 @@ class MacroIntradayHistoryResource(SyncResource):
                 validated.
             page_size: Rows per request (`limit`), up to the route's maximum.
             max_items: Stop after this many rows.
+            limit: The same as `max_items` (the name the other methods use for a number of
+                rows).
             request_options: Per-request `timeout`, `max_retries` or extra `headers`.
         """
-        return self._iter(self._route, {'series': series, 'timeframe': timeframe, 'since_ms': since, 'until_ms': until, 'order': order, 'fields': fields}, page_size=page_size, max_items=max_items, request_options=request_options)
+        return self._iter(self._route, {'series': series, 'timeframe': timeframe, 'since_ms': since, 'until_ms': until, 'order': order, 'fields': fields}, page_size=page_size, max_items=max_items if max_items is not None else limit, request_options=request_options)
 
 
 class MacroIntradaySeriesResource(SyncResource):
@@ -4124,6 +4785,7 @@ class MacroNetLiquidityHistoryResource(SyncResource):
         fields: Fields | None = None,
         page_size: int | None = None,
         max_items: int | None = None,
+        limit: int | None = None,
         request_options: RequestOptions | None = None,
     ) -> RowIterator[m.MacroNetLiquidityHistoryItem]:
         """Every row of `/v1/macro/net-liquidity/history` over a period, following `next` page after page.
@@ -4147,9 +4809,11 @@ class MacroNetLiquidityHistoryResource(SyncResource):
                 validated.
             page_size: Rows per request (`limit`), up to the route's maximum.
             max_items: Stop after this many rows.
+            limit: The same as `max_items` (the name the other methods use for a number of
+                rows).
             request_options: Per-request `timeout`, `max_retries` or extra `headers`.
         """
-        return self._iter(self._route, {'since_ms': since, 'until_ms': until, 'order': order, 'fields': fields}, page_size=page_size, max_items=max_items, request_options=request_options)
+        return self._iter(self._route, {'since_ms': since, 'until_ms': until, 'order': order, 'fields': fields}, page_size=page_size, max_items=max_items if max_items is not None else limit, request_options=request_options)
 
 
 class MacroNetLiquidityResource(SyncResource):
@@ -4267,10 +4931,10 @@ class MacroResource(SyncResource):
         fields: Fields | None = None,
         request_options: RequestOptions | None = None,
     ) -> Response[m.Macro | None]:
-        """GET /v1/macro — Latest macro values
+        """GET /v1/macro — Latest value of one macro series
 
-        Latest value of one FRED series (`series` required; the latest value of every series
-        is `/v1/macro/series`).
+        Latest value of ONE FRED series (`series` required); the latest value of every
+        series is `/v1/macro/series`.
 
         Args:
             series: FRED series id (e.g. `DGS10`). Required. The latest value of every
@@ -4283,14 +4947,14 @@ class MacroResource(SyncResource):
         return self._call(self._route, {'series': series, 'fields': fields}, request_options)
 
 
-class OiDeltaHistoryResource(SyncResource):
-    """`/v1/oi/delta/history`."""
+class OiChangeHistoryResource(SyncResource):
+    """`/v1/oi/change/history`."""
 
-    _route = RouteSpec(path='/v1/oi/delta/history', method='GET', shape='list', model=m.OiDeltaHistoryItem, paginated=True, path_params=(), max_limit=1000, range_mode=False)
+    _route = RouteSpec(path='/v1/oi/change/history', method='GET', shape='list', model=m.OiChangeHistoryItem, paginated=True, path_params=(), max_limit=1000, range_mode=False)
 
     def __call__(
         self,
-        symbol: str,
+        symbol: KnownSymbol | str,
         timeframe: Timeframe,
         *,
         limit: int | None = None,
@@ -4300,8 +4964,8 @@ class OiDeltaHistoryResource(SyncResource):
         order: Order | None = None,
         fields: Fields | None = None,
         request_options: RequestOptions | None = None,
-    ) -> Response[list[m.OiDeltaHistoryItem]]:
-        """GET /v1/oi/delta/history — Open interest change history
+    ) -> Response[list[m.OiChangeHistoryItem]]:
+        """GET /v1/oi/change/history — Open interest change history
 
         One row per closed bucket of `timeframe` (required). Most recent first, or oldest
         first with `order=asc`. Follow `next` to read the following page (it never repeats a
@@ -4313,9 +4977,11 @@ class OiDeltaHistoryResource(SyncResource):
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
             timeframe: Required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. One row per
-                closed bucket, aggregating its minutes (`sample_count` = minutes in the
-                bucket); `1m` gives one row per minute, aligned on the minute. Missing: 422
-                `missing_parameter`.
+                closed bucket: for a STATE (basis, open interest, heatmap) the value of its
+                LAST minute — its close —, for a FLOW (open-interest change, liquidations,
+                trade sizes) the total over its minutes; `sample_count` = minutes with data
+                in the bucket. `1m` gives one row per minute, aligned on the minute.
+                Missing: 422 `missing_parameter`.
             limit: Number of rows to return, in the reading order (most recent first by
                 default). Bounded by your plan's history window: an explicit `limit` (or
                 `since_ms`) reaching beyond it returns 403 `history_depth`; without them the
@@ -4340,7 +5006,7 @@ class OiDeltaHistoryResource(SyncResource):
 
     def iter(
         self,
-        symbol: str,
+        symbol: KnownSymbol | str,
         timeframe: Timeframe,
         *,
         since: TimeLike | None = None,
@@ -4349,9 +5015,10 @@ class OiDeltaHistoryResource(SyncResource):
         fields: Fields | None = None,
         page_size: int | None = None,
         max_items: int | None = None,
+        limit: int | None = None,
         request_options: RequestOptions | None = None,
-    ) -> RowIterator[m.OiDeltaHistoryItem]:
-        """Every row of `/v1/oi/delta/history` over a period, following `next` page after page.
+    ) -> RowIterator[m.OiChangeHistoryItem]:
+        """Every row of `/v1/oi/change/history` over a period, following `next` page after page.
 
         Pages are fetched lazily, `page_size` rows at a time (default with `since`: the
         route's maximum; without it, the route's default page, which stops at your plan's
@@ -4364,9 +5031,11 @@ class OiDeltaHistoryResource(SyncResource):
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
             timeframe: Required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. One row per
-                closed bucket, aggregating its minutes (`sample_count` = minutes in the
-                bucket); `1m` gives one row per minute, aligned on the minute. Missing: 422
-                `missing_parameter`.
+                closed bucket: for a STATE (basis, open interest, heatmap) the value of its
+                LAST minute — its close —, for a FLOW (open-interest change, liquidations,
+                trade sizes) the total over its minutes; `sample_count` = minutes with data
+                in the bucket. `1m` gives one row per minute, aligned on the minute.
+                Missing: 422 `missing_parameter`.
             since: Lower time bound, inclusive. A `datetime` (naive = UTC), a `date`, an ISO
                 string (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
             until: Upper time bound, inclusive to the millisecond. A `datetime` (naive =
@@ -4380,33 +5049,36 @@ class OiDeltaHistoryResource(SyncResource):
                 validated.
             page_size: Rows per request (`limit`), up to the route's maximum.
             max_items: Stop after this many rows.
+            limit: The same as `max_items` (the name the other methods use for a number of
+                rows).
             request_options: Per-request `timeout`, `max_retries` or extra `headers`.
         """
-        return self._iter(self._route, {'symbol': symbol, 'timeframe': timeframe, 'since_ms': since, 'until_ms': until, 'order': order, 'fields': fields}, page_size=page_size, max_items=max_items, request_options=request_options)
+        return self._iter(self._route, {'symbol': symbol, 'timeframe': timeframe, 'since_ms': since, 'until_ms': until, 'order': order, 'fields': fields}, page_size=page_size, max_items=max_items if max_items is not None else limit, request_options=request_options)
 
 
-class OiDeltaResource(SyncResource):
-    """`/v1/oi/delta` and its sub-routes."""
+class OiChangeResource(SyncResource):
+    """`/v1/oi/change` and its sub-routes."""
 
-    history: OiDeltaHistoryResource
+    history: OiChangeHistoryResource
 
     def __init__(self, client: Any) -> None:
         super().__init__(client)
-        self.history = OiDeltaHistoryResource(client)
+        self.history = OiChangeHistoryResource(client)
 
-    _route = RouteSpec(path='/v1/oi/delta', method='GET', shape='object', model=m.OiDelta, paginated=False, path_params=(), max_limit=None, range_mode=False)
+    _route = RouteSpec(path='/v1/oi/change', method='GET', shape='object', model=m.OiChange, paginated=False, path_params=(), max_limit=None, range_mode=False)
 
     def __call__(
         self,
-        symbol: str,
+        symbol: KnownSymbol | str,
         *,
         fields: Fields | None = None,
         request_options: RequestOptions | None = None,
-    ) -> Response[m.OiDelta | None]:
-        """GET /v1/oi/delta — Open interest change
+    ) -> Response[m.OiChange | None]:
+        """GET /v1/oi/change — Open interest change
 
         Change of total open interest over the last minute, summed across venues: `oi`
-        (now), `oi_previous`, `oi_change`, `oi_change_pct`.
+        (now), `previous_oi`, `oi_change`, `oi_change_pct`. A rolling value: `time` is the
+        reading, `window_start_at` the one before.
 
         Args:
             symbol: Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET
@@ -4428,7 +5100,7 @@ class OiHistoryResource(SyncResource):
 
     def __call__(
         self,
-        symbol: str,
+        symbol: KnownSymbol | str,
         timeframe: Timeframe,
         *,
         limit: int | None = None,
@@ -4444,8 +5116,8 @@ class OiHistoryResource(SyncResource):
         Open interest summed across futures venues, per closed bucket of `timeframe`
         (required): for each venue, its last open interest in the bucket — `oi` is the value
         at the END of the bucket, like a close. The same quantity, under the same name, as
-        `oi` on `/v1/oi/delta`. Older history is coarser: its source has one reading every 4
-        hours, then one a day further back (BTCUSDT: hourly readings from 2026-06-24,
+        `oi` on `/v1/oi/change`. Older history is coarser: its source has one reading every
+        4 hours, then one a day further back (BTCUSDT: hourly readings from 2026-06-24,
         4-hourly from 2025-10-06). On a finer `timeframe` such a period has one row per
         reading; the buckets in between are absent, never filled. Most recent first, or
         oldest first with `order=asc`. Follow `next` to read the following page (it never
@@ -4457,9 +5129,11 @@ class OiHistoryResource(SyncResource):
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
             timeframe: Required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. One row per
-                closed bucket, aggregating its minutes (`sample_count` = minutes in the
-                bucket); `1m` gives one row per minute, aligned on the minute. Missing: 422
-                `missing_parameter`.
+                closed bucket: for a STATE (basis, open interest, heatmap) the value of its
+                LAST minute — its close —, for a FLOW (open-interest change, liquidations,
+                trade sizes) the total over its minutes; `sample_count` = minutes with data
+                in the bucket. `1m` gives one row per minute, aligned on the minute.
+                Missing: 422 `missing_parameter`.
             limit: Number of rows to return, in the reading order (most recent first by
                 default). Bounded by your plan's history window: an explicit `limit` (or
                 `since_ms`) reaching beyond it returns 403 `history_depth`; without them the
@@ -4484,7 +5158,7 @@ class OiHistoryResource(SyncResource):
 
     def iter(
         self,
-        symbol: str,
+        symbol: KnownSymbol | str,
         timeframe: Timeframe,
         *,
         since: TimeLike | None = None,
@@ -4493,6 +5167,7 @@ class OiHistoryResource(SyncResource):
         fields: Fields | None = None,
         page_size: int | None = None,
         max_items: int | None = None,
+        limit: int | None = None,
         request_options: RequestOptions | None = None,
     ) -> RowIterator[m.OiHistoryItem]:
         """Every row of `/v1/oi/history` over a period, following `next` page after page.
@@ -4508,9 +5183,11 @@ class OiHistoryResource(SyncResource):
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
             timeframe: Required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. One row per
-                closed bucket, aggregating its minutes (`sample_count` = minutes in the
-                bucket); `1m` gives one row per minute, aligned on the minute. Missing: 422
-                `missing_parameter`.
+                closed bucket: for a STATE (basis, open interest, heatmap) the value of its
+                LAST minute — its close —, for a FLOW (open-interest change, liquidations,
+                trade sizes) the total over its minutes; `sample_count` = minutes with data
+                in the bucket. `1m` gives one row per minute, aligned on the minute.
+                Missing: 422 `missing_parameter`.
             since: Lower time bound, inclusive. A `datetime` (naive = UTC), a `date`, an ISO
                 string (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
             until: Upper time bound, inclusive to the millisecond. A `datetime` (naive =
@@ -4524,27 +5201,29 @@ class OiHistoryResource(SyncResource):
                 validated.
             page_size: Rows per request (`limit`), up to the route's maximum.
             max_items: Stop after this many rows.
+            limit: The same as `max_items` (the name the other methods use for a number of
+                rows).
             request_options: Per-request `timeout`, `max_retries` or extra `headers`.
         """
-        return self._iter(self._route, {'symbol': symbol, 'timeframe': timeframe, 'since_ms': since, 'until_ms': until, 'order': order, 'fields': fields}, page_size=page_size, max_items=max_items, request_options=request_options)
+        return self._iter(self._route, {'symbol': symbol, 'timeframe': timeframe, 'since_ms': since, 'until_ms': until, 'order': order, 'fields': fields}, page_size=page_size, max_items=max_items if max_items is not None else limit, request_options=request_options)
 
 
 class OiResource(SyncResource):
     """`/v1/oi` and its sub-routes."""
 
-    delta: OiDeltaResource
+    change: OiChangeResource
     history: OiHistoryResource
 
     def __init__(self, client: Any) -> None:
         super().__init__(client)
-        self.delta = OiDeltaResource(client)
+        self.change = OiChangeResource(client)
         self.history = OiHistoryResource(client)
 
     _route = RouteSpec(path='/v1/oi', method='GET', shape='object', model=m.Oi, paginated=False, path_params=(), max_limit=None, range_mode=False)
 
     def __call__(
         self,
-        symbol: str,
+        symbol: KnownSymbol | str,
         *,
         fields: Fields | None = None,
         request_options: RequestOptions | None = None,
@@ -4553,7 +5232,7 @@ class OiResource(SyncResource):
 
         Current total open interest of the perpetual futures, summed across venues (base
         asset units): for each venue its latest reading, then the sum. The same `oi`, at the
-        same instant, as `/v1/oi/delta`; its history is `/v1/oi/history`.
+        same instant, as `/v1/oi/change`; its history is `/v1/oi/history`.
 
         Args:
             symbol: Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET
@@ -4566,469 +5245,6 @@ class OiResource(SyncResource):
             request_options: Per-request `timeout`, `max_retries` or extra `headers`.
         """
         return self._call(self._route, {'symbol': symbol, 'fields': fields}, request_options)
-
-
-class OnchainActiveAddressesHistoryResource(SyncResource):
-    """`/v1/onchain/active-addresses/history`."""
-
-    _route = RouteSpec(path='/v1/onchain/active-addresses/history', method='GET', shape='list', model=m.OnchainActiveAddressesHistoryItem, paginated=True, path_params=(), max_limit=1000, range_mode=False)
-
-    def __call__(
-        self,
-        *,
-        limit: int | None = None,
-        since: TimeLike | None = None,
-        until: TimeLike | None = None,
-        before: TimeLike | None = None,
-        order: Order | None = None,
-        fields: Fields | None = None,
-        request_options: RequestOptions | None = None,
-    ) -> Response[list[m.OnchainActiveAddressesHistoryItem]]:
-        """GET /v1/onchain/active-addresses/history — Active addresses history
-
-        One point per day. Most recent first, or oldest first with `order=asc`. Follow
-        `next` to read the following page (it never repeats a row).
-
-        Args:
-            limit: Number of rows to return, in the reading order (most recent first by
-                default). Bounded by your plan's history window: an explicit `limit` (or
-                `since_ms`) reaching beyond it returns 403 `history_depth`; without them the
-                page simply stops at the window.
-            since: Lower time bound, inclusive. A `datetime` (naive = UTC), a `date`, an ISO
-                string (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
-            until: Upper time bound, inclusive to the millisecond. A `datetime` (naive =
-                UTC), a `date`, an ISO string (`2026-01-01`, `2026-01-01T12:00:00Z`) or
-                epoch milliseconds.
-            before: Upper time bound, exclusive (rows strictly before it). Not combinable
-                with `until`. A `datetime` (naive = UTC), a `date`, an ISO string
-                (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
-            order: Reading order: `desc` (most recent first, the default) or `asc` (oldest
-                first, reading forward from `since_ms`, which is then required). Follow
-                `next` to read the following page.
-            fields: Only return these fields of each row (a list or a comma-separated
-                string; dotted paths reach nested keys). Rows are then partial and not
-                validated.
-            request_options: Per-request `timeout`, `max_retries` or extra `headers`.
-        """
-        return self._call(self._route, {'limit': limit, 'since_ms': since, 'until_ms': until, 'before_ms': before, 'order': order, 'fields': fields}, request_options)
-
-    def iter(
-        self,
-        *,
-        since: TimeLike | None = None,
-        until: TimeLike | None = None,
-        order: Order | None = None,
-        fields: Fields | None = None,
-        page_size: int | None = None,
-        max_items: int | None = None,
-        request_options: RequestOptions | None = None,
-    ) -> RowIterator[m.OnchainActiveAddressesHistoryItem]:
-        """Every row of `/v1/onchain/active-addresses/history` over a period, following `next` page after page.
-
-        Pages are fetched lazily, `page_size` rows at a time (default with `since`: the
-        route's maximum; without it, the route's default page, which stops at your plan's
-        history window). With `since`, rows come oldest first unless
-        `order` says otherwise. Call `.to_pandas()` / `.to_list()` to collect them.
-
-        Args:
-            since: Lower time bound, inclusive. A `datetime` (naive = UTC), a `date`, an ISO
-                string (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
-            until: Upper time bound, inclusive to the millisecond. A `datetime` (naive =
-                UTC), a `date`, an ISO string (`2026-01-01`, `2026-01-01T12:00:00Z`) or
-                epoch milliseconds.
-            order: Reading order: `desc` (most recent first, the default) or `asc` (oldest
-                first, reading forward from `since_ms`, which is then required). Follow
-                `next` to read the following page.
-            fields: Only return these fields of each row (a list or a comma-separated
-                string; dotted paths reach nested keys). Rows are then partial and not
-                validated.
-            page_size: Rows per request (`limit`), up to the route's maximum.
-            max_items: Stop after this many rows.
-            request_options: Per-request `timeout`, `max_retries` or extra `headers`.
-        """
-        return self._iter(self._route, {'since_ms': since, 'until_ms': until, 'order': order, 'fields': fields}, page_size=page_size, max_items=max_items, request_options=request_options)
-
-
-class OnchainActiveAddressesResource(SyncResource):
-    """`/v1/onchain/active-addresses` and its sub-routes."""
-
-    history: OnchainActiveAddressesHistoryResource
-
-    def __init__(self, client: Any) -> None:
-        super().__init__(client)
-        self.history = OnchainActiveAddressesHistoryResource(client)
-
-    _route = RouteSpec(path='/v1/onchain/active-addresses', method='GET', shape='object', model=m.OnchainActiveAddresses, paginated=False, path_params=(), max_limit=None, range_mode=False)
-
-    def __call__(
-        self,
-        *,
-        fields: Fields | None = None,
-        request_options: RequestOptions | None = None,
-    ) -> Response[m.OnchainActiveAddresses | None]:
-        """GET /v1/onchain/active-addresses — Bitcoin active addresses
-
-        Daily active addresses, 7- and 30-day averages and momentum.
-
-        Args:
-            fields: Only return these fields of each row (a list or a comma-separated
-                string; dotted paths reach nested keys). Rows are then partial and not
-                validated.
-            request_options: Per-request `timeout`, `max_retries` or extra `headers`.
-        """
-        return self._call(self._route, {'fields': fields}, request_options)
-
-
-class OnchainMinerStressHistoryResource(SyncResource):
-    """`/v1/onchain/miner-stress/history`."""
-
-    _route = RouteSpec(path='/v1/onchain/miner-stress/history', method='GET', shape='list', model=m.OnchainMinerStressHistoryItem, paginated=True, path_params=(), max_limit=1000, range_mode=False)
-
-    def __call__(
-        self,
-        *,
-        limit: int | None = None,
-        since: TimeLike | None = None,
-        until: TimeLike | None = None,
-        before: TimeLike | None = None,
-        order: Order | None = None,
-        fields: Fields | None = None,
-        request_options: RequestOptions | None = None,
-    ) -> Response[list[m.OnchainMinerStressHistoryItem]]:
-        """GET /v1/onchain/miner-stress/history — Miner stress history
-
-        One point per day. Most recent first, or oldest first with `order=asc`. Follow
-        `next` to read the following page (it never repeats a row).
-
-        Args:
-            limit: Number of rows to return, in the reading order (most recent first by
-                default). Bounded by your plan's history window: an explicit `limit` (or
-                `since_ms`) reaching beyond it returns 403 `history_depth`; without them the
-                page simply stops at the window.
-            since: Lower time bound, inclusive. A `datetime` (naive = UTC), a `date`, an ISO
-                string (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
-            until: Upper time bound, inclusive to the millisecond. A `datetime` (naive =
-                UTC), a `date`, an ISO string (`2026-01-01`, `2026-01-01T12:00:00Z`) or
-                epoch milliseconds.
-            before: Upper time bound, exclusive (rows strictly before it). Not combinable
-                with `until`. A `datetime` (naive = UTC), a `date`, an ISO string
-                (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
-            order: Reading order: `desc` (most recent first, the default) or `asc` (oldest
-                first, reading forward from `since_ms`, which is then required). Follow
-                `next` to read the following page.
-            fields: Only return these fields of each row (a list or a comma-separated
-                string; dotted paths reach nested keys). Rows are then partial and not
-                validated.
-            request_options: Per-request `timeout`, `max_retries` or extra `headers`.
-        """
-        return self._call(self._route, {'limit': limit, 'since_ms': since, 'until_ms': until, 'before_ms': before, 'order': order, 'fields': fields}, request_options)
-
-    def iter(
-        self,
-        *,
-        since: TimeLike | None = None,
-        until: TimeLike | None = None,
-        order: Order | None = None,
-        fields: Fields | None = None,
-        page_size: int | None = None,
-        max_items: int | None = None,
-        request_options: RequestOptions | None = None,
-    ) -> RowIterator[m.OnchainMinerStressHistoryItem]:
-        """Every row of `/v1/onchain/miner-stress/history` over a period, following `next` page after page.
-
-        Pages are fetched lazily, `page_size` rows at a time (default with `since`: the
-        route's maximum; without it, the route's default page, which stops at your plan's
-        history window). With `since`, rows come oldest first unless
-        `order` says otherwise. Call `.to_pandas()` / `.to_list()` to collect them.
-
-        Args:
-            since: Lower time bound, inclusive. A `datetime` (naive = UTC), a `date`, an ISO
-                string (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
-            until: Upper time bound, inclusive to the millisecond. A `datetime` (naive =
-                UTC), a `date`, an ISO string (`2026-01-01`, `2026-01-01T12:00:00Z`) or
-                epoch milliseconds.
-            order: Reading order: `desc` (most recent first, the default) or `asc` (oldest
-                first, reading forward from `since_ms`, which is then required). Follow
-                `next` to read the following page.
-            fields: Only return these fields of each row (a list or a comma-separated
-                string; dotted paths reach nested keys). Rows are then partial and not
-                validated.
-            page_size: Rows per request (`limit`), up to the route's maximum.
-            max_items: Stop after this many rows.
-            request_options: Per-request `timeout`, `max_retries` or extra `headers`.
-        """
-        return self._iter(self._route, {'since_ms': since, 'until_ms': until, 'order': order, 'fields': fields}, page_size=page_size, max_items=max_items, request_options=request_options)
-
-
-class OnchainMinerStressResource(SyncResource):
-    """`/v1/onchain/miner-stress` and its sub-routes."""
-
-    history: OnchainMinerStressHistoryResource
-
-    def __init__(self, client: Any) -> None:
-        super().__init__(client)
-        self.history = OnchainMinerStressHistoryResource(client)
-
-    _route = RouteSpec(path='/v1/onchain/miner-stress', method='GET', shape='object', model=m.OnchainMinerStress, paginated=False, path_params=(), max_limit=None, range_mode=False)
-
-    def __call__(
-        self,
-        *,
-        fields: Fields | None = None,
-        request_options: RequestOptions | None = None,
-    ) -> Response[m.OnchainMinerStress | None]:
-        """GET /v1/onchain/miner-stress — Bitcoin miner stress
-
-        Miner revenue per unit of difficulty against its 30-day average: healthy, stress or
-        capitulation. Daily.
-
-        Args:
-            fields: Only return these fields of each row (a list or a comma-separated
-                string; dotted paths reach nested keys). Rows are then partial and not
-                validated.
-            request_options: Per-request `timeout`, `max_retries` or extra `headers`.
-        """
-        return self._call(self._route, {'fields': fields}, request_options)
-
-
-class OnchainMvrvHistoryResource(SyncResource):
-    """`/v1/onchain/mvrv/history`."""
-
-    _route = RouteSpec(path='/v1/onchain/mvrv/history', method='GET', shape='list', model=m.OnchainMvrvHistoryItem, paginated=True, path_params=(), max_limit=1000, range_mode=False)
-
-    def __call__(
-        self,
-        *,
-        limit: int | None = None,
-        since: TimeLike | None = None,
-        until: TimeLike | None = None,
-        before: TimeLike | None = None,
-        order: Order | None = None,
-        fields: Fields | None = None,
-        request_options: RequestOptions | None = None,
-    ) -> Response[list[m.OnchainMvrvHistoryItem]]:
-        """GET /v1/onchain/mvrv/history — MVRV history
-
-        One point per day. Most recent first, or oldest first with `order=asc`. Follow
-        `next` to read the following page (it never repeats a row).
-
-        Args:
-            limit: Number of rows to return, in the reading order (most recent first by
-                default). Bounded by your plan's history window: an explicit `limit` (or
-                `since_ms`) reaching beyond it returns 403 `history_depth`; without them the
-                page simply stops at the window.
-            since: Lower time bound, inclusive. A `datetime` (naive = UTC), a `date`, an ISO
-                string (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
-            until: Upper time bound, inclusive to the millisecond. A `datetime` (naive =
-                UTC), a `date`, an ISO string (`2026-01-01`, `2026-01-01T12:00:00Z`) or
-                epoch milliseconds.
-            before: Upper time bound, exclusive (rows strictly before it). Not combinable
-                with `until`. A `datetime` (naive = UTC), a `date`, an ISO string
-                (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
-            order: Reading order: `desc` (most recent first, the default) or `asc` (oldest
-                first, reading forward from `since_ms`, which is then required). Follow
-                `next` to read the following page.
-            fields: Only return these fields of each row (a list or a comma-separated
-                string; dotted paths reach nested keys). Rows are then partial and not
-                validated.
-            request_options: Per-request `timeout`, `max_retries` or extra `headers`.
-        """
-        return self._call(self._route, {'limit': limit, 'since_ms': since, 'until_ms': until, 'before_ms': before, 'order': order, 'fields': fields}, request_options)
-
-    def iter(
-        self,
-        *,
-        since: TimeLike | None = None,
-        until: TimeLike | None = None,
-        order: Order | None = None,
-        fields: Fields | None = None,
-        page_size: int | None = None,
-        max_items: int | None = None,
-        request_options: RequestOptions | None = None,
-    ) -> RowIterator[m.OnchainMvrvHistoryItem]:
-        """Every row of `/v1/onchain/mvrv/history` over a period, following `next` page after page.
-
-        Pages are fetched lazily, `page_size` rows at a time (default with `since`: the
-        route's maximum; without it, the route's default page, which stops at your plan's
-        history window). With `since`, rows come oldest first unless
-        `order` says otherwise. Call `.to_pandas()` / `.to_list()` to collect them.
-
-        Args:
-            since: Lower time bound, inclusive. A `datetime` (naive = UTC), a `date`, an ISO
-                string (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
-            until: Upper time bound, inclusive to the millisecond. A `datetime` (naive =
-                UTC), a `date`, an ISO string (`2026-01-01`, `2026-01-01T12:00:00Z`) or
-                epoch milliseconds.
-            order: Reading order: `desc` (most recent first, the default) or `asc` (oldest
-                first, reading forward from `since_ms`, which is then required). Follow
-                `next` to read the following page.
-            fields: Only return these fields of each row (a list or a comma-separated
-                string; dotted paths reach nested keys). Rows are then partial and not
-                validated.
-            page_size: Rows per request (`limit`), up to the route's maximum.
-            max_items: Stop after this many rows.
-            request_options: Per-request `timeout`, `max_retries` or extra `headers`.
-        """
-        return self._iter(self._route, {'since_ms': since, 'until_ms': until, 'order': order, 'fields': fields}, page_size=page_size, max_items=max_items, request_options=request_options)
-
-
-class OnchainMvrvResource(SyncResource):
-    """`/v1/onchain/mvrv` and its sub-routes."""
-
-    history: OnchainMvrvHistoryResource
-
-    def __init__(self, client: Any) -> None:
-        super().__init__(client)
-        self.history = OnchainMvrvHistoryResource(client)
-
-    _route = RouteSpec(path='/v1/onchain/mvrv', method='GET', shape='object', model=m.OnchainMvrv, paginated=False, path_params=(), max_limit=None, range_mode=False)
-
-    def __call__(
-        self,
-        *,
-        fields: Fields | None = None,
-        request_options: RequestOptions | None = None,
-    ) -> Response[m.OnchainMvrv | None]:
-        """GET /v1/onchain/mvrv — Bitcoin MVRV
-
-        Market value / realised value with its zone and 30-day momentum. Daily.
-
-        Args:
-            fields: Only return these fields of each row (a list or a comma-separated
-                string; dotted paths reach nested keys). Rows are then partial and not
-                validated.
-            request_options: Per-request `timeout`, `max_retries` or extra `headers`.
-        """
-        return self._call(self._route, {'fields': fields}, request_options)
-
-
-class OnchainNvtHistoryResource(SyncResource):
-    """`/v1/onchain/nvt/history`."""
-
-    _route = RouteSpec(path='/v1/onchain/nvt/history', method='GET', shape='list', model=m.OnchainNvtHistoryItem, paginated=True, path_params=(), max_limit=1000, range_mode=False)
-
-    def __call__(
-        self,
-        *,
-        limit: int | None = None,
-        since: TimeLike | None = None,
-        until: TimeLike | None = None,
-        before: TimeLike | None = None,
-        order: Order | None = None,
-        fields: Fields | None = None,
-        request_options: RequestOptions | None = None,
-    ) -> Response[list[m.OnchainNvtHistoryItem]]:
-        """GET /v1/onchain/nvt/history — NVT history
-
-        One point per day. Most recent first, or oldest first with `order=asc`. Follow
-        `next` to read the following page (it never repeats a row).
-
-        Args:
-            limit: Number of rows to return, in the reading order (most recent first by
-                default). Bounded by your plan's history window: an explicit `limit` (or
-                `since_ms`) reaching beyond it returns 403 `history_depth`; without them the
-                page simply stops at the window.
-            since: Lower time bound, inclusive. A `datetime` (naive = UTC), a `date`, an ISO
-                string (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
-            until: Upper time bound, inclusive to the millisecond. A `datetime` (naive =
-                UTC), a `date`, an ISO string (`2026-01-01`, `2026-01-01T12:00:00Z`) or
-                epoch milliseconds.
-            before: Upper time bound, exclusive (rows strictly before it). Not combinable
-                with `until`. A `datetime` (naive = UTC), a `date`, an ISO string
-                (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
-            order: Reading order: `desc` (most recent first, the default) or `asc` (oldest
-                first, reading forward from `since_ms`, which is then required). Follow
-                `next` to read the following page.
-            fields: Only return these fields of each row (a list or a comma-separated
-                string; dotted paths reach nested keys). Rows are then partial and not
-                validated.
-            request_options: Per-request `timeout`, `max_retries` or extra `headers`.
-        """
-        return self._call(self._route, {'limit': limit, 'since_ms': since, 'until_ms': until, 'before_ms': before, 'order': order, 'fields': fields}, request_options)
-
-    def iter(
-        self,
-        *,
-        since: TimeLike | None = None,
-        until: TimeLike | None = None,
-        order: Order | None = None,
-        fields: Fields | None = None,
-        page_size: int | None = None,
-        max_items: int | None = None,
-        request_options: RequestOptions | None = None,
-    ) -> RowIterator[m.OnchainNvtHistoryItem]:
-        """Every row of `/v1/onchain/nvt/history` over a period, following `next` page after page.
-
-        Pages are fetched lazily, `page_size` rows at a time (default with `since`: the
-        route's maximum; without it, the route's default page, which stops at your plan's
-        history window). With `since`, rows come oldest first unless
-        `order` says otherwise. Call `.to_pandas()` / `.to_list()` to collect them.
-
-        Args:
-            since: Lower time bound, inclusive. A `datetime` (naive = UTC), a `date`, an ISO
-                string (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
-            until: Upper time bound, inclusive to the millisecond. A `datetime` (naive =
-                UTC), a `date`, an ISO string (`2026-01-01`, `2026-01-01T12:00:00Z`) or
-                epoch milliseconds.
-            order: Reading order: `desc` (most recent first, the default) or `asc` (oldest
-                first, reading forward from `since_ms`, which is then required). Follow
-                `next` to read the following page.
-            fields: Only return these fields of each row (a list or a comma-separated
-                string; dotted paths reach nested keys). Rows are then partial and not
-                validated.
-            page_size: Rows per request (`limit`), up to the route's maximum.
-            max_items: Stop after this many rows.
-            request_options: Per-request `timeout`, `max_retries` or extra `headers`.
-        """
-        return self._iter(self._route, {'since_ms': since, 'until_ms': until, 'order': order, 'fields': fields}, page_size=page_size, max_items=max_items, request_options=request_options)
-
-
-class OnchainNvtResource(SyncResource):
-    """`/v1/onchain/nvt` and its sub-routes."""
-
-    history: OnchainNvtHistoryResource
-
-    def __init__(self, client: Any) -> None:
-        super().__init__(client)
-        self.history = OnchainNvtHistoryResource(client)
-
-    _route = RouteSpec(path='/v1/onchain/nvt', method='GET', shape='object', model=m.OnchainNvt, paginated=False, path_params=(), max_limit=None, range_mode=False)
-
-    def __call__(
-        self,
-        *,
-        fields: Fields | None = None,
-        request_options: RequestOptions | None = None,
-    ) -> Response[m.OnchainNvt | None]:
-        """GET /v1/onchain/nvt — Bitcoin NVT
-
-        Network value to transactions ratio and its 90-day NVT Signal, derived on demand.
-        Daily.
-
-        Args:
-            fields: Only return these fields of each row (a list or a comma-separated
-                string; dotted paths reach nested keys). Rows are then partial and not
-                validated.
-            request_options: Per-request `timeout`, `max_retries` or extra `headers`.
-        """
-        return self._call(self._route, {'fields': fields}, request_options)
-
-
-class OnchainResource(SyncResource):
-    """`/v1/onchain` and its sub-routes."""
-
-    active_addresses: OnchainActiveAddressesResource
-    miner_stress: OnchainMinerStressResource
-    mvrv: OnchainMvrvResource
-    nvt: OnchainNvtResource
-
-    def __init__(self, client: Any) -> None:
-        super().__init__(client)
-        self.active_addresses = OnchainActiveAddressesResource(client)
-        self.miner_stress = OnchainMinerStressResource(client)
-        self.mvrv = OnchainMvrvResource(client)
-        self.nvt = OnchainNvtResource(client)
-
 
 
 class OptionsExpiryResource(SyncResource):
@@ -5087,10 +5303,10 @@ class OptionsGreeksResource(SyncResource):
         return self._call(self._route, {'asset': asset, 'fields': fields}, request_options)
 
 
-class OptionsIvKlinesResource(SyncResource):
-    """`/v1/options/iv/klines`."""
+class OptionsIvKlinesHistoryResource(SyncResource):
+    """`/v1/options/iv/klines/history`."""
 
-    _route = RouteSpec(path='/v1/options/iv/klines', method='GET', shape='list', model=m.OptionsIvKline, paginated=True, path_params=(), max_limit=1000, range_mode=False)
+    _route = RouteSpec(path='/v1/options/iv/klines/history', method='GET', shape='list', model=m.OptionsIvKlineHistoryItem, paginated=True, path_params=(), max_limit=1000, range_mode=False)
 
     def __call__(
         self,
@@ -5104,12 +5320,12 @@ class OptionsIvKlinesResource(SyncResource):
         order: Order | None = None,
         fields: Fields | None = None,
         request_options: RequestOptions | None = None,
-    ) -> Response[list[m.OptionsIvKline]]:
-        """GET /v1/options/iv/klines — 30-day ATM IV candles
+    ) -> Response[list[m.OptionsIvKlineHistoryItem]]:
+        """GET /v1/options/iv/klines/history — 30-day ATM IV candles
 
-        OHLC of the 30-day ATM implied volatility per bucket, in percent. Most recent first,
-        or oldest first with `order=asc`. Follow `next` to read the following page (it never
-        repeats a row).
+        OHLC of the 30-day ATM implied volatility per bucket, in percent (`open_pct`...
+        `close_pct`). Most recent first, or oldest first with `order=asc`. Follow `next` to
+        read the following page (it never repeats a row).
 
         Args:
             asset: Asset, e.g. `BTC` or `ETH` (no quote currency), in any case (`eth` works;
@@ -5150,9 +5366,10 @@ class OptionsIvKlinesResource(SyncResource):
         fields: Fields | None = None,
         page_size: int | None = None,
         max_items: int | None = None,
+        limit: int | None = None,
         request_options: RequestOptions | None = None,
-    ) -> RowIterator[m.OptionsIvKline]:
-        """Every row of `/v1/options/iv/klines` over a period, following `next` page after page.
+    ) -> RowIterator[m.OptionsIvKlineHistoryItem]:
+        """Every row of `/v1/options/iv/klines/history` over a period, following `next` page after page.
 
         Pages are fetched lazily, `page_size` rows at a time (default with `since`: the
         route's maximum; without it, the route's default page, which stops at your plan's
@@ -5178,9 +5395,50 @@ class OptionsIvKlinesResource(SyncResource):
                 validated.
             page_size: Rows per request (`limit`), up to the route's maximum.
             max_items: Stop after this many rows.
+            limit: The same as `max_items` (the name the other methods use for a number of
+                rows).
             request_options: Per-request `timeout`, `max_retries` or extra `headers`.
         """
-        return self._iter(self._route, {'asset': asset, 'timeframe': timeframe, 'since_ms': since, 'until_ms': until, 'order': order, 'fields': fields}, page_size=page_size, max_items=max_items, request_options=request_options)
+        return self._iter(self._route, {'asset': asset, 'timeframe': timeframe, 'since_ms': since, 'until_ms': until, 'order': order, 'fields': fields}, page_size=page_size, max_items=max_items if max_items is not None else limit, request_options=request_options)
+
+
+class OptionsIvKlinesResource(SyncResource):
+    """`/v1/options/iv/klines` and its sub-routes."""
+
+    history: OptionsIvKlinesHistoryResource
+
+    def __init__(self, client: Any) -> None:
+        super().__init__(client)
+        self.history = OptionsIvKlinesHistoryResource(client)
+
+    _route = RouteSpec(path='/v1/options/iv/klines', method='GET', shape='object', model=m.OptionsIvKline, paginated=False, path_params=(), max_limit=None, range_mode=False)
+
+    def __call__(
+        self,
+        asset: Asset,
+        timeframe: OptionsTimeframe,
+        *,
+        fields: Fields | None = None,
+        request_options: RequestOptions | None = None,
+    ) -> Response[m.OptionsIvKline | None]:
+        """GET /v1/options/iv/klines — Latest 30-day ATM IV candle
+
+        The latest CLOSED candle of the 30-day ATM implied volatility (`timeframe`
+        required), in percent: `open_pct`, `high_pct`, `low_pct`, `close_pct`. The first row
+        of `/v1/options/iv/klines/history`.
+
+        Args:
+            asset: Asset, e.g. `BTC` or `ETH` (no quote currency), in any case (`eth` works;
+                the envelope gives the canonical form). Unknown: 422 `invalid_asset`.
+            timeframe: Bucket size, required: `5m`, `15m`, `30m`, `1h`, `4h` or `1d` (`1m`
+                is not served on options). Missing: 422 `missing_parameter`; other values:
+                422 `invalid_timeframe`.
+            fields: Only return these fields of each row (a list or a comma-separated
+                string; dotted paths reach nested keys). Rows are then partial and not
+                validated.
+            request_options: Per-request `timeout`, `max_retries` or extra `headers`.
+        """
+        return self._call(self._route, {'asset': asset, 'timeframe': timeframe, 'fields': fields}, request_options)
 
 
 class OptionsIvResource(SyncResource):
@@ -5245,9 +5503,9 @@ class OptionsMaxPainHistoryResource(SyncResource):
         Args:
             asset: Asset, e.g. `BTC` or `ETH` (no quote currency), in any case (`eth` works;
                 the envelope gives the canonical form). Unknown: 422 `invalid_asset`.
-            expiry: REQUIRED. Expiry: `YYYY-MM-DD`, or the `expiry` date-time as served
-                (`2026-10-30T08:00:00.000Z`). Missing: 422 `missing_expiry`, and the error
-                lists the active expiries.
+            expiry: REQUIRED. Expiry: `YYYY-MM-DD`, or the `expiry_at` date-time as served
+                (`2026-10-30T08:00:00.000Z`). Missing: 422 `missing_parameter`, and the
+                error lists the active expiries.
             limit: Number of rows to return, in the reading order (most recent first by
                 default). Bounded by your plan's history window: an explicit `limit` (or
                 `since_ms`) reaching beyond it returns 403 `history_depth`; without them the
@@ -5281,6 +5539,7 @@ class OptionsMaxPainHistoryResource(SyncResource):
         fields: Fields | None = None,
         page_size: int | None = None,
         max_items: int | None = None,
+        limit: int | None = None,
         request_options: RequestOptions | None = None,
     ) -> RowIterator[m.OptionsMaxPainHistoryItem]:
         """Every row of `/v1/options/max-pain/history` over a period, following `next` page after page.
@@ -5293,9 +5552,9 @@ class OptionsMaxPainHistoryResource(SyncResource):
         Args:
             asset: Asset, e.g. `BTC` or `ETH` (no quote currency), in any case (`eth` works;
                 the envelope gives the canonical form). Unknown: 422 `invalid_asset`.
-            expiry: REQUIRED. Expiry: `YYYY-MM-DD`, or the `expiry` date-time as served
-                (`2026-10-30T08:00:00.000Z`). Missing: 422 `missing_expiry`, and the error
-                lists the active expiries.
+            expiry: REQUIRED. Expiry: `YYYY-MM-DD`, or the `expiry_at` date-time as served
+                (`2026-10-30T08:00:00.000Z`). Missing: 422 `missing_parameter`, and the
+                error lists the active expiries.
             since: Lower time bound, inclusive. A `datetime` (naive = UTC), a `date`, an ISO
                 string (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
             until: Upper time bound, inclusive to the millisecond. A `datetime` (naive =
@@ -5309,9 +5568,11 @@ class OptionsMaxPainHistoryResource(SyncResource):
                 validated.
             page_size: Rows per request (`limit`), up to the route's maximum.
             max_items: Stop after this many rows.
+            limit: The same as `max_items` (the name the other methods use for a number of
+                rows).
             request_options: Per-request `timeout`, `max_retries` or extra `headers`.
         """
-        return self._iter(self._route, {'asset': asset, 'expiry': expiry, 'since_ms': since, 'until_ms': until, 'order': order, 'fields': fields}, page_size=page_size, max_items=max_items, request_options=request_options)
+        return self._iter(self._route, {'asset': asset, 'expiry': expiry, 'since_ms': since, 'until_ms': until, 'order': order, 'fields': fields}, page_size=page_size, max_items=max_items if max_items is not None else limit, request_options=request_options)
 
 
 class OptionsMaxPainResource(SyncResource):
@@ -5334,8 +5595,8 @@ class OptionsMaxPainResource(SyncResource):
     ) -> Response[list[m.OptionsMaxPain]]:
         """GET /v1/options/max-pain — Max pain per expiry
 
-        Max pain strike of every active expiry, with days to expiry, put/call ratio and open
-        interest. `data` is a list.
+        Max pain strike of every active expiry, with the time left (`time_to_expiry_s`),
+        put/call ratio and open interest. `data` is a list.
 
         Args:
             asset: Asset, e.g. `BTC` or `ETH` (no quote currency), in any case (`eth` works;
@@ -5348,10 +5609,10 @@ class OptionsMaxPainResource(SyncResource):
         return self._call(self._route, {'asset': asset, 'fields': fields}, request_options)
 
 
-class OptionsOiDeltaHistoryResource(SyncResource):
-    """`/v1/options/oi/delta/history`."""
+class OptionsOiChangeHistoryResource(SyncResource):
+    """`/v1/options/oi/change/history`."""
 
-    _route = RouteSpec(path='/v1/options/oi/delta/history', method='GET', shape='list', model=m.OptionsOiDeltaHistoryItem, paginated=True, path_params=(), max_limit=1000, range_mode=False)
+    _route = RouteSpec(path='/v1/options/oi/change/history', method='GET', shape='list', model=m.OptionsOiChangeHistoryItem, paginated=True, path_params=(), max_limit=1000, range_mode=False)
 
     def __call__(
         self,
@@ -5365,8 +5626,8 @@ class OptionsOiDeltaHistoryResource(SyncResource):
         order: Order | None = None,
         fields: Fields | None = None,
         request_options: RequestOptions | None = None,
-    ) -> Response[list[m.OptionsOiDeltaHistoryItem]]:
-        """GET /v1/options/oi/delta/history — Options OI change history
+    ) -> Response[list[m.OptionsOiChangeHistoryItem]]:
+        """GET /v1/options/oi/change/history — Options OI change history
 
         Per bucket. Most recent first, or oldest first with `order=asc`. Follow `next` to
         read the following page (it never repeats a row).
@@ -5410,9 +5671,10 @@ class OptionsOiDeltaHistoryResource(SyncResource):
         fields: Fields | None = None,
         page_size: int | None = None,
         max_items: int | None = None,
+        limit: int | None = None,
         request_options: RequestOptions | None = None,
-    ) -> RowIterator[m.OptionsOiDeltaHistoryItem]:
-        """Every row of `/v1/options/oi/delta/history` over a period, following `next` page after page.
+    ) -> RowIterator[m.OptionsOiChangeHistoryItem]:
+        """Every row of `/v1/options/oi/change/history` over a period, following `next` page after page.
 
         Pages are fetched lazily, `page_size` rows at a time (default with `since`: the
         route's maximum; without it, the route's default page, which stops at your plan's
@@ -5438,21 +5700,23 @@ class OptionsOiDeltaHistoryResource(SyncResource):
                 validated.
             page_size: Rows per request (`limit`), up to the route's maximum.
             max_items: Stop after this many rows.
+            limit: The same as `max_items` (the name the other methods use for a number of
+                rows).
             request_options: Per-request `timeout`, `max_retries` or extra `headers`.
         """
-        return self._iter(self._route, {'asset': asset, 'timeframe': timeframe, 'since_ms': since, 'until_ms': until, 'order': order, 'fields': fields}, page_size=page_size, max_items=max_items, request_options=request_options)
+        return self._iter(self._route, {'asset': asset, 'timeframe': timeframe, 'since_ms': since, 'until_ms': until, 'order': order, 'fields': fields}, page_size=page_size, max_items=max_items if max_items is not None else limit, request_options=request_options)
 
 
-class OptionsOiDeltaResource(SyncResource):
-    """`/v1/options/oi/delta` and its sub-routes."""
+class OptionsOiChangeResource(SyncResource):
+    """`/v1/options/oi/change` and its sub-routes."""
 
-    history: OptionsOiDeltaHistoryResource
+    history: OptionsOiChangeHistoryResource
 
     def __init__(self, client: Any) -> None:
         super().__init__(client)
-        self.history = OptionsOiDeltaHistoryResource(client)
+        self.history = OptionsOiChangeHistoryResource(client)
 
-    _route = RouteSpec(path='/v1/options/oi/delta', method='GET', shape='object', model=m.OptionsOiDelta, paginated=False, path_params=(), max_limit=None, range_mode=False)
+    _route = RouteSpec(path='/v1/options/oi/change', method='GET', shape='object', model=m.OptionsOiChange, paginated=False, path_params=(), max_limit=None, range_mode=False)
 
     def __call__(
         self,
@@ -5461,13 +5725,13 @@ class OptionsOiDeltaResource(SyncResource):
         *,
         fields: Fields | None = None,
         request_options: RequestOptions | None = None,
-    ) -> Response[m.OptionsOiDelta | None]:
-        """GET /v1/options/oi/delta — Options open interest change
+    ) -> Response[m.OptionsOiChange | None]:
+        """GET /v1/options/oi/change — Options open interest change
 
         Change of call and put open interest over a rolling `timeframe`: from the snapshot
-        `window_start` (at least `timeframe` earlier) to the latest one (`time`). `window_s`
-        is their actual distance, in seconds. Always final: a rolling value carries no
-        `is_closed`.
+        `window_start_at` (at least `timeframe` earlier) to the latest one (`time`).
+        `window_s` is their actual distance, in whole seconds. Always final: a rolling value
+        carries no `is_closed`.
 
         Args:
             asset: Asset, e.g. `BTC` or `ETH` (no quote currency), in any case (`eth` works;
@@ -5504,7 +5768,7 @@ class OptionsOiDistributionResource(SyncResource):
         Args:
             asset: Asset, e.g. `BTC` or `ETH` (no quote currency), in any case (`eth` works;
                 the envelope gives the canonical form). Unknown: 422 `invalid_asset`.
-            expiry: Restrict to one expiry: `YYYY-MM-DD`, or the `expiry` date-time as
+            expiry: Restrict to one expiry: `YYYY-MM-DD`, or the `expiry_at` date-time as
                 served (`2026-10-30T08:00:00.000Z`). Omit for every active expiry.
             fields: Only return these fields of each row (a list or a comma-separated
                 string; dotted paths reach nested keys). Rows are then partial and not
@@ -5576,6 +5840,7 @@ class OptionsOiHistoryResource(SyncResource):
         fields: Fields | None = None,
         page_size: int | None = None,
         max_items: int | None = None,
+        limit: int | None = None,
         request_options: RequestOptions | None = None,
     ) -> RowIterator[m.OptionsOiHistoryItem]:
         """Every row of `/v1/options/oi/history` over a period, following `next` page after page.
@@ -5604,21 +5869,23 @@ class OptionsOiHistoryResource(SyncResource):
                 validated.
             page_size: Rows per request (`limit`), up to the route's maximum.
             max_items: Stop after this many rows.
+            limit: The same as `max_items` (the name the other methods use for a number of
+                rows).
             request_options: Per-request `timeout`, `max_retries` or extra `headers`.
         """
-        return self._iter(self._route, {'asset': asset, 'timeframe': timeframe, 'since_ms': since, 'until_ms': until, 'order': order, 'fields': fields}, page_size=page_size, max_items=max_items, request_options=request_options)
+        return self._iter(self._route, {'asset': asset, 'timeframe': timeframe, 'since_ms': since, 'until_ms': until, 'order': order, 'fields': fields}, page_size=page_size, max_items=max_items if max_items is not None else limit, request_options=request_options)
 
 
 class OptionsOiResource(SyncResource):
     """`/v1/options/oi` and its sub-routes."""
 
-    delta: OptionsOiDeltaResource
+    change: OptionsOiChangeResource
     distribution: OptionsOiDistributionResource
     history: OptionsOiHistoryResource
 
     def __init__(self, client: Any) -> None:
         super().__init__(client)
-        self.delta = OptionsOiDeltaResource(client)
+        self.change = OptionsOiChangeResource(client)
         self.distribution = OptionsOiDistributionResource(client)
         self.history = OptionsOiHistoryResource(client)
 
@@ -5646,10 +5913,10 @@ class OptionsOiResource(SyncResource):
         return self._call(self._route, {'asset': asset, 'fields': fields}, request_options)
 
 
-class OptionsPcRatioHistoryResource(SyncResource):
-    """`/v1/options/pc-ratio/history`."""
+class OptionsPutCallRatioHistoryResource(SyncResource):
+    """`/v1/options/put-call-ratio/history`."""
 
-    _route = RouteSpec(path='/v1/options/pc-ratio/history', method='GET', shape='list', model=m.OptionsPcRatioHistoryItem, paginated=True, path_params=(), max_limit=1000, range_mode=False)
+    _route = RouteSpec(path='/v1/options/put-call-ratio/history', method='GET', shape='list', model=m.OptionsPutCallRatioHistoryItem, paginated=True, path_params=(), max_limit=1000, range_mode=False)
 
     def __call__(
         self,
@@ -5663,8 +5930,8 @@ class OptionsPcRatioHistoryResource(SyncResource):
         order: Order | None = None,
         fields: Fields | None = None,
         request_options: RequestOptions | None = None,
-    ) -> Response[list[m.OptionsPcRatioHistoryItem]]:
-        """GET /v1/options/pc-ratio/history — Put/call ratio history
+    ) -> Response[list[m.OptionsPutCallRatioHistoryItem]]:
+        """GET /v1/options/put-call-ratio/history — Put/call ratio history
 
         Per bucket. Most recent first, or oldest first with `order=asc`. Follow `next` to
         read the following page (it never repeats a row).
@@ -5708,9 +5975,10 @@ class OptionsPcRatioHistoryResource(SyncResource):
         fields: Fields | None = None,
         page_size: int | None = None,
         max_items: int | None = None,
+        limit: int | None = None,
         request_options: RequestOptions | None = None,
-    ) -> RowIterator[m.OptionsPcRatioHistoryItem]:
-        """Every row of `/v1/options/pc-ratio/history` over a period, following `next` page after page.
+    ) -> RowIterator[m.OptionsPutCallRatioHistoryItem]:
+        """Every row of `/v1/options/put-call-ratio/history` over a period, following `next` page after page.
 
         Pages are fetched lazily, `page_size` rows at a time (default with `since`: the
         route's maximum; without it, the route's default page, which stops at your plan's
@@ -5736,21 +6004,23 @@ class OptionsPcRatioHistoryResource(SyncResource):
                 validated.
             page_size: Rows per request (`limit`), up to the route's maximum.
             max_items: Stop after this many rows.
+            limit: The same as `max_items` (the name the other methods use for a number of
+                rows).
             request_options: Per-request `timeout`, `max_retries` or extra `headers`.
         """
-        return self._iter(self._route, {'asset': asset, 'timeframe': timeframe, 'since_ms': since, 'until_ms': until, 'order': order, 'fields': fields}, page_size=page_size, max_items=max_items, request_options=request_options)
+        return self._iter(self._route, {'asset': asset, 'timeframe': timeframe, 'since_ms': since, 'until_ms': until, 'order': order, 'fields': fields}, page_size=page_size, max_items=max_items if max_items is not None else limit, request_options=request_options)
 
 
-class OptionsPcRatioResource(SyncResource):
-    """`/v1/options/pc-ratio` and its sub-routes."""
+class OptionsPutCallRatioResource(SyncResource):
+    """`/v1/options/put-call-ratio` and its sub-routes."""
 
-    history: OptionsPcRatioHistoryResource
+    history: OptionsPutCallRatioHistoryResource
 
     def __init__(self, client: Any) -> None:
         super().__init__(client)
-        self.history = OptionsPcRatioHistoryResource(client)
+        self.history = OptionsPutCallRatioHistoryResource(client)
 
-    _route = RouteSpec(path='/v1/options/pc-ratio', method='GET', shape='object', model=m.OptionsPcRatio, paginated=False, path_params=(), max_limit=None, range_mode=False)
+    _route = RouteSpec(path='/v1/options/put-call-ratio', method='GET', shape='object', model=m.OptionsPutCallRatio, paginated=False, path_params=(), max_limit=None, range_mode=False)
 
     def __call__(
         self,
@@ -5758,10 +6028,10 @@ class OptionsPcRatioResource(SyncResource):
         *,
         fields: Fields | None = None,
         request_options: RequestOptions | None = None,
-    ) -> Response[m.OptionsPcRatio | None]:
-        """GET /v1/options/pc-ratio — Put/call ratio
+    ) -> Response[m.OptionsPutCallRatio | None]:
+        """GET /v1/options/put-call-ratio — Put/call ratio
 
-        Put/call open interest ratio and its reading.
+        Put/call open interest ratio (`put_call_ratio`) and its reading (`put_call_label`).
 
         Args:
             asset: Asset, e.g. `BTC` or `ETH` (no quote currency), in any case (`eth` works;
@@ -5864,6 +6134,7 @@ class OptionsVolumeHistoryResource(SyncResource):
         fields: Fields | None = None,
         page_size: int | None = None,
         max_items: int | None = None,
+        limit: int | None = None,
         request_options: RequestOptions | None = None,
     ) -> RowIterator[m.OptionsVolumeHistoryItem]:
         """Every row of `/v1/options/volume/history` over a period, following `next` page after page.
@@ -5892,9 +6163,11 @@ class OptionsVolumeHistoryResource(SyncResource):
                 validated.
             page_size: Rows per request (`limit`), up to the route's maximum.
             max_items: Stop after this many rows.
+            limit: The same as `max_items` (the name the other methods use for a number of
+                rows).
             request_options: Per-request `timeout`, `max_retries` or extra `headers`.
         """
-        return self._iter(self._route, {'asset': asset, 'timeframe': timeframe, 'since_ms': since, 'until_ms': until, 'order': order, 'fields': fields}, page_size=page_size, max_items=max_items, request_options=request_options)
+        return self._iter(self._route, {'asset': asset, 'timeframe': timeframe, 'since_ms': since, 'until_ms': until, 'order': order, 'fields': fields}, page_size=page_size, max_items=max_items if max_items is not None else limit, request_options=request_options)
 
 
 class OptionsVolumeResource(SyncResource):
@@ -5938,7 +6211,7 @@ class OptionsResource(SyncResource):
     iv: OptionsIvResource
     max_pain: OptionsMaxPainResource
     oi: OptionsOiResource
-    pc_ratio: OptionsPcRatioResource
+    put_call_ratio: OptionsPutCallRatioResource
     summary: OptionsSummaryResource
     volume: OptionsVolumeResource
 
@@ -5949,7 +6222,7 @@ class OptionsResource(SyncResource):
         self.iv = OptionsIvResource(client)
         self.max_pain = OptionsMaxPainResource(client)
         self.oi = OptionsOiResource(client)
-        self.pc_ratio = OptionsPcRatioResource(client)
+        self.put_call_ratio = OptionsPutCallRatioResource(client)
         self.summary = OptionsSummaryResource(client)
         self.volume = OptionsVolumeResource(client)
 
@@ -5962,7 +6235,7 @@ class OrderbookFuturesHistoryResource(SyncResource):
 
     def __call__(
         self,
-        symbol: str,
+        symbol: KnownSymbol | str,
         timeframe: Timeframe,
         *,
         limit: int | None = None,
@@ -6011,7 +6284,7 @@ class OrderbookFuturesHistoryResource(SyncResource):
 
     def iter(
         self,
-        symbol: str,
+        symbol: KnownSymbol | str,
         timeframe: Timeframe,
         *,
         since: TimeLike | None = None,
@@ -6020,6 +6293,7 @@ class OrderbookFuturesHistoryResource(SyncResource):
         fields: Fields | None = None,
         page_size: int | None = None,
         max_items: int | None = None,
+        limit: int | None = None,
         request_options: RequestOptions | None = None,
     ) -> RowIterator[m.Orderbook]:
         """Every row of `/v1/orderbook/futures/history` over a period, following `next` page after page.
@@ -6051,9 +6325,11 @@ class OrderbookFuturesHistoryResource(SyncResource):
                 validated.
             page_size: Rows per request (`limit`), up to the route's maximum.
             max_items: Stop after this many rows.
+            limit: The same as `max_items` (the name the other methods use for a number of
+                rows).
             request_options: Per-request `timeout`, `max_retries` or extra `headers`.
         """
-        return self._iter(self._route, {'symbol': symbol, 'timeframe': timeframe, 'since_ms': since, 'until_ms': until, 'order': order, 'fields': fields}, page_size=page_size, max_items=max_items, request_options=request_options)
+        return self._iter(self._route, {'symbol': symbol, 'timeframe': timeframe, 'since_ms': since, 'until_ms': until, 'order': order, 'fields': fields}, page_size=page_size, max_items=max_items if max_items is not None else limit, request_options=request_options)
 
 
 class OrderbookFuturesResource(SyncResource):
@@ -6069,7 +6345,7 @@ class OrderbookFuturesResource(SyncResource):
 
     def __call__(
         self,
-        symbol: str,
+        symbol: KnownSymbol | str,
         timeframe: Timeframe,
         *,
         fields: Fields | None = None,
@@ -6103,7 +6379,7 @@ class OrderbookHistoryResource(SyncResource):
 
     def __call__(
         self,
-        symbol: str,
+        symbol: KnownSymbol | str,
         timeframe: Timeframe,
         *,
         limit: int | None = None,
@@ -6154,7 +6430,7 @@ class OrderbookHistoryResource(SyncResource):
 
     def iter(
         self,
-        symbol: str,
+        symbol: KnownSymbol | str,
         timeframe: Timeframe,
         *,
         since: TimeLike | None = None,
@@ -6163,6 +6439,7 @@ class OrderbookHistoryResource(SyncResource):
         fields: Fields | None = None,
         page_size: int | None = None,
         max_items: int | None = None,
+        limit: int | None = None,
         request_options: RequestOptions | None = None,
     ) -> RowIterator[m.Orderbook]:
         """Every row of `/v1/orderbook/history` over a period, following `next` page after page.
@@ -6194,9 +6471,11 @@ class OrderbookHistoryResource(SyncResource):
                 validated.
             page_size: Rows per request (`limit`), up to the route's maximum.
             max_items: Stop after this many rows.
+            limit: The same as `max_items` (the name the other methods use for a number of
+                rows).
             request_options: Per-request `timeout`, `max_retries` or extra `headers`.
         """
-        return self._iter(self._route, {'symbol': symbol, 'timeframe': timeframe, 'since_ms': since, 'until_ms': until, 'order': order, 'fields': fields}, page_size=page_size, max_items=max_items, request_options=request_options)
+        return self._iter(self._route, {'symbol': symbol, 'timeframe': timeframe, 'since_ms': since, 'until_ms': until, 'order': order, 'fields': fields}, page_size=page_size, max_items=max_items if max_items is not None else limit, request_options=request_options)
 
 
 class OrderbookSpotHistoryResource(SyncResource):
@@ -6206,7 +6485,7 @@ class OrderbookSpotHistoryResource(SyncResource):
 
     def __call__(
         self,
-        symbol: str,
+        symbol: KnownSymbol | str,
         timeframe: Timeframe,
         *,
         limit: int | None = None,
@@ -6254,7 +6533,7 @@ class OrderbookSpotHistoryResource(SyncResource):
 
     def iter(
         self,
-        symbol: str,
+        symbol: KnownSymbol | str,
         timeframe: Timeframe,
         *,
         since: TimeLike | None = None,
@@ -6263,6 +6542,7 @@ class OrderbookSpotHistoryResource(SyncResource):
         fields: Fields | None = None,
         page_size: int | None = None,
         max_items: int | None = None,
+        limit: int | None = None,
         request_options: RequestOptions | None = None,
     ) -> RowIterator[m.Orderbook]:
         """Every row of `/v1/orderbook/spot/history` over a period, following `next` page after page.
@@ -6294,9 +6574,11 @@ class OrderbookSpotHistoryResource(SyncResource):
                 validated.
             page_size: Rows per request (`limit`), up to the route's maximum.
             max_items: Stop after this many rows.
+            limit: The same as `max_items` (the name the other methods use for a number of
+                rows).
             request_options: Per-request `timeout`, `max_retries` or extra `headers`.
         """
-        return self._iter(self._route, {'symbol': symbol, 'timeframe': timeframe, 'since_ms': since, 'until_ms': until, 'order': order, 'fields': fields}, page_size=page_size, max_items=max_items, request_options=request_options)
+        return self._iter(self._route, {'symbol': symbol, 'timeframe': timeframe, 'since_ms': since, 'until_ms': until, 'order': order, 'fields': fields}, page_size=page_size, max_items=max_items if max_items is not None else limit, request_options=request_options)
 
 
 class OrderbookSpotResource(SyncResource):
@@ -6312,7 +6594,7 @@ class OrderbookSpotResource(SyncResource):
 
     def __call__(
         self,
-        symbol: str,
+        symbol: KnownSymbol | str,
         timeframe: Timeframe,
         *,
         fields: Fields | None = None,
@@ -6356,7 +6638,7 @@ class OrderbookResource(SyncResource):
 
     def __call__(
         self,
-        symbol: str,
+        symbol: KnownSymbol | str,
         timeframe: Timeframe,
         *,
         fields: Fields | None = None,
@@ -6396,7 +6678,7 @@ class PriceChangeResource(SyncResource):
 
     def __call__(
         self,
-        symbol: str,
+        symbol: KnownSymbol | str,
         *,
         fields: Fields | None = None,
         request_options: RequestOptions | None = None,
@@ -6428,17 +6710,20 @@ class SnapshotResource(SyncResource):
         self,
         symbol: str,
         *,
-        basis: Depth | None = None,
+        basis: Literal[True, 1] | None = None,
+        btc_active_addresses: Literal[True, 1] | None = None,
         btc_fees: Literal[True, 1] | None = None,
         btc_mempool: Literal[True, 1] | None = None,
         btc_mining: Literal[True, 1] | None = None,
+        btc_mvrv: Literal[True, 1] | None = None,
         btc_network: Literal[True, 1] | None = None,
-        buysell_ratio: Literal[True, 1] | None = None,
+        btc_nvt: Literal[True, 1] | None = None,
+        btc_revenue_per_difficulty: Literal[True, 1] | None = None,
         eth_defi: Literal[True, 1] | None = None,
         eth_deflation: Literal[True, 1] | None = None,
         eth_gas: Literal[True, 1] | None = None,
         eth_gas_momentum: Literal[True, 1] | None = None,
-        eth_ratio: Literal[True, 1] | None = None,
+        eth_price_btc: Literal[True, 1] | None = None,
         eth_squeeze: Literal[True, 1] | None = None,
         eth_staking: Literal[True, 1] | None = None,
         eth_supply: Literal[True, 1] | None = None,
@@ -6446,33 +6731,30 @@ class SnapshotResource(SyncResource):
         funding_cumulative: Literal[True, 1] | None = None,
         funding_next: Literal[True, 1] | None = None,
         funding_rate: Literal[True, 1] | None = None,
-        global_market: Literal[True, 1] | None = None,
+        global_: Literal[True, 1] | None = None,
         heatmap_clusters: Literal[True, 1] | None = None,
-        liquidations_cumulative: Depth | None = None,
+        liquidations_cumulative: Literal[True, 1] | None = None,
         liquidations_events: Depth | None = None,
-        liquidations_ratio: Literal[True, 1] | None = None,
-        macro: Literal[True, 1] | None = None,
         macro_correlations: Literal[True, 1] | None = None,
         macro_momentum: Literal[True, 1] | None = None,
         macro_net_liquidity: Literal[True, 1] | None = None,
         macro_risk: Literal[True, 1] | None = None,
-        oi_delta: Depth | None = None,
-        onchain_active_addresses: Literal[True, 1] | None = None,
-        onchain_miner_stress: Literal[True, 1] | None = None,
-        onchain_mvrv: Literal[True, 1] | None = None,
-        onchain_nvt: Literal[True, 1] | None = None,
+        macro_series: Literal[True, 1] | None = None,
+        oi_change: Literal[True, 1] | None = None,
         options_summary: Literal[True, 1] | None = None,
         price_change: Literal[True, 1] | None = None,
         tokenomics: Literal[True, 1] | None = None,
-        trades_avg_size: Literal[True, 1] | None = None,
         trades_futures: Depth | None = None,
         trades_kline_futures_seconds: Depth | None = None,
         trades_spot: Depth | None = None,
+        buy_sell_ratio: Mapping[Timeframe, Depth] | None = None,
         cvd: Mapping[Timeframe, Depth] | None = None,
         klines: Mapping[KlineTimeframe, Depth] | None = None,
-        oi_history: Mapping[Timeframe, Depth] | None = None,
+        liquidations_big_small_ratio: Mapping[Timeframe, Depth] | None = None,
+        oi: Mapping[Timeframe, Depth] | None = None,
         orderbook: Mapping[Timeframe, Depth] | None = None,
         spread_interexchange: Mapping[Timeframe, Depth] | None = None,
+        trades_avg_size: Mapping[Timeframe, Depth] | None = None,
         trades_kline: Mapping[Timeframe, Depth] | None = None,
         trades_kline_futures: Mapping[Timeframe, Depth] | None = None,
         trades_kline_spot: Mapping[Timeframe, Depth] | None = None,
@@ -6484,20 +6766,22 @@ class SnapshotResource(SyncResource):
         flow, derivatives, liquidations, macro, on-chain, options. Each query key is a field
         and its value a depth: `funding_rate=1` (or `=true`). Multi-timeframe fields take
         `@tf`: `klines@1h=24`, `cvd@1h=24`; `klines` also takes `1w`. Every field has the
-        name of its route and, at depth 1, its response: the object of a latest-value route
-        (`basis`, `cvd@1h`, `orderbook@1m`…). A depth above 1 is accepted only where
-        `max_depth` gives a ceiling: a multi-timeframe field returns the latest N rows of
-        its `/history` at that timeframe; the series `trades_spot`, `trades_futures`,
-        `trades_kline_futures_seconds` and `liquidations_events` their latest N rows;
-        `basis`, `oi_delta` and `liquidations_cumulative` their latest N one-minute values,
-        each shaped like the latest value. Any other field serves its latest value alone:
-        422 `depth_too_large` above 1, naming its `/history` route when it has one. A market
-        field serves all markets (the route without `/spot` or `/futures`). Call it with
-        only `symbol` to get `available_fields` (fields without a timeframe),
-        `available_multi_tf_fields`, `timeframes`, `timeframes_by_field` and `max_depth`. An
-        empty field carries `unavailable` (`not_applicable`, `no_api_key` or `no_data`) so
-        'no measure' is never mistaken for 'nothing happened'. Response: `symbol`, `data`
-        (an object keyed by field name) and `partial` (true if a field failed).
+        name of its route, and ONE type whatever the depth: a field WITHOUT a timeframe is
+        the response of its latest-value route, an object (depth 1, or `true`; 422
+        `depth_too_large` above, naming its `/history` route) — except the event series
+        `trades_spot`, `trades_futures`, `trades_kline_futures_seconds` and
+        `liquidations_events`, always a list of their latest N rows; a field WITH `@tf` is
+        ALWAYS a list, the latest N rows of its `/history` at that timeframe (`cvd@1h=1` is
+        a list of one row). `max_depth` gives each ceiling. The timeframe is
+        case-insensitive like everywhere (`cvd@1H`), except `1M`. A market field serves all
+        markets (the route without `/spot` or `/futures`). Call it with only `symbol` to
+        get, under `data`, `available_fields` (fields without a timeframe),
+        `available_multi_tf_fields`, `multi_tf_syntax`, `timeframes`, `timeframes_by_field`
+        and `max_depth`. An empty field carries `unavailable` (`not_applicable`,
+        `no_api_key` or `no_data`) so 'no measure' is never mistaken for 'nothing happened'.
+        Response: `symbol`, `data` (an object keyed by field name) and `partial` (true if a
+        field failed: that field is then an `error` object with `code` and `message`, with
+        the codes of the error catalogue).
 
         Each field takes a depth: `True` for the latest value, or `N` for the N latest rows.
         Multi-timeframe fields take a mapping: `klines={"1h": 24, "1d": 7}`.
@@ -6509,16 +6793,19 @@ class SnapshotResource(SyncResource):
         """
         fields: dict[str, Depth | None] = {
             'basis': basis,
+            'btc_active_addresses': btc_active_addresses,
             'btc_fees': btc_fees,
             'btc_mempool': btc_mempool,
             'btc_mining': btc_mining,
+            'btc_mvrv': btc_mvrv,
             'btc_network': btc_network,
-            'buysell_ratio': buysell_ratio,
+            'btc_nvt': btc_nvt,
+            'btc_revenue_per_difficulty': btc_revenue_per_difficulty,
             'eth_defi': eth_defi,
             'eth_deflation': eth_deflation,
             'eth_gas': eth_gas,
             'eth_gas_momentum': eth_gas_momentum,
-            'eth_ratio': eth_ratio,
+            'eth_price_btc': eth_price_btc,
             'eth_squeeze': eth_squeeze,
             'eth_staking': eth_staking,
             'eth_supply': eth_supply,
@@ -6526,39 +6813,39 @@ class SnapshotResource(SyncResource):
             'funding_cumulative': funding_cumulative,
             'funding_next': funding_next,
             'funding_rate': funding_rate,
-            'global': global_market,
+            'global': global_,
             'heatmap_clusters': heatmap_clusters,
             'liquidations_cumulative': liquidations_cumulative,
             'liquidations_events': liquidations_events,
-            'liquidations_ratio': liquidations_ratio,
-            'macro': macro,
             'macro_correlations': macro_correlations,
             'macro_momentum': macro_momentum,
             'macro_net_liquidity': macro_net_liquidity,
             'macro_risk': macro_risk,
-            'oi_delta': oi_delta,
-            'onchain_active_addresses': onchain_active_addresses,
-            'onchain_miner_stress': onchain_miner_stress,
-            'onchain_mvrv': onchain_mvrv,
-            'onchain_nvt': onchain_nvt,
+            'macro_series': macro_series,
+            'oi_change': oi_change,
             'options_summary': options_summary,
             'price_change': price_change,
             'tokenomics': tokenomics,
-            'trades_avg_size': trades_avg_size,
             'trades_futures': trades_futures,
             'trades_kline_futures_seconds': trades_kline_futures_seconds,
             'trades_spot': trades_spot,
         }
+        for buy_sell_ratio_tf, buy_sell_ratio_depth in (buy_sell_ratio or {}).items():
+            fields[f"buy_sell_ratio@{buy_sell_ratio_tf}"] = buy_sell_ratio_depth
         for cvd_tf, cvd_depth in (cvd or {}).items():
             fields[f"cvd@{cvd_tf}"] = cvd_depth
         for klines_tf, klines_depth in (klines or {}).items():
             fields[f"klines@{klines_tf}"] = klines_depth
-        for oi_history_tf, oi_history_depth in (oi_history or {}).items():
-            fields[f"oi_history@{oi_history_tf}"] = oi_history_depth
+        for liquidations_big_small_ratio_tf, liquidations_big_small_ratio_depth in (liquidations_big_small_ratio or {}).items():
+            fields[f"liquidations_big_small_ratio@{liquidations_big_small_ratio_tf}"] = liquidations_big_small_ratio_depth
+        for oi_tf, oi_depth in (oi or {}).items():
+            fields[f"oi@{oi_tf}"] = oi_depth
         for orderbook_tf, orderbook_depth in (orderbook or {}).items():
             fields[f"orderbook@{orderbook_tf}"] = orderbook_depth
         for spread_interexchange_tf, spread_interexchange_depth in (spread_interexchange or {}).items():
             fields[f"spread_interexchange@{spread_interexchange_tf}"] = spread_interexchange_depth
+        for trades_avg_size_tf, trades_avg_size_depth in (trades_avg_size or {}).items():
+            fields[f"trades_avg_size@{trades_avg_size_tf}"] = trades_avg_size_depth
         for trades_kline_tf, trades_kline_depth in (trades_kline or {}).items():
             fields[f"trades_kline@{trades_kline_tf}"] = trades_kline_depth
         for trades_kline_futures_tf, trades_kline_futures_depth in (trades_kline_futures or {}).items():
@@ -6583,7 +6870,7 @@ class SpreadInterexchangeHistoryResource(SyncResource):
 
     def __call__(
         self,
-        symbol: str,
+        symbol: KnownSymbol | str,
         timeframe: Timeframe,
         *,
         limit: int | None = None,
@@ -6633,7 +6920,7 @@ class SpreadInterexchangeHistoryResource(SyncResource):
 
     def iter(
         self,
-        symbol: str,
+        symbol: KnownSymbol | str,
         timeframe: Timeframe,
         *,
         since: TimeLike | None = None,
@@ -6642,6 +6929,7 @@ class SpreadInterexchangeHistoryResource(SyncResource):
         fields: Fields | None = None,
         page_size: int | None = None,
         max_items: int | None = None,
+        limit: int | None = None,
         request_options: RequestOptions | None = None,
     ) -> RowIterator[m.SpreadInterexchange]:
         """Every row of `/v1/spread/interexchange/history` over a period, following `next` page after page.
@@ -6673,9 +6961,11 @@ class SpreadInterexchangeHistoryResource(SyncResource):
                 validated.
             page_size: Rows per request (`limit`), up to the route's maximum.
             max_items: Stop after this many rows.
+            limit: The same as `max_items` (the name the other methods use for a number of
+                rows).
             request_options: Per-request `timeout`, `max_retries` or extra `headers`.
         """
-        return self._iter(self._route, {'symbol': symbol, 'timeframe': timeframe, 'since_ms': since, 'until_ms': until, 'order': order, 'fields': fields}, page_size=page_size, max_items=max_items, request_options=request_options)
+        return self._iter(self._route, {'symbol': symbol, 'timeframe': timeframe, 'since_ms': since, 'until_ms': until, 'order': order, 'fields': fields}, page_size=page_size, max_items=max_items if max_items is not None else limit, request_options=request_options)
 
 
 class SpreadInterexchangeResource(SyncResource):
@@ -6691,7 +6981,7 @@ class SpreadInterexchangeResource(SyncResource):
 
     def __call__(
         self,
-        symbol: str,
+        symbol: KnownSymbol | str,
         timeframe: Timeframe,
         *,
         live: bool | None = None,
@@ -6746,9 +7036,11 @@ class StatusResource(SyncResource):
     ) -> Response[m.Status | None]:
         """GET /v1/status — Freshness of every feed
 
-        One row per public feed with its age and staleness threshold (1.5 × the feed's
-        expected interval). Use it to tell 'no event' from 'feed down'. Counted as one
-        request of the price & volume family.
+        One row per public feed: its name, its family, the public `routes` it supplies, its
+        age and staleness threshold (1.5 × the feed's expected interval). `data.state` =
+        `ok`, or `degraded` when a feed is stale or could not be checked (the envelope's
+        `status` is `ok` whenever the request succeeded). Use it to tell 'no event' from
+        'feed down'. Counted as one request of the price & volume family.
 
         Args:
             request_options: Per-request `timeout`, `max_retries` or extra `headers`.
@@ -6756,45 +7048,8 @@ class StatusResource(SyncResource):
         return self._call(self._route, {}, request_options)
 
 
-class SymbolsCapabilitiesResource(SyncResource):
-    """`/v1/symbols/{symbol}/capabilities`."""
-
-    _route = RouteSpec(path='/v1/symbols/{symbol}/capabilities', method='GET', shape='object', model=m.SymbolsCapabilities, paginated=False, path_params=('symbol',), max_limit=None, range_mode=False)
-
-    def __call__(
-        self,
-        symbol: str,
-        *,
-        fields: Fields | None = None,
-        request_options: RequestOptions | None = None,
-    ) -> Response[m.SymbolsCapabilities | None]:
-        """GET /v1/symbols/{symbol}/capabilities — What a symbol supports
-
-        Which raw feeds were active over the last 24 h, and which derived metrics are
-        available, blocked (with the missing feeds) or not applicable (stablecoins have no
-        futures).
-
-        Args:
-            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET
-                /v1/symbols`. Case-insensitive (`btcusdt` works; the envelope gives the
-                canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
-                accepted list.
-            fields: Only return these fields of each row (a list or a comma-separated
-                string; dotted paths reach nested keys). Rows are then partial and not
-                validated.
-            request_options: Per-request `timeout`, `max_retries` or extra `headers`.
-        """
-        return self._call(self._route, {'symbol': symbol, 'fields': fields}, request_options)
-
-
 class SymbolsResource(SyncResource):
-    """`/v1/symbols` and its sub-routes."""
-
-    capabilities: SymbolsCapabilitiesResource
-
-    def __init__(self, client: Any) -> None:
-        super().__init__(client)
-        self.capabilities = SymbolsCapabilitiesResource(client)
+    """`/v1/symbols`."""
 
     _route = RouteSpec(path='/v1/symbols', method='GET', shape='list', model=m.SymbolInfo, paginated=False, path_params=(), max_limit=None, range_mode=False)
 
@@ -6826,7 +7081,7 @@ class TokenomicsHistoryResource(SyncResource):
 
     def __call__(
         self,
-        symbol: str,
+        symbol: KnownSymbol | str,
         *,
         limit: int | None = None,
         since: TimeLike | None = None,
@@ -6870,7 +7125,7 @@ class TokenomicsHistoryResource(SyncResource):
 
     def iter(
         self,
-        symbol: str,
+        symbol: KnownSymbol | str,
         *,
         since: TimeLike | None = None,
         until: TimeLike | None = None,
@@ -6878,6 +7133,7 @@ class TokenomicsHistoryResource(SyncResource):
         fields: Fields | None = None,
         page_size: int | None = None,
         max_items: int | None = None,
+        limit: int | None = None,
         request_options: RequestOptions | None = None,
     ) -> RowIterator[m.TokenomicsHistoryItem]:
         """Every row of `/v1/tokenomics/history` over a period, following `next` page after page.
@@ -6905,9 +7161,11 @@ class TokenomicsHistoryResource(SyncResource):
                 validated.
             page_size: Rows per request (`limit`), up to the route's maximum.
             max_items: Stop after this many rows.
+            limit: The same as `max_items` (the name the other methods use for a number of
+                rows).
             request_options: Per-request `timeout`, `max_retries` or extra `headers`.
         """
-        return self._iter(self._route, {'symbol': symbol, 'since_ms': since, 'until_ms': until, 'order': order, 'fields': fields}, page_size=page_size, max_items=max_items, request_options=request_options)
+        return self._iter(self._route, {'symbol': symbol, 'since_ms': since, 'until_ms': until, 'order': order, 'fields': fields}, page_size=page_size, max_items=max_items if max_items is not None else limit, request_options=request_options)
 
 
 class TokenomicsResource(SyncResource):
@@ -6923,7 +7181,7 @@ class TokenomicsResource(SyncResource):
 
     def __call__(
         self,
-        symbol: str,
+        symbol: KnownSymbol | str,
         *,
         fields: Fields | None = None,
         request_options: RequestOptions | None = None,
@@ -6953,7 +7211,7 @@ class TradesKlineFuturesHistoryResource(SyncResource):
 
     def __call__(
         self,
-        symbol: str,
+        symbol: KnownSymbol | str,
         timeframe: Timeframe,
         *,
         limit: int | None = None,
@@ -7003,7 +7261,7 @@ class TradesKlineFuturesHistoryResource(SyncResource):
 
     def iter(
         self,
-        symbol: str,
+        symbol: KnownSymbol | str,
         timeframe: Timeframe,
         *,
         since: TimeLike | None = None,
@@ -7012,6 +7270,7 @@ class TradesKlineFuturesHistoryResource(SyncResource):
         fields: Fields | None = None,
         page_size: int | None = None,
         max_items: int | None = None,
+        limit: int | None = None,
         request_options: RequestOptions | None = None,
     ) -> RowIterator[m.TradesKline]:
         """Every row of `/v1/trades-kline/futures/history` over a period, following `next` page after page.
@@ -7043,9 +7302,11 @@ class TradesKlineFuturesHistoryResource(SyncResource):
                 validated.
             page_size: Rows per request (`limit`), up to the route's maximum.
             max_items: Stop after this many rows.
+            limit: The same as `max_items` (the name the other methods use for a number of
+                rows).
             request_options: Per-request `timeout`, `max_retries` or extra `headers`.
         """
-        return self._iter(self._route, {'symbol': symbol, 'timeframe': timeframe, 'since_ms': since, 'until_ms': until, 'order': order, 'fields': fields}, page_size=page_size, max_items=max_items, request_options=request_options)
+        return self._iter(self._route, {'symbol': symbol, 'timeframe': timeframe, 'since_ms': since, 'until_ms': until, 'order': order, 'fields': fields}, page_size=page_size, max_items=max_items if max_items is not None else limit, request_options=request_options)
 
 
 class TradesKlineFuturesSecondsResource(SyncResource):
@@ -7055,11 +7316,12 @@ class TradesKlineFuturesSecondsResource(SyncResource):
 
     def __call__(
         self,
-        symbol: str,
+        symbol: KnownSymbol | str,
         *,
         limit: int | None = None,
         since: TimeLike | None = None,
         until: TimeLike | None = None,
+        before: TimeLike | None = None,
         order: Order | None = None,
         fields: Fields | None = None,
         request_options: RequestOptions | None = None,
@@ -7087,6 +7349,9 @@ class TradesKlineFuturesSecondsResource(SyncResource):
             until: Upper time bound, inclusive to the millisecond. A `datetime` (naive =
                 UTC), a `date`, an ISO string (`2026-01-01`, `2026-01-01T12:00:00Z`) or
                 epoch milliseconds.
+            before: Upper time bound, exclusive (rows strictly before it). Not combinable
+                with `until`. A `datetime` (naive = UTC), a `date`, an ISO string
+                (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
             order: Range reading: `desc` (most recent first, the default) or `asc`. Giving
                 `order`, `since_ms` or `until_ms` switches the route to range reading.
                 Either way, a full page carries `next` (the following page, older trades
@@ -7096,11 +7361,11 @@ class TradesKlineFuturesSecondsResource(SyncResource):
                 validated.
             request_options: Per-request `timeout`, `max_retries` or extra `headers`.
         """
-        return self._call(self._route, {'symbol': symbol, 'limit': limit, 'since_ms': since, 'until_ms': until, 'order': order, 'fields': fields}, request_options)
+        return self._call(self._route, {'symbol': symbol, 'limit': limit, 'since_ms': since, 'until_ms': until, 'before_ms': before, 'order': order, 'fields': fields}, request_options)
 
     def iter(
         self,
-        symbol: str,
+        symbol: KnownSymbol | str,
         *,
         since: TimeLike | None = None,
         until: TimeLike | None = None,
@@ -7108,6 +7373,7 @@ class TradesKlineFuturesSecondsResource(SyncResource):
         fields: Fields | None = None,
         page_size: int | None = None,
         max_items: int | None = None,
+        limit: int | None = None,
         request_options: RequestOptions | None = None,
     ) -> RowIterator[m.TradesKlineSecond]:
         """Every row of `/v1/trades-kline/futures/seconds` over a period, following `next` page after page.
@@ -7136,9 +7402,11 @@ class TradesKlineFuturesSecondsResource(SyncResource):
                 validated.
             page_size: Rows per request (`limit`), up to the route's maximum.
             max_items: Stop after this many rows.
+            limit: The same as `max_items` (the name the other methods use for a number of
+                rows).
             request_options: Per-request `timeout`, `max_retries` or extra `headers`.
         """
-        return self._iter(self._route, {'symbol': symbol, 'since_ms': since, 'until_ms': until, 'order': order, 'fields': fields}, page_size=page_size, max_items=max_items, request_options=request_options)
+        return self._iter(self._route, {'symbol': symbol, 'since_ms': since, 'until_ms': until, 'order': order, 'fields': fields}, page_size=page_size, max_items=max_items if max_items is not None else limit, request_options=request_options)
 
 
 class TradesKlineFuturesResource(SyncResource):
@@ -7156,7 +7424,7 @@ class TradesKlineFuturesResource(SyncResource):
 
     def __call__(
         self,
-        symbol: str,
+        symbol: KnownSymbol | str,
         timeframe: Timeframe,
         *,
         live: bool | None = None,
@@ -7195,7 +7463,7 @@ class TradesKlineHistoryResource(SyncResource):
 
     def __call__(
         self,
-        symbol: str,
+        symbol: KnownSymbol | str,
         timeframe: Timeframe,
         *,
         limit: int | None = None,
@@ -7245,7 +7513,7 @@ class TradesKlineHistoryResource(SyncResource):
 
     def iter(
         self,
-        symbol: str,
+        symbol: KnownSymbol | str,
         timeframe: Timeframe,
         *,
         since: TimeLike | None = None,
@@ -7254,6 +7522,7 @@ class TradesKlineHistoryResource(SyncResource):
         fields: Fields | None = None,
         page_size: int | None = None,
         max_items: int | None = None,
+        limit: int | None = None,
         request_options: RequestOptions | None = None,
     ) -> RowIterator[m.TradesKline]:
         """Every row of `/v1/trades-kline/history` over a period, following `next` page after page.
@@ -7285,9 +7554,11 @@ class TradesKlineHistoryResource(SyncResource):
                 validated.
             page_size: Rows per request (`limit`), up to the route's maximum.
             max_items: Stop after this many rows.
+            limit: The same as `max_items` (the name the other methods use for a number of
+                rows).
             request_options: Per-request `timeout`, `max_retries` or extra `headers`.
         """
-        return self._iter(self._route, {'symbol': symbol, 'timeframe': timeframe, 'since_ms': since, 'until_ms': until, 'order': order, 'fields': fields}, page_size=page_size, max_items=max_items, request_options=request_options)
+        return self._iter(self._route, {'symbol': symbol, 'timeframe': timeframe, 'since_ms': since, 'until_ms': until, 'order': order, 'fields': fields}, page_size=page_size, max_items=max_items if max_items is not None else limit, request_options=request_options)
 
 
 class TradesKlineSpotHistoryResource(SyncResource):
@@ -7297,7 +7568,7 @@ class TradesKlineSpotHistoryResource(SyncResource):
 
     def __call__(
         self,
-        symbol: str,
+        symbol: KnownSymbol | str,
         timeframe: Timeframe,
         *,
         limit: int | None = None,
@@ -7347,7 +7618,7 @@ class TradesKlineSpotHistoryResource(SyncResource):
 
     def iter(
         self,
-        symbol: str,
+        symbol: KnownSymbol | str,
         timeframe: Timeframe,
         *,
         since: TimeLike | None = None,
@@ -7356,6 +7627,7 @@ class TradesKlineSpotHistoryResource(SyncResource):
         fields: Fields | None = None,
         page_size: int | None = None,
         max_items: int | None = None,
+        limit: int | None = None,
         request_options: RequestOptions | None = None,
     ) -> RowIterator[m.TradesKline]:
         """Every row of `/v1/trades-kline/spot/history` over a period, following `next` page after page.
@@ -7387,9 +7659,11 @@ class TradesKlineSpotHistoryResource(SyncResource):
                 validated.
             page_size: Rows per request (`limit`), up to the route's maximum.
             max_items: Stop after this many rows.
+            limit: The same as `max_items` (the name the other methods use for a number of
+                rows).
             request_options: Per-request `timeout`, `max_retries` or extra `headers`.
         """
-        return self._iter(self._route, {'symbol': symbol, 'timeframe': timeframe, 'since_ms': since, 'until_ms': until, 'order': order, 'fields': fields}, page_size=page_size, max_items=max_items, request_options=request_options)
+        return self._iter(self._route, {'symbol': symbol, 'timeframe': timeframe, 'since_ms': since, 'until_ms': until, 'order': order, 'fields': fields}, page_size=page_size, max_items=max_items if max_items is not None else limit, request_options=request_options)
 
 
 class TradesKlineSpotResource(SyncResource):
@@ -7405,7 +7679,7 @@ class TradesKlineSpotResource(SyncResource):
 
     def __call__(
         self,
-        symbol: str,
+        symbol: KnownSymbol | str,
         timeframe: Timeframe,
         *,
         live: bool | None = None,
@@ -7453,7 +7727,7 @@ class TradesKlineResource(SyncResource):
 
     def __call__(
         self,
-        symbol: str,
+        symbol: KnownSymbol | str,
         timeframe: Timeframe,
         *,
         live: bool | None = None,
@@ -7494,7 +7768,7 @@ class TradesAvgSizeFuturesHistoryResource(SyncResource):
 
     def __call__(
         self,
-        symbol: str,
+        symbol: KnownSymbol | str,
         timeframe: Timeframe,
         *,
         limit: int | None = None,
@@ -7516,9 +7790,11 @@ class TradesAvgSizeFuturesHistoryResource(SyncResource):
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
             timeframe: Required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. One row per
-                closed bucket, aggregating its minutes (`sample_count` = minutes in the
-                bucket); `1m` gives one row per minute, aligned on the minute. Missing: 422
-                `missing_parameter`.
+                closed bucket: for a STATE (basis, open interest, heatmap) the value of its
+                LAST minute — its close —, for a FLOW (open-interest change, liquidations,
+                trade sizes) the total over its minutes; `sample_count` = minutes with data
+                in the bucket. `1m` gives one row per minute, aligned on the minute.
+                Missing: 422 `missing_parameter`.
             limit: Number of rows to return, in the reading order (most recent first by
                 default). Bounded by your plan's history window: an explicit `limit` (or
                 `since_ms`) reaching beyond it returns 403 `history_depth`; without them the
@@ -7543,7 +7819,7 @@ class TradesAvgSizeFuturesHistoryResource(SyncResource):
 
     def iter(
         self,
-        symbol: str,
+        symbol: KnownSymbol | str,
         timeframe: Timeframe,
         *,
         since: TimeLike | None = None,
@@ -7552,6 +7828,7 @@ class TradesAvgSizeFuturesHistoryResource(SyncResource):
         fields: Fields | None = None,
         page_size: int | None = None,
         max_items: int | None = None,
+        limit: int | None = None,
         request_options: RequestOptions | None = None,
     ) -> RowIterator[m.TradesAvgSizeHistoryItem]:
         """Every row of `/v1/trades/avg-size/futures/history` over a period, following `next` page after page.
@@ -7567,9 +7844,11 @@ class TradesAvgSizeFuturesHistoryResource(SyncResource):
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
             timeframe: Required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. One row per
-                closed bucket, aggregating its minutes (`sample_count` = minutes in the
-                bucket); `1m` gives one row per minute, aligned on the minute. Missing: 422
-                `missing_parameter`.
+                closed bucket: for a STATE (basis, open interest, heatmap) the value of its
+                LAST minute — its close —, for a FLOW (open-interest change, liquidations,
+                trade sizes) the total over its minutes; `sample_count` = minutes with data
+                in the bucket. `1m` gives one row per minute, aligned on the minute.
+                Missing: 422 `missing_parameter`.
             since: Lower time bound, inclusive. A `datetime` (naive = UTC), a `date`, an ISO
                 string (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
             until: Upper time bound, inclusive to the millisecond. A `datetime` (naive =
@@ -7583,9 +7862,11 @@ class TradesAvgSizeFuturesHistoryResource(SyncResource):
                 validated.
             page_size: Rows per request (`limit`), up to the route's maximum.
             max_items: Stop after this many rows.
+            limit: The same as `max_items` (the name the other methods use for a number of
+                rows).
             request_options: Per-request `timeout`, `max_retries` or extra `headers`.
         """
-        return self._iter(self._route, {'symbol': symbol, 'timeframe': timeframe, 'since_ms': since, 'until_ms': until, 'order': order, 'fields': fields}, page_size=page_size, max_items=max_items, request_options=request_options)
+        return self._iter(self._route, {'symbol': symbol, 'timeframe': timeframe, 'since_ms': since, 'until_ms': until, 'order': order, 'fields': fields}, page_size=page_size, max_items=max_items if max_items is not None else limit, request_options=request_options)
 
 
 class TradesAvgSizeFuturesResource(SyncResource):
@@ -7601,7 +7882,8 @@ class TradesAvgSizeFuturesResource(SyncResource):
 
     def __call__(
         self,
-        symbol: str,
+        symbol: KnownSymbol | str,
+        timeframe: Timeframe,
         *,
         fields: Fields | None = None,
         request_options: RequestOptions | None = None,
@@ -7616,12 +7898,16 @@ class TradesAvgSizeFuturesResource(SyncResource):
                 /v1/symbols`. Case-insensitive (`btcusdt` works; the envelope gives the
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
+            timeframe: Bucket size, required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`.
+                Missing: 422 `missing_parameter`; other values: 422 `invalid_timeframe` with
+                the accepted list. In any case (`1H` is `1h`), except `1M`: refused, since
+                elsewhere it means a month and here `1m` is one minute.
             fields: Only return these fields of each row (a list or a comma-separated
                 string; dotted paths reach nested keys). Rows are then partial and not
                 validated.
             request_options: Per-request `timeout`, `max_retries` or extra `headers`.
         """
-        return self._call(self._route, {'symbol': symbol, 'fields': fields}, request_options)
+        return self._call(self._route, {'symbol': symbol, 'timeframe': timeframe, 'fields': fields}, request_options)
 
 
 class TradesAvgSizeHistoryResource(SyncResource):
@@ -7631,7 +7917,7 @@ class TradesAvgSizeHistoryResource(SyncResource):
 
     def __call__(
         self,
-        symbol: str,
+        symbol: KnownSymbol | str,
         timeframe: Timeframe,
         *,
         limit: int | None = None,
@@ -7661,9 +7947,11 @@ class TradesAvgSizeHistoryResource(SyncResource):
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
             timeframe: Required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. One row per
-                closed bucket, aggregating its minutes (`sample_count` = minutes in the
-                bucket); `1m` gives one row per minute, aligned on the minute. Missing: 422
-                `missing_parameter`.
+                closed bucket: for a STATE (basis, open interest, heatmap) the value of its
+                LAST minute — its close —, for a FLOW (open-interest change, liquidations,
+                trade sizes) the total over its minutes; `sample_count` = minutes with data
+                in the bucket. `1m` gives one row per minute, aligned on the minute.
+                Missing: 422 `missing_parameter`.
             limit: Number of rows to return, in the reading order (most recent first by
                 default). Bounded by your plan's history window: an explicit `limit` (or
                 `since_ms`) reaching beyond it returns 403 `history_depth`; without them the
@@ -7688,7 +7976,7 @@ class TradesAvgSizeHistoryResource(SyncResource):
 
     def iter(
         self,
-        symbol: str,
+        symbol: KnownSymbol | str,
         timeframe: Timeframe,
         *,
         since: TimeLike | None = None,
@@ -7697,6 +7985,7 @@ class TradesAvgSizeHistoryResource(SyncResource):
         fields: Fields | None = None,
         page_size: int | None = None,
         max_items: int | None = None,
+        limit: int | None = None,
         request_options: RequestOptions | None = None,
     ) -> RowIterator[m.TradesAvgSizeHistoryItem]:
         """Every row of `/v1/trades/avg-size/history` over a period, following `next` page after page.
@@ -7712,9 +8001,11 @@ class TradesAvgSizeHistoryResource(SyncResource):
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
             timeframe: Required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. One row per
-                closed bucket, aggregating its minutes (`sample_count` = minutes in the
-                bucket); `1m` gives one row per minute, aligned on the minute. Missing: 422
-                `missing_parameter`.
+                closed bucket: for a STATE (basis, open interest, heatmap) the value of its
+                LAST minute — its close —, for a FLOW (open-interest change, liquidations,
+                trade sizes) the total over its minutes; `sample_count` = minutes with data
+                in the bucket. `1m` gives one row per minute, aligned on the minute.
+                Missing: 422 `missing_parameter`.
             since: Lower time bound, inclusive. A `datetime` (naive = UTC), a `date`, an ISO
                 string (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
             until: Upper time bound, inclusive to the millisecond. A `datetime` (naive =
@@ -7728,9 +8019,11 @@ class TradesAvgSizeHistoryResource(SyncResource):
                 validated.
             page_size: Rows per request (`limit`), up to the route's maximum.
             max_items: Stop after this many rows.
+            limit: The same as `max_items` (the name the other methods use for a number of
+                rows).
             request_options: Per-request `timeout`, `max_retries` or extra `headers`.
         """
-        return self._iter(self._route, {'symbol': symbol, 'timeframe': timeframe, 'since_ms': since, 'until_ms': until, 'order': order, 'fields': fields}, page_size=page_size, max_items=max_items, request_options=request_options)
+        return self._iter(self._route, {'symbol': symbol, 'timeframe': timeframe, 'since_ms': since, 'until_ms': until, 'order': order, 'fields': fields}, page_size=page_size, max_items=max_items if max_items is not None else limit, request_options=request_options)
 
 
 class TradesAvgSizeSpotHistoryResource(SyncResource):
@@ -7740,7 +8033,7 @@ class TradesAvgSizeSpotHistoryResource(SyncResource):
 
     def __call__(
         self,
-        symbol: str,
+        symbol: KnownSymbol | str,
         timeframe: Timeframe,
         *,
         limit: int | None = None,
@@ -7761,9 +8054,11 @@ class TradesAvgSizeSpotHistoryResource(SyncResource):
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
             timeframe: Required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. One row per
-                closed bucket, aggregating its minutes (`sample_count` = minutes in the
-                bucket); `1m` gives one row per minute, aligned on the minute. Missing: 422
-                `missing_parameter`.
+                closed bucket: for a STATE (basis, open interest, heatmap) the value of its
+                LAST minute — its close —, for a FLOW (open-interest change, liquidations,
+                trade sizes) the total over its minutes; `sample_count` = minutes with data
+                in the bucket. `1m` gives one row per minute, aligned on the minute.
+                Missing: 422 `missing_parameter`.
             limit: Number of rows to return, in the reading order (most recent first by
                 default). Bounded by your plan's history window: an explicit `limit` (or
                 `since_ms`) reaching beyond it returns 403 `history_depth`; without them the
@@ -7788,7 +8083,7 @@ class TradesAvgSizeSpotHistoryResource(SyncResource):
 
     def iter(
         self,
-        symbol: str,
+        symbol: KnownSymbol | str,
         timeframe: Timeframe,
         *,
         since: TimeLike | None = None,
@@ -7797,6 +8092,7 @@ class TradesAvgSizeSpotHistoryResource(SyncResource):
         fields: Fields | None = None,
         page_size: int | None = None,
         max_items: int | None = None,
+        limit: int | None = None,
         request_options: RequestOptions | None = None,
     ) -> RowIterator[m.TradesAvgSizeHistoryItem]:
         """Every row of `/v1/trades/avg-size/spot/history` over a period, following `next` page after page.
@@ -7812,9 +8108,11 @@ class TradesAvgSizeSpotHistoryResource(SyncResource):
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
             timeframe: Required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. One row per
-                closed bucket, aggregating its minutes (`sample_count` = minutes in the
-                bucket); `1m` gives one row per minute, aligned on the minute. Missing: 422
-                `missing_parameter`.
+                closed bucket: for a STATE (basis, open interest, heatmap) the value of its
+                LAST minute — its close —, for a FLOW (open-interest change, liquidations,
+                trade sizes) the total over its minutes; `sample_count` = minutes with data
+                in the bucket. `1m` gives one row per minute, aligned on the minute.
+                Missing: 422 `missing_parameter`.
             since: Lower time bound, inclusive. A `datetime` (naive = UTC), a `date`, an ISO
                 string (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
             until: Upper time bound, inclusive to the millisecond. A `datetime` (naive =
@@ -7828,9 +8126,11 @@ class TradesAvgSizeSpotHistoryResource(SyncResource):
                 validated.
             page_size: Rows per request (`limit`), up to the route's maximum.
             max_items: Stop after this many rows.
+            limit: The same as `max_items` (the name the other methods use for a number of
+                rows).
             request_options: Per-request `timeout`, `max_retries` or extra `headers`.
         """
-        return self._iter(self._route, {'symbol': symbol, 'timeframe': timeframe, 'since_ms': since, 'until_ms': until, 'order': order, 'fields': fields}, page_size=page_size, max_items=max_items, request_options=request_options)
+        return self._iter(self._route, {'symbol': symbol, 'timeframe': timeframe, 'since_ms': since, 'until_ms': until, 'order': order, 'fields': fields}, page_size=page_size, max_items=max_items if max_items is not None else limit, request_options=request_options)
 
 
 class TradesAvgSizeSpotResource(SyncResource):
@@ -7846,7 +8146,8 @@ class TradesAvgSizeSpotResource(SyncResource):
 
     def __call__(
         self,
-        symbol: str,
+        symbol: KnownSymbol | str,
+        timeframe: Timeframe,
         *,
         fields: Fields | None = None,
         request_options: RequestOptions | None = None,
@@ -7860,12 +8161,16 @@ class TradesAvgSizeSpotResource(SyncResource):
                 /v1/symbols`. Case-insensitive (`btcusdt` works; the envelope gives the
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
+            timeframe: Bucket size, required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`.
+                Missing: 422 `missing_parameter`; other values: 422 `invalid_timeframe` with
+                the accepted list. In any case (`1H` is `1h`), except `1M`: refused, since
+                elsewhere it means a month and here `1m` is one minute.
             fields: Only return these fields of each row (a list or a comma-separated
                 string; dotted paths reach nested keys). Rows are then partial and not
                 validated.
             request_options: Per-request `timeout`, `max_retries` or extra `headers`.
         """
-        return self._call(self._route, {'symbol': symbol, 'fields': fields}, request_options)
+        return self._call(self._route, {'symbol': symbol, 'timeframe': timeframe, 'fields': fields}, request_options)
 
 
 class TradesAvgSizeResource(SyncResource):
@@ -7885,15 +8190,17 @@ class TradesAvgSizeResource(SyncResource):
 
     def __call__(
         self,
-        symbol: str,
+        symbol: KnownSymbol | str,
+        timeframe: Timeframe,
         *,
         fields: Fields | None = None,
         request_options: RequestOptions | None = None,
     ) -> Response[m.TradesAvgSize | None]:
         """GET /v1/trades/avg-size — Average trade size
 
-        Average trade size (volume / number of trades, all venues) over the latest closed
-        one-minute trade candle (null if no trade in the last day). The market is in the
+        Average trade size (volume / number of trades, all venues) of the latest CLOSED
+        bucket of `timeframe` (required): the first row of `/v1/trades/avg-size/history` for
+        the same `timeframe` (`time` = its start, `is_closed: true`). The market is in the
         PATH: no suffix = all markets (spot + perpetual futures), `/spot`, `/futures`; the
         envelope says which (`market`). Spot base-asset quantities are measured since
         2026-09-27: before that date, spot and all-market buy/sell volumes are estimated
@@ -7905,12 +8212,16 @@ class TradesAvgSizeResource(SyncResource):
                 /v1/symbols`. Case-insensitive (`btcusdt` works; the envelope gives the
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
+            timeframe: Bucket size, required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`.
+                Missing: 422 `missing_parameter`; other values: 422 `invalid_timeframe` with
+                the accepted list. In any case (`1H` is `1h`), except `1M`: refused, since
+                elsewhere it means a month and here `1m` is one minute.
             fields: Only return these fields of each row (a list or a comma-separated
                 string; dotted paths reach nested keys). Rows are then partial and not
                 validated.
             request_options: Per-request `timeout`, `max_retries` or extra `headers`.
         """
-        return self._call(self._route, {'symbol': symbol, 'fields': fields}, request_options)
+        return self._call(self._route, {'symbol': symbol, 'timeframe': timeframe, 'fields': fields}, request_options)
 
 
 class TradesFuturesResource(SyncResource):
@@ -7920,7 +8231,7 @@ class TradesFuturesResource(SyncResource):
 
     def __call__(
         self,
-        symbol: str,
+        symbol: KnownSymbol | str,
         *,
         limit: int | None = None,
         since: TimeLike | None = None,
@@ -7977,7 +8288,7 @@ class TradesFuturesResource(SyncResource):
 
     def iter(
         self,
-        symbol: str,
+        symbol: KnownSymbol | str,
         *,
         since: TimeLike | None = None,
         until: TimeLike | None = None,
@@ -7985,6 +8296,7 @@ class TradesFuturesResource(SyncResource):
         fields: Fields | None = None,
         page_size: int | None = None,
         max_items: int | None = None,
+        limit: int | None = None,
         request_options: RequestOptions | None = None,
     ) -> RowIterator[m.Trade]:
         """Every row of `/v1/trades/futures` over a period, following `next` page after page.
@@ -8013,9 +8325,11 @@ class TradesFuturesResource(SyncResource):
                 validated.
             page_size: Rows per request (`limit`), up to the route's maximum.
             max_items: Stop after this many rows.
+            limit: The same as `max_items` (the name the other methods use for a number of
+                rows).
             request_options: Per-request `timeout`, `max_retries` or extra `headers`.
         """
-        return self._iter(self._route, {'symbol': symbol, 'since_ms': since, 'until_ms': until, 'order': order, 'fields': fields}, page_size=page_size, max_items=max_items, request_options=request_options)
+        return self._iter(self._route, {'symbol': symbol, 'since_ms': since, 'until_ms': until, 'order': order, 'fields': fields}, page_size=page_size, max_items=max_items if max_items is not None else limit, request_options=request_options)
 
 
 class TradesLargeResource(SyncResource):
@@ -8025,7 +8339,7 @@ class TradesLargeResource(SyncResource):
 
     def __call__(
         self,
-        symbol: str,
+        symbol: KnownSymbol | str,
         *,
         limit: int | None = None,
         since: TimeLike | None = None,
@@ -8080,7 +8394,7 @@ class TradesLargeResource(SyncResource):
 
     def iter(
         self,
-        symbol: str,
+        symbol: KnownSymbol | str,
         *,
         since: TimeLike | None = None,
         until: TimeLike | None = None,
@@ -8089,6 +8403,7 @@ class TradesLargeResource(SyncResource):
         fields: Fields | None = None,
         page_size: int | None = None,
         max_items: int | None = None,
+        limit: int | None = None,
         request_options: RequestOptions | None = None,
     ) -> RowIterator[m.Trade]:
         """Every row of `/v1/trades/large` over a period, following `next` page after page.
@@ -8118,9 +8433,11 @@ class TradesLargeResource(SyncResource):
                 validated.
             page_size: Rows per request (`limit`), up to the route's maximum.
             max_items: Stop after this many rows.
+            limit: The same as `max_items` (the name the other methods use for a number of
+                rows).
             request_options: Per-request `timeout`, `max_retries` or extra `headers`.
         """
-        return self._iter(self._route, {'symbol': symbol, 'since_ms': since, 'until_ms': until, 'order': order, 'min_usd': min_usd, 'fields': fields}, page_size=page_size, max_items=max_items, request_options=request_options)
+        return self._iter(self._route, {'symbol': symbol, 'since_ms': since, 'until_ms': until, 'order': order, 'min_usd': min_usd, 'fields': fields}, page_size=page_size, max_items=max_items if max_items is not None else limit, request_options=request_options)
 
 
 class TradesSpotResource(SyncResource):
@@ -8130,7 +8447,7 @@ class TradesSpotResource(SyncResource):
 
     def __call__(
         self,
-        symbol: str,
+        symbol: KnownSymbol | str,
         *,
         limit: int | None = None,
         since: TimeLike | None = None,
@@ -8186,7 +8503,7 @@ class TradesSpotResource(SyncResource):
 
     def iter(
         self,
-        symbol: str,
+        symbol: KnownSymbol | str,
         *,
         since: TimeLike | None = None,
         until: TimeLike | None = None,
@@ -8194,6 +8511,7 @@ class TradesSpotResource(SyncResource):
         fields: Fields | None = None,
         page_size: int | None = None,
         max_items: int | None = None,
+        limit: int | None = None,
         request_options: RequestOptions | None = None,
     ) -> RowIterator[m.Trade]:
         """Every row of `/v1/trades/spot` over a period, following `next` page after page.
@@ -8222,9 +8540,11 @@ class TradesSpotResource(SyncResource):
                 validated.
             page_size: Rows per request (`limit`), up to the route's maximum.
             max_items: Stop after this many rows.
+            limit: The same as `max_items` (the name the other methods use for a number of
+                rows).
             request_options: Per-request `timeout`, `max_retries` or extra `headers`.
         """
-        return self._iter(self._route, {'symbol': symbol, 'since_ms': since, 'until_ms': until, 'order': order, 'fields': fields}, page_size=page_size, max_items=max_items, request_options=request_options)
+        return self._iter(self._route, {'symbol': symbol, 'since_ms': since, 'until_ms': until, 'order': order, 'fields': fields}, page_size=page_size, max_items=max_items if max_items is not None else limit, request_options=request_options)
 
 
 class TradesResource(SyncResource):
@@ -8249,13 +8569,14 @@ class Resources:
 
     basis: BasisResource
     btc: BtcResource
-    buysell: BuysellResource
+    buy_sell_ratio: BuySellRatioResource
+    capabilities: CapabilitiesResource
     cvd: CvdResource
     etf: EtfResource
     eth: EthResource
     fear_greed: FearGreedResource
     funding: FundingResource
-    global_market: GlobalMarketResource
+    global_: GlobalResource
     health: HealthResource
     heatmap: HeatmapResource
     indicators: IndicatorsResource
@@ -8264,7 +8585,6 @@ class Resources:
     liquidations: LiquidationsResource
     macro: MacroResource
     oi: OiResource
-    onchain: OnchainResource
     options: OptionsResource
     orderbook: OrderbookResource
     price_change: PriceChangeResource
@@ -8279,13 +8599,14 @@ class Resources:
     def _init_resources(self) -> None:
         self.basis = BasisResource(self)
         self.btc = BtcResource(self)
-        self.buysell = BuysellResource(self)
+        self.buy_sell_ratio = BuySellRatioResource(self)
+        self.capabilities = CapabilitiesResource(self)
         self.cvd = CvdResource(self)
         self.etf = EtfResource(self)
         self.eth = EthResource(self)
         self.fear_greed = FearGreedResource(self)
         self.funding = FundingResource(self)
-        self.global_market = GlobalMarketResource(self)
+        self.global_ = GlobalResource(self)
         self.health = HealthResource(self)
         self.heatmap = HeatmapResource(self)
         self.indicators = IndicatorsResource(self)
@@ -8294,7 +8615,6 @@ class Resources:
         self.liquidations = LiquidationsResource(self)
         self.macro = MacroResource(self)
         self.oi = OiResource(self)
-        self.onchain = OnchainResource(self)
         self.options = OptionsResource(self)
         self.orderbook = OrderbookResource(self)
         self.price_change = PriceChangeResource(self)

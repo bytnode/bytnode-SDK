@@ -19,7 +19,7 @@ OPS = operations()
 
 
 def test_every_route_has_a_method() -> None:
-    assert len(ROUTES) == len(OPS) == 129
+    assert len(ROUTES) == len(OPS) == 131
     assert set(ROUTES) == {p for p, _, _ in OPS}
 
 
@@ -35,7 +35,7 @@ def _call(client: Bytnode, path: str, op: dict[str, Any]) -> Any:
     if path == "/v1/snapshot":
         return fn("BTCUSDT", funding_rate=True, basis=2, klines={"1h": 2})
     if path == "/v1/indicators":
-        return fn("BTCUSDT", "1h", [ind.rsi(14), ind.macd(), ind.bb(20)], results=3)
+        return fn("BTCUSDT", "1h", [ind.rsi(14), ind.macd(), ind.bb(20)], limit=3)
     forced = FORCE_REQUIRED.get(path, [])
     kwargs = {
         p["name"]: SAMPLE_VALUES[p["name"]]

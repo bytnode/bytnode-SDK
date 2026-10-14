@@ -31,24 +31,37 @@ class BasisHistoryItem(BytnodeModel):
     basis_pct: float = PydField(description='(futures - spot) / spot, in percent. Positive = contango. Unit: percent (58.5 = 58.5 %).')
     futures_price: float = PydField(description='Perpetual futures price, open-interest weighted across venues. Unit: quote currency (USDT for BTCUSDT).')
     spot_price: float = PydField(description='Spot price across venues. Unit: quote currency (USDT for BTCUSDT).')
-    sample_count: int = PydField(description='Number of source points behind the value (one-minute points in a bucket). Unit: count.')
+    sample_count: int = PydField(description="Number of source points in the bucket (one-minute points with data). For a state (basis, open interest) the value is the LAST of them — the bucket's close —; for a flow it is their total. Unit: count.")
     is_closed: bool = PydField(description='`true` = the row is final and will never change; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it.')
 
 
-class BtcFeesPrecise(BytnodeModel):
-    """Same fee rates, unrounded."""
+class BtcActiveAddresses(BytnodeModel):
+    """Row of `/v1/btc/active-addresses`."""
 
-    fastest_fee_sat_vb: float = PydField(description='Fee rate for the next block. Unit: satoshis per virtual byte (sat/vB).')
-    half_hour_fee_sat_vb: float = PydField(description='Fee rate for confirmation within ~30 minutes. Unit: satoshis per virtual byte (sat/vB).')
-    hour_fee_sat_vb: float = PydField(description='Fee rate for confirmation within ~1 hour. Unit: satoshis per virtual byte (sat/vB).')
-    economy_fee_sat_vb: float = PydField(description='Fee rate for a low-priority confirmation. Unit: satoshis per virtual byte (sat/vB).')
-    minimum_fee_sat_vb: float = PydField(description='Minimum relay fee rate. Unit: satoshis per virtual byte (sat/vB).')
+    time: datetime = PydField(description='The day the value refers to, at midnight UTC. Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
+    active_addresses: float = PydField(description='Addresses active on the day. Unit: count.')
+    active_addresses_sma_7d: float = PydField(description='7-day simple moving average of active_addresses. Unit: count.')
+    active_addresses_sma_30d: float = PydField(description='30-day simple moving average of active_addresses. Unit: count.')
+    sma_7d_vs_30d_pct: float = PydField(description='(7-day simple moving average - 30-day simple moving average) / 30-day average, percent. Unit: percent (58.5 = 58.5 %).')
+    label: str = PydField(description='7-day vs 30-day average: `accelerating` (> +5 %), `decelerating` (< -5 %) or `stable`.')
+
+
+class BtcActiveAddressesHistoryItem(BytnodeModel):
+    """Row of `/v1/btc/active-addresses/history`."""
+
+    time: datetime = PydField(description='The day the value refers to, at midnight UTC. Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
+    active_addresses: float = PydField(description='Addresses active on the day. Unit: count.')
+    active_addresses_sma_7d: float = PydField(description='7-day simple moving average of active_addresses. Unit: count.')
+    active_addresses_sma_30d: float = PydField(description='30-day simple moving average of active_addresses. Unit: count.')
+    sma_7d_vs_30d_pct: float = PydField(description='(7-day simple moving average - 30-day simple moving average) / 30-day average, percent. Unit: percent (58.5 = 58.5 %).')
+    label: str = PydField(description='7-day vs 30-day average: `accelerating` (> +5 %), `decelerating` (< -5 %) or `stable`.')
+    is_closed: bool = PydField(description='`true` = the row is final and will never change; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it.')
 
 
 class BtcFeesFeePressure(BytnodeModel):
-    """`ratio` = fastest / economy fee rate, and its `label`: `normal` (<= 2), `elevated` (> 2), `congested` (> 5)."""
+    """`fastest_economy_ratio` = fastest / economy fee rate, and its `label`: `normal` (<= 2), `elevated` (> 2), `congested` (> 5)."""
 
-    ratio: float | None = PydField(None, description='fastest / economy fee rate. Unit: dimensionless ratio.')
+    fastest_economy_ratio: float = PydField(description='Fastest fee rate divided by the economy fee rate (a quotient). Unit: fastest / economy.')
     label: str = PydField(description='Fee pressure: `normal` (ratio <= 2), `elevated` (> 2) or `congested` (> 5).')
 
 
@@ -61,8 +74,12 @@ class BtcFees(BytnodeModel):
     hour_fee_sat_vb: int = PydField(description='Fee rate for confirmation within ~1 hour. Unit: satoshis per virtual byte (sat/vB).')
     economy_fee_sat_vb: int = PydField(description='Fee rate for a low-priority confirmation. Unit: satoshis per virtual byte (sat/vB).')
     minimum_fee_sat_vb: int = PydField(description='Minimum relay fee rate. Unit: satoshis per virtual byte (sat/vB).')
-    precise: BtcFeesPrecise = PydField(description='Same fee rates, unrounded.')
-    fee_pressure: BtcFeesFeePressure = PydField(description='`ratio` = fastest / economy fee rate, and its `label`: `normal` (<= 2), `elevated` (> 2), `congested` (> 5).')
+    fastest_fee_precise_sat_vb: float = PydField(description='`fastest_fee_sat_vb`, unrounded. Unit: satoshis per virtual byte (sat/vB).')
+    half_hour_fee_precise_sat_vb: float = PydField(description='`half_hour_fee_sat_vb`, unrounded. Unit: satoshis per virtual byte (sat/vB).')
+    hour_fee_precise_sat_vb: float = PydField(description='`hour_fee_sat_vb`, unrounded. Unit: satoshis per virtual byte (sat/vB).')
+    economy_fee_precise_sat_vb: float = PydField(description='`economy_fee_sat_vb`, unrounded. Unit: satoshis per virtual byte (sat/vB).')
+    minimum_fee_precise_sat_vb: float = PydField(description='`minimum_fee_sat_vb`, unrounded. Unit: satoshis per virtual byte (sat/vB).')
+    fee_pressure: BtcFeesFeePressure = PydField(description='`fastest_economy_ratio` = fastest / economy fee rate, and its `label`: `normal` (<= 2), `elevated` (> 2), `congested` (> 5).')
 
 
 class BtcFeesHistoryItem(BytnodeModel):
@@ -80,9 +97,9 @@ class BtcFeesHistoryItem(BytnodeModel):
 class BtcMempoolTrend(BytnodeModel):
     """Mempool size change over 1 h, 4 h and 24 h, and its `label` (`filling`, `draining`, `stable`)."""
 
-    vsize_delta_1h: int = PydField(description='Mempool size change over 1 hour. Unit: virtual bytes.')
-    vsize_delta_4h: int = PydField(description='Mempool size change over 4 hours. Unit: virtual bytes.')
-    vsize_delta_24h: int = PydField(description='Mempool size change over 24 hours. Unit: virtual bytes.')
+    vsize_change_1h: int = PydField(description='Mempool size change over 1 hour. Unit: virtual bytes.')
+    vsize_change_4h: int = PydField(description='Mempool size change over 4 hours. Unit: virtual bytes.')
+    vsize_change_24h: int = PydField(description='Mempool size change over 24 hours. Unit: virtual bytes.')
     label: str = PydField(description='`filling` (vsize grew over 1 h), `draining` (shrank) or `stable`.')
 
 
@@ -121,10 +138,10 @@ class BtcMiningLatestReward(BytnodeModel):
     """Average block reward (subsidy + fees) of the latest blocks, in satoshis and USD."""
 
     time: datetime = PydField(description='Point-in-time value: the instant of the measurement (when the source was read). Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
-    block_height: int = PydField(description='Height of the reward sample (Mempool.space average height of the blocks). Unit: block height.')
+    block_height: int = PydField(description='Height of a block: the latest block on `/v1/btc/network`; the reward sample in `latest_reward`; the block where a difficulty adjustment took effect on `/v1/btc/mining/history?dataset=difficulty`. Unit: block height.')
     avg_reward_sats: int = PydField(description='Average block reward. Unit: satoshis.')
     avg_reward_usd: float = PydField(description='Average block reward in USD. Unit: USD.')
-    btc_price_usd_at_block: float = PydField(description='BTC price at the block of the reward (Mempool.space), used for `avg_reward_usd`. Not the current price. Unit: USD.')
+    btc_price_usd: float = PydField(description='BTC price in USD at the time of the row: the current price on `/v1/eth/price-btc`, the price at the block of the reward in `latest_reward` of `/v1/btc/mining` (used for `avg_reward_usd`). Unit: USD.')
 
 
 class BtcMiningPoolsItem(BytnodeModel):
@@ -156,15 +173,14 @@ class BtcMiningHistoryItem(BytnodeModel):
     pool_count: int = PydField(description='Number of pools that mined at least one block. Unit: count.')
     label: str = PydField(description='Centralisation risk from the top-3 pool share: `healthy` (<= 40 %), `moderate` (> 40 %), `high_risk` (> 50 %).')
     is_closed: bool = PydField(description='`true` = the row is final and will never change; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it.')
-    block_height: int | None = PydField(None, description='Height of the reward sample (Mempool.space average height of the blocks). Unit: block height.')
+    block_height: int | None = PydField(None, description='Height of a block: the latest block on `/v1/btc/network`; the reward sample in `latest_reward`; the block where a difficulty adjustment took effect on `/v1/btc/mining/history?dataset=difficulty`. Unit: block height.')
     avg_reward_sats: int | None = PydField(None, description='Average block reward. Unit: satoshis.')
     avg_reward_usd: float | None = PydField(None, description='Average block reward in USD. Unit: USD.')
-    btc_price_usd_at_block: float | None = PydField(None, description='BTC price at the block of the reward (Mempool.space), used for `avg_reward_usd`. Not the current price. Unit: USD.')
-    height: int | None = PydField(None, description='Height of the block where the difficulty adjustment took effect. Unit: block height.')
-    new_difficulty: float | None = PydField(None, description='Difficulty after the adjustment. Unit: difficulty units.')
-    old_difficulty: float | None = PydField(None, description='Difficulty before the adjustment. Unit: difficulty units.')
+    btc_price_usd: float | None = PydField(None, description='BTC price in USD at the time of the row: the current price on `/v1/eth/price-btc`, the price at the block of the reward in `latest_reward` of `/v1/btc/mining` (used for `avg_reward_usd`). Unit: USD.')
+    difficulty: float | None = PydField(None, description='Network mining difficulty (on a difficulty-adjustment row, the difficulty after it). Unit: difficulty units.')
+    previous_difficulty: float | None = PydField(None, description='Difficulty before the adjustment. Unit: difficulty units.')
     difficulty_change_pct: float | None = PydField(None, description='Expected difficulty change at the next adjustment (`/v1/btc/mining/history?dataset=difficulty`: the change applied at that adjustment). Unit: percent (58.5 = 58.5 %).')
-    adjustment_multiplier: float | None = PydField(None, description='`new_difficulty / old_difficulty` (1.05 = a 5 % rise). Unit: dimensionless ratio.')
+    adjustment_multiplier: float | None = PydField(None, description='`difficulty / previous_difficulty` (1.05 = a 5 % rise). Unit: dimensionless ratio.')
     fee_rate_p0_sat_vb: int | None = PydField(None, description='Lowest fee rate paid in the blocks (0th percentile). Unit: satoshis per virtual byte (sat/vB).')
     fee_rate_p10_sat_vb: int | None = PydField(None, description='10th percentile of the fee rates paid in the blocks. Unit: satoshis per virtual byte (sat/vB).')
     fee_rate_p25_sat_vb: int | None = PydField(None, description='25th percentile of the fee rates paid in the blocks. Unit: satoshis per virtual byte (sat/vB).')
@@ -172,6 +188,25 @@ class BtcMiningHistoryItem(BytnodeModel):
     fee_rate_p75_sat_vb: int | None = PydField(None, description='75th percentile of the fee rates paid in the blocks. Unit: satoshis per virtual byte (sat/vB).')
     fee_rate_p90_sat_vb: int | None = PydField(None, description='90th percentile of the fee rates paid in the blocks. Unit: satoshis per virtual byte (sat/vB).')
     fee_rate_p100_sat_vb: int | None = PydField(None, description='Highest fee rate paid in the blocks. Unit: satoshis per virtual byte (sat/vB).')
+
+
+class BtcMvrv(BytnodeModel):
+    """Row of `/v1/btc/mvrv`."""
+
+    time: datetime = PydField(description='The day the value refers to, at midnight UTC. Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
+    mvrv: float = PydField(description='Market value / realised value. Unit: dimensionless ratio.')
+    label: str = PydField(description='`undervalued` (<= 1), `fair` (> 1), `elevated` (> 2.5), `overvalued` (> 3.5).')
+    change_30d_pct: float | None = PydField(None, description='Relative change of the value over 30 days, percent. Unit: percent (58.5 = 58.5 %).')
+
+
+class BtcMvrvHistoryItem(BytnodeModel):
+    """Row of `/v1/btc/mvrv/history`."""
+
+    time: datetime = PydField(description='The day the value refers to, at midnight UTC. Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
+    mvrv: float = PydField(description='Market value / realised value. Unit: dimensionless ratio.')
+    label: str = PydField(description='`undervalued` (<= 1), `fair` (> 1), `elevated` (> 2.5), `overvalued` (> 3.5).')
+    change_30d_pct: float | None = PydField(None, description='Relative change of the value over 30 days, percent. Unit: percent (58.5 = 58.5 %).')
+    is_closed: bool = PydField(description='`true` = the row is final and will never change; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it.')
 
 
 class BtcNetworkBlockTime(BytnodeModel):
@@ -187,7 +222,7 @@ class BtcNetworkNextAdjustment(BytnodeModel):
 
     estimated_retarget_at: datetime = PydField(description='Estimated instant of the next adjustment. Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
     remaining_block_count: int = PydField(description='Blocks left before the adjustment. Unit: count.')
-    next_retarget_height: int = PydField(description='Height of the next adjustment. Unit: block height.')
+    next_retarget_block_height: int = PydField(description='Height of the block of the next adjustment. Unit: block height.')
     remaining_s: float = PydField(description='Estimated time left before the adjustment, seconds. Unit: seconds.')
 
 
@@ -195,8 +230,8 @@ class BtcNetwork(BytnodeModel):
     """Row of `/v1/btc/network`."""
 
     time: datetime = PydField(description='Point-in-time value: the instant of the measurement (when the source was read). Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
-    difficulty: float | None = PydField(None, description='Network mining difficulty. Unit: difficulty units.')
-    tip_height: int = PydField(description='Height of the latest block. Unit: block height.')
+    difficulty: float | None = PydField(None, description='Network mining difficulty (on a difficulty-adjustment row, the difficulty after it). Unit: difficulty units.')
+    block_height: int = PydField(description='Height of a block: the latest block on `/v1/btc/network`; the reward sample in `latest_reward`; the block where a difficulty adjustment took effect on `/v1/btc/mining/history?dataset=difficulty`. Unit: block height.')
     progress_pct: float = PydField(description='Progress through the current 2016-block difficulty period. Unit: percent (58.5 = 58.5 %).')
     difficulty_change_pct: float = PydField(description='Expected difficulty change at the next adjustment (`/v1/btc/mining/history?dataset=difficulty`: the change applied at that adjustment). Unit: percent (58.5 = 58.5 %).')
     block_time: BtcNetworkBlockTime = PydField(description='Average block time over 24 h (`avg_24h_s`), its deviation from the 600 s target, and a `label`.')
@@ -207,37 +242,114 @@ class BtcNetworkHistoryItem(BytnodeModel):
     """Row of `/v1/btc/network/history`."""
 
     time: datetime = PydField(description='Point-in-time value: the instant of the measurement (when the source was read). Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
-    difficulty: float | None = PydField(None, description='Network mining difficulty. Unit: difficulty units.')
-    tip_height: int = PydField(description='Height of the latest block. Unit: block height.')
+    difficulty: float | None = PydField(None, description='Network mining difficulty (on a difficulty-adjustment row, the difficulty after it). Unit: difficulty units.')
+    block_height: int = PydField(description='Height of a block: the latest block on `/v1/btc/network`; the reward sample in `latest_reward`; the block where a difficulty adjustment took effect on `/v1/btc/mining/history?dataset=difficulty`. Unit: block height.')
     progress_pct: float = PydField(description='Progress through the current 2016-block difficulty period. Unit: percent (58.5 = 58.5 %).')
     difficulty_change_pct: float = PydField(description='Expected difficulty change at the next adjustment (`/v1/btc/mining/history?dataset=difficulty`: the change applied at that adjustment). Unit: percent (58.5 = 58.5 %).')
     is_closed: bool = PydField(description='`true` = the row is final and will never change; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it.')
 
 
-class BuysellRatio(BytnodeModel):
-    """Row of `/v1/buysell/ratio`, `/v1/buysell/ratio/futures`, `/v1/buysell/ratio/spot`."""
+class BtcNvt(BytnodeModel):
+    """Row of `/v1/btc/nvt`."""
 
-    time: datetime = PydField(description='Point-in-time value over a rolling window: the END of the 5-minute window, aligned on the minute. Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
+    time: datetime = PydField(description='The day the value refers to, at midnight UTC. Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
+    nvt: float = PydField(description='Market cap / daily on-chain transaction volume (NVT ratio). Unit: dimensionless ratio.')
+    nvt_signal: float = PydField(description='NVT smoothed over 90 days (NVT Signal), less noisy. Unit: dimensionless ratio.')
+    label: str = PydField(description='Zone of the NVT Signal: `undervalued` (<= 45), `fair` (> 45), `overvalued` (> 100), `bubble` (> 150).')
+
+
+class BtcNvtHistoryItem(BytnodeModel):
+    """Row of `/v1/btc/nvt/history`."""
+
+    time: datetime = PydField(description='The day the value refers to, at midnight UTC. Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
+    nvt: float = PydField(description='Market cap / daily on-chain transaction volume (NVT ratio). Unit: dimensionless ratio.')
+    nvt_signal: float = PydField(description='NVT smoothed over 90 days (NVT Signal), less noisy. Unit: dimensionless ratio.')
+    label: str = PydField(description='Zone of the NVT Signal: `undervalued` (<= 45), `fair` (> 45), `overvalued` (> 100), `bubble` (> 150).')
+    is_closed: bool = PydField(description='`true` = the row is final and will never change; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it.')
+
+
+class BtcRevenuePerDifficulty(BytnodeModel):
+    """Row of `/v1/btc/revenue-per-difficulty`."""
+
+    time: datetime = PydField(description='The day the value refers to, at midnight UTC. Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
+    revenue_per_difficulty_usd: float = PydField(description="Miners' daily revenue (USD) divided by the network difficulty of the day: revenue per unit of work. Read it against its 30-day average. Unit: USD per unit of difficulty.")
+    revenue_per_difficulty_sma_30d_usd: float = PydField(description='30-day simple moving average of revenue_per_difficulty_usd. Unit: USD per unit of difficulty.')
+    label: str = PydField(description='`healthy` (at or above its 30-day average), `stress` (below it), `capitulation` (below 70 % of it — historically near BTC bottoms).')
+
+
+class BtcRevenuePerDifficultyHistoryItem(BytnodeModel):
+    """Row of `/v1/btc/revenue-per-difficulty/history`."""
+
+    time: datetime = PydField(description='The day the value refers to, at midnight UTC. Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
+    revenue_per_difficulty_usd: float = PydField(description="Miners' daily revenue (USD) divided by the network difficulty of the day: revenue per unit of work. Read it against its 30-day average. Unit: USD per unit of difficulty.")
+    revenue_per_difficulty_sma_30d_usd: float = PydField(description='30-day simple moving average of revenue_per_difficulty_usd. Unit: USD per unit of difficulty.')
+    label: str = PydField(description='`healthy` (at or above its 30-day average), `stress` (below it), `capitulation` (below 70 % of it — historically near BTC bottoms).')
+    is_closed: bool = PydField(description='`true` = the row is final and will never change; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it.')
+
+
+class BuySellRatio(BytnodeModel):
+    """Row of `/v1/buy-sell-ratio`, `/v1/buy-sell-ratio/futures`, `/v1/buy-sell-ratio/spot`."""
+
+    time: datetime = PydField(description='Start of the latest closed bucket of `timeframe` — the first row of `/v1/buy-sell-ratio/history` for the same `timeframe`. Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
     buy_volume: float | None = PydField(None, description='Aggressive (taker) buy volume, base asset units, aggregated across venues. Unit: base asset quantity (BTC for BTCUSDT).')
     sell_volume: float | None = PydField(None, description='Aggressive (taker) sell volume, base asset units, aggregated across venues. Unit: base asset quantity (BTC for BTCUSDT).')
     buy_ratio: float | None = PydField(None, description='buy_volume / (buy_volume + sell_volume). Above 0.5 = buyers dominate. Unit: fraction (0.585 = 58.5 %).')
+    sample_count: int | None = PydField(None, description='Number of points of the CVD series behind the bucket — the `sample_count` of `/v1/cvd` for the same bucket. Unit: count.')
     is_volume_estimated: bool = PydField(description="`true` when base-asset quantities of this row were ESTIMATED from USD amounts ÷ the candle's typical price (high + low + close) / 3 (data written before quantities were recorded; mean error 0.04 % in 1m, 0.37 % in 1d); `false` = measured.")
-    window_start: datetime = PydField(description="Start of the window the value covers (inclusive), aligned on the minute. The route's `time` says whether it is dated at the start or at the end of this window. Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).")
-    window_s: int = PydField(description='Length of that window, in seconds: it runs from `window_start` to `window_start + window_s` (excluded). Unit: seconds.')
+    is_closed: bool | None = PydField(None, description='`true` = the row is final and will never change; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it.')
 
 
-class BuysellRatioHistoryItem(BytnodeModel):
-    """Row of `/v1/buysell/ratio/futures/history`, `/v1/buysell/ratio/history`, `/v1/buysell/ratio/spot/history`."""
+class BuySellRatioHistoryItem(BytnodeModel):
+    """Row of `/v1/buy-sell-ratio/futures/history`, `/v1/buy-sell-ratio/history`, `/v1/buy-sell-ratio/spot/history`."""
 
-    time: datetime = PydField(description='Start of the bucket. The row covers the WHOLE bucket, from `time` to `time + window_s` (excluded). Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
+    time: datetime = PydField(description="Start of the bucket. The row covers the WHOLE bucket, from `time` to `time` + the envelope's `step` (excluded). Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).")
     buy_volume: float | None = PydField(None, description='Aggressive (taker) buy volume, base asset units, aggregated across venues. Unit: base asset quantity (BTC for BTCUSDT).')
     sell_volume: float | None = PydField(None, description='Aggressive (taker) sell volume, base asset units, aggregated across venues. Unit: base asset quantity (BTC for BTCUSDT).')
     buy_ratio: float | None = PydField(None, description='buy_volume / (buy_volume + sell_volume). Above 0.5 = buyers dominate. Unit: fraction (0.585 = 58.5 %).')
     sample_count: int = PydField(description='Number of points of the CVD series behind the bucket — the `sample_count` of `/v1/cvd/history` for the same bucket. Unit: count.')
     is_volume_estimated: bool = PydField(description="`true` when base-asset quantities of this row were ESTIMATED from USD amounts ÷ the candle's typical price (high + low + close) / 3 (data written before quantities were recorded; mean error 0.04 % in 1m, 0.37 % in 1d); `false` = measured.")
     is_closed: bool = PydField(description='`true` = the row is final and will never change; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it.')
-    window_start: datetime = PydField(description='Start of the bucket the totals cover (= `time`). Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
-    window_s: int = PydField(description='Length of the bucket, in seconds (3600 for `1h`). Unit: seconds.')
+
+
+class CapabilitiesFeedsActiveLast24h(BytnodeModel):
+    """Per source feed, under its `/v1/status` name (`trades_spot`, `trades_kline_futures_seconds`, `oi_history`, `funding_rate`, `klines_1m`...): whether it received data for this symbol in the last 24 h."""
+
+    klines_futures_1m: bool = PydField(description='`true` when the `klines_futures_1m` feed delivered data in the last 24 hours; `null` when its probe did not conclude in time.')
+    trades_spot: bool = PydField(description='`true` when the `trades_spot` feed delivered data in the last 24 hours; `null` when its probe did not conclude in time.')
+    trades_futures: bool = PydField(description='`true` when the `trades_futures` feed delivered data in the last 24 hours; `null` when its probe did not conclude in time.')
+    oi: bool = PydField(description='`true` when the `oi` feed delivered data in the last 24 hours; `null` when its probe did not conclude in time. Unit: base asset quantity (BTC for BTCUSDT).')
+    funding_rate: bool = PydField(description='`true` when the `funding_rate` feed delivered data in the last 24 hours; `null` when its probe did not conclude in time.')
+    liquidations_events: bool = PydField(description='`true` when the `liquidations_events` feed delivered data in the last 24 hours; `null` when its probe did not conclude in time.')
+    trades_kline_futures_seconds: bool = PydField(description='`true` when the `trades_kline_futures_seconds` feed delivered data in the last 24 hours; `null` when its probe did not conclude in time.')
+    klines_futures_multi: bool = PydField(description='`true` when the `klines_futures_multi` feed delivered data in the last 24 hours; `null` when its probe did not conclude in time.')
+    klines_1m: bool = PydField(description='`true` when the `klines_1m` feed delivered data in the last 24 hours; `null` when its probe did not conclude in time.')
+    klines_multi: bool = PydField(description='`true` when the `klines_multi` feed delivered data in the last 24 hours; `null` when its probe did not conclude in time.')
+    orderbook_1m: bool = PydField(description='`true` when the `orderbook_1m` feed delivered data in the last 24 hours; `null` when its probe did not conclude in time.')
+
+
+class CapabilitiesComputedMetricsNotApplicable(BytnodeModel):
+    """Derived metrics that do not apply (stablecoins have no futures)."""
+
+    basis: str | None = PydField(None, description='Why `basis` does not apply to this symbol.')
+    oi_change: str | None = PydField(None, description='Why `oi_change` does not apply to this symbol. Unit: base asset quantity (BTC for BTCUSDT).')
+    liquidations_cumulative: str | None = PydField(None, description='Why `liquidations_cumulative` does not apply to this symbol.')
+    liquidations_big_small_ratio: str | None = PydField(None, description='Why `liquidations_big_small_ratio` does not apply to this symbol.')
+    funding_cumulative: str | None = PydField(None, description='Why `funding_cumulative` does not apply to this symbol.')
+    indicators: str | None = PydField(None, description='Why `indicators` does not apply to this symbol.')
+    trades_kline_futures: str | None = PydField(None, description='Why `trades_kline_futures` does not apply to this symbol.')
+    heatmap_clusters: str | None = PydField(None, description='Why `heatmap_clusters` does not apply to this symbol.')
+
+
+class Capabilities(BytnodeModel):
+    """Row of `/v1/capabilities`."""
+
+    asset_class: str = PydField(description='`crypto` or `stablecoin` (spot only, no futures metrics).')
+    feeds_active_last_24h: CapabilitiesFeedsActiveLast24h = PydField(description='Per source feed, under its `/v1/status` name (`trades_spot`, `trades_kline_futures_seconds`, `oi_history`, `funding_rate`, `klines_1m`...): whether it received data for this symbol in the last 24 h.')
+    computed_metrics_available: list[str] = PydField(description='Derived metrics available for the symbol.')
+    computed_metrics_blocked: dict[str, Any] = PydField(description='Derived metrics unavailable, with the missing feeds.')
+    feeds_not_applicable: list[str] | None = PydField(None, description='Feeds that do not exist for this symbol (the futures feeds of a spot-only stablecoin), under their `/v1/status` names.')
+    stablecoin_note: str | None = PydField(None, description='Spot-only stablecoin: why its futures feeds and derived metrics do not apply. Absent for any other symbol.')
+    computed_metrics_not_applicable: CapabilitiesComputedMetricsNotApplicable | None = PydField(None, description='Derived metrics that do not apply (stablecoins have no futures).')
 
 
 class Cvd(BytnodeModel):
@@ -278,9 +390,8 @@ class EtfFundamentals(BytnodeModel):
     form: str = PydField(description='SEC form type of the filing (`10-Q`, `10-K`...).')
     filed_date: date = PydField(description='Filing date at the SEC. Unit: calendar date (YYYY-MM-DD).')
     filing_url: str = PydField(description='Link to the filing on SEC EDGAR.')
-    btc_holdings: float | None = PydField(None, description='BTC held by the fund. Unit: BTC.')
+    holdings: float | None = PydField(None, description='Crypto held by the fund, in units of the asset. Unit: units of the asset (BTC for asset=BTC, ETH for asset=ETH).')
     is_holdings_estimated: bool = PydField(description='`true` if the holdings are derived from net assets / price rather than read in the filing.')
-    eth_holdings: float | None = PydField(None, description='ETH held by the fund. Unit: ETH.')
 
 
 class EtfFundamentalsHistoryItem(BytnodeModel):
@@ -295,10 +406,9 @@ class EtfFundamentalsHistoryItem(BytnodeModel):
     form: str = PydField(description='SEC form type of the filing (`10-Q`, `10-K`...).')
     filed_date: date = PydField(description='Filing date at the SEC. Unit: calendar date (YYYY-MM-DD).')
     filing_url: str = PydField(description='Link to the filing on SEC EDGAR.')
-    btc_holdings: float | None = PydField(None, description='BTC held by the fund. Unit: BTC.')
+    holdings: float | None = PydField(None, description='Crypto held by the fund, in units of the asset. Unit: units of the asset (BTC for asset=BTC, ETH for asset=ETH).')
     is_holdings_estimated: bool | None = PydField(None, description='`true` if the holdings are derived from net assets / price rather than read in the filing.')
     is_closed: bool = PydField(description='`true` = the row is final and will never change; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it.')
-    eth_holdings: float | None = PydField(None, description='ETH held by the fund. Unit: ETH.')
 
 
 class EthDefi(BytnodeModel):
@@ -334,7 +444,7 @@ class EthDeflation(BytnodeModel):
     time: datetime = PydField(description='Point-in-time value: the instant of the measurement (when the source was read). Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
     burn_24h: float | None = PydField(None, description='ETH burnt over the last 24 h. Unit: ETH.')
     net_issuance_24h: float | None = PydField(None, description='New ETH issued minus ETH burnt over 24 h. Negative = deflationary. Unit: ETH.')
-    annualized_rate_pct: float | None = PydField(None, description='Net issuance annualised, as a percent of supply. Negative = the supply shrinks. Unit: percent (58.5 = 58.5 %).')
+    net_issuance_annualized_pct: float | None = PydField(None, description='Net issuance annualised, as a percent of supply. Negative = the supply shrinks. Unit: percent (58.5 = 58.5 %).')
     label: str = PydField(description='`deflationary` (24 h net issuance < 0) or `inflationary`.')
 
 
@@ -344,7 +454,7 @@ class EthDeflationHistoryItem(BytnodeModel):
     time: datetime = PydField(description='The day, at midnight UTC; the value is the LAST measurement of that day. Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
     burn_24h: float | None = PydField(None, description='ETH burnt over the last 24 h. Unit: ETH.')
     net_issuance_24h: float | None = PydField(None, description='New ETH issued minus ETH burnt over 24 h. Negative = deflationary. Unit: ETH.')
-    annualized_rate_pct: float | None = PydField(None, description='Net issuance annualised, as a percent of supply. Negative = the supply shrinks. Unit: percent (58.5 = 58.5 %).')
+    net_issuance_annualized_pct: float | None = PydField(None, description='Net issuance annualised, as a percent of supply. Negative = the supply shrinks. Unit: percent (58.5 = 58.5 %).')
     label: str | None = PydField(None, description='`deflationary` (24 h net issuance < 0) or `inflationary`.')
     is_closed: bool = PydField(description='`true` = the row is final and will never change; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it.')
 
@@ -399,23 +509,23 @@ class EthGasHistoryItem(BytnodeModel):
     is_closed: bool = PydField(description='`true` = the row is final and will never change; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it.')
 
 
-class EthRatio(BytnodeModel):
-    """Row of `/v1/eth/ratio`."""
+class EthPriceBtc(BytnodeModel):
+    """Row of `/v1/eth/price-btc`."""
 
     time: datetime = PydField(description='Point-in-time value: the instant of the measurement (when the source was read). Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
     eth_price_usd: float = PydField(description='ETH price. Unit: USD.')
-    btc_price_usd: float = PydField(description='BTC price in USD at the time of the row (the source of the ETH/BTC ratio). Unit: USD.')
+    btc_price_usd: float = PydField(description='BTC price in USD at the time of the row: the current price on `/v1/eth/price-btc`, the price at the block of the reward in `latest_reward` of `/v1/btc/mining` (used for `avg_reward_usd`). Unit: USD.')
     eth_price_btc: float = PydField(description='ETH price in BTC (ETH price / BTC price). Unit: BTC.')
     change_7d_pct: float | None = PydField(None, description='Relative change of the value over 7 days, percent. Unit: percent (58.5 = 58.5 %).')
     label: str = PydField(description='7-day momentum of ETH/BTC: `eth_outperform` (> 0), `btc_outperform` (< 0) or `neutral`.')
 
 
-class EthRatioHistoryItem(BytnodeModel):
-    """Row of `/v1/eth/ratio/history`."""
+class EthPriceBtcHistoryItem(BytnodeModel):
+    """Row of `/v1/eth/price-btc/history`."""
 
     time: datetime = PydField(description='The day, at midnight UTC; the value is the LAST measurement of that day. Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
     eth_price_usd: float = PydField(description='ETH price. Unit: USD.')
-    btc_price_usd: float = PydField(description='BTC price in USD at the time of the row (the source of the ETH/BTC ratio). Unit: USD.')
+    btc_price_usd: float = PydField(description='BTC price in USD at the time of the row: the current price on `/v1/eth/price-btc`, the price at the block of the reward in `latest_reward` of `/v1/btc/mining` (used for `avg_reward_usd`). Unit: USD.')
     eth_price_btc: float = PydField(description='ETH price in BTC (ETH price / BTC price). Unit: BTC.')
     change_7d_pct: float | None = PydField(None, description='Relative change of the value over 7 days, percent. Unit: percent (58.5 = 58.5 %).')
     label: str | None = PydField(None, description='7-day momentum of ETH/BTC: `eth_outperform` (> 0), `btc_outperform` (< 0) or `neutral`.')
@@ -427,7 +537,7 @@ class EthSqueeze(BytnodeModel):
 
     time: datetime = PydField(description='Point-in-time value: the instant of the measurement (when the source was read). Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
     staking_ratio: float | None = PydField(None, description='Share of the ETH supply staked. Unit: fraction (0.585 = 58.5 %).')
-    annualized_rate_pct: float | None = PydField(None, description='Net issuance annualised, as a percent of supply. Negative = the supply shrinks. Unit: percent (58.5 = 58.5 %).')
+    net_issuance_annualized_pct: float | None = PydField(None, description='Net issuance annualised, as a percent of supply. Negative = the supply shrinks. Unit: percent (58.5 = 58.5 %).')
     squeeze_index: float | None = PydField(None, description='Supply squeeze index: combines the staked share and net issuance. Higher = less liquid ETH available. Unit: score from 0 to 100.')
     label: str = PydField(description='`low` (< 33), `moderate` (>= 33), `high` (>= 66).')
 
@@ -437,7 +547,7 @@ class EthSqueezeHistoryItem(BytnodeModel):
 
     time: datetime = PydField(description='The day, at midnight UTC; the value is the LAST measurement of that day. Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
     staking_ratio: float | None = PydField(None, description='Share of the ETH supply staked. Unit: fraction (0.585 = 58.5 %).')
-    annualized_rate_pct: float | None = PydField(None, description='Net issuance annualised, as a percent of supply. Negative = the supply shrinks. Unit: percent (58.5 = 58.5 %).')
+    net_issuance_annualized_pct: float | None = PydField(None, description='Net issuance annualised, as a percent of supply. Negative = the supply shrinks. Unit: percent (58.5 = 58.5 %).')
     squeeze_index: float | None = PydField(None, description='Supply squeeze index: combines the staked share and net issuance. Higher = less liquid ETH available. Unit: score from 0 to 100.')
     label: str | None = PydField(None, description='`low` (< 33), `moderate` (>= 33), `high` (>= 66).')
     is_closed: bool = PydField(description='`true` = the row is final and will never change; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it.')
@@ -468,10 +578,10 @@ class EthSupply(BytnodeModel):
     """Row of `/v1/eth/supply`."""
 
     time: datetime = PydField(description='Point-in-time value: the instant of the measurement (when the source was read). Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
-    execution_issuance_cumulative: float = PydField(description='Cumulative execution-layer issuance (genesis + proof-of-work rewards before the Merge), as published by Etherscan. NOT the supply: `total_supply` = this + `consensus_rewards_cumulative` - `burnt_fees` (was `eth_supply`). Unit: ETH.')
+    execution_issuance_cumulative: float = PydField(description='Cumulative execution-layer issuance (genesis + proof-of-work rewards before the Merge), as published by Etherscan. NOT the supply: `total_supply` = this + `consensus_rewards_cumulative` - `burnt_fees_cumulative` (was `eth_supply`). Unit: ETH.')
     consensus_rewards_cumulative: float = PydField(description='Cumulative consensus-layer issuance (staking rewards) since the Beacon Chain launch. NOT the ETH staked: see `total_staked` on `/v1/eth/staking`. Unit: ETH.')
-    burnt_fees: float = PydField(description='ETH burnt since EIP-1559. Unit: ETH.')
-    withdrawn_total: float = PydField(description='ETH withdrawn from staking. Unit: ETH.')
+    burnt_fees_cumulative: float = PydField(description='ETH burnt since EIP-1559 (cumulative). Unit: ETH.')
+    withdrawn_cumulative: float = PydField(description='ETH withdrawn from staking (cumulative). Unit: ETH.')
     total_supply: float | None = PydField(None, description='Total coins issued (circulating + locked), net of burns. Unit: coins.')
     burn_24h: float | None = PydField(None, description='ETH burnt over the last 24 h. Unit: ETH.')
     net_issuance_24h: float | None = PydField(None, description='New ETH issued minus ETH burnt over 24 h. Negative = deflationary. Unit: ETH.')
@@ -482,10 +592,10 @@ class EthSupplyHistoryItem(BytnodeModel):
     """Row of `/v1/eth/supply/history`."""
 
     time: datetime = PydField(description='The day, at midnight UTC; the value is the LAST measurement of that day. Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
-    execution_issuance_cumulative: float = PydField(description='Cumulative execution-layer issuance (genesis + proof-of-work rewards before the Merge), as published by Etherscan. NOT the supply: `total_supply` = this + `consensus_rewards_cumulative` - `burnt_fees` (was `eth_supply`). Unit: ETH.')
+    execution_issuance_cumulative: float = PydField(description='Cumulative execution-layer issuance (genesis + proof-of-work rewards before the Merge), as published by Etherscan. NOT the supply: `total_supply` = this + `consensus_rewards_cumulative` - `burnt_fees_cumulative` (was `eth_supply`). Unit: ETH.')
     consensus_rewards_cumulative: float = PydField(description='Cumulative consensus-layer issuance (staking rewards) since the Beacon Chain launch. NOT the ETH staked: see `total_staked` on `/v1/eth/staking`. Unit: ETH.')
-    burnt_fees: float = PydField(description='ETH burnt since EIP-1559. Unit: ETH.')
-    withdrawn_total: float = PydField(description='ETH withdrawn from staking. Unit: ETH.')
+    burnt_fees_cumulative: float = PydField(description='ETH burnt since EIP-1559 (cumulative). Unit: ETH.')
+    withdrawn_cumulative: float = PydField(description='ETH withdrawn from staking (cumulative). Unit: ETH.')
     total_supply: float | None = PydField(None, description='Total coins issued (circulating + locked), net of burns. Unit: coins.')
     burn_24h: float | None = PydField(None, description='ETH burnt over the last 24 h. Unit: ETH.')
     net_issuance_24h: float | None = PydField(None, description='New ETH issued minus ETH burnt over 24 h. Negative = deflationary. Unit: ETH.')
@@ -514,8 +624,8 @@ class FundingCumulative(BytnodeModel):
     """Row of `/v1/funding/cumulative`."""
 
     time: datetime = PydField(description='Point-in-time value over a rolling window: the END of the 24-hour window, i.e. the settlement that closes the last 8-hour period summed. The window starts at `window_start` and lasts `window_s`. Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
-    window_start: datetime = PydField(description='Start of the 24-hour window summed (inclusive). Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
-    window_s: int = PydField(description='Length of the window, in seconds (86400 = 24 hours). Unit: seconds.')
+    window_start_at: datetime = PydField(description='Start of the 24-hour window summed (inclusive). Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
+    window_s: int | None = PydField(None, description='Length of the window, in seconds (86400 = 24 hours). Unit: seconds.')
     rolling_24h_rate_pct: float = PydField(description='Sum of the last three settled 8-hour funding rates — a ROLLING 24-hour window — in percent. A row is published every 8 hours and covers 24: consecutive rows OVERLAP by 16 hours, so never add them up (sum `rate_pct` of `/v1/funding/rate/history` instead). Unit: percent (58.5 = 58.5 %).')
     apr_pct: float = PydField(description='Annualised rate in percent. Unit: percent (58.5 = 58.5 %).')
     sample_count: int = PydField(description='Number of 8-hour funding windows summed. Unit: count.')
@@ -525,8 +635,8 @@ class FundingCumulativeHistoryItem(BytnodeModel):
     """Row of `/v1/funding/cumulative/history`."""
 
     time: datetime = PydField(description='END of each 24-hour window (the settlement that closes its last 8-hour period). The window starts at `window_start` and lasts `window_s`. Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
-    window_start: datetime = PydField(description='Start of the 24-hour window summed (inclusive). Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
-    window_s: int = PydField(description='Length of the window, in seconds (86400 = 24 hours). Unit: seconds.')
+    window_start_at: datetime = PydField(description='Start of the 24-hour window summed (inclusive). Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
+    window_s: int | None = PydField(None, description='Length of the window, in seconds (86400 = 24 hours). Unit: seconds.')
     rolling_24h_rate_pct: float = PydField(description='Sum of the last three settled 8-hour funding rates — a ROLLING 24-hour window — in percent. A row is published every 8 hours and covers 24: consecutive rows OVERLAP by 16 hours, so never add them up (sum `rate_pct` of `/v1/funding/rate/history` instead). Unit: percent (58.5 = 58.5 %).')
     apr_pct: float = PydField(description='Annualised rate in percent. Unit: percent (58.5 = 58.5 %).')
     sample_count: int = PydField(description='Number of 8-hour funding windows summed. Unit: count.')
@@ -545,9 +655,9 @@ class FundingNext(BytnodeModel):
 class FundingRate(BytnodeModel):
     """Row of `/v1/funding/rate`, `/v1/funding/rate/history`."""
 
-    time: datetime = PydField(description='Start of the 8-hour funding period. The window is PAID by the settlement at its end: read `period_end` / `settled_at` for when it was settled. Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
-    period_end: datetime = PydField(description='End of the 8-hour funding period (exclusive): the instant of the settlement that pays it. Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
-    settled_at: datetime = PydField(description='Instant of the last settlement counted in the window: `period_end` for a complete settled window; for the window in progress (`?live=1`), the latest settlement already paid inside it (some venues settle every hour), so the period itself is not settled yet. Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
+    time: datetime = PydField(description='Start of the 8-hour funding period. The window is PAID by the settlement at its end: read `period_end_at` / `settled_at` for when it was settled. Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
+    period_end_at: datetime = PydField(description='End of the 8-hour funding period (exclusive): the instant of the settlement that pays it. Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
+    settled_at: datetime = PydField(description='Instant of the last settlement counted in the window: `period_end_at` for a complete settled window; for the window in progress (`?live=1`), the latest settlement already paid inside it (some venues settle every hour), so the period itself is not settled yet. Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
     rate_pct: float = PydField(description='Settled funding rate of the 8-hour period, in percent (0.01 = 0.01 % per 8 h), normalised to 8 h and open-interest weighted across venues. Unit: percent (58.5 = 58.5 %).')
     apr_pct: float = PydField(description='Annualised rate in percent. Unit: percent (58.5 = 58.5 %).')
     is_closed: bool = PydField(description='`true` = the row is final and will never change; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it.')
@@ -557,8 +667,8 @@ class GlobalMarket(BytnodeModel):
     """Row of `/v1/global`."""
 
     time: datetime = PydField(description='Point-in-time value: the instant the source states for its measurement (often the last millisecond of its minute, `…:59.999Z`). Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
-    total_market_cap_usd: float = PydField(description='Total crypto market capitalisation. Unit: USD.')
-    total_volume_usd: float = PydField(description='Total crypto trading volume over 24 h. Unit: USD.')
+    market_cap_total_usd: float = PydField(description='Total crypto market capitalisation. Unit: USD.')
+    volume_total_usd: float = PydField(description='Total traded volume, USD. Unit: USD.')
     btc_dominance_pct: float = PydField(description='Bitcoin share of the total market cap. Unit: percent (58.5 = 58.5 %).')
     eth_dominance_pct: float = PydField(description='Ether share of the total market cap. Unit: percent (58.5 = 58.5 %).')
     others_dominance_pct: float = PydField(description='Share of every other asset. Unit: percent (58.5 = 58.5 %).')
@@ -569,8 +679,8 @@ class GlobalMarketHistoryItem(BytnodeModel):
     """Row of `/v1/global/history`."""
 
     time: datetime = PydField(description='The instant the source states for each measurement. Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
-    total_market_cap_usd: float = PydField(description='Total crypto market capitalisation. Unit: USD.')
-    total_volume_usd: float = PydField(description='Total crypto trading volume over 24 h. Unit: USD.')
+    market_cap_total_usd: float = PydField(description='Total crypto market capitalisation. Unit: USD.')
+    volume_total_usd: float = PydField(description='Total traded volume, USD. Unit: USD.')
     btc_dominance_pct: float = PydField(description='Bitcoin share of the total market cap. Unit: percent (58.5 = 58.5 %).')
     eth_dominance_pct: float = PydField(description='Ether share of the total market cap. Unit: percent (58.5 = 58.5 %).')
     others_dominance_pct: float = PydField(description='Share of every other asset. Unit: percent (58.5 = 58.5 %).')
@@ -581,7 +691,7 @@ class GlobalMarketHistoryItem(BytnodeModel):
 class Health(BytnodeModel):
     """Row of `/v1/health`."""
 
-    database: str = PydField(description='`connected` when the service reaches its database. A failing check answers 503 `service_unavailable` with `database` in the error body.')
+    database: str = PydField(description='`connected` when the service reaches its database. A failing check answers 503 `service_unavailable` with `database` in `error.details`.')
 
 
 class HeatmapClusters(BytnodeModel):
@@ -606,12 +716,35 @@ class HeatmapClustersHistoryItem(BytnodeModel):
     dist_down_ratio: float = PydField(description='Distance from the price to the cluster below, as a fraction of the price. Unit: fraction (0.585 = 58.5 %).')
     attraction_up: float = PydField(description='density_up / dist_up_ratio²: how strongly the cluster above pulls the price. Unit: dimensionless score.')
     attraction_down: float = PydField(description='density_down / dist_down_ratio²: how strongly the cluster below pulls the price. Compare with attraction_up. Unit: dimensionless score.')
-    sample_count: int = PydField(description='Number of source points behind the value (one-minute points in a bucket). Unit: count.')
+    sample_count: int = PydField(description="Number of source points in the bucket (one-minute points with data). For a state (basis, open interest) the value is the LAST of them — the bucket's close —; for a flow it is their total. Unit: count.")
     is_closed: bool = PydField(description='`true` = the row is final and will never change; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it.')
 
 
 class Kline(BytnodeModel):
     """Row of `/v1/klines`."""
+
+    time: datetime = PydField(description='Start of the latest CLOSED candle of `timeframe` (the first row of `/v1/klines/history`). Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
+    open: float = PydField(description='Opening price of the candle. Unit: quote currency (USDT for BTCUSDT).')
+    high: float = PydField(description='Highest price of the candle. Unit: quote currency (USDT for BTCUSDT).')
+    low: float = PydField(description='Lowest price of the candle. Unit: quote currency (USDT for BTCUSDT).')
+    close: float = PydField(description='Closing price of the candle (last price for the open candle). Unit: quote currency (USDT for BTCUSDT).')
+    volume: float | None = PydField(None, description="Traded volume over the row, base asset units (BTC for BTCUSDT, NOT dollars), aggregated across venues, over the market(s) the route covers: spot + perpetual futures on `/v1/klines` and `/v1/trades-kline`, the path's market alone on a `/spot` or `/futures` route (a name without a market suffix covers every market of its route; `volume_spot` / `volume_futures` restrict). `null` when a market is not available (never a partial sum). Unit: base asset quantity (BTC for BTCUSDT).")
+    buy_volume: float | None = PydField(None, description='Aggressive (taker) buy volume, base asset units, aggregated across venues. Unit: base asset quantity (BTC for BTCUSDT).')
+    sell_volume: float | None = PydField(None, description='Aggressive (taker) sell volume, base asset units, aggregated across venues. Unit: base asset quantity (BTC for BTCUSDT).')
+    is_volume_estimated: bool = PydField(description="`true` when base-asset quantities of this row were ESTIMATED from USD amounts ÷ the candle's typical price (high + low + close) / 3 (data written before quantities were recorded; mean error 0.04 % in 1m, 0.37 % in 1d); `false` = measured.")
+    volume_spot: float | None = PydField(None, description='Volume traded on the SPOT market, summed across venues, base asset units. `null` while not available yet (never a partial sum). Unit: base asset quantity (BTC for BTCUSDT).')
+    buy_volume_spot: float | None = PydField(None, description='Aggressive (taker) buy volume on the SPOT market, across venues. Unit: base asset quantity (BTC for BTCUSDT).')
+    sell_volume_spot: float | None = PydField(None, description='Aggressive (taker) sell volume on the SPOT market, across venues. Unit: base asset quantity (BTC for BTCUSDT).')
+    is_volume_spot_estimated: bool = PydField(description="`true` when the spot quantities of this candle were ESTIMATED from USD amounts and the candle's typical price (high + low + close) / 3 (data written before quantities were recorded; mean error 0.04 % in 1m, 0.37 % in 1d); `false` = measured.")
+    volume_futures: float | None = PydField(None, description='Volume traded on PERPETUAL FUTURES, summed across venues, in base asset units. `null` when not available yet (never a partial sum). Unit: base asset quantity (BTC for BTCUSDT).')
+    buy_volume_futures: float | None = PydField(None, description='Aggressive (taker) buy volume on PERPETUAL FUTURES, across venues. Unit: base asset quantity (BTC for BTCUSDT).')
+    sell_volume_futures: float | None = PydField(None, description='Aggressive (taker) sell volume on PERPETUAL FUTURES, across venues. Unit: base asset quantity (BTC for BTCUSDT).')
+    is_volume_futures_estimated: bool | None = PydField(None, description="`true` when `volume_futures` was ESTIMATED from USD amounts and the candle's typical price; `false` = measured.")
+    is_closed: bool = PydField(description='`true` = the row is final and will never change; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it.')
+
+
+class KlineHistoryItem(BytnodeModel):
+    """Row of `/v1/klines/history`."""
 
     time: datetime = PydField(description='Start of the bucket the row covers: a 1h bucket at 14:00 covers 14:00:00 to 14:59:59.999. Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
     open: float = PydField(description='Opening price of the candle. Unit: quote currency (USDT for BTCUSDT).')
@@ -637,25 +770,25 @@ class LimitsHistoryItem(BytnodeModel):
     """Nested object (LimitsHistoryItem)."""
 
     timeframe: str = PydField(description='The timeframe the window applies to.')
-    window_minutes: int | None = PydField(None, description='How far back this timeframe may be read, in minutes, measured from now; `null` = unlimited. Beyond it: 403 `history_depth`. Unit: minutes.')
+    window_s: int | None = PydField(None, description='How far back this timeframe may be read, in seconds, measured from now; `null` = unlimited. Beyond it: 403 `history_depth`. Unit: seconds.')
 
 
 class LimitsRate(BytnodeModel):
     """Nested object (LimitsRate)."""
 
-    per_minute: int | None = PydField(None, description='Requests per minute of your plan (the bucket refills at this pace). Unit: count.')
-    burst: int = PydField(description='Capacity of the bucket: requests you can send at once. Unit: count.')
+    requests_per_minute: int | None = PydField(None, description='Requests per minute of your plan (the bucket refills at this pace). Unit: count.')
+    burst_count: int = PydField(description='Capacity of the bucket: requests you can send at once. Unit: count.')
     refill_s: int = PydField(description='Seconds to refill the bucket from empty. Unit: seconds.')
-    remaining: int | None = PydField(None, description='Requests left right now (after this one). Unit: count.')
+    remaining_count: int | None = PydField(None, description='Requests left right now (after this one). Unit: count.')
     reset_s: int | None = PydField(None, description='Seconds until fully restored. Unit: seconds.')
 
 
 class LimitsQuota(BytnodeModel):
     """Nested object (LimitsQuota)."""
 
-    monthly: int = PydField(description='Requests included per calendar month. Unit: count.')
+    monthly_count: int = PydField(description='Requests included per calendar month. Unit: count.')
     month_length_s: int = PydField(description='Length of the current calendar month, in seconds. Unit: seconds.')
-    remaining: int | None = PydField(None, description='Requests left right now (after this one). Unit: count.')
+    remaining_count: int | None = PydField(None, description='Requests left right now (after this one). Unit: count.')
     reset_s: int | None = PydField(None, description='Seconds until fully restored. Unit: seconds.')
 
 
@@ -663,12 +796,38 @@ class Limits(BytnodeModel):
     """Row of `/v1/limits`."""
 
     plan: str = PydField(description='Your plan: `free`, `traders`, `financial`, `startup` or `enterprise` (`legacy` for an internal unmetered key: every limit below is then unset).')
-    families: list[Literal['derivatives', 'etf', 'indicators', 'macro', 'microstructure', 'onchain', 'options', 'price_volume', 'sentiment', 'snapshot', 'ticks', 'tokenomics']] | None = PydField(None, description='Data families your plan includes (`price_volume`, `derivatives`, `microstructure`, `ticks`, `snapshot`, `indicators`, `macro`, `options`, `onchain`, `etf`, `tokenomics`, `sentiment`); `null` = all of them. A route outside them answers 403 `plan_family`.')
+    families: list[Literal['derivatives', 'etf', 'indicators', 'macro', 'microstructure', 'onchain', 'options', 'price_volume', 'sentiment', 'snapshot', 'tokenomics', 'trades']] | None = PydField(None, description='Data families your plan includes (`price_volume`, `derivatives`, `microstructure`, `trades`, `snapshot`, `indicators`, `macro`, `options`, `onchain`, `etf`, `tokenomics`, `sentiment`); `null` = all of them. A route outside them answers 403 `plan_family`.')
     history: list[LimitsHistoryItem] = PydField(description='History window per timeframe, one object per timeframe the API serves.')
-    ticks_window_minutes: int | None = PydField(None, description='How far back individual trades (`/v1/trades/spot`, `/futures`, `/large`) may be read, in minutes; `0` = not in your plan (family `ticks`), `null` = unlimited. Unit: minutes.')
-    liquidation_events: int | None = PydField(None, description='How many of the most recent individual liquidations `/v1/liquidations/events` may return, when your plan sets a count; `null` = no count: the route serves the events within your `1h` history window, at most 1,000 per call; `0` = not in your plan (family `derivatives`). Unit: count.')
-    rate: LimitsRate | None = PydField(None, description='The per-minute rate, as a token bucket; `null` = unlimited or unmetered key. The same values as the `RateLimit` headers (`debit` policy).')
-    quota: LimitsQuota | None = PydField(None, description='The monthly quota; `null` = unlimited or unmetered key. The same values as the `RateLimit` headers (`mensuel` policy). It resets on the 1st of the month, 00:00 UTC.')
+    trades_window_s: int | None = PydField(None, description='How far back individual trades (`/v1/trades/spot`, `/futures`, `/large`) may be read, in seconds; `0` = not in your plan (family `trades`), `null` = unlimited. Unit: seconds.')
+    liquidations_events_count: int | None = PydField(None, description="How many of the most recent individual liquidations `/v1/liquidations/events` may return, counted from the latest: 100 (Free), 500 (Traders), 1,000 (Financial), 10,000 (Startup); a larger `limit` answers 403 `history_depth`. `null` = no count set (Enterprise, or an unmetered key): up to 10,000 per call, the route's maximum. `0` = not in your plan (family `derivatives`). Unit: count.")
+    rate: LimitsRate | None = PydField(None, description='The per-minute rate, as a token bucket; `null` = unlimited or unmetered key. The same values as the `RateLimit` headers (`rate` policy).')
+    quota: LimitsQuota | None = PydField(None, description='The monthly quota; `null` = unlimited or unmetered key. The same values as the `RateLimit` headers (`quota` policy). It resets on the 1st of the month, 00:00 UTC.')
+
+
+class LiquidationsBigSmallRatio(BytnodeModel):
+    """Row of `/v1/liquidations/big-small-ratio`."""
+
+    time: datetime = PydField(description='Start of the latest closed bucket of `timeframe` that had at least one liquidation — the first row of `/v1/liquidations/big-small-ratio/history` for the same `timeframe`. Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
+    big_count: int = PydField(description='Liquidations of 100,000 USD or more. Unit: count.')
+    big_usd: float = PydField(description='Notional of liquidations of 100,000 USD or more. Unit: USD.')
+    small_count: int = PydField(description='Liquidations below 100,000 USD. Unit: count.')
+    small_usd: float = PydField(description='Notional of liquidations below 100,000 USD. Unit: USD.')
+    big_small_ratio: float | None = PydField(None, description='big_usd / small_usd: the notional of liquidations of 100,000 USD or more DIVIDED BY that of the smaller ones (8.2 = the big ones weigh 8.2 times the small ones: a quotient, not a share). `null` when small_usd is 0. Unit: big / small.')
+    sample_count: int | None = PydField(None, description="Number of source points in the bucket (one-minute points with data). For a state (basis, open interest) the value is the LAST of them — the bucket's close —; for a flow it is their total. Unit: count.")
+    is_closed: bool = PydField(description='`true` = the row is final and will never change; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it.')
+
+
+class LiquidationsBigSmallRatioHistoryItem(BytnodeModel):
+    """Row of `/v1/liquidations/big-small-ratio/history`."""
+
+    time: datetime = PydField(description="Start of the bucket of `timeframe`, the value aggregating the bucket's minutes; the row covers `time` to `time` + the envelope's `step` (excluded). Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).")
+    big_count: int = PydField(description='Liquidations of 100,000 USD or more. Unit: count.')
+    big_usd: float = PydField(description='Notional of liquidations of 100,000 USD or more. Unit: USD.')
+    small_count: int = PydField(description='Liquidations below 100,000 USD. Unit: count.')
+    small_usd: float = PydField(description='Notional of liquidations below 100,000 USD. Unit: USD.')
+    big_small_ratio: float | None = PydField(None, description='big_usd / small_usd: the notional of liquidations of 100,000 USD or more DIVIDED BY that of the smaller ones (8.2 = the big ones weigh 8.2 times the small ones: a quotient, not a share). `null` when small_usd is 0. Unit: big / small.')
+    sample_count: int = PydField(description='Minutes of the bucket that had at least one liquidation. Unit: count.')
+    is_closed: bool = PydField(description='`true` = the row is final and will never change; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it.')
 
 
 class LiquidationsCumulative(BytnodeModel):
@@ -678,21 +837,19 @@ class LiquidationsCumulative(BytnodeModel):
     long_usd: float = PydField(description='Long positions liquidated, USD. Unit: USD.')
     short_usd: float = PydField(description='Short positions liquidated, USD. Unit: USD.')
     total_usd: float = PydField(description='Total, USD. Unit: USD.')
-    window_start: datetime = PydField(description="Start of the window the value covers (inclusive), aligned on the minute. The route's `time` says whether it is dated at the start or at the end of this window. Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).")
-    window_s: int = PydField(description='Length of that window, in seconds: it runs from `window_start` to `window_start + window_s` (excluded). Unit: seconds.')
+    window_start_at: datetime = PydField(description="Start of the ROLLING window the value covers (inclusive). Only rolling-window values carry it, and their `time` is always the END of the window; a bucket row has no window fields (its span is the envelope's `step`). Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).")
+    window_s: int | None = PydField(None, description='Length of that rolling window, in whole seconds: it runs from `window_start_at` to `time` (excluded). Unit: seconds.')
 
 
 class LiquidationsCumulativeHistoryItem(BytnodeModel):
     """Row of `/v1/liquidations/cumulative/history`."""
 
-    time: datetime = PydField(description='Start of the bucket. The row covers the WHOLE bucket, from `time` to `time + window_s` (excluded). Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
+    time: datetime = PydField(description="Start of the bucket. The row covers the WHOLE bucket, from `time` to `time` + the envelope's `step` (excluded). Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).")
     long_usd: float = PydField(description='Long positions liquidated, USD. Unit: USD.')
     short_usd: float = PydField(description='Short positions liquidated, USD. Unit: USD.')
     total_usd: float = PydField(description='Total, USD. Unit: USD.')
-    sample_count: int = PydField(description='Number of source points behind the value (one-minute points in a bucket). Unit: count.')
+    sample_count: int = PydField(description="Number of source points in the bucket (one-minute points with data). For a state (basis, open interest) the value is the LAST of them — the bucket's close —; for a flow it is their total. Unit: count.")
     is_closed: bool = PydField(description='`true` = the row is final and will never change; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it.')
-    window_start: datetime = PydField(description='Start of the bucket the totals cover (= `time`). Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
-    window_s: int = PydField(description='Length of the bucket, in seconds (3600 for `1h`). Unit: seconds.')
 
 
 class LiquidationEvent(BytnodeModel):
@@ -705,39 +862,10 @@ class LiquidationEvent(BytnodeModel):
     value_usd: float = PydField(description="Notional value: price × quantity, in the pair's quote currency (USDT for BTCUSDT), taken as USD. Unit: USD.")
 
 
-class LiquidationsRatio(BytnodeModel):
-    """Row of `/v1/liquidations/ratio`."""
-
-    time: datetime = PydField(description='Start of the latest CLOSED minute that had at least one liquidation — the same row as the first one of `/v1/liquidations/ratio/history?timeframe=1m`. Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
-    big_count: int = PydField(description='Liquidations of 100,000 USD or more. Unit: count.')
-    big_usd: float = PydField(description='Notional of liquidations of 100,000 USD or more. Unit: USD.')
-    small_count: int = PydField(description='Liquidations below 100,000 USD. Unit: count.')
-    small_usd: float = PydField(description='Notional of liquidations below 100,000 USD. Unit: USD.')
-    ratio: float | None = PydField(None, description='big_usd / small_usd: the notional of liquidations of 100,000 USD or more DIVIDED BY that of the smaller ones (8.2 = the big ones weigh 8.2 times the small ones: a quotient, not a share). `null` when small_usd is 0. Unit: big / small.')
-    window_start: datetime = PydField(description="Start of the window the value covers (inclusive), aligned on the minute. The route's `time` says whether it is dated at the start or at the end of this window. Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).")
-    window_s: int = PydField(description='Length of that window, in seconds: it runs from `window_start` to `window_start + window_s` (excluded). Unit: seconds.')
-
-
-class LiquidationsRatioHistoryItem(BytnodeModel):
-    """Row of `/v1/liquidations/ratio/history`."""
-
-    time: datetime = PydField(description="Start of the bucket of `timeframe`, the value aggregating the bucket's minutes; the row covers `window_start` to `window_start + window_s`. Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).")
-    big_count: int = PydField(description='Liquidations of 100,000 USD or more. Unit: count.')
-    big_usd: float = PydField(description='Notional of liquidations of 100,000 USD or more. Unit: USD.')
-    small_count: int = PydField(description='Liquidations below 100,000 USD. Unit: count.')
-    small_usd: float = PydField(description='Notional of liquidations below 100,000 USD. Unit: USD.')
-    ratio: float | None = PydField(None, description='big_usd / small_usd: the notional of liquidations of 100,000 USD or more DIVIDED BY that of the smaller ones (8.2 = the big ones weigh 8.2 times the small ones: a quotient, not a share). `null` when small_usd is 0. Unit: big / small.')
-    sample_count: int = PydField(description='Minutes of the bucket that had at least one liquidation. Unit: count.')
-    is_closed: bool = PydField(description='`true` = the row is final and will never change; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it.')
-    window_start: datetime = PydField(description="Start of the window the value covers (inclusive), aligned on the minute. The route's `time` says whether it is dated at the start or at the end of this window. Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).")
-    window_s: int = PydField(description='Length of that window, in seconds: it runs from `window_start` to `window_start + window_s` (excluded). Unit: seconds.')
-
-
 class Macro(BytnodeModel):
     """Row of `/v1/macro`."""
 
     time: datetime = PydField(description='The day of the observation, at midnight UTC. Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
-    series_id: str = PydField(description='Series identifier.')
     category: str = PydField(description='Series category.')
     name: str = PydField(description='Human-readable name of the series.')
     frequency: str = PydField(description='Publication frequency of the source (`daily`, `weekly`, `monthly`).')
@@ -851,7 +979,6 @@ class MacroCorrelations(BytnodeModel):
 
     time: datetime = PydField(description='Point-in-time value: the last date used by the window (at the top level, the most recent of all windows; see `oldest_input_date`). Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
     oldest_input_date: date = PydField(description='Date of the OLDEST input the value uses (a monthly series lags a daily one): the value cannot be fresher than this input. `time` is the most recent input; each component carries its own date. Unit: calendar date (YYYY-MM-DD).')
-    asset: str = PydField(description='Asset, e.g. `BTC`.')
     method: str = PydField(description='How the value is computed.')
     correlations: MacroCorrelationsCorrelations = PydField(description='Pearson correlation from -1 to 1, per macro series and window, with `sample_count` = number of common days.')
 
@@ -890,7 +1017,7 @@ class MacroIntradaySeriesInfoLastCandleAt(BytnodeModel):
 class MacroIntradaySeriesInfo(BytnodeModel):
     """Row of `/v1/macro/intraday/series`."""
 
-    series_id: str = PydField(description='Series identifier.')
+    series: str = PydField(description='Series identifier (the value of the `series` parameter).')
     source: str = PydField(description='Upstream source.')
     instrument_code: str = PydField(description='Code of the instrument at the source (informative; use `series_id` in requests).')
     category: str = PydField(description='Series category.')
@@ -1050,7 +1177,7 @@ class MacroSeriesInfo(BytnodeModel):
     """Row of `/v1/macro/series`."""
 
     time: datetime = PydField(description='The day of the latest observation of the series, at midnight UTC. Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
-    series_id: str = PydField(description='Series identifier.')
+    series: str = PydField(description='Series identifier (the value of the `series` parameter).')
     category: str = PydField(description='Series category.')
     name: str = PydField(description='Human-readable name of the series.')
     frequency: str = PydField(description='Publication frequency of the source (`daily`, `weekly`, `monthly`).')
@@ -1061,122 +1188,40 @@ class MacroSeriesInfo(BytnodeModel):
 class Oi(BytnodeModel):
     """Row of `/v1/oi`."""
 
-    time: datetime = PydField(description='Point-in-time value: the instant of the latest reading summed (the same as `/v1/oi/delta`). Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
-    oi: float = PydField(description='Total open interest across venues, base asset units. On a bucketed row, the value at the END of the bucket (like a close); on `/v1/oi/delta`, the latest measurement. Unit: base asset quantity (BTC for BTCUSDT).')
+    time: datetime = PydField(description='Point-in-time value: the instant of the latest reading summed (the same as `/v1/oi/change`). Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
+    oi: float = PydField(description='Total open interest across venues, base asset units. On a bucketed row, the value at the END of the bucket (like a close); on `/v1/oi/change`, the latest measurement. Unit: base asset quantity (BTC for BTCUSDT).')
 
 
-class OiDelta(BytnodeModel):
-    """Row of `/v1/oi/delta`."""
+class OiChange(BytnodeModel):
+    """Row of `/v1/oi/change`."""
 
     time: datetime = PydField(description='Point-in-time value: the instant of the measurement; the change covers the minute before it. Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
-    oi: float = PydField(description='Total open interest across venues, base asset units. On a bucketed row, the value at the END of the bucket (like a close); on `/v1/oi/delta`, the latest measurement. Unit: base asset quantity (BTC for BTCUSDT).')
-    oi_previous: float = PydField(description='Total open interest at the start of the window. Unit: base asset quantity (BTC for BTCUSDT).')
-    oi_change: float = PydField(description='oi - oi_previous, base asset units. Unit: base asset quantity (BTC for BTCUSDT).')
+    oi: float = PydField(description='Total open interest across venues, base asset units. On a bucketed row, the value at the END of the bucket (like a close); on `/v1/oi/change`, the latest measurement. Unit: base asset quantity (BTC for BTCUSDT).')
+    previous_oi: float = PydField(description='Total open interest at the start of the window (`window_start_at`). Unit: base asset quantity (BTC for BTCUSDT).')
+    oi_change: float = PydField(description='oi - previous_oi, base asset units. Unit: base asset quantity (BTC for BTCUSDT).')
     oi_change_pct: float = PydField(description='Relative open interest change, percent. Unit: percent (58.5 = 58.5 %).')
-    window_start: datetime = PydField(description="Start of the window the value covers (inclusive), aligned on the minute. The route's `time` says whether it is dated at the start or at the end of this window. Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).")
-    window_s: int = PydField(description='Length of that window, in seconds: it runs from `window_start` to `window_start + window_s` (excluded). Unit: seconds.')
+    window_start_at: datetime = PydField(description="Start of the ROLLING window the value covers (inclusive). Only rolling-window values carry it, and their `time` is always the END of the window; a bucket row has no window fields (its span is the envelope's `step`). Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).")
+    window_s: int | None = PydField(None, description='Length of that rolling window, in whole seconds: it runs from `window_start_at` to `time` (excluded). Unit: seconds.')
 
 
-class OiDeltaHistoryItem(BytnodeModel):
-    """Row of `/v1/oi/delta/history`."""
+class OiChangeHistoryItem(BytnodeModel):
+    """Row of `/v1/oi/change/history`."""
 
-    time: datetime = PydField(description="Start of the bucket of `timeframe`, the value aggregating the bucket's minutes; the row covers `window_start` to `window_start + window_s`. Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).")
-    oi: float = PydField(description='Total open interest across venues, base asset units. On a bucketed row, the value at the END of the bucket (like a close); on `/v1/oi/delta`, the latest measurement. Unit: base asset quantity (BTC for BTCUSDT).')
-    oi_previous: float = PydField(description='Total open interest at the start of the window. Unit: base asset quantity (BTC for BTCUSDT).')
-    oi_change: float = PydField(description='oi - oi_previous, base asset units. Unit: base asset quantity (BTC for BTCUSDT).')
+    time: datetime = PydField(description="Start of the bucket of `timeframe`, the value aggregating the bucket's minutes; the row covers `time` to `time` + the envelope's `step` (excluded). Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).")
+    oi: float = PydField(description='Total open interest across venues, base asset units. On a bucketed row, the value at the END of the bucket (like a close); on `/v1/oi/change`, the latest measurement. Unit: base asset quantity (BTC for BTCUSDT).')
+    previous_oi: float = PydField(description='Total open interest at the start of the window (`window_start_at`). Unit: base asset quantity (BTC for BTCUSDT).')
+    oi_change: float = PydField(description='oi - previous_oi, base asset units. Unit: base asset quantity (BTC for BTCUSDT).')
     oi_change_pct: float = PydField(description='Relative open interest change, percent. Unit: percent (58.5 = 58.5 %).')
-    sample_count: int = PydField(description='Number of source points behind the value (one-minute points in a bucket). Unit: count.')
+    sample_count: int = PydField(description="Number of source points in the bucket (one-minute points with data). For a state (basis, open interest) the value is the LAST of them — the bucket's close —; for a flow it is their total. Unit: count.")
     is_closed: bool = PydField(description='`true` = the row is final and will never change; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it.')
-    window_start: datetime = PydField(description="Start of the window the value covers (inclusive), aligned on the minute. The route's `time` says whether it is dated at the start or at the end of this window. Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).")
-    window_s: int = PydField(description='Length of that window, in seconds: it runs from `window_start` to `window_start + window_s` (excluded). Unit: seconds.')
 
 
 class OiHistoryItem(BytnodeModel):
     """Row of `/v1/oi/history`."""
 
     time: datetime = PydField(description='Start of the bucket the row covers: a 1h bucket at 14:00 covers 14:00:00 to 14:59:59.999. Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
-    oi: float = PydField(description='Total open interest across venues, base asset units. On a bucketed row, the value at the END of the bucket (like a close); on `/v1/oi/delta`, the latest measurement. Unit: base asset quantity (BTC for BTCUSDT).')
-    sample_count: int = PydField(description='Number of source points behind the value (one-minute points in a bucket). Unit: count.')
-    is_closed: bool = PydField(description='`true` = the row is final and will never change; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it.')
-
-
-class OnchainActiveAddresses(BytnodeModel):
-    """Row of `/v1/onchain/active-addresses`."""
-
-    time: datetime = PydField(description='The day the value refers to, at midnight UTC. Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
-    active_addresses: float = PydField(description='Addresses active on the day. Unit: count.')
-    active_addresses_sma_7d: float = PydField(description='7-day simple moving average of active_addresses. Unit: count.')
-    active_addresses_sma_30d: float = PydField(description='30-day simple moving average of active_addresses. Unit: count.')
-    sma_7d_vs_30d_pct: float = PydField(description='(7-day simple moving average - 30-day simple moving average) / 30-day average, percent. Unit: percent (58.5 = 58.5 %).')
-    label: str = PydField(description='7-day vs 30-day average: `accelerating` (> +5 %), `decelerating` (< -5 %) or `stable`.')
-
-
-class OnchainActiveAddressesHistoryItem(BytnodeModel):
-    """Row of `/v1/onchain/active-addresses/history`."""
-
-    time: datetime = PydField(description='The day the value refers to, at midnight UTC. Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
-    active_addresses: float = PydField(description='Addresses active on the day. Unit: count.')
-    active_addresses_sma_7d: float = PydField(description='7-day simple moving average of active_addresses. Unit: count.')
-    active_addresses_sma_30d: float = PydField(description='30-day simple moving average of active_addresses. Unit: count.')
-    sma_7d_vs_30d_pct: float = PydField(description='(7-day simple moving average - 30-day simple moving average) / 30-day average, percent. Unit: percent (58.5 = 58.5 %).')
-    label: str = PydField(description='7-day vs 30-day average: `accelerating` (> +5 %), `decelerating` (< -5 %) or `stable`.')
-    is_closed: bool = PydField(description='`true` = the row is final and will never change; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it.')
-
-
-class OnchainMinerStress(BytnodeModel):
-    """Row of `/v1/onchain/miner-stress`."""
-
-    time: datetime = PydField(description='The day the value refers to, at midnight UTC. Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
-    revenue_per_difficulty_usd: float = PydField(description="Miners' daily revenue (USD) divided by the network difficulty of the day: revenue per unit of work. Read it against its 30-day average. Unit: USD per unit of difficulty.")
-    revenue_per_difficulty_sma_30d_usd: float = PydField(description='30-day simple moving average of revenue_per_difficulty_usd. Unit: USD per unit of difficulty.')
-    label: str = PydField(description='`healthy` (at or above its 30-day average), `stress` (below it), `capitulation` (below 70 % of it — historically near BTC bottoms).')
-
-
-class OnchainMinerStressHistoryItem(BytnodeModel):
-    """Row of `/v1/onchain/miner-stress/history`."""
-
-    time: datetime = PydField(description='The day the value refers to, at midnight UTC. Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
-    revenue_per_difficulty_usd: float = PydField(description="Miners' daily revenue (USD) divided by the network difficulty of the day: revenue per unit of work. Read it against its 30-day average. Unit: USD per unit of difficulty.")
-    revenue_per_difficulty_sma_30d_usd: float = PydField(description='30-day simple moving average of revenue_per_difficulty_usd. Unit: USD per unit of difficulty.')
-    label: str = PydField(description='`healthy` (at or above its 30-day average), `stress` (below it), `capitulation` (below 70 % of it — historically near BTC bottoms).')
-    is_closed: bool = PydField(description='`true` = the row is final and will never change; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it.')
-
-
-class OnchainMvrv(BytnodeModel):
-    """Row of `/v1/onchain/mvrv`."""
-
-    time: datetime = PydField(description='The day the value refers to, at midnight UTC. Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
-    mvrv: float = PydField(description='Market value / realised value. Unit: dimensionless ratio.')
-    label: str = PydField(description='`undervalued` (<= 1), `fair` (> 1), `elevated` (> 2.5), `overvalued` (> 3.5).')
-    change_30d_pct: float | None = PydField(None, description='Relative change of the value over 30 days, percent. Unit: percent (58.5 = 58.5 %).')
-
-
-class OnchainMvrvHistoryItem(BytnodeModel):
-    """Row of `/v1/onchain/mvrv/history`."""
-
-    time: datetime = PydField(description='The day the value refers to, at midnight UTC. Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
-    mvrv: float = PydField(description='Market value / realised value. Unit: dimensionless ratio.')
-    label: str = PydField(description='`undervalued` (<= 1), `fair` (> 1), `elevated` (> 2.5), `overvalued` (> 3.5).')
-    change_30d_pct: float | None = PydField(None, description='Relative change of the value over 30 days, percent. Unit: percent (58.5 = 58.5 %).')
-    is_closed: bool = PydField(description='`true` = the row is final and will never change; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it.')
-
-
-class OnchainNvt(BytnodeModel):
-    """Row of `/v1/onchain/nvt`."""
-
-    time: datetime = PydField(description='The day the value refers to, at midnight UTC. Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
-    nvt: float = PydField(description='Market cap / daily on-chain transaction volume (NVT ratio). Unit: dimensionless ratio.')
-    nvt_signal: float = PydField(description='NVT smoothed over 90 days (NVT Signal), less noisy. Unit: dimensionless ratio.')
-    label: str = PydField(description='Zone of the NVT Signal: `undervalued` (<= 45), `fair` (> 45), `overvalued` (> 100), `bubble` (> 150).')
-
-
-class OnchainNvtHistoryItem(BytnodeModel):
-    """Row of `/v1/onchain/nvt/history`."""
-
-    time: datetime = PydField(description='The day the value refers to, at midnight UTC. Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
-    nvt: float = PydField(description='Market cap / daily on-chain transaction volume (NVT ratio). Unit: dimensionless ratio.')
-    nvt_signal: float = PydField(description='NVT smoothed over 90 days (NVT Signal), less noisy. Unit: dimensionless ratio.')
-    label: str = PydField(description='Zone of the NVT Signal: `undervalued` (<= 45), `fair` (> 45), `overvalued` (> 100), `bubble` (> 150).')
+    oi: float = PydField(description='Total open interest across venues, base asset units. On a bucketed row, the value at the END of the bucket (like a close); on `/v1/oi/change`, the latest measurement. Unit: base asset quantity (BTC for BTCUSDT).')
+    sample_count: int = PydField(description="Number of source points in the bucket (one-minute points with data). For a state (basis, open interest) the value is the LAST of them — the bucket's close —; for a flow it is their total. Unit: count.")
     is_closed: bool = PydField(description='`true` = the row is final and will never change; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it.')
 
 
@@ -1184,11 +1229,11 @@ class OptionsExpiry(BytnodeModel):
     """Row of `/v1/options/expiry`."""
 
     time: datetime = PydField(description='Point-in-time value: the instant of the options snapshot (all venues read together). Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
-    expiry: datetime = PydField(description='Expiry instant (08:00 UTC). Pass its date part (`YYYY-MM-DD`) as the `expiry` parameter. Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
-    dte_days: float = PydField(description='Days to expiry (fractional). Unit: days.')
+    expiry_at: datetime = PydField(description='Expiry instant (08:00 UTC). Pass its date part (`YYYY-MM-DD`) as the `expiry` parameter. Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
+    time_to_expiry_s: float = PydField(description='Time left before expiry, in seconds. Unit: seconds.')
     oi_call_usd: float | None = PydField(None, description='Call open interest, USD. Unit: USD.')
     oi_put_usd: float | None = PydField(None, description='Put open interest, USD. Unit: USD.')
-    put_call_ratio: float = PydField(description='Put/call open interest ratio (a quotient, not a share: 1.2 = 1.2 puts per call). Below 1 = more calls than puts. Unit: puts / calls.')
+    put_call_ratio: float | None = PydField(None, description='Put/call open interest ratio (a quotient, not a share: 1.2 = 1.2 puts per call). Below 1 = more calls than puts. Unit: puts / calls.')
     max_pain_strike_usd: float = PydField(description='Strike at which option holders lose the most at expiry (max pain). Unit: USD.')
     top_call_strike_usd: float = PydField(description='Strike with the largest call open interest. Unit: USD.')
     top_put_strike_usd: float = PydField(description='Strike with the largest put open interest. Unit: USD.')
@@ -1223,11 +1268,22 @@ class OptionsIv(BytnodeModel):
 class OptionsIvKline(BytnodeModel):
     """Row of `/v1/options/iv/klines`."""
 
+    time: datetime = PydField(description='Start of the latest CLOSED bucket; the candle summarises its options snapshots. Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
+    open_pct: float = PydField(description='30-day ATM IV at the start of the bucket. Unit: percent (58.5 = 58.5 %).')
+    high_pct: float = PydField(description='Highest 30-day ATM IV. Unit: percent (58.5 = 58.5 %).')
+    low_pct: float = PydField(description='Lowest 30-day ATM IV. Unit: percent (58.5 = 58.5 %).')
+    close_pct: float = PydField(description='30-day ATM IV at the end of the bucket. Unit: percent (58.5 = 58.5 %).')
+    is_closed: bool = PydField(description='`true` = the row is final and will never change; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it.')
+
+
+class OptionsIvKlineHistoryItem(BytnodeModel):
+    """Row of `/v1/options/iv/klines/history`."""
+
     time: datetime = PydField(description='Start of the bucket; the value is the LAST options snapshot of the bucket. Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
-    open: float = PydField(description='30-day ATM IV at the start of the bucket. Unit: percent (58.5 = 58.5 %).')
-    high: float = PydField(description='Highest 30-day ATM IV. Unit: percent (58.5 = 58.5 %).')
-    low: float = PydField(description='Lowest 30-day ATM IV. Unit: percent (58.5 = 58.5 %).')
-    close: float = PydField(description='30-day ATM IV at the end of the bucket. Unit: percent (58.5 = 58.5 %).')
+    open_pct: float = PydField(description='30-day ATM IV at the start of the bucket. Unit: percent (58.5 = 58.5 %).')
+    high_pct: float = PydField(description='Highest 30-day ATM IV. Unit: percent (58.5 = 58.5 %).')
+    low_pct: float = PydField(description='Lowest 30-day ATM IV. Unit: percent (58.5 = 58.5 %).')
+    close_pct: float = PydField(description='30-day ATM IV at the end of the bucket. Unit: percent (58.5 = 58.5 %).')
     is_closed: bool = PydField(description='`true` = the row is final and will never change; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it.')
 
 
@@ -1235,10 +1291,10 @@ class OptionsMaxPain(BytnodeModel):
     """Row of `/v1/options/max-pain`."""
 
     time: datetime = PydField(description='Point-in-time value: the instant of the options snapshot (all venues read together). Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
-    expiry: datetime = PydField(description='Expiry instant (08:00 UTC). Pass its date part (`YYYY-MM-DD`) as the `expiry` parameter. Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
-    dte_days: float = PydField(description='Days to expiry (fractional). Unit: days.')
+    expiry_at: datetime = PydField(description='Expiry instant (08:00 UTC). Pass its date part (`YYYY-MM-DD`) as the `expiry` parameter. Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
+    time_to_expiry_s: float = PydField(description='Time left before expiry, in seconds. Unit: seconds.')
     max_pain_strike_usd: float = PydField(description='Strike at which option holders lose the most at expiry (max pain). Unit: USD.')
-    put_call_ratio: float = PydField(description='Put/call open interest ratio (a quotient, not a share: 1.2 = 1.2 puts per call). Below 1 = more calls than puts. Unit: puts / calls.')
+    put_call_ratio: float | None = PydField(None, description='Put/call open interest ratio (a quotient, not a share: 1.2 = 1.2 puts per call). Below 1 = more calls than puts. Unit: puts / calls.')
     oi_call_usd: float | None = PydField(None, description='Call open interest, USD. Unit: USD.')
     oi_put_usd: float | None = PydField(None, description='Put open interest, USD. Unit: USD.')
 
@@ -1248,7 +1304,7 @@ class OptionsMaxPainHistoryItem(BytnodeModel):
 
     time: datetime = PydField(description='The instant of the options snapshot the max pain was computed on (one row per snapshot, about every minute; no `timeframe`). Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
     max_pain_strike_usd: float = PydField(description='Strike at which option holders lose the most at expiry (max pain). Unit: USD.')
-    put_call_ratio: float = PydField(description='Put/call open interest ratio (a quotient, not a share: 1.2 = 1.2 puts per call). Below 1 = more calls than puts. Unit: puts / calls.')
+    put_call_ratio: float | None = PydField(None, description='Put/call open interest ratio (a quotient, not a share: 1.2 = 1.2 puts per call). Below 1 = more calls than puts. Unit: puts / calls.')
     is_closed: bool = PydField(description='`true` = the row is final and will never change; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it.')
 
 
@@ -1270,24 +1326,24 @@ class OptionsOi(BytnodeModel):
     coverage: OptionsOiCoverage = PydField(description='`oi_coverage_ratio`: share of the open interest covered by the venues that answered (1.0 = all).')
 
 
-class OptionsOiDelta(BytnodeModel):
-    """Row of `/v1/options/oi/delta`."""
+class OptionsOiChange(BytnodeModel):
+    """Row of `/v1/options/oi/change`."""
 
     time: datetime = PydField(description='Point-in-time value: the instant of the options snapshot (all venues read together). Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
-    window_start: datetime | None = PydField(None, description='Instant of the reference snapshot: the latest one at least `timeframe` before `time`. Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
-    window_s: float | None = PydField(None, description='Actual distance between the two snapshots, in seconds (`timeframe` or a little more: snapshots arrive every minute). Unit: seconds.')
-    oi_change_call_usd: float | None = PydField(None, description='Change of call open interest from `window_start` to `time`, USD. Unit: USD.')
-    oi_change_put_usd: float | None = PydField(None, description='Change of put open interest from `window_start` to `time`, USD. Unit: USD.')
-    oi_change_total_usd: float | None = PydField(None, description='Change of total open interest from `window_start` to `time`, USD. Unit: USD.')
+    window_start_at: datetime = PydField(description='Instant of the reference snapshot: the latest one at least `timeframe` before `time`. Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
+    window_s: int | None = PydField(None, description='Actual distance between the two snapshots, in whole seconds (`timeframe` or a little more: snapshots arrive every minute). Unit: seconds.')
+    oi_change_call_usd: float | None = PydField(None, description='Change of call open interest from `window_start_at` to `time`, USD. Unit: USD.')
+    oi_change_put_usd: float | None = PydField(None, description='Change of put open interest from `window_start_at` to `time`, USD. Unit: USD.')
+    oi_change_total_usd: float | None = PydField(None, description='Change of total open interest from `window_start_at` to `time`, USD. Unit: USD.')
 
 
-class OptionsOiDeltaHistoryItem(BytnodeModel):
-    """Row of `/v1/options/oi/delta/history`."""
+class OptionsOiChangeHistoryItem(BytnodeModel):
+    """Row of `/v1/options/oi/change/history`."""
 
     time: datetime = PydField(description='Start of the bucket; the value is the LAST options snapshot of the bucket. Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
-    oi_change_call_usd: float | None = PydField(None, description='Change of call open interest from `window_start` to `time`, USD. Unit: USD.')
-    oi_change_put_usd: float | None = PydField(None, description='Change of put open interest from `window_start` to `time`, USD. Unit: USD.')
-    oi_change_total_usd: float | None = PydField(None, description='Change of total open interest from `window_start` to `time`, USD. Unit: USD.')
+    oi_change_call_usd: float | None = PydField(None, description='Change of call open interest from `window_start_at` to `time`, USD. Unit: USD.')
+    oi_change_put_usd: float | None = PydField(None, description='Change of put open interest from `window_start_at` to `time`, USD. Unit: USD.')
+    oi_change_total_usd: float | None = PydField(None, description='Change of total open interest from `window_start_at` to `time`, USD. Unit: USD.')
     is_closed: bool = PydField(description='`true` = the row is final and will never change; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it.')
 
 
@@ -1295,9 +1351,9 @@ class OptionsOiDistribution(BytnodeModel):
     """Row of `/v1/options/oi/distribution`."""
 
     time: datetime = PydField(description='Point-in-time value: the instant of the options snapshot (all venues read together). Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
-    expiry: datetime = PydField(description='Expiry instant (08:00 UTC). Pass its date part (`YYYY-MM-DD`) as the `expiry` parameter. Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
+    expiry_at: datetime = PydField(description='Expiry instant (08:00 UTC). Pass its date part (`YYYY-MM-DD`) as the `expiry` parameter. Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
     strike_usd: float = PydField(description='Strike price. Unit: USD.')
-    oi_call_usd: float | str | None = PydField(None, description='Call open interest at this strike, USD. `null` = no call listed. Unit: USD.')
+    oi_call_usd: float | None = PydField(None, description='Call open interest at this strike, USD. `null` = no call listed. Unit: USD.')
     oi_put_usd: float | None = PydField(None, description='Put open interest at this strike, USD. `null` = no put listed. Unit: USD.')
 
 
@@ -1313,30 +1369,30 @@ class OptionsOiHistoryItem(BytnodeModel):
     is_closed: bool = PydField(description='`true` = the row is final and will never change; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it.')
 
 
-class OptionsPcRatio(BytnodeModel):
-    """Row of `/v1/options/pc-ratio`."""
+class OptionsPutCallRatio(BytnodeModel):
+    """Row of `/v1/options/put-call-ratio`."""
 
     time: datetime = PydField(description='Point-in-time value: the instant of the options snapshot (all venues read together). Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
-    put_call_ratio: float = PydField(description='Put/call open interest ratio (a quotient, not a share: 1.2 = 1.2 puts per call). Below 1 = more calls than puts. Unit: puts / calls.')
-    label: str = PydField(description='`bullish` (put_call_ratio < 0.7), `neutral`, or `bearish` (put_call_ratio > 1).')
+    put_call_ratio: float | None = PydField(None, description='Put/call open interest ratio (a quotient, not a share: 1.2 = 1.2 puts per call). Below 1 = more calls than puts. Unit: puts / calls.')
+    put_call_label: str = PydField(description='`bullish` (put_call_ratio < 0.7), `neutral`, or `bearish` (put_call_ratio > 1).')
 
 
-class OptionsPcRatioHistoryItem(BytnodeModel):
-    """Row of `/v1/options/pc-ratio/history`."""
+class OptionsPutCallRatioHistoryItem(BytnodeModel):
+    """Row of `/v1/options/put-call-ratio/history`."""
 
     time: datetime = PydField(description='Start of the bucket; the value is the LAST options snapshot of the bucket. Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
-    put_call_ratio: float = PydField(description='Put/call open interest ratio (a quotient, not a share: 1.2 = 1.2 puts per call). Below 1 = more calls than puts. Unit: puts / calls.')
-    label: str = PydField(description='`bullish` (put_call_ratio < 0.7), `neutral`, or `bearish` (put_call_ratio > 1).')
+    put_call_ratio: float | None = PydField(None, description='Put/call open interest ratio (a quotient, not a share: 1.2 = 1.2 puts per call). Below 1 = more calls than puts. Unit: puts / calls.')
+    put_call_label: str = PydField(description='`bullish` (put_call_ratio < 0.7), `neutral`, or `bearish` (put_call_ratio > 1).')
     is_closed: bool = PydField(description='`true` = the row is final and will never change; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it.')
 
 
 class OptionsSummaryNearestExpiry(BytnodeModel):
-    """The next expiry: date, days left, max pain, put/call ratio, ATM IV."""
+    """The next expiry: its instant, the time left, max pain, put/call ratio, ATM IV."""
 
-    expiry: datetime = PydField(description='Expiry instant (08:00 UTC). Pass its date part (`YYYY-MM-DD`) as the `expiry` parameter. Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
-    dte_days: float = PydField(description='Days to expiry (fractional). Unit: days.')
+    expiry_at: datetime = PydField(description='Expiry instant (08:00 UTC). Pass its date part (`YYYY-MM-DD`) as the `expiry` parameter. Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
+    time_to_expiry_s: float = PydField(description='Time left before expiry, in seconds. Unit: seconds.')
     max_pain_strike_usd: float = PydField(description='Strike at which option holders lose the most at expiry (max pain). Unit: USD.')
-    put_call_ratio: float = PydField(description='Put/call open interest ratio (a quotient, not a share: 1.2 = 1.2 puts per call). Below 1 = more calls than puts. Unit: puts / calls.')
+    put_call_ratio: float | None = PydField(None, description='Put/call open interest ratio (a quotient, not a share: 1.2 = 1.2 puts per call). Below 1 = more calls than puts. Unit: puts / calls.')
     iv_atm_pct: float = PydField(description='At-the-money implied volatility of THIS expiry, annualised, in percent (55.2 = 55.2 %). Unit: percent (58.5 = 58.5 %).')
 
 
@@ -1357,10 +1413,10 @@ class OptionsSummary(BytnodeModel):
     volume_total_usd: float = PydField(description='Total traded volume, USD. Unit: USD.')
     volume_call_usd: float = PydField(description='Call volume, USD. Unit: USD.')
     volume_put_usd: float = PydField(description='Put volume, USD. Unit: USD.')
-    put_call_ratio: float = PydField(description='Put/call open interest ratio (a quotient, not a share: 1.2 = 1.2 puts per call). Below 1 = more calls than puts. Unit: puts / calls.')
+    put_call_ratio: float | None = PydField(None, description='Put/call open interest ratio (a quotient, not a share: 1.2 = 1.2 puts per call). Below 1 = more calls than puts. Unit: puts / calls.')
     put_call_label: str = PydField(description='`bullish` (put_call_ratio < 0.7), `neutral`, or `bearish` (put_call_ratio > 1).')
     iv_atm_30d_pct: float = PydField(description='At-the-money implied volatility at a constant 30-day maturity, annualised, in percent (55.2 = 55.2 %). Interpolated in total variance (IV² × time) between the two expiries around 30 days, so it does not jump when the nearest expiry rolls off; the ATM IV of each expiry is on `/v1/options/expiry`. Unit: percent (58.5 = 58.5 %).')
-    nearest_expiry: OptionsSummaryNearestExpiry = PydField(description='The next expiry: date, days left, max pain, put/call ratio, ATM IV.')
+    nearest_expiry: OptionsSummaryNearestExpiry = PydField(description='The next expiry: its instant, the time left, max pain, put/call ratio, ATM IV.')
     coverage: OptionsSummaryCoverage = PydField(description='`oi_coverage_ratio`: share of the open interest covered by the venues that answered (1.0 = all).')
 
 
@@ -1430,20 +1486,6 @@ class PriceChange(BytnodeModel):
     changes_pct: PriceChangeChangesPct = PydField(description='Price change over each window, keyed by window (`1m` … `1w`), in percent.')
 
 
-class SpreadInterexchangeHigh(BytnodeModel):
-    """Venue with the highest price over the bucket, and that price (`{venue, price}`)."""
-
-    venue: str = PydField(description='Venue name (this route is the only one that names venues).')
-    price: float = PydField(description='Volume-weighted price of the venue over the bucket. Unit: quote currency (USDT for BTCUSDT).')
-
-
-class SpreadInterexchangeLow(BytnodeModel):
-    """Venue with the lowest price over the bucket, and that price (`{venue, price}`)."""
-
-    venue: str = PydField(description='Venue name (this route is the only one that names venues).')
-    price: float = PydField(description='Volume-weighted price of the venue over the bucket. Unit: quote currency (USDT for BTCUSDT).')
-
-
 class SpreadInterexchangeVenuesItem(BytnodeModel):
     """Nested object (SpreadInterexchangeVenuesItem)."""
 
@@ -1460,16 +1502,19 @@ class SpreadInterexchange(BytnodeModel):
     ref_price: float = PydField(description='Reference price: the volume-weighted average price across venues over the bucket. Unit: quote currency (USDT for BTCUSDT).')
     weighting: str = PydField(description='How venues are combined: `oi` (open-interest weighted) or `volume` (volume weighted).')
     max_spread_bps: float = PydField(description='Gap between the highest and the lowest venue price, relative to ref_price. Unit: basis points (1 bp = 0.01 %).')
-    high: SpreadInterexchangeHigh = PydField(description='Venue with the highest price over the bucket, and that price (`{venue, price}`).')
-    low: SpreadInterexchangeLow = PydField(description='Venue with the lowest price over the bucket, and that price (`{venue, price}`).')
+    high_venue: str = PydField(description='Venue with the highest price over the bucket.')
+    high_price: float = PydField(description='Its volume-weighted price over the bucket. Unit: quote currency (USDT for BTCUSDT).')
+    low_venue: str = PydField(description='Venue with the lowest price over the bucket.')
+    low_price: float = PydField(description='Its volume-weighted price over the bucket. Unit: quote currency (USDT for BTCUSDT).')
     venues: list[SpreadInterexchangeVenuesItem] = PydField(description='Per-venue prices and premiums (`[{venue, price, premium_bps}]`).')
 
 
 class StatusFeedsItem(BytnodeModel):
     """Nested object (StatusFeedsItem)."""
 
-    feed: str = PydField(description='Public feed name, after the route that serves it (`trades_kline_futures_1h`, `cvd_source_1m`, `trades_kline_futures_seconds`, `funding_rate`...). The same names key `feeds_active_last_24h` in `/v1/symbols/{symbol}/capabilities`.')
+    feed: str = PydField(description='Public feed name, after the route that serves it (`trades_kline_futures_1h`, `cvd_source_1m`, `trades_kline_futures_seconds`, `funding_rate`...). The same names key `feeds_active_last_24h` in `/v1/capabilities`.')
     family: str = PydField(description='Data family the feed belongs to: `price_volume`, `microstructure`, `derivatives` or `ticks`.')
+    routes: list[str] = PydField(description='The public routes (contract paths) this feed supplies: watch it to know whether they are fresh.')
     age_s: float = PydField(description='Age of the latest row of the feed. Unit: seconds.')
     expected_interval_s: int = PydField(description='Maximum legitimate age of the feed. Unit: seconds.')
     threshold_s: int = PydField(description='Age above which the feed is stale (1.5 × expected_interval_s). Unit: seconds.')
@@ -1481,6 +1526,7 @@ class Status(BytnodeModel):
     """Row of `/v1/status`."""
 
     computed_at: datetime = PydField(description='When the status was computed. It is cached for up to 5 minutes: every `age_s` is measured at this instant, not at `server_time`. Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
+    state: str = PydField(description="`ok`, or `degraded` when at least one feed is stale or could not be checked (the envelope's `status` stays `ok`).")
     feed_count: int = PydField(description='Public feeds checked. Unit: count.')
     stale_feed_count: int = PydField(description='Feeds older than their threshold. Unit: count.')
     error_feed_count: int = PydField(description='Feeds that could not be checked. Unit: count.')
@@ -1496,49 +1542,6 @@ class SymbolInfo(BytnodeModel):
     name: str = PydField(description='Human-readable name.')
     quote_asset: str = PydField(description='Quote currency of the pair (`USDT` for BTCUSDT, `USDC` for USDTUSDC): the currency of its prices.')
     markets: list[str] = PydField(description='Markets served for the pair: `spot` and `futures` (USDT-margined perpetual), or `spot` only for the two stablecoin pairs (their `/futures` routes answer `unavailable: not_applicable`).')
-
-
-class SymbolsCapabilitiesFeedsActiveLast24h(BytnodeModel):
-    """Per source feed, under its `/v1/status` name (`trades_spot`, `trades_kline_futures_seconds`, `oi_history`, `funding_rate`, `klines_1m`...): whether it received data for this symbol in the last 24 h."""
-
-    klines_futures_1m: bool = PydField(description='`true` when the `klines_futures_1m` feed delivered data in the last 24 hours; `null` when its probe did not conclude in time.')
-    trades_spot: bool = PydField(description='`true` when the `trades_spot` feed delivered data in the last 24 hours; `null` when its probe did not conclude in time.')
-    trades_futures: bool = PydField(description='`true` when the `trades_futures` feed delivered data in the last 24 hours; `null` when its probe did not conclude in time.')
-    oi_history: bool = PydField(description='`true` when the `oi_history` feed delivered data in the last 24 hours; `null` when its probe did not conclude in time.')
-    funding_rate: bool = PydField(description='`true` when the `funding_rate` feed delivered data in the last 24 hours; `null` when its probe did not conclude in time.')
-    liquidations_events: bool = PydField(description='`true` when the `liquidations_events` feed delivered data in the last 24 hours; `null` when its probe did not conclude in time.')
-    trades_kline_futures_seconds: bool = PydField(description='`true` when the `trades_kline_futures_seconds` feed delivered data in the last 24 hours; `null` when its probe did not conclude in time.')
-    klines_futures_multi: bool = PydField(description='`true` when the `klines_futures_multi` feed delivered data in the last 24 hours; `null` when its probe did not conclude in time.')
-    klines_1m: bool = PydField(description='`true` when the `klines_1m` feed delivered data in the last 24 hours; `null` when its probe did not conclude in time.')
-    klines_multi: bool = PydField(description='`true` when the `klines_multi` feed delivered data in the last 24 hours; `null` when its probe did not conclude in time.')
-    orderbook_1m: bool = PydField(description='`true` when the `orderbook_1m` feed delivered data in the last 24 hours; `null` when its probe did not conclude in time.')
-
-
-class SymbolsCapabilitiesComputedMetricsNotApplicable(BytnodeModel):
-    """Derived metrics that do not apply (stablecoins have no futures)."""
-
-    basis: str | None = PydField(None, description='Why `basis` does not apply to this symbol.')
-    oi_delta: str | None = PydField(None, description='Why `oi_delta` does not apply to this symbol.')
-    liquidations_cumulative: str | None = PydField(None, description='Why `liquidations_cumulative` does not apply to this symbol.')
-    liquidations_ratio: str | None = PydField(None, description='Why `liquidations_ratio` does not apply to this symbol.')
-    funding_cumulative: str | None = PydField(None, description='Why `funding_cumulative` does not apply to this symbol.')
-    indicators: str | None = PydField(None, description='Why `indicators` does not apply to this symbol.')
-    trades_kline_futures: str | None = PydField(None, description='Why `trades_kline_futures` does not apply to this symbol.')
-    heatmap_clusters: str | None = PydField(None, description='Why `heatmap_clusters` does not apply to this symbol.')
-    cvd: str | None = PydField(None, description='Why `cvd` does not apply to this symbol.')
-    trades_kline: str | None = PydField(None, description='Why `trades_kline` does not apply to this symbol.')
-
-
-class SymbolsCapabilities(BytnodeModel):
-    """Row of `/v1/symbols/{symbol}/capabilities`."""
-
-    asset_class: str = PydField(description='`crypto` or `stablecoin` (spot only, no futures metrics).')
-    feeds_active_last_24h: SymbolsCapabilitiesFeedsActiveLast24h = PydField(description='Per source feed, under its `/v1/status` name (`trades_spot`, `trades_kline_futures_seconds`, `oi_history`, `funding_rate`, `klines_1m`...): whether it received data for this symbol in the last 24 h.')
-    computed_metrics_available: list[str] = PydField(description='Derived metrics available for the symbol.')
-    computed_metrics_blocked: dict[str, Any] = PydField(description='Derived metrics unavailable, with the missing feeds.')
-    feeds_not_applicable: list[str] | None = PydField(None, description='Feeds that do not exist for this symbol (the futures feeds of a spot-only stablecoin), under their `/v1/status` names.')
-    stablecoin_note: str | None = PydField(None, description='Spot-only stablecoin: why its futures feeds and derived metrics do not apply. Absent for any other symbol.')
-    computed_metrics_not_applicable: SymbolsCapabilitiesComputedMetricsNotApplicable | None = PydField(None, description='Derived metrics that do not apply (stablecoins have no futures).')
 
 
 class Tokenomics(BytnodeModel):
@@ -1593,34 +1596,32 @@ class TradesKlineSecond(BytnodeModel):
     is_closed: bool = PydField(description='`true` = the row is final and will never change; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it.')
     net_volume: float | None = PydField(None, description='buy_volume - sell_volume over the row, base asset units. Positive = net buying. Unit: base asset quantity (BTC for BTCUSDT).')
     avg_trade_size: float | None = PydField(None, description='Average trade size, base asset units (NOT dollars: multiply by the price for a notional). Unit: base asset quantity (BTC for BTCUSDT).')
-    trade_rate: float | None = PydField(None, description='Average number of trades per second over the bucket. Unit: trades per second.')
-    is_volume_estimated: bool | None = PydField(None, description="`true` when base-asset quantities of this row were ESTIMATED from USD amounts ÷ the candle's typical price (high + low + close) / 3 (data written before quantities were recorded; mean error 0.04 % in 1m, 0.37 % in 1d); `false` = measured.")
+    trade_rate: float = PydField(description='Average number of trades per second over the bucket. Unit: trades per second.')
+    is_volume_estimated: bool = PydField(description="`true` when base-asset quantities of this row were ESTIMATED from USD amounts ÷ the candle's typical price (high + low + close) / 3 (data written before quantities were recorded; mean error 0.04 % in 1m, 0.37 % in 1d); `false` = measured.")
 
 
 class TradesAvgSize(BytnodeModel):
     """Row of `/v1/trades/avg-size`, `/v1/trades/avg-size/futures`, `/v1/trades/avg-size/spot`."""
 
-    time: datetime = PydField(description='Start of the latest closed one-minute trade candle the value comes from. Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
+    time: datetime = PydField(description='Start of the latest closed bucket of `timeframe` — the first row of `/v1/trades/avg-size/history` for the same `timeframe`. Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
     avg_trade_size: float | None = PydField(None, description='Average trade size, base asset units (NOT dollars: multiply by the price for a notional). Unit: base asset quantity (BTC for BTCUSDT).')
     volume: float | None = PydField(None, description="Traded volume over the row, base asset units (BTC for BTCUSDT, NOT dollars), aggregated across venues, over the market(s) the route covers: spot + perpetual futures on `/v1/klines` and `/v1/trades-kline`, the path's market alone on a `/spot` or `/futures` route (a name without a market suffix covers every market of its route; `volume_spot` / `volume_futures` restrict). `null` when a market is not available (never a partial sum). Unit: base asset quantity (BTC for BTCUSDT).")
     trade_count: int = PydField(description='Number of trades. Unit: count.')
     is_volume_estimated: bool = PydField(description="`true` when base-asset quantities of this row were ESTIMATED from USD amounts ÷ the candle's typical price (high + low + close) / 3 (data written before quantities were recorded; mean error 0.04 % in 1m, 0.37 % in 1d); `false` = measured.")
-    window_start: datetime = PydField(description="Start of the window the value covers (inclusive), aligned on the minute. The route's `time` says whether it is dated at the start or at the end of this window. Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).")
-    window_s: int = PydField(description='Length of that window, in seconds: it runs from `window_start` to `window_start + window_s` (excluded). Unit: seconds.')
+    sample_count: int | None = PydField(None, description="Number of source points in the bucket (one-minute points with data). For a state (basis, open interest) the value is the LAST of them — the bucket's close —; for a flow it is their total. Unit: count.")
+    is_closed: bool = PydField(description='`true` = the row is final and will never change; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it.')
 
 
 class TradesAvgSizeHistoryItem(BytnodeModel):
     """Row of `/v1/trades/avg-size/futures/history`, `/v1/trades/avg-size/history`, `/v1/trades/avg-size/spot/history`."""
 
-    time: datetime = PydField(description="Start of the bucket of `timeframe`, the value aggregating the bucket's minutes; the row covers `window_start` to `window_start + window_s`. Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).")
+    time: datetime = PydField(description="Start of the bucket of `timeframe`, the value aggregating the bucket's minutes; the row covers `time` to `time` + the envelope's `step` (excluded). Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).")
     avg_trade_size: float | None = PydField(None, description='Average trade size, base asset units (NOT dollars: multiply by the price for a notional). Unit: base asset quantity (BTC for BTCUSDT).')
     volume: float | None = PydField(None, description="Traded volume over the row, base asset units (BTC for BTCUSDT, NOT dollars), aggregated across venues, over the market(s) the route covers: spot + perpetual futures on `/v1/klines` and `/v1/trades-kline`, the path's market alone on a `/spot` or `/futures` route (a name without a market suffix covers every market of its route; `volume_spot` / `volume_futures` restrict). `null` when a market is not available (never a partial sum). Unit: base asset quantity (BTC for BTCUSDT).")
     trade_count: int = PydField(description='Number of trades. Unit: count.')
     is_volume_estimated: bool = PydField(description="`true` when base-asset quantities of this row were ESTIMATED from USD amounts ÷ the candle's typical price (high + low + close) / 3 (data written before quantities were recorded; mean error 0.04 % in 1m, 0.37 % in 1d); `false` = measured.")
-    sample_count: int = PydField(description='Number of source points behind the value (one-minute points in a bucket). Unit: count.')
+    sample_count: int = PydField(description="Number of source points in the bucket (one-minute points with data). For a state (basis, open interest) the value is the LAST of them — the bucket's close —; for a flow it is their total. Unit: count.")
     is_closed: bool = PydField(description='`true` = the row is final and will never change; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it.')
-    window_start: datetime = PydField(description="Start of the window the value covers (inclusive), aligned on the minute. The route's `time` says whether it is dated at the start or at the end of this window. Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).")
-    window_s: int = PydField(description='Length of that window, in seconds: it runs from `window_start` to `window_start + window_s` (excluded). Unit: seconds.')
 
 
 class Trade(BytnodeModel):
@@ -1634,4 +1635,4 @@ class Trade(BytnodeModel):
     value_usd: float = PydField(description="Notional value: price × quantity, in the pair's quote currency (USDT for BTCUSDT), taken as USD. Unit: USD.")
 
 
-__all__ = ['Basis', 'BasisHistoryItem', 'BtcFeesPrecise', 'BtcFeesFeePressure', 'BtcFees', 'BtcFeesHistoryItem', 'BtcMempoolTrend', 'BtcMempool', 'BtcMempoolHistoryItem', 'BtcMiningConcentration', 'BtcMiningLatestReward', 'BtcMiningPoolsItem', 'BtcMining', 'BtcMiningHistoryItem', 'BtcNetworkBlockTime', 'BtcNetworkNextAdjustment', 'BtcNetwork', 'BtcNetworkHistoryItem', 'BuysellRatio', 'BuysellRatioHistoryItem', 'Cvd', 'CvdHistoryItem', 'EtfFundamentals', 'EtfFundamentalsHistoryItem', 'EthDefi', 'EthDefiHistoryItem', 'EthDeflation', 'EthDeflationHistoryItem', 'EthGas', 'EthGasMomentum', 'EthGasMomentumHistoryItem', 'EthGasHistoryItem', 'EthRatio', 'EthRatioHistoryItem', 'EthSqueeze', 'EthSqueezeHistoryItem', 'EthStaking', 'EthStakingHistoryItem', 'EthSupply', 'EthSupplyHistoryItem', 'FearGreed', 'FearGreedHistoryItem', 'FundingCumulative', 'FundingCumulativeHistoryItem', 'FundingNext', 'FundingRate', 'GlobalMarket', 'GlobalMarketHistoryItem', 'Health', 'HeatmapClusters', 'HeatmapClustersHistoryItem', 'Kline', 'LimitsHistoryItem', 'LimitsRate', 'LimitsQuota', 'Limits', 'LiquidationsCumulative', 'LiquidationsCumulativeHistoryItem', 'LiquidationEvent', 'LiquidationsRatio', 'LiquidationsRatioHistoryItem', 'Macro', 'MacroCorrelationsCorrelationsDxy30d', 'MacroCorrelationsCorrelationsDxy90d', 'MacroCorrelationsCorrelationsDxy', 'MacroCorrelationsCorrelationsSp50030d', 'MacroCorrelationsCorrelationsSp50090d', 'MacroCorrelationsCorrelationsSp500', 'MacroCorrelationsCorrelationsGold30d', 'MacroCorrelationsCorrelationsGold90d', 'MacroCorrelationsCorrelationsGold', 'MacroCorrelationsCorrelationsVix30d', 'MacroCorrelationsCorrelationsVix90d', 'MacroCorrelationsCorrelationsVix', 'MacroCorrelationsCorrelations', 'MacroCorrelations', 'MacroHistoryItem', 'MacroIntraday', 'MacroIntradaySeriesInfoLastCandleAt', 'MacroIntradaySeriesInfo', 'MacroMomentum30dComponentsItem', 'MacroMomentum30d', 'MacroMomentum90dComponentsItem', 'MacroMomentum90d', 'MacroMomentum', 'MacroNetLiquidity', 'MacroNetLiquidityHistoryItem', 'MacroRiskSignalsVix', 'MacroRiskSignalsDxy', 'MacroRiskSignalsYieldCurve', 'MacroRiskSignalsSp500', 'MacroRiskSignalsGold', 'MacroRiskSignals', 'MacroRiskContext', 'MacroRisk', 'MacroSeriesInfo', 'Oi', 'OiDelta', 'OiDeltaHistoryItem', 'OiHistoryItem', 'OnchainActiveAddresses', 'OnchainActiveAddressesHistoryItem', 'OnchainMinerStress', 'OnchainMinerStressHistoryItem', 'OnchainMvrv', 'OnchainMvrvHistoryItem', 'OnchainNvt', 'OnchainNvtHistoryItem', 'OptionsExpiry', 'OptionsGreeksCoverage', 'OptionsGreeks', 'OptionsIv', 'OptionsIvKline', 'OptionsMaxPain', 'OptionsMaxPainHistoryItem', 'OptionsOiCoverage', 'OptionsOi', 'OptionsOiDelta', 'OptionsOiDeltaHistoryItem', 'OptionsOiDistribution', 'OptionsOiHistoryItem', 'OptionsPcRatio', 'OptionsPcRatioHistoryItem', 'OptionsSummaryNearestExpiry', 'OptionsSummaryCoverage', 'OptionsSummary', 'OptionsVolumeCoverage', 'OptionsVolume', 'OptionsVolumeHistoryItem', 'OrderbookRangesItem', 'Orderbook', 'PriceChangeChangesPct', 'PriceChange', 'SpreadInterexchangeHigh', 'SpreadInterexchangeLow', 'SpreadInterexchangeVenuesItem', 'SpreadInterexchange', 'StatusFeedsItem', 'Status', 'SymbolInfo', 'SymbolsCapabilitiesFeedsActiveLast24h', 'SymbolsCapabilitiesComputedMetricsNotApplicable', 'SymbolsCapabilities', 'Tokenomics', 'TokenomicsHistoryItem', 'TradesKline', 'TradesKlineSecond', 'TradesAvgSize', 'TradesAvgSizeHistoryItem', 'Trade']
+__all__ = ['Basis', 'BasisHistoryItem', 'BtcActiveAddresses', 'BtcActiveAddressesHistoryItem', 'BtcFeesFeePressure', 'BtcFees', 'BtcFeesHistoryItem', 'BtcMempoolTrend', 'BtcMempool', 'BtcMempoolHistoryItem', 'BtcMiningConcentration', 'BtcMiningLatestReward', 'BtcMiningPoolsItem', 'BtcMining', 'BtcMiningHistoryItem', 'BtcMvrv', 'BtcMvrvHistoryItem', 'BtcNetworkBlockTime', 'BtcNetworkNextAdjustment', 'BtcNetwork', 'BtcNetworkHistoryItem', 'BtcNvt', 'BtcNvtHistoryItem', 'BtcRevenuePerDifficulty', 'BtcRevenuePerDifficultyHistoryItem', 'BuySellRatio', 'BuySellRatioHistoryItem', 'CapabilitiesFeedsActiveLast24h', 'CapabilitiesComputedMetricsNotApplicable', 'Capabilities', 'Cvd', 'CvdHistoryItem', 'EtfFundamentals', 'EtfFundamentalsHistoryItem', 'EthDefi', 'EthDefiHistoryItem', 'EthDeflation', 'EthDeflationHistoryItem', 'EthGas', 'EthGasMomentum', 'EthGasMomentumHistoryItem', 'EthGasHistoryItem', 'EthPriceBtc', 'EthPriceBtcHistoryItem', 'EthSqueeze', 'EthSqueezeHistoryItem', 'EthStaking', 'EthStakingHistoryItem', 'EthSupply', 'EthSupplyHistoryItem', 'FearGreed', 'FearGreedHistoryItem', 'FundingCumulative', 'FundingCumulativeHistoryItem', 'FundingNext', 'FundingRate', 'GlobalMarket', 'GlobalMarketHistoryItem', 'Health', 'HeatmapClusters', 'HeatmapClustersHistoryItem', 'Kline', 'KlineHistoryItem', 'LimitsHistoryItem', 'LimitsRate', 'LimitsQuota', 'Limits', 'LiquidationsBigSmallRatio', 'LiquidationsBigSmallRatioHistoryItem', 'LiquidationsCumulative', 'LiquidationsCumulativeHistoryItem', 'LiquidationEvent', 'Macro', 'MacroCorrelationsCorrelationsDxy30d', 'MacroCorrelationsCorrelationsDxy90d', 'MacroCorrelationsCorrelationsDxy', 'MacroCorrelationsCorrelationsSp50030d', 'MacroCorrelationsCorrelationsSp50090d', 'MacroCorrelationsCorrelationsSp500', 'MacroCorrelationsCorrelationsGold30d', 'MacroCorrelationsCorrelationsGold90d', 'MacroCorrelationsCorrelationsGold', 'MacroCorrelationsCorrelationsVix30d', 'MacroCorrelationsCorrelationsVix90d', 'MacroCorrelationsCorrelationsVix', 'MacroCorrelationsCorrelations', 'MacroCorrelations', 'MacroHistoryItem', 'MacroIntraday', 'MacroIntradaySeriesInfoLastCandleAt', 'MacroIntradaySeriesInfo', 'MacroMomentum30dComponentsItem', 'MacroMomentum30d', 'MacroMomentum90dComponentsItem', 'MacroMomentum90d', 'MacroMomentum', 'MacroNetLiquidity', 'MacroNetLiquidityHistoryItem', 'MacroRiskSignalsVix', 'MacroRiskSignalsDxy', 'MacroRiskSignalsYieldCurve', 'MacroRiskSignalsSp500', 'MacroRiskSignalsGold', 'MacroRiskSignals', 'MacroRiskContext', 'MacroRisk', 'MacroSeriesInfo', 'Oi', 'OiChange', 'OiChangeHistoryItem', 'OiHistoryItem', 'OptionsExpiry', 'OptionsGreeksCoverage', 'OptionsGreeks', 'OptionsIv', 'OptionsIvKline', 'OptionsIvKlineHistoryItem', 'OptionsMaxPain', 'OptionsMaxPainHistoryItem', 'OptionsOiCoverage', 'OptionsOi', 'OptionsOiChange', 'OptionsOiChangeHistoryItem', 'OptionsOiDistribution', 'OptionsOiHistoryItem', 'OptionsPutCallRatio', 'OptionsPutCallRatioHistoryItem', 'OptionsSummaryNearestExpiry', 'OptionsSummaryCoverage', 'OptionsSummary', 'OptionsVolumeCoverage', 'OptionsVolume', 'OptionsVolumeHistoryItem', 'OrderbookRangesItem', 'Orderbook', 'PriceChangeChangesPct', 'PriceChange', 'SpreadInterexchangeVenuesItem', 'SpreadInterexchange', 'StatusFeedsItem', 'Status', 'SymbolInfo', 'Tokenomics', 'TokenomicsHistoryItem', 'TradesKline', 'TradesKlineSecond', 'TradesAvgSize', 'TradesAvgSizeHistoryItem', 'Trade']

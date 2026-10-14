@@ -5,7 +5,7 @@
  * import { Bytnode, channels, ind } from 'bytnode';
  *
  * const client = new Bytnode();   // reads BYTNODE_API_KEY
- * const candles = await client.klines({ symbol: 'BTCUSDT', timeframe: '1h', limit: 24 });
+ * const candles = await client.klines.history({ symbol: 'BTCUSDT', timeframe: '1h', limit: 24 });
  * ```
  *
  * Docs: https://bytnode.com/docs · Reference: https://api.bytnode.com/openapi.json

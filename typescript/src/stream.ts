@@ -41,12 +41,10 @@ export interface StreamBook {
   bids: Array<[number, number]>;
   /** `[price, quantity]`, increasing prices. */
   asks: Array<[number, number]>;
-  /** Reference price. */
-  mid_avg: number | null;
+  /** Average of the venues' mid prices (the reference price). */
+  avg_mid_price: number | null;
   /** Average per-venue spread, in basis points. */
   avg_spread_bps: number | null;
-  is_crossed?: boolean;
-  crossed_bps?: number;
 }
 
 interface Base {
@@ -70,7 +68,7 @@ export interface LiquidationsMessage extends Base {
   data: StreamLiquidation[];
 }
 export interface BookMessage extends Base {
-  kind: 'book';
+  kind: 'orderbook';
   data: StreamBook;
 }
 /** A message of the stream: narrow it with `msg.kind`. */
@@ -105,6 +103,12 @@ const REPLY_TIMEOUT_MS = 10_000;
 const END = Symbol('end');
 
 export function normalizeChannel(channel: string): string {
+  if (typeof channel !== 'string') {
+    throw new TypeError(
+      `a channel is a string such as 'trades.futures.BTCUSDT', got ${Array.isArray(channel) ? 'an array' : typeof channel}: ` +
+        'pass channels as separate arguments, or spread an array (...names)',
+    );
+  }
   const parts = channel.trim().split('.');
   if (parts.length < 2) throw new RangeError(`invalid channel ${JSON.stringify(channel)}: expected e.g. 'trades.futures.BTCUSDT'`);
   return [...parts.slice(0, -1).map((p) => p.toLowerCase()), parts[parts.length - 1]!.toUpperCase()].join('.');
@@ -112,8 +116,9 @@ export function normalizeChannel(channel: string): string {
 
 export function classifyClose(code: number, reason: string): StreamError | null {
   if (code === 4001) return new StreamError(reason || 'key refused', 'invalid_api_key', code);
+  // 4005 = the client fell behind (contract 3.0.0): reconnect, it starts fresh.
+  if (code === 4005 || (code === 4003 && /slow/i.test(reason))) return null;
   if (code === 4003) {
-    if (/slow/i.test(reason)) return null;
     return new ConnectionLimitError(reason || "the plan's ceiling of simultaneous connections is reached", 'connection_limit', code);
   }
   if (code === 1008) return new StreamError(reason || 'policy violation', 'policy_violation', code);
@@ -132,7 +137,7 @@ function toMessage(obj: Record<string, unknown>): StreamMessage {
     symbol: parts[parts.length - 1] ?? '',
     market: (parts.length === 3 ? parts[1] : null) as Base['market'],
   };
-  if (kind === 'book') return { ...base, kind, data: obj.data as StreamBook };
+  if (kind === 'orderbook') return { ...base, kind, data: obj.data as StreamBook };
   const rows = ((obj.data as Array<Record<string, unknown>>) ?? []).map((r) => ({ ...r, time: new Date(String(r.time)) }));
   if (kind === 'liquidations') return { ...base, kind, data: rows as unknown as StreamLiquidation[] };
   return { ...base, kind: 'trades', data: rows as unknown as StreamTrade[] };
@@ -312,7 +317,16 @@ export class Stream implements AsyncIterable<StreamMessage> {
     const op = obj.op as string | undefined;
     if (op) {
       if (op === 'error') {
-        const err = new StreamError(String(obj.message ?? 'stream error'), (obj.code as string) ?? null);
+        // `{error: {code, message, param, details}}` since contract 3.0.0 (the flat
+        // `code` / `message` of earlier versions is still read).
+        const e = (typeof obj.error === 'object' && obj.error !== null ? obj.error : obj) as Record<string, unknown>;
+        const err = new StreamError(
+          String(e.message ?? 'stream error'),
+          (e.code as string) ?? null,
+          null,
+          (e.param as string) ?? null,
+          e.details ?? null,
+        );
         const p = this.pending.shift();
         if (p) p.reject(err);
         else this.push(err);
@@ -372,8 +386,10 @@ export class Stream implements AsyncIterable<StreamMessage> {
 export const channels = {
   /** Every execution of `symbol`, pushed in 100 ms packets. */
   trades: (symbol: string, market: 'futures' | 'spot' = 'futures') => `trades.${checkMarket(market)}.${symbol.toUpperCase()}`,
-  /** The consolidated order book of `symbol`, every 100 ms. */
-  book: (symbol: string, market: 'futures' | 'spot' = 'futures') => `book.${checkMarket(market)}.${symbol.toUpperCase()}`,
+  /** The consolidated order book of `symbol`, every 100 ms: `orderbook.<market>.<SYMBOL>`. */
+  orderbook: (symbol: string, market: 'futures' | 'spot' = 'futures') => `orderbook.${checkMarket(market)}.${symbol.toUpperCase()}`,
+  /** Alias of `orderbook` (the channel was named `book.*` before contract 3.0.0). */
+  book: (symbol: string, market: 'futures' | 'spot' = 'futures') => `orderbook.${checkMarket(market)}.${symbol.toUpperCase()}`,
   /** The liquidations of `symbol` (perpetual futures). */
   liquidations: (symbol: string) => `liquidations.${symbol.toUpperCase()}`,
 };

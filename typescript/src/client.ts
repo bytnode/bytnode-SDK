@@ -43,7 +43,7 @@ export interface Bytnode extends Resources {}
  * import { Bytnode } from 'bytnode';
  *
  * const client = new Bytnode();                                   // reads BYTNODE_API_KEY
- * const { data } = await client.klines({ symbol: 'BTCUSDT', timeframe: '1h', limit: 24 });
+ * const { data } = await client.klines.history({ symbol: 'BTCUSDT', timeframe: '1h', limit: 24 });
  * for await (const row of client.funding.rate.history.iter({ symbol: 'BTCUSDT', since: '2026-01-01' })) {}
  * ```
  *
@@ -105,9 +105,9 @@ export class Bytnode {
    * The real-time WebSocket stream.
    *
    * ```ts
-   * const stream = client.stream({ channels: [channels.trades('BTCUSDT'), channels.book('BTCUSDT')] });
+   * const stream = client.stream({ channels: [channels.trades('BTCUSDT'), channels.orderbook('BTCUSDT')] });
    * for await (const msg of stream) {
-   *   if (msg.kind === 'book') console.log(msg.data.mid_avg);
+   *   if (msg.kind === 'orderbook') console.log(msg.data.avg_mid_price);
    *   else for (const t of msg.data) console.log(t.price, t.quantity);
    * }
    * ```

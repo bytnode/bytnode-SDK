@@ -2,7 +2,7 @@
 
 from bytnode import channels as ch
 
-with client.stream(ch.trades("BTCUSDT"), ch.book("ETHUSDT", market="spot")) as stream:
+with client.stream(ch.trades("BTCUSDT"), ch.orderbook("ETHUSDT", market="spot")) as stream:
     ...
 """
 
@@ -18,9 +18,13 @@ def trades(symbol: str, market: StreamMarket = "futures") -> str:
     return f"trades.{_market(market)}.{symbol.upper()}"
 
 
-def book(symbol: str, market: StreamMarket = "futures") -> str:
-    """The consolidated order book of `symbol`, every 100 ms: `book.<market>.<SYMBOL>`."""
-    return f"book.{_market(market)}.{symbol.upper()}"
+def orderbook(symbol: str, market: StreamMarket = "futures") -> str:
+    """The consolidated order book of `symbol`, every 100 ms: `orderbook.<market>.<SYMBOL>`."""
+    return f"orderbook.{_market(market)}.{symbol.upper()}"
+
+
+# Kept as an alias of `orderbook` (the channel was named `book.*` before contract 3.0.0).
+book = orderbook
 
 
 def liquidations(symbol: str) -> str:
@@ -34,4 +38,4 @@ def _market(market: str) -> str:
     return market
 
 
-__all__ = ["StreamMarket", "book", "liquidations", "trades"]
+__all__ = ["StreamMarket", "book", "liquidations", "orderbook", "trades"]

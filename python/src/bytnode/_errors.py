@@ -53,7 +53,8 @@ class APIError(BytnodeError):
         message: English, human-readable explanation from the API.
         param: the parameter at fault, when there is one.
         details: extra structured details, when the API gives some.
-        reason: `X-Deny-Reason` header (`key`, `family`, `rate`, `quota`, `depth`, `websocket`).
+        reason: `X-Deny-Reason` header: the `code` of the refusal (`plan_family`, `history_depth`,
+            `plan_websocket`, `rate_limited`, `quota_exceeded`...).
         request_id: request identifier, when the API sends one (quote it to support).
         headers: response headers.
         body: the decoded error body (or the raw text if it was not JSON).
@@ -152,10 +153,22 @@ class ServerError(APIError):
 class StreamError(BytnodeError):
     """An error on the WebSocket stream: an `op: error` frame, or a closing code."""
 
-    def __init__(self, message: str, *, code: str | None = None, close_code: int | None = None) -> None:
+    def __init__(
+        self,
+        message: str,
+        *,
+        code: str | None = None,
+        close_code: int | None = None,
+        param: str | None = None,
+        details: Any = None,
+    ) -> None:
         self.code = code
         self.message = message
         self.close_code = close_code
+        # The field of your message at fault and the structured complement
+        # (`suggestion`, `accepted`), like a REST error (contract 3.0.0).
+        self.param = param
+        self.details = details
         super().__init__(f"{code}: {message}" if code else message)
 
 

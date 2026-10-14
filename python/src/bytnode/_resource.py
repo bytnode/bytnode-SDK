@@ -90,12 +90,12 @@ class SyncResource:
         symbol: str,
         timeframe: str,
         indicators: Sequence[IndicatorSpec | Mapping[str, Any]],
-        results: int | None,
+        limit: int | None,
         options: RequestOptions | None,
     ) -> Response[Any]:
         body: dict[str, Any] = {"symbol": symbol, "timeframe": timeframe, "indicators": indicators_body(indicators)}
-        if results is not None:
-            body["results"] = results
+        if limit is not None:
+            body["limit"] = limit
         return self._client._request(route, {}, options, body=body)
 
 
@@ -136,10 +136,10 @@ class AsyncResource:
         symbol: str,
         timeframe: str,
         indicators: Sequence[IndicatorSpec | Mapping[str, Any]],
-        results: int | None,
+        limit: int | None,
         options: RequestOptions | None,
     ) -> Response[Any]:
         body: dict[str, Any] = {"symbol": symbol, "timeframe": timeframe, "indicators": indicators_body(indicators)}
-        if results is not None:
-            body["results"] = results
+        if limit is not None:
+            body["limit"] = limit
         return await self._client._request(route, {}, options, body=body)

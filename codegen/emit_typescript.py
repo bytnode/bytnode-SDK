@@ -66,7 +66,9 @@ def ts_type(t: TypeRef) -> str:
     elif t.kind == "dict":
         s = "Record<string, unknown>"
     elif t.kind == "union":
-        s = " | ".join(ts_type(o) for o in t.options)
+        # `KnownSymbol | string` collapses to `string` (no completion): `string & {}` keeps it.
+        named = any(o.kind == "literal" for o in t.options)
+        s = " | ".join("(string & {})" if named and o.kind == "str" else ts_type(o) for o in t.options)
     else:
         return "unknown"
     return f"{s} | null" if t.nullable else s
@@ -221,11 +223,14 @@ def emit_snapshot(api: Api, r: Route, out: list[str]) -> None:
     out.append("/** The payload of `GET /v1/snapshot`: the requested fields, typed like their routes. */")
     out.append("export interface SnapshotData {")
     for f in api.snapshot_fields:
-        # A field limited to depth 1 is its route's OBJECT (or null), never an array.
-        if f.model and f.maximum == 1:
+        # One type per field shape (contract 3.0.0): `<field>@<tf>` is ALWAYS an array,
+        # a depth-1-only field its route's OBJECT, an event field an array.
+        if not f.model:
+            t = "unknown"
+        elif f.timeframe is None and f.maximum == 1:
             t = f"M.{f.model} | null"
         else:
-            t = f"M.{f.model} | Array<M.{f.model}> | null" if f.model else "unknown"
+            t = f"Array<M.{f.model}> | null"
         out.append(f"  {key(f.wire)}?: {t};")
     out.append("  [extra: string]: unknown;")
     out.append("}")

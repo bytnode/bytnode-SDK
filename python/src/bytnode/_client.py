@@ -78,9 +78,9 @@ class Bytnode(Resources, _Common):
         from bytnode import Bytnode
 
         client = Bytnode()                      # reads BYTNODE_API_KEY
-        candles = client.klines("BTCUSDT", "1h", limit=24)
+        candles = client.klines.history("BTCUSDT", "1h", limit=24)
         print(candles.data[0].close)
-        df = client.klines.iter("BTCUSDT", "1h", since="2026-01-01").to_pandas()
+        df = client.klines.history.iter("BTCUSDT", "1h", since="2026-01-01").to_pandas()
 
     Every route is an attribute named after its path: `/v1/funding/rate/history` is
     `client.funding.rate.history(...)`. Use it as a context manager, or call `close()`.
@@ -133,7 +133,7 @@ class Bytnode(Resources, _Common):
     ) -> SyncStream:
         """The real-time WebSocket stream (blocking iterator).
 
-            with client.stream("trades.futures.BTCUSDT", "book.futures.BTCUSDT") as stream:
+            with client.stream("trades.futures.BTCUSDT", "orderbook.futures.BTCUSDT") as stream:
                 for msg in stream:
                     print(msg.channel, msg.data)
 
@@ -170,7 +170,7 @@ class AsyncBytnode(AsyncResources, _Common):
         from bytnode import AsyncBytnode
 
         async with AsyncBytnode() as client:
-            candles = await client.klines("BTCUSDT", "1h", limit=24)
+            candles = await client.klines.history("BTCUSDT", "1h", limit=24)
             async for row in client.funding.rate.history.iter("BTCUSDT", since="2026-01-01"):
                 ...
             async with client.stream("trades.futures.BTCUSDT") as stream:

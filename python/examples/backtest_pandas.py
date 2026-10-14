@@ -11,7 +11,7 @@ from bytnode import Bytnode
 since = datetime.now(timezone.utc) - timedelta(days=30)
 
 with Bytnode() as client:
-    candles = client.klines.iter("BTCUSDT", "1h", since=since).to_pandas()
+    candles = client.klines.history.iter("BTCUSDT", "1h", since=since).to_pandas()
     oi = client.oi.history.iter("BTCUSDT", "1h", since=since).to_pandas()
     funding = client.funding.rate.history.iter("BTCUSDT", since=since).to_pandas()
 

@@ -7,7 +7,7 @@ const T = '2026-10-12T09:00:00.000Z';
 const trades = (seq: number) =>
   JSON.stringify({ channel: 'trades.futures.BTCUSDT', server_time: T, seq, data: [{ time: T, id: `id${seq}`, side: 'buy', price: 83000, quantity: 0.01, value_usd: 830 }] });
 const book = (seq: number) =>
-  JSON.stringify({ channel: 'book.futures.BTCUSDT', server_time: T, seq, data: { bids: [[82999, 1.5]], asks: [[83001, 2]], mid_avg: 83000, avg_spread_bps: 0.03 } });
+  JSON.stringify({ channel: 'orderbook.futures.BTCUSDT', server_time: T, seq, data: { bids: [[82999, 1.5]], asks: [[83001, 2]], avg_mid_price: 83000, avg_spread_bps: 0.03 } });
 
 type Script = (ws: WebSocket) => void;
 const servers: WebSocketServer[] = [];
@@ -33,7 +33,7 @@ async function start(scripts: Script[]) {
       state.frames.push(frame);
       if (frame.op !== 'subscribe') return;
       if (frame.channels.some((c: string) => c.endsWith('FAKE'))) {
-        ws.send(JSON.stringify({ op: 'error', code: 'invalid_symbol', message: 'Unknown symbol' }));
+        ws.send(JSON.stringify({ op: 'error', error: { code: 'invalid_symbol', message: 'Unknown symbol', param: 'channels' } }));
         return;
       }
       frame.channels.forEach((c: string) => active.add(c));
@@ -65,7 +65,7 @@ async function collect(stream: ReturnType<Bytnode['stream']>): Promise<{ got: St
 describe('stream', () => {
   it('builds channel names', () => {
     expect(channels.trades('btcusdt')).toBe('trades.futures.BTCUSDT');
-    expect(channels.book('ETHUSDT', 'spot')).toBe('book.spot.ETHUSDT');
+    expect(channels.book('ETHUSDT', 'spot')).toBe('orderbook.spot.ETHUSDT');
     expect(channels.liquidations('solusdt')).toBe('liquidations.SOLUSDT');
   });
 
@@ -81,8 +81,8 @@ describe('stream', () => {
     const { got, error } = await collect(s);
     expect(error).toBeInstanceOf(StreamError);
     expect(state.keys).toEqual(['cb_live_k']);
-    expect(state.frames[0]).toEqual({ op: 'subscribe', channels: ['book.futures.BTCUSDT', 'trades.futures.BTCUSDT'], depth: 3 });
-    expect(got.map((m) => m.kind)).toEqual(['trades', 'trades', 'book', 'trades']);
+    expect(state.frames[0]).toEqual({ op: 'subscribe', channels: ['orderbook.futures.BTCUSDT', 'trades.futures.BTCUSDT'], depth: 3 });
+    expect(got.map((m) => m.kind)).toEqual(['trades', 'trades', 'orderbook', 'trades']);
     expect(got.map((m) => m.gap)).toEqual([0, 0, 0, 2]);
     expect(gaps).toEqual([['trades.futures.BTCUSDT', 2]]);
     const first = got[0]!;
@@ -91,9 +91,9 @@ describe('stream', () => {
     expect(first.symbol).toBe('BTCUSDT');
     expect(first.market).toBe('futures');
     const b = got[2]!;
-    if (b.kind !== 'book') throw new Error('expected book');
+    if (b.kind !== 'orderbook') throw new Error('expected orderbook');
     expect(b.data.bids[0]).toEqual([82999, 1.5]);
-    expect(s.channels).toEqual(['book.futures.BTCUSDT', 'trades.futures.BTCUSDT']);
+    expect(s.channels).toEqual(['orderbook.futures.BTCUSDT', 'trades.futures.BTCUSDT']);
   });
 
   it('reconnects, subscribes again, stops on the connection ceiling', async () => {

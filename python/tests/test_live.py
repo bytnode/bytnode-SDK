@@ -35,7 +35,7 @@ def live() -> Iterator[Bytnode]:
 
 
 def test_latest_values(live: Bytnode) -> None:
-    candles = live.klines("BTCUSDT", "1h", limit=3)
+    candles = live.klines.history("BTCUSDT", "1h", limit=3)
     assert len(candles) == 3 and candles.data[0].close > 0 and candles.symbol == "BTCUSDT"
     funding = live.funding.rate("BTCUSDT")
     assert funding.data is not None and funding.data.time is not None
@@ -44,7 +44,7 @@ def test_latest_values(live: Bytnode) -> None:
 
 
 def test_paginated_history(live: Bytnode) -> None:
-    rows = live.klines.iter("BTCUSDT", "1h", since="2026-10-01", until="2026-10-03", page_size=10).to_list()
+    rows = live.klines.history.iter("BTCUSDT", "1h", since="2026-10-01", until="2026-10-03", page_size=10).to_list()
     hours = [r.time for r in rows]
     assert len(rows) == 49 and hours == sorted(hours) and len(set(hours)) == len(hours)
 
@@ -63,7 +63,7 @@ def test_error_is_typed(live: Bytnode) -> None:
 def test_snapshot_and_indicators(live: Bytnode) -> None:
     snap = live.snapshot("ETHUSDT", funding_rate=True, klines={"1h": 3})
     assert snap.data.funding_rate is not None and len(snap.data.klines_1h or []) == 3
-    res = live.indicators("BTCUSDT", "1h", [ind.rsi(14), ind.macd(), ind.bb(20)], results=5)
+    res = live.indicators("BTCUSDT", "1h", [ind.rsi(14), ind.macd(), ind.bb(20)], limit=5)
     assert res.data is not None and set(res.data.indicators) == {"rsi_14", "macd_12_26_9", "bb_20_2"}
     df = res.to_pandas()
     assert len(df) == 5 and "macd_12_26_9.signal" in df.columns
@@ -72,19 +72,19 @@ def test_snapshot_and_indicators(live: Bytnode) -> None:
 def test_stream_sync(live: Bytnode) -> None:
     seen: list[str] = []
     deadline = time.monotonic() + 10
-    with live.stream(ch.trades("BTCUSDT"), ch.book("BTCUSDT"), depth=3) as stream:
+    with live.stream(ch.trades("BTCUSDT"), ch.orderbook("BTCUSDT"), depth=3) as stream:
         for msg in stream:
             seen.append(msg.kind)
             if isinstance(msg, TradesMessage):
                 assert msg.data[0].price > 0
-            if time.monotonic() > deadline or ({"trades", "book"} <= set(seen) and len(seen) > 5):
+            if time.monotonic() > deadline or ({"trades", "orderbook"} <= set(seen) and len(seen) > 5):
                 break
-    assert {"trades", "book"} <= set(seen)
+    assert {"trades", "orderbook"} <= set(seen)
 
 
 async def test_async_client_and_stream() -> None:
     async with AsyncBytnode() as client:
-        candles = await client.klines("SOLUSDT", "5m", limit=2)
+        candles = await client.klines.history("SOLUSDT", "5m", limit=2)
         assert len(candles) == 2
         async with client.stream(ch.trades("ETHUSDT")) as stream:
             async for msg in stream:

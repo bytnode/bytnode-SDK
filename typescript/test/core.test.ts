@@ -15,7 +15,7 @@ import {
 import { SPEC, err, fakeClient, json } from './helpers.js';
 
 const OK = { status: 'ok', server_time: '2026-10-12T09:00:00.000Z', data_type: 'funding_rate', data: null };
-const KLINE = SPEC.paths['/v1/klines'].get.responses['200'].content['application/json'].example.data[0];
+const KLINE = SPEC.paths['/v1/klines/history'].get.responses['200'].content['application/json'].example.data[0];
 const page = (times: string[], next: unknown) => ({
   status: 'ok',
   server_time: '2026-10-12T09:00:00.000Z',
@@ -115,7 +115,7 @@ describe('errors', () => {
 describe('parameters', () => {
   it('converts times and lists', async () => {
     const { client, calls } = fakeClient(() => json(200, page([], null)));
-    await client.klines({ symbol: 'BTCUSDT', timeframe: '1h', since: '2026-01-01', before: new Date('2026-01-02T00:00:00Z'), fields: ['time', 'close'], limit: 5 });
+    await client.klines.history({ symbol: 'BTCUSDT', timeframe: '1h', since: '2026-01-01', before: new Date('2026-01-02T00:00:00Z'), fields: ['time', 'close'], limit: 5 });
     const q = calls[0]!.url.searchParams;
     expect(q.get('since_ms')).toBe('1767225600000');
     expect(q.get('before_ms')).toBe('1767312000000');
@@ -131,8 +131,8 @@ describe('parameters', () => {
   it('reads rate-limit headers', async () => {
     const { client } = fakeClient(() =>
       json(200, OK, {
-        'ratelimit-policy': '"debit";q=600;w=60, "mensuel";q=100000;w=2592000',
-        ratelimit: '"debit";r=599;t=1, "mensuel";r=87342;t=1234567',
+        'ratelimit-policy': '"rate";q=600;w=60, "quota";q=100000;w=2592000',
+        ratelimit: '"rate";r=599;t=1, "quota";r=87342;t=1234567',
       }),
     );
     const resp = await client.funding.rate({ symbol: 'BTCUSDT' });
@@ -147,7 +147,7 @@ describe('pagination', () => {
       () => json(200, page(['2026-01-01T00:00:00.000Z', '2026-01-01T01:00:00.000Z'], { since_ms: 1767232800000, until_ms: null, before_ms: null, order: 'asc' })),
       () => json(200, page(['2026-01-01T02:00:00.000Z'], null)),
     ]);
-    const rows = await client.klines.iter({ symbol: 'BTCUSDT', timeframe: '1h', since: '2026-01-01', until: '2026-01-02' }).toArray();
+    const rows = await client.klines.history.iter({ symbol: 'BTCUSDT', timeframe: '1h', since: '2026-01-01', until: '2026-01-02' }).toArray();
     expect(rows.map((r) => r.time.getUTCHours())).toEqual([0, 1, 2]);
     const [a, b] = calls.map((c) => c.url.searchParams);
     expect(a!.get('limit')).toBe('1000');
@@ -158,10 +158,10 @@ describe('pagination', () => {
 
   it('understands next as a URL', async () => {
     const { client, calls } = fakeClient([
-      () => json(200, page(['2026-01-01T01:00:00.000Z'], '/v1/klines?symbol=BTCUSDT&timeframe=1h&limit=1000&before_ms=1767229200000&order=desc')),
+      () => json(200, page(['2026-01-01T01:00:00.000Z'], '/v1/klines/history?symbol=BTCUSDT&timeframe=1h&limit=1000&before_ms=1767229200000&order=desc')),
       () => json(200, page(['2026-01-01T00:00:00.000Z'], null)),
     ]);
-    expect(await client.klines.iter({ symbol: 'BTCUSDT', timeframe: '1h' }).toArray()).toHaveLength(2);
+    expect(await client.klines.history.iter({ symbol: 'BTCUSDT', timeframe: '1h' }).toArray()).toHaveLength(2);
     expect(calls[1]!.url.searchParams.get('before_ms')).toBe('1767229200000');
     expect(calls[1]!.url.searchParams.get('symbol')).toBe('BTCUSDT');
   });
@@ -169,10 +169,10 @@ describe('pagination', () => {
   it('respects maxItems and never loops on a stuck cursor', async () => {
     const stuck = { before_ms: 1767225600000, order: 'desc' };
     const { client, calls } = fakeClient(() => json(200, page(['2026-01-01T00:00:00.000Z'], stuck)));
-    expect(await client.klines.iter({ symbol: 'BTCUSDT', timeframe: '1h' }).toArray()).toHaveLength(2);
+    expect(await client.klines.history.iter({ symbol: 'BTCUSDT', timeframe: '1h' }).toArray()).toHaveLength(2);
     expect(calls).toHaveLength(2);
     const { client: c2 } = fakeClient(() => json(200, page(['2026-01-01T00:00:00.000Z', '2026-01-01T00:00:00.000Z'], { before_ms: 1767225600000, order: 'desc' })));
-    expect(await c2.klines.iter({ symbol: 'BTCUSDT', timeframe: '1h', maxItems: 3 }).toArray()).toHaveLength(3);
+    expect(await c2.klines.history.iter({ symbol: 'BTCUSDT', timeframe: '1h', maxItems: 3 }).toArray()).toHaveLength(3);
   });
 
   it('puts trades in range reading', async () => {
@@ -186,11 +186,11 @@ describe('pagination', () => {
 describe('snapshot and indicators', () => {
   it('encodes snapshot fields', async () => {
     const { client, calls } = fakeClient(() => json(200, { status: 'ok', server_time: '2026-10-12T09:00:00.000Z', data: {} }));
-    await client.snapshot({ symbol: 'BTCUSDT', funding_rate: true, basis: 5, klines: { '1h': 24, '1w': 2 }, cvd: { '5m': 3 } });
+    await client.snapshot({ symbol: 'BTCUSDT', funding_rate: true, basis: 1, klines: { '1h': 24, '1w': 2 }, cvd: { '5m': 3 } });
     expect(Object.fromEntries(calls[0]!.url.searchParams)).toEqual({
       symbol: 'BTCUSDT',
       funding_rate: 'true',
-      basis: '5',
+      basis: '1',
       'klines@1h': '24',
       'klines@1w': '2',
       'cvd@5m': '3',
@@ -200,7 +200,7 @@ describe('snapshot and indicators', () => {
 
   it('builds indicator bodies with unique ids', async () => {
     const { client, calls } = fakeClient(() => json(200, { status: 'ok', server_time: '2026-10-12T09:00:00.000Z', data: null, unavailable: 'not_applicable' }));
-    const resp = await client.indicators({ symbol: 'USDCUSDT', timeframe: '1h', indicators: [ind.rsi(14), ind.rsi(14), { type: 'ema', period: 50 }], results: 10 });
+    const resp = await client.indicators({ symbol: 'USDCUSDT', timeframe: '1h', indicators: [ind.rsi(14), ind.rsi(14), { type: 'ema', period: 50 }], limit: 10 });
     const body = JSON.parse(String(calls[0]!.init.body));
     expect(body.indicators.map((i: { id: string }) => i.id)).toEqual(['rsi_14', 'rsi_14_2', 'ema_50']);
     expect(resp.data).toBeNull();
@@ -226,11 +226,11 @@ describe('the API key is never serialized', () => {
 describe('pagination: short pages and timeouts', () => {
   it('goes on after a short or empty page that has a next', async () => {
     const { client } = fakeClient([
-      () => json(200, page(['2026-01-01T00:00:00.000Z'], '/v1/klines?symbol=BTCUSDT&timeframe=1h&since_ms=1767312000000&order=asc&limit=1000')),
-      () => json(200, page([], '/v1/klines?symbol=BTCUSDT&timeframe=1h&since_ms=1767398400000&order=asc&limit=1000')),
+      () => json(200, page(['2026-01-01T00:00:00.000Z'], '/v1/klines/history?symbol=BTCUSDT&timeframe=1h&since_ms=1767312000000&order=asc&limit=1000')),
+      () => json(200, page([], '/v1/klines/history?symbol=BTCUSDT&timeframe=1h&since_ms=1767398400000&order=asc&limit=1000')),
       () => json(200, page(['2026-01-03T00:00:00.000Z', '2026-01-03T01:00:00.000Z'], null)),
     ]);
-    const rows = await client.klines.iter({ symbol: 'BTCUSDT', timeframe: '1h', since: '2026-01-01' }).toArray();
+    const rows = await client.klines.history.iter({ symbol: 'BTCUSDT', timeframe: '1h', since: '2026-01-01' }).toArray();
     expect(rows).toHaveLength(3);
   });
 
@@ -246,7 +246,7 @@ describe('pagination: short pages and timeouts', () => {
       return json(200, page(['2026-01-01T00:00:00.000Z'], null));
     }) as typeof fetch;
     const client = new Bytnode({ apiKey: 'cb_live_test_key', baseUrl: 'https://api.example.test', fetch: fetchImpl, maxRetries: 0 });
-    const rows = await client.klines.iter({ symbol: 'BTCUSDT', timeframe: '1h', since: '2026-01-01' }).toArray();
+    const rows = await client.klines.history.iter({ symbol: 'BTCUSDT', timeframe: '1h', since: '2026-01-01' }).toArray();
     expect(rows).toHaveLength(1);
     expect(limits).toEqual(['1000', '500']);
   });
@@ -269,5 +269,39 @@ describe('exact models and request id', () => {
     ]);
     const resp = await client.health();
     expect(resp.requestId).toBe('abc123');
+  });
+});
+
+describe('contract version', () => {
+  it('warns on another major and on a newer minor only', async () => {
+    const { contractDrift } = await import('../src/core.js');
+    expect(contractDrift('3.1.0', '3.1.0')).toBeNull();
+    expect(contractDrift('3.0.0', '3.1.0')).toBeNull();
+    expect(contractDrift('3.2.0', '3.1.0')).toContain('MINOR');
+    expect(contractDrift('4.0.0', '3.1.0')).toContain('MAJOR');
+  });
+});
+
+describe('indicator rows', () => {
+  it('sends limit and converts each row time to a Date, newest first', async () => {
+    const body = {
+      status: 'ok',
+      server_time: '2026-10-13T10:00:00.000Z',
+      data_type: 'indicators',
+      data: {
+        indicators: {
+          rsi_14: { type: 'rsi', period: 14, values: [{ time: '2026-10-13T09:00:00.000Z', value: 56.8 }, { time: '2026-10-13T08:00:00.000Z', value: 56.4 }] },
+          macd_12_26_9: { type: 'macd', values: [{ time: '2026-10-13T09:00:00.000Z', macd: 135.8, signal: -23.2, histogram: 159 }] },
+        },
+      },
+    };
+    const { client, calls } = fakeClient(() => json(200, body));
+    const res = await client.indicators({ symbol: 'BTCUSDT', timeframe: '1h', indicators: [ind.rsi(14), ind.macd()], limit: 2 });
+    expect(JSON.parse(String(calls[0]!.init.body)).limit).toBe(2);
+    const rsi = res.data!.indicators['rsi_14']!.values;
+    expect(rsi[0]!.time).toBeInstanceOf(Date);
+    expect(rsi[0]!.time.getTime()).toBeGreaterThan(rsi[1]!.time.getTime());
+    expect(rsi[0]!.value).toBe(56.8);
+    expect(res.data!.indicators['macd_12_26_9']!.values[0]!.signal).toBe(-23.2);
   });
 });

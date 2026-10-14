@@ -29,6 +29,8 @@ export interface IterOptions {
   pageSize?: number;
   /** Stop after this many rows. */
   maxItems?: number;
+  /** The same as `maxItems` (the name the other methods use for a number of rows). */
+  limit?: number;
 }
 
 /** @internal What the runtime needs to know about a route (filled in by the generated code). */
@@ -56,13 +58,36 @@ const ENVELOPE = new Set(['status', 'server_time', 'data_type', 'data', 'next', 
 
 let contractWarned = false;
 
-/** Warn once when the API serves another MAJOR contract version than this SDK. */
+function majorMinor(version: string): [number, number] {
+  const [major = Number.NaN, minor = Number.NaN] = version.split('.').map((x) => Number.parseInt(x, 10));
+  return [Number.isFinite(major) ? major : 0, Number.isFinite(minor) ? minor : 0];
+}
+
+/**
+ * What the served contract version means for this SDK, or `null` when nothing to say.
+ * Another MAJOR: names or meanings changed. A newer MINOR: additions only (routes,
+ * fields, accepted values) the SDK does not type yet; nothing breaks.
+ */
+export function contractDrift(served: string, generated: string): string | null {
+  const [sMajor, sMinor] = majorMinor(served);
+  const [gMajor, gMinor] = majorMinor(generated);
+  if (sMajor !== gMajor) {
+    return `bytnode: the API serves contract ${served}, this SDK was generated for ${generated} (another MAJOR version: names or meanings changed). Upgrade the SDK (https://bytnode.com/docs/sdk).`;
+  }
+  if (sMinor > gMinor) {
+    return `bytnode: the API serves contract ${served}, newer than ${generated} (MINOR: additions only, returned as received). Upgrade the SDK to type them (https://bytnode.com/docs/sdk).`;
+  }
+  return null;
+}
+
+/** Warn ONCE when the API serves another MAJOR, or a newer MINOR, contract version. */
 function checkContract(headers: Headers): void {
   const served = headers.get('bytnode-contract-version');
   if (contractWarned || !served) return;
-  if (served.split('.')[0] !== API_VERSION.split('.')[0]) {
+  const message = contractDrift(served, API_VERSION);
+  if (message) {
     contractWarned = true;
-    console.warn(`bytnode: the API serves contract ${served}, this SDK was generated for ${API_VERSION}. Upgrade the SDK (https://bytnode.com/docs/sdk).`);
+    console.warn(message);
   }
 }
 
@@ -239,7 +264,10 @@ function parseData(route: RouteSpec, raw: Record<string, unknown>): unknown {
     case 'indicators': {
       if (data == null) return null;
       const inds = (data as { indicators?: Record<string, Record<string, unknown>> }).indicators ?? {};
-      for (const ind of Object.values(inds)) if (typeof ind.time === 'string') ind.time = new Date(ind.time);
+      for (const ind of Object.values(inds)) {
+        const rows = Array.isArray(ind.values) ? (ind.values as Array<Record<string, unknown>>) : [];
+        for (const row of rows) if (typeof row.time === 'string') row.time = new Date(row.time);
+      }
       return data;
     }
     default:
@@ -389,7 +417,7 @@ export class Core {
   }
 
   iterParams(route: RouteSpec, params: Record<string, unknown> = {}): { params: Record<string, unknown>; maxItems: number | null } {
-    const { pageSize, maxItems, ...rest } = params as Record<string, unknown> & IterOptions;
+    const { pageSize, maxItems, limit, ...rest } = params as Record<string, unknown> & IterOptions;
     const out: Record<string, unknown> = {};
     for (const [k, v] of Object.entries(rest)) if (v != null) out[route.wire[k] ?? k] = v;
     if (pageSize != null) {
@@ -407,7 +435,7 @@ export class Core {
       if (out.since_ms != null) out.order = 'asc'; // a period read from its start comes in chronological order
       else if (route.rangeMode) out.order = 'desc'; // ticks only paginate in range reading
     }
-    return { params: out, maxItems: maxItems ?? null };
+    return { params: out, maxItems: maxItems ?? limit ?? null };
   }
 
   /** A callable resource: `fn(params, options)`, plus `fn.iter(...)` when the route paginates. */
@@ -455,7 +483,7 @@ export class Core {
         timeframe: params.timeframe,
         indicators: indicatorsBody(params.indicators),
       };
-      if (params.results != null) body.results = params.results;
+      if (params.limit != null) body.limit = params.limit;
       return this.request(route, {}, options, body);
     };
   }

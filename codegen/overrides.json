@@ -11,9 +11,7 @@
     {"name": "MiningDataset", "values": ["concentration", "rewards", "difficulty", "fee_rates"], "description": "Mining series: pool shares, block rewards, difficulty or fee rates."}
   ],
   "param_literals": [],
-  "segment_aliases": {
-    "global": "global_market"
-  },
+  "segment_aliases": {},
   "model_names": {
     "/v1/global": "GlobalMarket",
     "/v1/health": "Health"

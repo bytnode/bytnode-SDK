@@ -36,17 +36,27 @@ export interface IndicatorsParams {
   timeframe: KlineTimeframe;
   /** Up to 50 specs: `ind.rsi(14)`, or plain objects `{ type: 'rsi', period: 14 }`. Ids are generated when missing. */
   indicators: Array<IndicatorSpec | ({ type: string; id?: string } & Record<string, unknown>)>;
-  /** Values per indicator, 1 to 1000 (default 1). */
-  results?: number;
+  /** Rows per indicator, 1 to 1000 (default 1), most recent first. */
+  limit?: number;
+}
+
+/**
+ * One value of an indicator at one candle: `time` and `value`, or `time` and the named
+ * outputs of a multi-output indicator (`macd`, `signal`, `histogram`; `upper`, `middle`, `lower`…).
+ */
+export interface IndicatorRow {
+  /** Start of the candle of this value. */
+  time: Date;
+  /** The value of a single-output indicator. */
+  value?: number | null;
+  [output: string]: number | null | Date | undefined;
 }
 
 /** One computed indicator. Its parameters (`period`, `fast`…) are extra properties. */
 export interface IndicatorValue {
-  /** Start of the candle of the LAST value of `values`. */
-  time: Date | null;
   type: string;
-  /** Values oldest to newest; a map of series for multi-output indicators (MACD, Bollinger…). */
-  values: Array<number | null> | Record<string, Array<number | null>>;
+  /** One row per candle, most recent first (`limit` rows). */
+  values: IndicatorRow[];
   [param: string]: unknown;
 }
 

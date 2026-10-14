@@ -5,8 +5,8 @@ order flow, derivatives, liquidations, options, macro, on-chain and ETF data —
 you, one call away from a pandas DataFrame, plus the real-time WebSocket stream.
 
 ```bash
-pip install https://github.com/bytnode/bytnode-SDK/releases/download/v0.3.0/bytnode-0.3.0-py3-none-any.whl
-# with pandas: pip install "bytnode[pandas] @ https://github.com/bytnode/bytnode-SDK/releases/download/v0.3.0/bytnode-0.3.0-py3-none-any.whl"
+pip install https://github.com/bytnode/bytnode-SDK/releases/download/v0.4.0/bytnode-0.4.0-py3-none-any.whl
+# with pandas: pip install "bytnode[pandas] @ https://github.com/bytnode/bytnode-SDK/releases/download/v0.4.0/bytnode-0.4.0-py3-none-any.whl"
 export BYTNODE_API_KEY=cb_live_...   # create one at https://bytnode.com/dashboard/keys
 ```
 
@@ -15,13 +15,16 @@ from bytnode import Bytnode
 
 client = Bytnode()                                   # reads BYTNODE_API_KEY
 
-candles = client.klines("BTCUSDT", "1h", limit=24)
-print(candles.data[0].close, candles.data[0].time)   # typed rows, datetimes in UTC
+last = client.klines("BTCUSDT", "1h")                # the latest CLOSED candle
+print(last.data.close, last.data.time)               # typed model, datetimes in UTC
+
+candles = client.klines.history("BTCUSDT", "1h", limit=24)   # most recent first
+print(candles.data[0].close, len(candles))
 
 from datetime import datetime, timedelta, timezone
 
-since = datetime.now(timezone.utc) - timedelta(hours=12)              # inside every plan's window
-df = client.klines.iter("BTCUSDT", "1h", since=since).to_pandas()     # every page, one DataFrame (pip install pandas)
+since = datetime.now(timezone.utc) - timedelta(hours=12)                      # inside every plan's window
+df = client.klines.history.iter("BTCUSDT", "1h", since=since).to_pandas()     # every page, one DataFrame (pip install pandas)
 ```
 
 Python 3.10+. Synchronous and `asyncio` clients. Fully typed (`py.typed`, mypy strict).
@@ -47,14 +50,16 @@ Every route of the [API reference](https://bytnode.com/docs) is an attribute nam
 
 | Route | Method |
 |---|---|
-| `GET /v1/klines` | `client.klines(symbol, timeframe, ...)` |
+| `GET /v1/klines` | `client.klines(symbol, timeframe)` — the latest closed candle |
+| `GET /v1/klines/history` | `client.klines.history(symbol, timeframe, ...)` |
 | `GET /v1/funding/rate` | `client.funding.rate(symbol)` |
 | `GET /v1/funding/rate/history` | `client.funding.rate.history(symbol, ...)` |
+| `GET /v1/buy-sell-ratio/spot` | `client.buy_sell_ratio.spot(symbol, timeframe)` |
 | `GET /v1/options/max-pain/history` | `client.options.max_pain.history("BTC", "2026-12-25")` |
-| `GET /v1/symbols/{symbol}/capabilities` | `client.symbols.capabilities("BTCUSDT")` |
-| `GET /v1/global` | `client.global_market()` (`global` is a Python keyword) |
+| `GET /v1/capabilities` | `client.capabilities("BTCUSDT")` |
+| `GET /v1/global` | `client.global_()` (`global` is a Python keyword: a trailing `_`) |
 
-Dashes become underscores. Required parameters come first and can be positional; the others are
+Dashes become underscores; a Python keyword takes a trailing underscore. Required parameters come first and can be positional; the others are
 keyword-only. Closed values are typed (`timeframe: Timeframe`, `asset: Asset`, `order: Order`):
 your editor completes them, and a typo is flagged before the request is sent. Every method carries
 the docstring of its route.
@@ -100,7 +105,7 @@ page.next   # relative URL of the following page, or None (iter() follows it for
 ```python
 from datetime import datetime, timedelta, timezone
 
-for row in client.klines.iter("ETHUSDT", "4h", since=datetime.now(timezone.utc) - timedelta(days=3)):
+for row in client.klines.history.iter("ETHUSDT", "4h", since=datetime.now(timezone.utc) - timedelta(days=3)):
     ...
 
 rows = client.oi.history.iter("BTCUSDT", "1h", since=now - timedelta(hours=12), max_items=500).to_list()
@@ -121,7 +126,7 @@ How far back you can read depends on your plan (a `PermissionDeniedError` with c
 # `to_pandas()` needs pandas: pip install pandas (or install the wheel with the [pandas] extra)
 from datetime import datetime, timedelta, timezone
 
-df = client.klines.iter("BTCUSDT", "1d", since=datetime.now(timezone.utc) - timedelta(days=20)).to_pandas()
+df = client.klines.history.iter("BTCUSDT", "1d", since=datetime.now(timezone.utc) - timedelta(days=20)).to_pandas()
 df["close"].pct_change().rolling(20).std()
 ```
 
@@ -144,7 +149,7 @@ except InvalidRequestError as e:      # 400 / 422
 |---|---|---|
 | `InvalidRequestError` | 400 / 422: a parameter is wrong | `code`, `param`, `message` (says what is accepted) |
 | `AuthenticationError` | 401: key missing, invalid or revoked | |
-| `PermissionDeniedError` | 403: outside your plan | `reason` (`family`, `depth`, `websocket`), `code` |
+| `PermissionDeniedError` | 403: outside your plan | `code` (`plan_family`, `history_depth`, `plan_websocket`), `details` |
 | `NotFoundError` | 404: unknown or retired route | `message` names the replacement |
 | `RateLimitError` | 429 | `retry_after`, `is_quota` |
 | `ServerError` | 5xx (after retries) | `status` |
@@ -173,7 +178,7 @@ The SDK retries what is worth retrying, with exponential backoff and jitter:
 
 ```python
 client = Bytnode(timeout=10, max_retries=5)
-client.klines("BTCUSDT", "1m", request_options={"timeout": 60, "max_retries": 0})
+client.klines.history("BTCUSDT", "1m", request_options={"timeout": 60, "max_retries": 0})
 
 client.last_rate_limit    # RateLimit(limit=600, remaining=598, reset_s=1, quota_limit=..., quota_remaining=...)
 ```
@@ -181,16 +186,16 @@ client.last_rate_limit    # RateLimit(limit=600, remaining=598, reset_s=1, quota
 ## Snapshot: many fields in one call
 
 `GET /v1/snapshot` returns many fields for one symbol in a single request (from the Traders plan).
-Each field takes a depth — `True` for the latest value, `N` for the N latest rows — and
-multi-timeframe fields take a mapping:
+A field without a timeframe is the OBJECT of its route (`True` or `1`); a multi-timeframe
+field takes a mapping `{timeframe: N}` and is ALWAYS a list of the N latest closed buckets:
 
 ```python
-snap = client.snapshot("BTCUSDT", funding_rate=True, basis=5, klines={"1h": 24, "1d": 7})
-funding = snap.data.funding_rate     # a depth-1-only field: the object of /v1/funding/rate, or None
-bars = snap.data.klines_1h           # Kline | list[Kline] | None: a list above depth 1
-if isinstance(bars, list):
-    print(bars[0].close)
-client.snapshot.catalog("BTCUSDT").meta["available_fields"]
+snap = client.snapshot("BTCUSDT", funding_rate=True, basis=True, klines={"1h": 24, "1d": 7},
+                       buy_sell_ratio={"5m": 12})
+funding = snap.data.funding_rate     # the object of /v1/funding/rate, or None
+bars = snap.data.klines_1h           # list[KlineHistoryItem] | None, most recent first
+print(bars[0].close if bars else None)
+client.snapshot.catalog("BTCUSDT").data.available_fields
 ```
 
 ## Technical indicators
@@ -198,8 +203,9 @@ client.snapshot.catalog("BTCUSDT").meta["available_fields"]
 ```python
 from bytnode import indicators as ind
 
-res = client.indicators("BTCUSDT", "1h", [ind.rsi(14), ind.macd(), ind.bb(20, std=2.5)], results=200)
-res.data.indicators["rsi_14"].values      # oldest to newest
+res = client.indicators("BTCUSDT", "1h", [ind.rsi(14), ind.macd(), ind.bb(20, std=2.5)], limit=200)
+res.data.indicators["rsi_14"].values[0]   # IndicatorRow(time=..., value=...): rows newest first
+res.data.indicators["macd_12_26_9"].values[0].signal  # named outputs of a multi-output indicator
 res.to_pandas()                           # one column per output (macd_12_26_9.signal...), indexed by candle time
 ```
 
@@ -211,10 +217,10 @@ Builders are typed and check their bounds locally; ids are generated (`rsi_14`) 
 ```python
 from bytnode import channels as ch
 
-with client.stream(ch.trades("BTCUSDT"), ch.book("BTCUSDT"), depth=5) as stream:
+with client.stream(ch.trades("BTCUSDT"), ch.orderbook("BTCUSDT"), depth=5) as stream:
     for msg in stream:
-        if msg.kind == "book":
-            print(msg.data.mid_avg, msg.data.bids[0])
+        if msg.kind == "orderbook":
+            print(msg.data.avg_mid_price, msg.data.bids[0])
         else:
             for trade in msg.data:
                 print(trade.side, trade.price, trade.quantity)
@@ -222,7 +228,7 @@ with client.stream(ch.trades("BTCUSDT"), ch.book("BTCUSDT"), depth=5) as stream:
             print(f"{msg.gap} message(s) lost before this one on {msg.channel}")
 ```
 
-- Channels: `ch.trades(symbol, market="futures"|"spot")`, `ch.book(symbol, market=...)`,
+- Channels: `ch.trades(symbol, market="futures"|"spot")`, `ch.orderbook(symbol, market=...)`,
   `ch.liquidations(symbol)` — or the raw names (`trades.futures.BTCUSDT`, case-insensitive).
 - **Reconnects by itself** with backoff and subscribes again; `stream.reconnects` counts it.
   A refused key, a plan without the stream or the connection ceiling of your plan are raised, not
@@ -247,7 +253,7 @@ async def main() -> None:
     async with AsyncBytnode() as client:
         btc, eth = await asyncio.gather(client.funding.rate("BTCUSDT"), client.funding.rate("ETHUSDT"))
         since = datetime.now(timezone.utc) - timedelta(hours=12)
-        df = await client.klines.iter("BTCUSDT", "1h", since=since).to_pandas()
+        df = await client.klines.history.iter("BTCUSDT", "1h", since=since).to_pandas()
         async with client.stream(ch.trades("BTCUSDT")) as stream:
             async for msg in stream:
                 ...

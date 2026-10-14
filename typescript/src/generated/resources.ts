@@ -7,24 +7,33 @@
 import type { ApiResponse, Core, Fields, IterOptions, RequestOptions, RouteSpec, RowIterator, TimeLike } from '../core.js';
 import type { IndicatorsParams, IndicatorsResult } from '../indicatorSpec.js';
 import type * as M from './models.js';
-import type { Asset, CoarseTimeframe, IntradayTimeframe, KlineTimeframe, MiningDataset, OptionsTimeframe, Order, Timeframe } from './literals.js';
+import type { Asset, CoarseTimeframe, IntradayTimeframe, KlineTimeframe, KnownSymbol, MiningDataset, OptionsTimeframe, Order, Timeframe } from './literals.js';
 
 const R_BASIS: RouteSpec = {"path": "/v1/basis", "method": "GET", "shape": "object", "model": "Basis", "paginated": false, "pathParams": [], "maxLimit": null, "rangeMode": false, "wire": {}};
 const R_BASIS_HISTORY: RouteSpec = {"path": "/v1/basis/history", "method": "GET", "shape": "list", "model": "BasisHistoryItem", "paginated": true, "pathParams": [], "maxLimit": 1000, "rangeMode": false, "wire": {"since": "since_ms", "until": "until_ms", "before": "before_ms"}};
+const R_BTC_ACTIVE_ADDRESSES: RouteSpec = {"path": "/v1/btc/active-addresses", "method": "GET", "shape": "object", "model": "BtcActiveAddresses", "paginated": false, "pathParams": [], "maxLimit": null, "rangeMode": false, "wire": {}};
+const R_BTC_ACTIVE_ADDRESSES_HISTORY: RouteSpec = {"path": "/v1/btc/active-addresses/history", "method": "GET", "shape": "list", "model": "BtcActiveAddressesHistoryItem", "paginated": true, "pathParams": [], "maxLimit": 1000, "rangeMode": false, "wire": {"since": "since_ms", "until": "until_ms", "before": "before_ms"}};
 const R_BTC_FEES: RouteSpec = {"path": "/v1/btc/fees", "method": "GET", "shape": "object", "model": "BtcFees", "paginated": false, "pathParams": [], "maxLimit": null, "rangeMode": false, "wire": {}};
 const R_BTC_FEES_HISTORY: RouteSpec = {"path": "/v1/btc/fees/history", "method": "GET", "shape": "list", "model": "BtcFeesHistoryItem", "paginated": true, "pathParams": [], "maxLimit": 1000, "rangeMode": false, "wire": {"since": "since_ms", "until": "until_ms", "before": "before_ms"}};
 const R_BTC_MEMPOOL: RouteSpec = {"path": "/v1/btc/mempool", "method": "GET", "shape": "object", "model": "BtcMempool", "paginated": false, "pathParams": [], "maxLimit": null, "rangeMode": false, "wire": {}};
 const R_BTC_MEMPOOL_HISTORY: RouteSpec = {"path": "/v1/btc/mempool/history", "method": "GET", "shape": "list", "model": "BtcMempoolHistoryItem", "paginated": true, "pathParams": [], "maxLimit": 1000, "rangeMode": false, "wire": {"since": "since_ms", "until": "until_ms", "before": "before_ms"}};
 const R_BTC_MINING: RouteSpec = {"path": "/v1/btc/mining", "method": "GET", "shape": "object", "model": "BtcMining", "paginated": false, "pathParams": [], "maxLimit": null, "rangeMode": false, "wire": {}};
 const R_BTC_MINING_HISTORY: RouteSpec = {"path": "/v1/btc/mining/history", "method": "GET", "shape": "list", "model": "BtcMiningHistoryItem", "paginated": true, "pathParams": [], "maxLimit": 1000, "rangeMode": false, "wire": {"since": "since_ms", "until": "until_ms", "before": "before_ms"}};
+const R_BTC_MVRV: RouteSpec = {"path": "/v1/btc/mvrv", "method": "GET", "shape": "object", "model": "BtcMvrv", "paginated": false, "pathParams": [], "maxLimit": null, "rangeMode": false, "wire": {}};
+const R_BTC_MVRV_HISTORY: RouteSpec = {"path": "/v1/btc/mvrv/history", "method": "GET", "shape": "list", "model": "BtcMvrvHistoryItem", "paginated": true, "pathParams": [], "maxLimit": 1000, "rangeMode": false, "wire": {"since": "since_ms", "until": "until_ms", "before": "before_ms"}};
 const R_BTC_NETWORK: RouteSpec = {"path": "/v1/btc/network", "method": "GET", "shape": "object", "model": "BtcNetwork", "paginated": false, "pathParams": [], "maxLimit": null, "rangeMode": false, "wire": {}};
 const R_BTC_NETWORK_HISTORY: RouteSpec = {"path": "/v1/btc/network/history", "method": "GET", "shape": "list", "model": "BtcNetworkHistoryItem", "paginated": true, "pathParams": [], "maxLimit": 1000, "rangeMode": false, "wire": {"since": "since_ms", "until": "until_ms", "before": "before_ms"}};
-const R_BUYSELL_RATIO: RouteSpec = {"path": "/v1/buysell/ratio", "method": "GET", "shape": "object", "model": "BuysellRatio", "paginated": false, "pathParams": [], "maxLimit": null, "rangeMode": false, "wire": {}};
-const R_BUYSELL_RATIO_FUTURES: RouteSpec = {"path": "/v1/buysell/ratio/futures", "method": "GET", "shape": "object", "model": "BuysellRatio", "paginated": false, "pathParams": [], "maxLimit": null, "rangeMode": false, "wire": {}};
-const R_BUYSELL_RATIO_FUTURES_HISTORY: RouteSpec = {"path": "/v1/buysell/ratio/futures/history", "method": "GET", "shape": "list", "model": "BuysellRatioHistoryItem", "paginated": true, "pathParams": [], "maxLimit": 1000, "rangeMode": false, "wire": {"since": "since_ms", "until": "until_ms", "before": "before_ms"}};
-const R_BUYSELL_RATIO_HISTORY: RouteSpec = {"path": "/v1/buysell/ratio/history", "method": "GET", "shape": "list", "model": "BuysellRatioHistoryItem", "paginated": true, "pathParams": [], "maxLimit": 1000, "rangeMode": false, "wire": {"since": "since_ms", "until": "until_ms", "before": "before_ms"}};
-const R_BUYSELL_RATIO_SPOT: RouteSpec = {"path": "/v1/buysell/ratio/spot", "method": "GET", "shape": "object", "model": "BuysellRatio", "paginated": false, "pathParams": [], "maxLimit": null, "rangeMode": false, "wire": {}};
-const R_BUYSELL_RATIO_SPOT_HISTORY: RouteSpec = {"path": "/v1/buysell/ratio/spot/history", "method": "GET", "shape": "list", "model": "BuysellRatioHistoryItem", "paginated": true, "pathParams": [], "maxLimit": 1000, "rangeMode": false, "wire": {"since": "since_ms", "until": "until_ms", "before": "before_ms"}};
+const R_BTC_NVT: RouteSpec = {"path": "/v1/btc/nvt", "method": "GET", "shape": "object", "model": "BtcNvt", "paginated": false, "pathParams": [], "maxLimit": null, "rangeMode": false, "wire": {}};
+const R_BTC_NVT_HISTORY: RouteSpec = {"path": "/v1/btc/nvt/history", "method": "GET", "shape": "list", "model": "BtcNvtHistoryItem", "paginated": true, "pathParams": [], "maxLimit": 1000, "rangeMode": false, "wire": {"since": "since_ms", "until": "until_ms", "before": "before_ms"}};
+const R_BTC_REVENUE_PER_DIFFICULTY: RouteSpec = {"path": "/v1/btc/revenue-per-difficulty", "method": "GET", "shape": "object", "model": "BtcRevenuePerDifficulty", "paginated": false, "pathParams": [], "maxLimit": null, "rangeMode": false, "wire": {}};
+const R_BTC_REVENUE_PER_DIFFICULTY_HISTORY: RouteSpec = {"path": "/v1/btc/revenue-per-difficulty/history", "method": "GET", "shape": "list", "model": "BtcRevenuePerDifficultyHistoryItem", "paginated": true, "pathParams": [], "maxLimit": 1000, "rangeMode": false, "wire": {"since": "since_ms", "until": "until_ms", "before": "before_ms"}};
+const R_BUY_SELL_RATIO: RouteSpec = {"path": "/v1/buy-sell-ratio", "method": "GET", "shape": "object", "model": "BuySellRatio", "paginated": false, "pathParams": [], "maxLimit": null, "rangeMode": false, "wire": {}};
+const R_BUY_SELL_RATIO_FUTURES: RouteSpec = {"path": "/v1/buy-sell-ratio/futures", "method": "GET", "shape": "object", "model": "BuySellRatio", "paginated": false, "pathParams": [], "maxLimit": null, "rangeMode": false, "wire": {}};
+const R_BUY_SELL_RATIO_FUTURES_HISTORY: RouteSpec = {"path": "/v1/buy-sell-ratio/futures/history", "method": "GET", "shape": "list", "model": "BuySellRatioHistoryItem", "paginated": true, "pathParams": [], "maxLimit": 1000, "rangeMode": false, "wire": {"since": "since_ms", "until": "until_ms", "before": "before_ms"}};
+const R_BUY_SELL_RATIO_HISTORY: RouteSpec = {"path": "/v1/buy-sell-ratio/history", "method": "GET", "shape": "list", "model": "BuySellRatioHistoryItem", "paginated": true, "pathParams": [], "maxLimit": 1000, "rangeMode": false, "wire": {"since": "since_ms", "until": "until_ms", "before": "before_ms"}};
+const R_BUY_SELL_RATIO_SPOT: RouteSpec = {"path": "/v1/buy-sell-ratio/spot", "method": "GET", "shape": "object", "model": "BuySellRatio", "paginated": false, "pathParams": [], "maxLimit": null, "rangeMode": false, "wire": {}};
+const R_BUY_SELL_RATIO_SPOT_HISTORY: RouteSpec = {"path": "/v1/buy-sell-ratio/spot/history", "method": "GET", "shape": "list", "model": "BuySellRatioHistoryItem", "paginated": true, "pathParams": [], "maxLimit": 1000, "rangeMode": false, "wire": {"since": "since_ms", "until": "until_ms", "before": "before_ms"}};
+const R_CAPABILITIES: RouteSpec = {"path": "/v1/capabilities", "method": "GET", "shape": "object", "model": "Capabilities", "paginated": false, "pathParams": [], "maxLimit": null, "rangeMode": false, "wire": {}};
 const R_CVD: RouteSpec = {"path": "/v1/cvd", "method": "GET", "shape": "object", "model": "Cvd", "paginated": false, "pathParams": [], "maxLimit": null, "rangeMode": false, "wire": {}};
 const R_CVD_FUTURES: RouteSpec = {"path": "/v1/cvd/futures", "method": "GET", "shape": "object", "model": "Cvd", "paginated": false, "pathParams": [], "maxLimit": null, "rangeMode": false, "wire": {}};
 const R_CVD_FUTURES_HISTORY: RouteSpec = {"path": "/v1/cvd/futures/history", "method": "GET", "shape": "list", "model": "Cvd", "paginated": true, "pathParams": [], "maxLimit": 1000, "rangeMode": false, "wire": {"since": "since_ms", "until": "until_ms", "before": "before_ms"}};
@@ -41,8 +50,8 @@ const R_ETH_GAS: RouteSpec = {"path": "/v1/eth/gas", "method": "GET", "shape": "
 const R_ETH_GAS_MOMENTUM: RouteSpec = {"path": "/v1/eth/gas-momentum", "method": "GET", "shape": "object", "model": "EthGasMomentum", "paginated": false, "pathParams": [], "maxLimit": null, "rangeMode": false, "wire": {}};
 const R_ETH_GAS_MOMENTUM_HISTORY: RouteSpec = {"path": "/v1/eth/gas-momentum/history", "method": "GET", "shape": "list", "model": "EthGasMomentumHistoryItem", "paginated": true, "pathParams": [], "maxLimit": 1000, "rangeMode": false, "wire": {"since": "since_ms", "until": "until_ms", "before": "before_ms"}};
 const R_ETH_GAS_HISTORY: RouteSpec = {"path": "/v1/eth/gas/history", "method": "GET", "shape": "list", "model": "EthGasHistoryItem", "paginated": true, "pathParams": [], "maxLimit": 1000, "rangeMode": false, "wire": {"since": "since_ms", "until": "until_ms", "before": "before_ms"}};
-const R_ETH_RATIO: RouteSpec = {"path": "/v1/eth/ratio", "method": "GET", "shape": "object", "model": "EthRatio", "paginated": false, "pathParams": [], "maxLimit": null, "rangeMode": false, "wire": {}};
-const R_ETH_RATIO_HISTORY: RouteSpec = {"path": "/v1/eth/ratio/history", "method": "GET", "shape": "list", "model": "EthRatioHistoryItem", "paginated": true, "pathParams": [], "maxLimit": 1000, "rangeMode": false, "wire": {"since": "since_ms", "until": "until_ms", "before": "before_ms"}};
+const R_ETH_PRICE_BTC: RouteSpec = {"path": "/v1/eth/price-btc", "method": "GET", "shape": "object", "model": "EthPriceBtc", "paginated": false, "pathParams": [], "maxLimit": null, "rangeMode": false, "wire": {}};
+const R_ETH_PRICE_BTC_HISTORY: RouteSpec = {"path": "/v1/eth/price-btc/history", "method": "GET", "shape": "list", "model": "EthPriceBtcHistoryItem", "paginated": true, "pathParams": [], "maxLimit": 1000, "rangeMode": false, "wire": {"since": "since_ms", "until": "until_ms", "before": "before_ms"}};
 const R_ETH_SQUEEZE: RouteSpec = {"path": "/v1/eth/squeeze", "method": "GET", "shape": "object", "model": "EthSqueeze", "paginated": false, "pathParams": [], "maxLimit": null, "rangeMode": false, "wire": {}};
 const R_ETH_SQUEEZE_HISTORY: RouteSpec = {"path": "/v1/eth/squeeze/history", "method": "GET", "shape": "list", "model": "EthSqueezeHistoryItem", "paginated": true, "pathParams": [], "maxLimit": 1000, "rangeMode": false, "wire": {"since": "since_ms", "until": "until_ms", "before": "before_ms"}};
 const R_ETH_STAKING: RouteSpec = {"path": "/v1/eth/staking", "method": "GET", "shape": "object", "model": "EthStaking", "paginated": false, "pathParams": [], "maxLimit": null, "rangeMode": false, "wire": {}};
@@ -56,19 +65,20 @@ const R_FUNDING_CUMULATIVE_HISTORY: RouteSpec = {"path": "/v1/funding/cumulative
 const R_FUNDING_NEXT: RouteSpec = {"path": "/v1/funding/next", "method": "GET", "shape": "object", "model": "FundingNext", "paginated": false, "pathParams": [], "maxLimit": null, "rangeMode": false, "wire": {}};
 const R_FUNDING_RATE: RouteSpec = {"path": "/v1/funding/rate", "method": "GET", "shape": "object", "model": "FundingRate", "paginated": false, "pathParams": [], "maxLimit": null, "rangeMode": false, "wire": {}};
 const R_FUNDING_RATE_HISTORY: RouteSpec = {"path": "/v1/funding/rate/history", "method": "GET", "shape": "list", "model": "FundingRate", "paginated": true, "pathParams": [], "maxLimit": 1000, "rangeMode": false, "wire": {"since": "since_ms", "until": "until_ms", "before": "before_ms"}};
-const R_GLOBAL_MARKET: RouteSpec = {"path": "/v1/global", "method": "GET", "shape": "object", "model": "GlobalMarket", "paginated": false, "pathParams": [], "maxLimit": null, "rangeMode": false, "wire": {}};
-const R_GLOBAL_MARKET_HISTORY: RouteSpec = {"path": "/v1/global/history", "method": "GET", "shape": "list", "model": "GlobalMarketHistoryItem", "paginated": true, "pathParams": [], "maxLimit": 1000, "rangeMode": false, "wire": {"since": "since_ms", "until": "until_ms", "before": "before_ms"}};
+const R_GLOBAL: RouteSpec = {"path": "/v1/global", "method": "GET", "shape": "object", "model": "GlobalMarket", "paginated": false, "pathParams": [], "maxLimit": null, "rangeMode": false, "wire": {}};
+const R_GLOBAL_HISTORY: RouteSpec = {"path": "/v1/global/history", "method": "GET", "shape": "list", "model": "GlobalMarketHistoryItem", "paginated": true, "pathParams": [], "maxLimit": 1000, "rangeMode": false, "wire": {"since": "since_ms", "until": "until_ms", "before": "before_ms"}};
 const R_HEALTH: RouteSpec = {"path": "/v1/health", "method": "GET", "shape": "object", "model": "Health", "paginated": false, "pathParams": [], "maxLimit": null, "rangeMode": false, "wire": {}};
 const R_HEATMAP_CLUSTERS: RouteSpec = {"path": "/v1/heatmap/clusters", "method": "GET", "shape": "object", "model": "HeatmapClusters", "paginated": false, "pathParams": [], "maxLimit": null, "rangeMode": false, "wire": {}};
 const R_HEATMAP_CLUSTERS_HISTORY: RouteSpec = {"path": "/v1/heatmap/clusters/history", "method": "GET", "shape": "list", "model": "HeatmapClustersHistoryItem", "paginated": true, "pathParams": [], "maxLimit": 1000, "rangeMode": false, "wire": {"since": "since_ms", "until": "until_ms", "before": "before_ms"}};
 const R_INDICATORS: RouteSpec = {"path": "/v1/indicators", "method": "POST", "shape": "indicators", "model": null, "paginated": false, "pathParams": [], "maxLimit": null, "rangeMode": false, "wire": {}};
-const R_KLINES: RouteSpec = {"path": "/v1/klines", "method": "GET", "shape": "list", "model": "Kline", "paginated": true, "pathParams": [], "maxLimit": 1000, "rangeMode": false, "wire": {"since": "since_ms", "until": "until_ms", "before": "before_ms"}};
+const R_KLINES: RouteSpec = {"path": "/v1/klines", "method": "GET", "shape": "object", "model": "Kline", "paginated": false, "pathParams": [], "maxLimit": null, "rangeMode": false, "wire": {}};
+const R_KLINES_HISTORY: RouteSpec = {"path": "/v1/klines/history", "method": "GET", "shape": "list", "model": "KlineHistoryItem", "paginated": true, "pathParams": [], "maxLimit": 1000, "rangeMode": false, "wire": {"since": "since_ms", "until": "until_ms", "before": "before_ms"}};
 const R_LIMITS: RouteSpec = {"path": "/v1/limits", "method": "GET", "shape": "object", "model": "Limits", "paginated": false, "pathParams": [], "maxLimit": null, "rangeMode": false, "wire": {}};
+const R_LIQUIDATIONS_BIG_SMALL_RATIO: RouteSpec = {"path": "/v1/liquidations/big-small-ratio", "method": "GET", "shape": "object", "model": "LiquidationsBigSmallRatio", "paginated": false, "pathParams": [], "maxLimit": null, "rangeMode": false, "wire": {}};
+const R_LIQUIDATIONS_BIG_SMALL_RATIO_HISTORY: RouteSpec = {"path": "/v1/liquidations/big-small-ratio/history", "method": "GET", "shape": "list", "model": "LiquidationsBigSmallRatioHistoryItem", "paginated": true, "pathParams": [], "maxLimit": 1000, "rangeMode": false, "wire": {"since": "since_ms", "until": "until_ms", "before": "before_ms"}};
 const R_LIQUIDATIONS_CUMULATIVE: RouteSpec = {"path": "/v1/liquidations/cumulative", "method": "GET", "shape": "object", "model": "LiquidationsCumulative", "paginated": false, "pathParams": [], "maxLimit": null, "rangeMode": false, "wire": {}};
 const R_LIQUIDATIONS_CUMULATIVE_HISTORY: RouteSpec = {"path": "/v1/liquidations/cumulative/history", "method": "GET", "shape": "list", "model": "LiquidationsCumulativeHistoryItem", "paginated": true, "pathParams": [], "maxLimit": 1000, "rangeMode": false, "wire": {"since": "since_ms", "until": "until_ms", "before": "before_ms"}};
 const R_LIQUIDATIONS_EVENTS: RouteSpec = {"path": "/v1/liquidations/events", "method": "GET", "shape": "list", "model": "LiquidationEvent", "paginated": false, "pathParams": [], "maxLimit": 10000, "rangeMode": false, "wire": {}};
-const R_LIQUIDATIONS_RATIO: RouteSpec = {"path": "/v1/liquidations/ratio", "method": "GET", "shape": "object", "model": "LiquidationsRatio", "paginated": false, "pathParams": [], "maxLimit": null, "rangeMode": false, "wire": {}};
-const R_LIQUIDATIONS_RATIO_HISTORY: RouteSpec = {"path": "/v1/liquidations/ratio/history", "method": "GET", "shape": "list", "model": "LiquidationsRatioHistoryItem", "paginated": true, "pathParams": [], "maxLimit": 1000, "rangeMode": false, "wire": {"since": "since_ms", "until": "until_ms", "before": "before_ms"}};
 const R_MACRO: RouteSpec = {"path": "/v1/macro", "method": "GET", "shape": "object", "model": "Macro", "paginated": false, "pathParams": [], "maxLimit": null, "rangeMode": false, "wire": {}};
 const R_MACRO_CORRELATIONS: RouteSpec = {"path": "/v1/macro/correlations", "method": "GET", "shape": "object", "model": "MacroCorrelations", "paginated": false, "pathParams": [], "maxLimit": null, "rangeMode": false, "wire": {}};
 const R_MACRO_HISTORY: RouteSpec = {"path": "/v1/macro/history", "method": "GET", "shape": "list", "model": "MacroHistoryItem", "paginated": true, "pathParams": [], "maxLimit": 1000, "rangeMode": false, "wire": {"since": "since_ms", "until": "until_ms", "before": "before_ms"}};
@@ -80,30 +90,23 @@ const R_MACRO_NET_LIQUIDITY_HISTORY: RouteSpec = {"path": "/v1/macro/net-liquidi
 const R_MACRO_RISK: RouteSpec = {"path": "/v1/macro/risk", "method": "GET", "shape": "object", "model": "MacroRisk", "paginated": false, "pathParams": [], "maxLimit": null, "rangeMode": false, "wire": {}};
 const R_MACRO_SERIES: RouteSpec = {"path": "/v1/macro/series", "method": "GET", "shape": "list", "model": "MacroSeriesInfo", "paginated": false, "pathParams": [], "maxLimit": null, "rangeMode": false, "wire": {}};
 const R_OI: RouteSpec = {"path": "/v1/oi", "method": "GET", "shape": "object", "model": "Oi", "paginated": false, "pathParams": [], "maxLimit": null, "rangeMode": false, "wire": {}};
-const R_OI_DELTA: RouteSpec = {"path": "/v1/oi/delta", "method": "GET", "shape": "object", "model": "OiDelta", "paginated": false, "pathParams": [], "maxLimit": null, "rangeMode": false, "wire": {}};
-const R_OI_DELTA_HISTORY: RouteSpec = {"path": "/v1/oi/delta/history", "method": "GET", "shape": "list", "model": "OiDeltaHistoryItem", "paginated": true, "pathParams": [], "maxLimit": 1000, "rangeMode": false, "wire": {"since": "since_ms", "until": "until_ms", "before": "before_ms"}};
+const R_OI_CHANGE: RouteSpec = {"path": "/v1/oi/change", "method": "GET", "shape": "object", "model": "OiChange", "paginated": false, "pathParams": [], "maxLimit": null, "rangeMode": false, "wire": {}};
+const R_OI_CHANGE_HISTORY: RouteSpec = {"path": "/v1/oi/change/history", "method": "GET", "shape": "list", "model": "OiChangeHistoryItem", "paginated": true, "pathParams": [], "maxLimit": 1000, "rangeMode": false, "wire": {"since": "since_ms", "until": "until_ms", "before": "before_ms"}};
 const R_OI_HISTORY: RouteSpec = {"path": "/v1/oi/history", "method": "GET", "shape": "list", "model": "OiHistoryItem", "paginated": true, "pathParams": [], "maxLimit": 1000, "rangeMode": false, "wire": {"since": "since_ms", "until": "until_ms", "before": "before_ms"}};
-const R_ONCHAIN_ACTIVE_ADDRESSES: RouteSpec = {"path": "/v1/onchain/active-addresses", "method": "GET", "shape": "object", "model": "OnchainActiveAddresses", "paginated": false, "pathParams": [], "maxLimit": null, "rangeMode": false, "wire": {}};
-const R_ONCHAIN_ACTIVE_ADDRESSES_HISTORY: RouteSpec = {"path": "/v1/onchain/active-addresses/history", "method": "GET", "shape": "list", "model": "OnchainActiveAddressesHistoryItem", "paginated": true, "pathParams": [], "maxLimit": 1000, "rangeMode": false, "wire": {"since": "since_ms", "until": "until_ms", "before": "before_ms"}};
-const R_ONCHAIN_MINER_STRESS: RouteSpec = {"path": "/v1/onchain/miner-stress", "method": "GET", "shape": "object", "model": "OnchainMinerStress", "paginated": false, "pathParams": [], "maxLimit": null, "rangeMode": false, "wire": {}};
-const R_ONCHAIN_MINER_STRESS_HISTORY: RouteSpec = {"path": "/v1/onchain/miner-stress/history", "method": "GET", "shape": "list", "model": "OnchainMinerStressHistoryItem", "paginated": true, "pathParams": [], "maxLimit": 1000, "rangeMode": false, "wire": {"since": "since_ms", "until": "until_ms", "before": "before_ms"}};
-const R_ONCHAIN_MVRV: RouteSpec = {"path": "/v1/onchain/mvrv", "method": "GET", "shape": "object", "model": "OnchainMvrv", "paginated": false, "pathParams": [], "maxLimit": null, "rangeMode": false, "wire": {}};
-const R_ONCHAIN_MVRV_HISTORY: RouteSpec = {"path": "/v1/onchain/mvrv/history", "method": "GET", "shape": "list", "model": "OnchainMvrvHistoryItem", "paginated": true, "pathParams": [], "maxLimit": 1000, "rangeMode": false, "wire": {"since": "since_ms", "until": "until_ms", "before": "before_ms"}};
-const R_ONCHAIN_NVT: RouteSpec = {"path": "/v1/onchain/nvt", "method": "GET", "shape": "object", "model": "OnchainNvt", "paginated": false, "pathParams": [], "maxLimit": null, "rangeMode": false, "wire": {}};
-const R_ONCHAIN_NVT_HISTORY: RouteSpec = {"path": "/v1/onchain/nvt/history", "method": "GET", "shape": "list", "model": "OnchainNvtHistoryItem", "paginated": true, "pathParams": [], "maxLimit": 1000, "rangeMode": false, "wire": {"since": "since_ms", "until": "until_ms", "before": "before_ms"}};
 const R_OPTIONS_EXPIRY: RouteSpec = {"path": "/v1/options/expiry", "method": "GET", "shape": "list", "model": "OptionsExpiry", "paginated": false, "pathParams": [], "maxLimit": null, "rangeMode": false, "wire": {}};
 const R_OPTIONS_GREEKS: RouteSpec = {"path": "/v1/options/greeks", "method": "GET", "shape": "object", "model": "OptionsGreeks", "paginated": false, "pathParams": [], "maxLimit": null, "rangeMode": false, "wire": {}};
 const R_OPTIONS_IV: RouteSpec = {"path": "/v1/options/iv", "method": "GET", "shape": "object", "model": "OptionsIv", "paginated": false, "pathParams": [], "maxLimit": null, "rangeMode": false, "wire": {}};
-const R_OPTIONS_IV_KLINES: RouteSpec = {"path": "/v1/options/iv/klines", "method": "GET", "shape": "list", "model": "OptionsIvKline", "paginated": true, "pathParams": [], "maxLimit": 1000, "rangeMode": false, "wire": {"since": "since_ms", "until": "until_ms", "before": "before_ms"}};
+const R_OPTIONS_IV_KLINES: RouteSpec = {"path": "/v1/options/iv/klines", "method": "GET", "shape": "object", "model": "OptionsIvKline", "paginated": false, "pathParams": [], "maxLimit": null, "rangeMode": false, "wire": {}};
+const R_OPTIONS_IV_KLINES_HISTORY: RouteSpec = {"path": "/v1/options/iv/klines/history", "method": "GET", "shape": "list", "model": "OptionsIvKlineHistoryItem", "paginated": true, "pathParams": [], "maxLimit": 1000, "rangeMode": false, "wire": {"since": "since_ms", "until": "until_ms", "before": "before_ms"}};
 const R_OPTIONS_MAX_PAIN: RouteSpec = {"path": "/v1/options/max-pain", "method": "GET", "shape": "list", "model": "OptionsMaxPain", "paginated": false, "pathParams": [], "maxLimit": null, "rangeMode": false, "wire": {}};
 const R_OPTIONS_MAX_PAIN_HISTORY: RouteSpec = {"path": "/v1/options/max-pain/history", "method": "GET", "shape": "list", "model": "OptionsMaxPainHistoryItem", "paginated": true, "pathParams": [], "maxLimit": 1000, "rangeMode": false, "wire": {"since": "since_ms", "until": "until_ms", "before": "before_ms"}};
 const R_OPTIONS_OI: RouteSpec = {"path": "/v1/options/oi", "method": "GET", "shape": "object", "model": "OptionsOi", "paginated": false, "pathParams": [], "maxLimit": null, "rangeMode": false, "wire": {}};
-const R_OPTIONS_OI_DELTA: RouteSpec = {"path": "/v1/options/oi/delta", "method": "GET", "shape": "object", "model": "OptionsOiDelta", "paginated": false, "pathParams": [], "maxLimit": null, "rangeMode": false, "wire": {}};
-const R_OPTIONS_OI_DELTA_HISTORY: RouteSpec = {"path": "/v1/options/oi/delta/history", "method": "GET", "shape": "list", "model": "OptionsOiDeltaHistoryItem", "paginated": true, "pathParams": [], "maxLimit": 1000, "rangeMode": false, "wire": {"since": "since_ms", "until": "until_ms", "before": "before_ms"}};
+const R_OPTIONS_OI_CHANGE: RouteSpec = {"path": "/v1/options/oi/change", "method": "GET", "shape": "object", "model": "OptionsOiChange", "paginated": false, "pathParams": [], "maxLimit": null, "rangeMode": false, "wire": {}};
+const R_OPTIONS_OI_CHANGE_HISTORY: RouteSpec = {"path": "/v1/options/oi/change/history", "method": "GET", "shape": "list", "model": "OptionsOiChangeHistoryItem", "paginated": true, "pathParams": [], "maxLimit": 1000, "rangeMode": false, "wire": {"since": "since_ms", "until": "until_ms", "before": "before_ms"}};
 const R_OPTIONS_OI_DISTRIBUTION: RouteSpec = {"path": "/v1/options/oi/distribution", "method": "GET", "shape": "list", "model": "OptionsOiDistribution", "paginated": false, "pathParams": [], "maxLimit": null, "rangeMode": false, "wire": {}};
 const R_OPTIONS_OI_HISTORY: RouteSpec = {"path": "/v1/options/oi/history", "method": "GET", "shape": "list", "model": "OptionsOiHistoryItem", "paginated": true, "pathParams": [], "maxLimit": 1000, "rangeMode": false, "wire": {"since": "since_ms", "until": "until_ms", "before": "before_ms"}};
-const R_OPTIONS_PC_RATIO: RouteSpec = {"path": "/v1/options/pc-ratio", "method": "GET", "shape": "object", "model": "OptionsPcRatio", "paginated": false, "pathParams": [], "maxLimit": null, "rangeMode": false, "wire": {}};
-const R_OPTIONS_PC_RATIO_HISTORY: RouteSpec = {"path": "/v1/options/pc-ratio/history", "method": "GET", "shape": "list", "model": "OptionsPcRatioHistoryItem", "paginated": true, "pathParams": [], "maxLimit": 1000, "rangeMode": false, "wire": {"since": "since_ms", "until": "until_ms", "before": "before_ms"}};
+const R_OPTIONS_PUT_CALL_RATIO: RouteSpec = {"path": "/v1/options/put-call-ratio", "method": "GET", "shape": "object", "model": "OptionsPutCallRatio", "paginated": false, "pathParams": [], "maxLimit": null, "rangeMode": false, "wire": {}};
+const R_OPTIONS_PUT_CALL_RATIO_HISTORY: RouteSpec = {"path": "/v1/options/put-call-ratio/history", "method": "GET", "shape": "list", "model": "OptionsPutCallRatioHistoryItem", "paginated": true, "pathParams": [], "maxLimit": 1000, "rangeMode": false, "wire": {"since": "since_ms", "until": "until_ms", "before": "before_ms"}};
 const R_OPTIONS_SUMMARY: RouteSpec = {"path": "/v1/options/summary", "method": "GET", "shape": "object", "model": "OptionsSummary", "paginated": false, "pathParams": [], "maxLimit": null, "rangeMode": false, "wire": {}};
 const R_OPTIONS_VOLUME: RouteSpec = {"path": "/v1/options/volume", "method": "GET", "shape": "object", "model": "OptionsVolume", "paginated": false, "pathParams": [], "maxLimit": null, "rangeMode": false, "wire": {}};
 const R_OPTIONS_VOLUME_HISTORY: RouteSpec = {"path": "/v1/options/volume/history", "method": "GET", "shape": "list", "model": "OptionsVolumeHistoryItem", "paginated": true, "pathParams": [], "maxLimit": 1000, "rangeMode": false, "wire": {"since": "since_ms", "until": "until_ms", "before": "before_ms"}};
@@ -119,13 +122,12 @@ const R_SPREAD_INTEREXCHANGE: RouteSpec = {"path": "/v1/spread/interexchange", "
 const R_SPREAD_INTEREXCHANGE_HISTORY: RouteSpec = {"path": "/v1/spread/interexchange/history", "method": "GET", "shape": "list", "model": "SpreadInterexchange", "paginated": true, "pathParams": [], "maxLimit": 1000, "rangeMode": false, "wire": {"since": "since_ms", "until": "until_ms", "before": "before_ms"}};
 const R_STATUS: RouteSpec = {"path": "/v1/status", "method": "GET", "shape": "object", "model": "Status", "paginated": false, "pathParams": [], "maxLimit": null, "rangeMode": false, "wire": {}};
 const R_SYMBOLS: RouteSpec = {"path": "/v1/symbols", "method": "GET", "shape": "list", "model": "SymbolInfo", "paginated": false, "pathParams": [], "maxLimit": null, "rangeMode": false, "wire": {}};
-const R_SYMBOLS_CAPABILITIES: RouteSpec = {"path": "/v1/symbols/{symbol}/capabilities", "method": "GET", "shape": "object", "model": "SymbolsCapabilities", "paginated": false, "pathParams": ["symbol"], "maxLimit": null, "rangeMode": false, "wire": {}};
 const R_TOKENOMICS: RouteSpec = {"path": "/v1/tokenomics", "method": "GET", "shape": "object", "model": "Tokenomics", "paginated": false, "pathParams": [], "maxLimit": null, "rangeMode": false, "wire": {}};
 const R_TOKENOMICS_HISTORY: RouteSpec = {"path": "/v1/tokenomics/history", "method": "GET", "shape": "list", "model": "TokenomicsHistoryItem", "paginated": true, "pathParams": [], "maxLimit": 1000, "rangeMode": false, "wire": {"since": "since_ms", "until": "until_ms", "before": "before_ms"}};
 const R_TRADES_KLINE: RouteSpec = {"path": "/v1/trades-kline", "method": "GET", "shape": "object", "model": "TradesKline", "paginated": false, "pathParams": [], "maxLimit": null, "rangeMode": false, "wire": {}};
 const R_TRADES_KLINE_FUTURES: RouteSpec = {"path": "/v1/trades-kline/futures", "method": "GET", "shape": "object", "model": "TradesKline", "paginated": false, "pathParams": [], "maxLimit": null, "rangeMode": false, "wire": {}};
 const R_TRADES_KLINE_FUTURES_HISTORY: RouteSpec = {"path": "/v1/trades-kline/futures/history", "method": "GET", "shape": "list", "model": "TradesKline", "paginated": true, "pathParams": [], "maxLimit": 1000, "rangeMode": false, "wire": {"since": "since_ms", "until": "until_ms", "before": "before_ms"}};
-const R_TRADES_KLINE_FUTURES_SECONDS: RouteSpec = {"path": "/v1/trades-kline/futures/seconds", "method": "GET", "shape": "list", "model": "TradesKlineSecond", "paginated": true, "pathParams": [], "maxLimit": 1000, "rangeMode": false, "wire": {"since": "since_ms", "until": "until_ms"}};
+const R_TRADES_KLINE_FUTURES_SECONDS: RouteSpec = {"path": "/v1/trades-kline/futures/seconds", "method": "GET", "shape": "list", "model": "TradesKlineSecond", "paginated": true, "pathParams": [], "maxLimit": 1000, "rangeMode": false, "wire": {"since": "since_ms", "until": "until_ms", "before": "before_ms"}};
 const R_TRADES_KLINE_HISTORY: RouteSpec = {"path": "/v1/trades-kline/history", "method": "GET", "shape": "list", "model": "TradesKline", "paginated": true, "pathParams": [], "maxLimit": 1000, "rangeMode": false, "wire": {"since": "since_ms", "until": "until_ms", "before": "before_ms"}};
 const R_TRADES_KLINE_SPOT: RouteSpec = {"path": "/v1/trades-kline/spot", "method": "GET", "shape": "object", "model": "TradesKline", "paginated": false, "pathParams": [], "maxLimit": null, "rangeMode": false, "wire": {}};
 const R_TRADES_KLINE_SPOT_HISTORY: RouteSpec = {"path": "/v1/trades-kline/spot/history", "method": "GET", "shape": "list", "model": "TradesKline", "paginated": true, "pathParams": [], "maxLimit": 1000, "rangeMode": false, "wire": {"since": "since_ms", "until": "until_ms", "before": "before_ms"}};
@@ -156,9 +158,11 @@ export interface BasisHistoryParams {
    */
   limit?: number;
   /**
-   * Required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. One row per closed bucket,
-   * aggregating its minutes (`sample_count` = minutes in the bucket); `1m` gives one row per
-   * minute, aligned on the minute. Missing: 422 `missing_parameter`.
+   * Required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. One row per closed bucket: for a
+   * STATE (basis, open interest, heatmap) the value of its LAST minute — its close —, for a
+   * FLOW (open-interest change, liquidations, trade sizes) the total over its minutes;
+   * `sample_count` = minutes with data in the bucket. `1m` gives one row per minute, aligned on
+   * the minute. Missing: 422 `missing_parameter`.
    */
   timeframe: Timeframe;
   /**
@@ -166,7 +170,7 @@ export interface BasisHistoryParams {
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
-  symbol: string;
+  symbol: KnownSymbol | (string & {});
   /**
    * Only return these fields of each row (array or comma-separated). Rows are then partial.
    */
@@ -194,9 +198,11 @@ export interface BasisHistoryIterParams {
    */
   until?: TimeLike;
   /**
-   * Required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. One row per closed bucket,
-   * aggregating its minutes (`sample_count` = minutes in the bucket); `1m` gives one row per
-   * minute, aligned on the minute. Missing: 422 `missing_parameter`.
+   * Required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. One row per closed bucket: for a
+   * STATE (basis, open interest, heatmap) the value of its LAST minute — its close —, for a
+   * FLOW (open-interest change, liquidations, trade sizes) the total over its minutes;
+   * `sample_count` = minutes with data in the bucket. `1m` gives one row per minute, aligned on
+   * the minute. Missing: 422 `missing_parameter`.
    */
   timeframe: Timeframe;
   /**
@@ -204,7 +210,7 @@ export interface BasisHistoryIterParams {
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
-  symbol: string;
+  symbol: KnownSymbol | (string & {});
   /**
    * Only return these fields of each row (array or comma-separated). Rows are then partial.
    */
@@ -240,7 +246,7 @@ export interface BasisParams {
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
-  symbol: string;
+  symbol: KnownSymbol | (string & {});
   /**
    * Only return these fields of each row (array or comma-separated). Rows are then partial.
    */
@@ -258,6 +264,95 @@ export interface BasisResource {
    */
   (params: BasisParams, options?: RequestOptions): Promise<ApiResponse<M.Basis | null>>;
   history: BasisHistoryResource;
+}
+
+export interface BtcActiveAddressesHistoryParams {
+  /**
+   * Lower time bound, inclusive. A `Date`, an ISO string (`2026-01-01`) or epoch milliseconds.
+   */
+  since?: TimeLike;
+  /**
+   * Upper time bound, inclusive to the millisecond. A `Date`, an ISO string (`2026-01-01`) or
+   * epoch milliseconds.
+   */
+  until?: TimeLike;
+  /**
+   * Number of rows to return, in the reading order (most recent first by default). Bounded by
+   * your plan's history window: an explicit `limit` (or `since_ms`) reaching beyond it returns
+   * 403 `history_depth`; without them the page simply stops at the window.
+   */
+  limit?: number;
+  /**
+   * Only return these fields of each row (array or comma-separated). Rows are then partial.
+   */
+  fields?: Fields;
+  /**
+   * Upper time bound, exclusive (rows strictly before it). Not combinable with `until`. A
+   * `Date`, an ISO string (`2026-01-01`) or epoch milliseconds.
+   */
+  before?: TimeLike;
+  /**
+   * Reading order: `desc` (most recent first, the default) or `asc` (oldest first, reading
+   * forward from `since_ms`, which is then required). Follow `next` to read the following page.
+   */
+  order?: Order;
+}
+
+export interface BtcActiveAddressesHistoryIterParams {
+  /**
+   * Lower time bound, inclusive. A `Date`, an ISO string (`2026-01-01`) or epoch milliseconds.
+   */
+  since?: TimeLike;
+  /**
+   * Upper time bound, inclusive to the millisecond. A `Date`, an ISO string (`2026-01-01`) or
+   * epoch milliseconds.
+   */
+  until?: TimeLike;
+  /**
+   * Only return these fields of each row (array or comma-separated). Rows are then partial.
+   */
+  fields?: Fields;
+  /**
+   * Reading order: `desc` (most recent first, the default) or `asc` (oldest first, reading
+   * forward from `since_ms`, which is then required). Follow `next` to read the following page.
+   */
+  order?: Order;
+}
+
+export type BtcActiveAddressesHistoryIterOptions = BtcActiveAddressesHistoryIterParams & IterOptions;
+
+/** `/v1/btc/active-addresses/history`. */
+export interface BtcActiveAddressesHistoryResource {
+  /**
+   * GET /v1/btc/active-addresses/history — Active addresses history
+   *
+   * One point per day. Most recent first, or oldest first with `order=asc`. Follow `next` to
+   * read the following page (it never repeats a row).
+   */
+  (params?: BtcActiveAddressesHistoryParams, options?: RequestOptions): Promise<ApiResponse<Array<M.BtcActiveAddressesHistoryItem>>>;
+  /**
+   * Every row of `/v1/btc/active-addresses/history` over a period, following `next` page after
+   * page (`for await`).
+   */
+  iter(params?: BtcActiveAddressesHistoryIterOptions, options?: RequestOptions): RowIterator<M.BtcActiveAddressesHistoryItem>;
+}
+
+export interface BtcActiveAddressesParams {
+  /**
+   * Only return these fields of each row (array or comma-separated). Rows are then partial.
+   */
+  fields?: Fields;
+}
+
+/** `/v1/btc/active-addresses` and its sub-routes. */
+export interface BtcActiveAddressesResource {
+  /**
+   * GET /v1/btc/active-addresses — Bitcoin active addresses
+   *
+   * Daily active addresses, 7- and 30-day averages and momentum.
+   */
+  (params?: BtcActiveAddressesParams, options?: RequestOptions): Promise<ApiResponse<M.BtcActiveAddresses | null>>;
+  history: BtcActiveAddressesHistoryResource;
 }
 
 export interface BtcFeesHistoryParams {
@@ -356,7 +451,8 @@ export interface BtcFeesResource {
    * GET /v1/btc/fees — Recommended Bitcoin fees
    *
    * Fee rates for each confirmation target (sat/vB): the rounded rates under the same names as
-   * the history, the unrounded ones under `precise`, and the fee pressure.
+   * the history, the unrounded ones as `<name>_precise_sat_vb`, and the fee pressure
+   * (`fastest_economy_ratio` and its label).
    */
   (params?: BtcFeesParams, options?: RequestOptions): Promise<ApiResponse<M.BtcFees | null>>;
   history: BtcFeesHistoryResource;
@@ -546,11 +642,100 @@ export interface BtcMiningResource {
    * GET /v1/btc/mining — Mining pool concentration
    *
    * Share of the largest pools, pool ranking and the latest block reward in sats and USD, with
-   * the BTC price AT THAT BLOCK (`btc_price_usd_at_block`, `block_height`, `block_timestamp`) —
-   * not the current price (see `/v1/klines`).
+   * the BTC price AT THAT BLOCK (`latest_reward.btc_price_usd`, with its `block_height` and
+   * `time`) — not the current price (see `/v1/klines`).
    */
   (params?: BtcMiningParams, options?: RequestOptions): Promise<ApiResponse<M.BtcMining | null>>;
   history: BtcMiningHistoryResource;
+}
+
+export interface BtcMvrvHistoryParams {
+  /**
+   * Lower time bound, inclusive. A `Date`, an ISO string (`2026-01-01`) or epoch milliseconds.
+   */
+  since?: TimeLike;
+  /**
+   * Upper time bound, inclusive to the millisecond. A `Date`, an ISO string (`2026-01-01`) or
+   * epoch milliseconds.
+   */
+  until?: TimeLike;
+  /**
+   * Number of rows to return, in the reading order (most recent first by default). Bounded by
+   * your plan's history window: an explicit `limit` (or `since_ms`) reaching beyond it returns
+   * 403 `history_depth`; without them the page simply stops at the window.
+   */
+  limit?: number;
+  /**
+   * Only return these fields of each row (array or comma-separated). Rows are then partial.
+   */
+  fields?: Fields;
+  /**
+   * Upper time bound, exclusive (rows strictly before it). Not combinable with `until`. A
+   * `Date`, an ISO string (`2026-01-01`) or epoch milliseconds.
+   */
+  before?: TimeLike;
+  /**
+   * Reading order: `desc` (most recent first, the default) or `asc` (oldest first, reading
+   * forward from `since_ms`, which is then required). Follow `next` to read the following page.
+   */
+  order?: Order;
+}
+
+export interface BtcMvrvHistoryIterParams {
+  /**
+   * Lower time bound, inclusive. A `Date`, an ISO string (`2026-01-01`) or epoch milliseconds.
+   */
+  since?: TimeLike;
+  /**
+   * Upper time bound, inclusive to the millisecond. A `Date`, an ISO string (`2026-01-01`) or
+   * epoch milliseconds.
+   */
+  until?: TimeLike;
+  /**
+   * Only return these fields of each row (array or comma-separated). Rows are then partial.
+   */
+  fields?: Fields;
+  /**
+   * Reading order: `desc` (most recent first, the default) or `asc` (oldest first, reading
+   * forward from `since_ms`, which is then required). Follow `next` to read the following page.
+   */
+  order?: Order;
+}
+
+export type BtcMvrvHistoryIterOptions = BtcMvrvHistoryIterParams & IterOptions;
+
+/** `/v1/btc/mvrv/history`. */
+export interface BtcMvrvHistoryResource {
+  /**
+   * GET /v1/btc/mvrv/history — MVRV history
+   *
+   * One point per day. Most recent first, or oldest first with `order=asc`. Follow `next` to
+   * read the following page (it never repeats a row).
+   */
+  (params?: BtcMvrvHistoryParams, options?: RequestOptions): Promise<ApiResponse<Array<M.BtcMvrvHistoryItem>>>;
+  /**
+   * Every row of `/v1/btc/mvrv/history` over a period, following `next` page after page (`for
+   * await`).
+   */
+  iter(params?: BtcMvrvHistoryIterOptions, options?: RequestOptions): RowIterator<M.BtcMvrvHistoryItem>;
+}
+
+export interface BtcMvrvParams {
+  /**
+   * Only return these fields of each row (array or comma-separated). Rows are then partial.
+   */
+  fields?: Fields;
+}
+
+/** `/v1/btc/mvrv` and its sub-routes. */
+export interface BtcMvrvResource {
+  /**
+   * GET /v1/btc/mvrv — Bitcoin MVRV
+   *
+   * Market value / realised value with its zone and 30-day momentum. Daily.
+   */
+  (params?: BtcMvrvParams, options?: RequestOptions): Promise<ApiResponse<M.BtcMvrv | null>>;
+  history: BtcMvrvHistoryResource;
 }
 
 export interface BtcNetworkHistoryParams {
@@ -643,15 +828,198 @@ export interface BtcNetworkResource {
   history: BtcNetworkHistoryResource;
 }
 
+export interface BtcNvtHistoryParams {
+  /**
+   * Lower time bound, inclusive. A `Date`, an ISO string (`2026-01-01`) or epoch milliseconds.
+   */
+  since?: TimeLike;
+  /**
+   * Upper time bound, inclusive to the millisecond. A `Date`, an ISO string (`2026-01-01`) or
+   * epoch milliseconds.
+   */
+  until?: TimeLike;
+  /**
+   * Number of rows to return, in the reading order (most recent first by default). Bounded by
+   * your plan's history window: an explicit `limit` (or `since_ms`) reaching beyond it returns
+   * 403 `history_depth`; without them the page simply stops at the window.
+   */
+  limit?: number;
+  /**
+   * Only return these fields of each row (array or comma-separated). Rows are then partial.
+   */
+  fields?: Fields;
+  /**
+   * Upper time bound, exclusive (rows strictly before it). Not combinable with `until`. A
+   * `Date`, an ISO string (`2026-01-01`) or epoch milliseconds.
+   */
+  before?: TimeLike;
+  /**
+   * Reading order: `desc` (most recent first, the default) or `asc` (oldest first, reading
+   * forward from `since_ms`, which is then required). Follow `next` to read the following page.
+   */
+  order?: Order;
+}
+
+export interface BtcNvtHistoryIterParams {
+  /**
+   * Lower time bound, inclusive. A `Date`, an ISO string (`2026-01-01`) or epoch milliseconds.
+   */
+  since?: TimeLike;
+  /**
+   * Upper time bound, inclusive to the millisecond. A `Date`, an ISO string (`2026-01-01`) or
+   * epoch milliseconds.
+   */
+  until?: TimeLike;
+  /**
+   * Only return these fields of each row (array or comma-separated). Rows are then partial.
+   */
+  fields?: Fields;
+  /**
+   * Reading order: `desc` (most recent first, the default) or `asc` (oldest first, reading
+   * forward from `since_ms`, which is then required). Follow `next` to read the following page.
+   */
+  order?: Order;
+}
+
+export type BtcNvtHistoryIterOptions = BtcNvtHistoryIterParams & IterOptions;
+
+/** `/v1/btc/nvt/history`. */
+export interface BtcNvtHistoryResource {
+  /**
+   * GET /v1/btc/nvt/history — NVT history
+   *
+   * One point per day. Most recent first, or oldest first with `order=asc`. Follow `next` to
+   * read the following page (it never repeats a row).
+   */
+  (params?: BtcNvtHistoryParams, options?: RequestOptions): Promise<ApiResponse<Array<M.BtcNvtHistoryItem>>>;
+  /**
+   * Every row of `/v1/btc/nvt/history` over a period, following `next` page after page (`for
+   * await`).
+   */
+  iter(params?: BtcNvtHistoryIterOptions, options?: RequestOptions): RowIterator<M.BtcNvtHistoryItem>;
+}
+
+export interface BtcNvtParams {
+  /**
+   * Only return these fields of each row (array or comma-separated). Rows are then partial.
+   */
+  fields?: Fields;
+}
+
+/** `/v1/btc/nvt` and its sub-routes. */
+export interface BtcNvtResource {
+  /**
+   * GET /v1/btc/nvt — Bitcoin NVT
+   *
+   * Network value to transactions ratio and its 90-day NVT Signal, derived on demand. Daily.
+   */
+  (params?: BtcNvtParams, options?: RequestOptions): Promise<ApiResponse<M.BtcNvt | null>>;
+  history: BtcNvtHistoryResource;
+}
+
+export interface BtcRevenuePerDifficultyHistoryParams {
+  /**
+   * Lower time bound, inclusive. A `Date`, an ISO string (`2026-01-01`) or epoch milliseconds.
+   */
+  since?: TimeLike;
+  /**
+   * Upper time bound, inclusive to the millisecond. A `Date`, an ISO string (`2026-01-01`) or
+   * epoch milliseconds.
+   */
+  until?: TimeLike;
+  /**
+   * Number of rows to return, in the reading order (most recent first by default). Bounded by
+   * your plan's history window: an explicit `limit` (or `since_ms`) reaching beyond it returns
+   * 403 `history_depth`; without them the page simply stops at the window.
+   */
+  limit?: number;
+  /**
+   * Only return these fields of each row (array or comma-separated). Rows are then partial.
+   */
+  fields?: Fields;
+  /**
+   * Upper time bound, exclusive (rows strictly before it). Not combinable with `until`. A
+   * `Date`, an ISO string (`2026-01-01`) or epoch milliseconds.
+   */
+  before?: TimeLike;
+  /**
+   * Reading order: `desc` (most recent first, the default) or `asc` (oldest first, reading
+   * forward from `since_ms`, which is then required). Follow `next` to read the following page.
+   */
+  order?: Order;
+}
+
+export interface BtcRevenuePerDifficultyHistoryIterParams {
+  /**
+   * Lower time bound, inclusive. A `Date`, an ISO string (`2026-01-01`) or epoch milliseconds.
+   */
+  since?: TimeLike;
+  /**
+   * Upper time bound, inclusive to the millisecond. A `Date`, an ISO string (`2026-01-01`) or
+   * epoch milliseconds.
+   */
+  until?: TimeLike;
+  /**
+   * Only return these fields of each row (array or comma-separated). Rows are then partial.
+   */
+  fields?: Fields;
+  /**
+   * Reading order: `desc` (most recent first, the default) or `asc` (oldest first, reading
+   * forward from `since_ms`, which is then required). Follow `next` to read the following page.
+   */
+  order?: Order;
+}
+
+export type BtcRevenuePerDifficultyHistoryIterOptions = BtcRevenuePerDifficultyHistoryIterParams & IterOptions;
+
+/** `/v1/btc/revenue-per-difficulty/history`. */
+export interface BtcRevenuePerDifficultyHistoryResource {
+  /**
+   * GET /v1/btc/revenue-per-difficulty/history — Revenue per difficulty history
+   *
+   * One point per day. Most recent first, or oldest first with `order=asc`. Follow `next` to
+   * read the following page (it never repeats a row).
+   */
+  (params?: BtcRevenuePerDifficultyHistoryParams, options?: RequestOptions): Promise<ApiResponse<Array<M.BtcRevenuePerDifficultyHistoryItem>>>;
+  /**
+   * Every row of `/v1/btc/revenue-per-difficulty/history` over a period, following `next` page
+   * after page (`for await`).
+   */
+  iter(params?: BtcRevenuePerDifficultyHistoryIterOptions, options?: RequestOptions): RowIterator<M.BtcRevenuePerDifficultyHistoryItem>;
+}
+
+export interface BtcRevenuePerDifficultyParams {
+  /**
+   * Only return these fields of each row (array or comma-separated). Rows are then partial.
+   */
+  fields?: Fields;
+}
+
+/** `/v1/btc/revenue-per-difficulty` and its sub-routes. */
+export interface BtcRevenuePerDifficultyResource {
+  /**
+   * GET /v1/btc/revenue-per-difficulty — Bitcoin revenue per difficulty
+   *
+   * Miner revenue per unit of difficulty (`revenue_per_difficulty_usd`) against its 30-day
+   * average, and its reading: `healthy`, `stress` or `capitulation`. Daily.
+   */
+  (params?: BtcRevenuePerDifficultyParams, options?: RequestOptions): Promise<ApiResponse<M.BtcRevenuePerDifficulty | null>>;
+  history: BtcRevenuePerDifficultyHistoryResource;
+}
+
 /** `/v1/btc` and its sub-routes. */
 export interface BtcResource {
+  activeAddresses: BtcActiveAddressesResource;
   fees: BtcFeesResource;
   mempool: BtcMempoolResource;
   mining: BtcMiningResource;
+  mvrv: BtcMvrvResource;
   network: BtcNetworkResource;
+  nvt: BtcNvtResource;
+  revenuePerDifficulty: BtcRevenuePerDifficultyResource;
 }
 
-export interface BuysellRatioFuturesHistoryParams {
+export interface BuySellRatioFuturesHistoryParams {
   /**
    * Lower time bound, inclusive. A `Date`, an ISO string (`2026-01-01`) or epoch milliseconds.
    */
@@ -677,7 +1045,7 @@ export interface BuysellRatioFuturesHistoryParams {
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
-  symbol: string;
+  symbol: KnownSymbol | (string & {});
   /**
    * Only return these fields of each row (array or comma-separated). Rows are then partial.
    */
@@ -694,7 +1062,7 @@ export interface BuysellRatioFuturesHistoryParams {
   order?: Order;
 }
 
-export interface BuysellRatioFuturesHistoryIterParams {
+export interface BuySellRatioFuturesHistoryIterParams {
   /**
    * Lower time bound, inclusive. A `Date`, an ISO string (`2026-01-01`) or epoch milliseconds.
    */
@@ -714,7 +1082,7 @@ export interface BuysellRatioFuturesHistoryIterParams {
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
-  symbol: string;
+  symbol: KnownSymbol | (string & {});
   /**
    * Only return these fields of each row (array or comma-separated). Rows are then partial.
    */
@@ -726,49 +1094,56 @@ export interface BuysellRatioFuturesHistoryIterParams {
   order?: Order;
 }
 
-export type BuysellRatioFuturesHistoryIterOptions = BuysellRatioFuturesHistoryIterParams & IterOptions;
+export type BuySellRatioFuturesHistoryIterOptions = BuySellRatioFuturesHistoryIterParams & IterOptions;
 
-/** `/v1/buysell/ratio/futures/history`. */
-export interface BuysellRatioFuturesHistoryResource {
+/** `/v1/buy-sell-ratio/futures/history`. */
+export interface BuySellRatioFuturesHistoryResource {
   /**
-   * GET /v1/buysell/ratio/futures/history — Buy/sell ratio history, perpetual futures only
+   * GET /v1/buy-sell-ratio/futures/history — Buy/sell ratio history, perpetual futures only
    *
-   * Perpetual futures market only. Same as `/v1/buysell/ratio/history`, which serves every
+   * Perpetual futures market only. Same as `/v1/buy-sell-ratio/history`, which serves every
    * market.
    */
-  (params: BuysellRatioFuturesHistoryParams, options?: RequestOptions): Promise<ApiResponse<Array<M.BuysellRatioHistoryItem>>>;
+  (params: BuySellRatioFuturesHistoryParams, options?: RequestOptions): Promise<ApiResponse<Array<M.BuySellRatioHistoryItem>>>;
   /**
-   * Every row of `/v1/buysell/ratio/futures/history` over a period, following `next` page after
-   * page (`for await`).
+   * Every row of `/v1/buy-sell-ratio/futures/history` over a period, following `next` page
+   * after page (`for await`).
    */
-  iter(params: BuysellRatioFuturesHistoryIterOptions, options?: RequestOptions): RowIterator<M.BuysellRatioHistoryItem>;
+  iter(params: BuySellRatioFuturesHistoryIterOptions, options?: RequestOptions): RowIterator<M.BuySellRatioHistoryItem>;
 }
 
-export interface BuysellRatioFuturesParams {
+export interface BuySellRatioFuturesParams {
+  /**
+   * Bucket size, required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. Missing: 422
+   * `missing_parameter`; other values: 422 `invalid_timeframe` with the accepted list. In any
+   * case (`1H` is `1h`), except `1M`: refused, since elsewhere it means a month and here `1m`
+   * is one minute.
+   */
+  timeframe: Timeframe;
   /**
    * Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET /v1/symbols`.
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
-  symbol: string;
+  symbol: KnownSymbol | (string & {});
   /**
    * Only return these fields of each row (array or comma-separated). Rows are then partial.
    */
   fields?: Fields;
 }
 
-/** `/v1/buysell/ratio/futures` and its sub-routes. */
-export interface BuysellRatioFuturesResource {
+/** `/v1/buy-sell-ratio/futures` and its sub-routes. */
+export interface BuySellRatioFuturesResource {
   /**
-   * GET /v1/buysell/ratio/futures — Buy/sell volume ratio, perpetual futures only
+   * GET /v1/buy-sell-ratio/futures — Buy/sell volume ratio, perpetual futures only
    *
-   * Perpetual futures market only. Same as `/v1/buysell/ratio`, which serves every market.
+   * Perpetual futures market only. Same as `/v1/buy-sell-ratio`, which serves every market.
    */
-  (params: BuysellRatioFuturesParams, options?: RequestOptions): Promise<ApiResponse<M.BuysellRatio | null>>;
-  history: BuysellRatioFuturesHistoryResource;
+  (params: BuySellRatioFuturesParams, options?: RequestOptions): Promise<ApiResponse<M.BuySellRatio | null>>;
+  history: BuySellRatioFuturesHistoryResource;
 }
 
-export interface BuysellRatioHistoryParams {
+export interface BuySellRatioHistoryParams {
   /**
    * Lower time bound, inclusive. A `Date`, an ISO string (`2026-01-01`) or epoch milliseconds.
    */
@@ -794,7 +1169,7 @@ export interface BuysellRatioHistoryParams {
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
-  symbol: string;
+  symbol: KnownSymbol | (string & {});
   /**
    * Only return these fields of each row (array or comma-separated). Rows are then partial.
    */
@@ -811,7 +1186,7 @@ export interface BuysellRatioHistoryParams {
   order?: Order;
 }
 
-export interface BuysellRatioHistoryIterParams {
+export interface BuySellRatioHistoryIterParams {
   /**
    * Lower time bound, inclusive. A `Date`, an ISO string (`2026-01-01`) or epoch milliseconds.
    */
@@ -831,7 +1206,7 @@ export interface BuysellRatioHistoryIterParams {
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
-  symbol: string;
+  symbol: KnownSymbol | (string & {});
   /**
    * Only return these fields of each row (array or comma-separated). Rows are then partial.
    */
@@ -843,12 +1218,12 @@ export interface BuysellRatioHistoryIterParams {
   order?: Order;
 }
 
-export type BuysellRatioHistoryIterOptions = BuysellRatioHistoryIterParams & IterOptions;
+export type BuySellRatioHistoryIterOptions = BuySellRatioHistoryIterParams & IterOptions;
 
-/** `/v1/buysell/ratio/history`. */
-export interface BuysellRatioHistoryResource {
+/** `/v1/buy-sell-ratio/history`. */
+export interface BuySellRatioHistoryResource {
   /**
-   * GET /v1/buysell/ratio/history — Buy/sell ratio history
+   * GET /v1/buy-sell-ratio/history — Buy/sell ratio history
    *
    * One row per closed bucket of `timeframe` (required): the taker buy and sell volumes of the
    * WHOLE bucket — the same volumes as `/v1/cvd/history` for the same market and bucket — and
@@ -859,15 +1234,15 @@ export interface BuysellRatioHistoryResource {
    * serves the full futures history. Most recent first, or oldest first with `order=asc`.
    * Follow `next` to read the following page (it never repeats a row).
    */
-  (params: BuysellRatioHistoryParams, options?: RequestOptions): Promise<ApiResponse<Array<M.BuysellRatioHistoryItem>>>;
+  (params: BuySellRatioHistoryParams, options?: RequestOptions): Promise<ApiResponse<Array<M.BuySellRatioHistoryItem>>>;
   /**
-   * Every row of `/v1/buysell/ratio/history` over a period, following `next` page after page
+   * Every row of `/v1/buy-sell-ratio/history` over a period, following `next` page after page
    * (`for await`).
    */
-  iter(params: BuysellRatioHistoryIterOptions, options?: RequestOptions): RowIterator<M.BuysellRatioHistoryItem>;
+  iter(params: BuySellRatioHistoryIterOptions, options?: RequestOptions): RowIterator<M.BuySellRatioHistoryItem>;
 }
 
-export interface BuysellRatioSpotHistoryParams {
+export interface BuySellRatioSpotHistoryParams {
   /**
    * Lower time bound, inclusive. A `Date`, an ISO string (`2026-01-01`) or epoch milliseconds.
    */
@@ -893,7 +1268,7 @@ export interface BuysellRatioSpotHistoryParams {
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
-  symbol: string;
+  symbol: KnownSymbol | (string & {});
   /**
    * Only return these fields of each row (array or comma-separated). Rows are then partial.
    */
@@ -910,7 +1285,7 @@ export interface BuysellRatioSpotHistoryParams {
   order?: Order;
 }
 
-export interface BuysellRatioSpotHistoryIterParams {
+export interface BuySellRatioSpotHistoryIterParams {
   /**
    * Lower time bound, inclusive. A `Date`, an ISO string (`2026-01-01`) or epoch milliseconds.
    */
@@ -930,7 +1305,7 @@ export interface BuysellRatioSpotHistoryIterParams {
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
-  symbol: string;
+  symbol: KnownSymbol | (string & {});
   /**
    * Only return these fields of each row (array or comma-separated). Rows are then partial.
    */
@@ -942,82 +1317,117 @@ export interface BuysellRatioSpotHistoryIterParams {
   order?: Order;
 }
 
-export type BuysellRatioSpotHistoryIterOptions = BuysellRatioSpotHistoryIterParams & IterOptions;
+export type BuySellRatioSpotHistoryIterOptions = BuySellRatioSpotHistoryIterParams & IterOptions;
 
-/** `/v1/buysell/ratio/spot/history`. */
-export interface BuysellRatioSpotHistoryResource {
+/** `/v1/buy-sell-ratio/spot/history`. */
+export interface BuySellRatioSpotHistoryResource {
   /**
-   * GET /v1/buysell/ratio/spot/history — Buy/sell ratio history, spot only
+   * GET /v1/buy-sell-ratio/spot/history — Buy/sell ratio history, spot only
    *
-   * Spot market only. Same as `/v1/buysell/ratio/history`, which serves every market.
+   * Spot market only. Same as `/v1/buy-sell-ratio/history`, which serves every market.
    */
-  (params: BuysellRatioSpotHistoryParams, options?: RequestOptions): Promise<ApiResponse<Array<M.BuysellRatioHistoryItem>>>;
+  (params: BuySellRatioSpotHistoryParams, options?: RequestOptions): Promise<ApiResponse<Array<M.BuySellRatioHistoryItem>>>;
   /**
-   * Every row of `/v1/buysell/ratio/spot/history` over a period, following `next` page after
+   * Every row of `/v1/buy-sell-ratio/spot/history` over a period, following `next` page after
    * page (`for await`).
    */
-  iter(params: BuysellRatioSpotHistoryIterOptions, options?: RequestOptions): RowIterator<M.BuysellRatioHistoryItem>;
+  iter(params: BuySellRatioSpotHistoryIterOptions, options?: RequestOptions): RowIterator<M.BuySellRatioHistoryItem>;
 }
 
-export interface BuysellRatioSpotParams {
+export interface BuySellRatioSpotParams {
+  /**
+   * Bucket size, required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. Missing: 422
+   * `missing_parameter`; other values: 422 `invalid_timeframe` with the accepted list. In any
+   * case (`1H` is `1h`), except `1M`: refused, since elsewhere it means a month and here `1m`
+   * is one minute.
+   */
+  timeframe: Timeframe;
   /**
    * Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET /v1/symbols`.
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
-  symbol: string;
+  symbol: KnownSymbol | (string & {});
   /**
    * Only return these fields of each row (array or comma-separated). Rows are then partial.
    */
   fields?: Fields;
 }
 
-/** `/v1/buysell/ratio/spot` and its sub-routes. */
-export interface BuysellRatioSpotResource {
+/** `/v1/buy-sell-ratio/spot` and its sub-routes. */
+export interface BuySellRatioSpotResource {
   /**
-   * GET /v1/buysell/ratio/spot — Buy/sell volume ratio, spot only
+   * GET /v1/buy-sell-ratio/spot — Buy/sell volume ratio, spot only
    *
-   * Spot market only. Same as `/v1/buysell/ratio`, which serves every market.
+   * Spot market only. Same as `/v1/buy-sell-ratio`, which serves every market.
    */
-  (params: BuysellRatioSpotParams, options?: RequestOptions): Promise<ApiResponse<M.BuysellRatio | null>>;
-  history: BuysellRatioSpotHistoryResource;
+  (params: BuySellRatioSpotParams, options?: RequestOptions): Promise<ApiResponse<M.BuySellRatio | null>>;
+  history: BuySellRatioSpotHistoryResource;
 }
 
-export interface BuysellRatioParams {
+export interface BuySellRatioParams {
+  /**
+   * Bucket size, required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. Missing: 422
+   * `missing_parameter`; other values: 422 `invalid_timeframe` with the accepted list. In any
+   * case (`1H` is `1h`), except `1M`: refused, since elsewhere it means a month and here `1m`
+   * is one minute.
+   */
+  timeframe: Timeframe;
   /**
    * Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET /v1/symbols`.
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
-  symbol: string;
+  symbol: KnownSymbol | (string & {});
   /**
    * Only return these fields of each row (array or comma-separated). Rows are then partial.
    */
   fields?: Fields;
 }
 
-/** `/v1/buysell/ratio` and its sub-routes. */
-export interface BuysellRatioResource {
+/** `/v1/buy-sell-ratio` and its sub-routes. */
+export interface BuySellRatioResource {
   /**
-   * GET /v1/buysell/ratio — Buy/sell volume ratio
+   * GET /v1/buy-sell-ratio — Buy/sell volume ratio
    *
-   * Taker buy share of volume over the last closed 5-minute window, all venues. Above 0.5 =
-   * buyers dominate. The window starts at `window_start`, lasts `window_s` and is aligned on
-   * the minute; `time` is its end. The market is in the PATH: no suffix = all markets (spot +
-   * perpetual futures), `/spot`, `/futures`; the envelope says which (`market`). Spot
-   * base-asset quantities are measured since 2026-09-27: before that date, spot and all-market
-   * buy/sell volumes are estimated from USD amounts (`is_volume_estimated: true`); `/futures`
-   * serves the full futures history.
+   * Taker buy share of volume (`buy_ratio`, a fraction) of the latest CLOSED bucket of
+   * `timeframe` (required), all venues: the first row of `/v1/buy-sell-ratio/history` for the
+   * same `timeframe`, and the same buy and sell volumes as `/v1/cvd` for that bucket. Above 0.5
+   * = buyers dominate. The market is in the PATH: no suffix = all markets (spot + perpetual
+   * futures), `/spot`, `/futures`; the envelope says which (`market`). Spot base-asset
+   * quantities are measured since 2026-09-27: before that date, spot and all-market buy/sell
+   * volumes are estimated from USD amounts (`is_volume_estimated: true`); `/futures` serves the
+   * full futures history.
    */
-  (params: BuysellRatioParams, options?: RequestOptions): Promise<ApiResponse<M.BuysellRatio | null>>;
-  futures: BuysellRatioFuturesResource;
-  history: BuysellRatioHistoryResource;
-  spot: BuysellRatioSpotResource;
+  (params: BuySellRatioParams, options?: RequestOptions): Promise<ApiResponse<M.BuySellRatio | null>>;
+  futures: BuySellRatioFuturesResource;
+  history: BuySellRatioHistoryResource;
+  spot: BuySellRatioSpotResource;
 }
 
-/** `/v1/buysell` and its sub-routes. */
-export interface BuysellResource {
-  ratio: BuysellRatioResource;
+export interface CapabilitiesParams {
+  /**
+   * Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET /v1/symbols`.
+   * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
+   * pair returns 422 `invalid_symbol` with the accepted list.
+   */
+  symbol: KnownSymbol | (string & {});
+  /**
+   * Only return these fields of each row (array or comma-separated). Rows are then partial.
+   */
+  fields?: Fields;
+}
+
+/** `/v1/capabilities`. */
+export interface CapabilitiesResource {
+  /**
+   * GET /v1/capabilities — What a symbol supports
+   *
+   * Which raw feeds were active over the last 24 h for `symbol` (required), and which derived
+   * metrics are available, blocked (with the missing feeds) or not applicable (stablecoins have
+   * no futures). Feed names are those of `/v1/status`.
+   */
+  (params: CapabilitiesParams, options?: RequestOptions): Promise<ApiResponse<M.Capabilities | null>>;
 }
 
 export interface CvdFuturesHistoryParams {
@@ -1048,7 +1458,7 @@ export interface CvdFuturesHistoryParams {
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
-  symbol: string;
+  symbol: KnownSymbol | (string & {});
   /**
    * Only return these fields of each row (array or comma-separated). Rows are then partial.
    */
@@ -1087,7 +1497,7 @@ export interface CvdFuturesHistoryIterParams {
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
-  symbol: string;
+  symbol: KnownSymbol | (string & {});
   /**
    * Only return these fields of each row (array or comma-separated). Rows are then partial.
    */
@@ -1134,7 +1544,7 @@ export interface CvdFuturesParams {
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
-  symbol: string;
+  symbol: KnownSymbol | (string & {});
   /**
    * Only return these fields of each row (array or comma-separated). Rows are then partial.
    */
@@ -1180,7 +1590,7 @@ export interface CvdHistoryParams {
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
-  symbol: string;
+  symbol: KnownSymbol | (string & {});
   /**
    * Only return these fields of each row (array or comma-separated). Rows are then partial.
    */
@@ -1219,7 +1629,7 @@ export interface CvdHistoryIterParams {
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
-  symbol: string;
+  symbol: KnownSymbol | (string & {});
   /**
    * Only return these fields of each row (array or comma-separated). Rows are then partial.
    */
@@ -1281,7 +1691,7 @@ export interface CvdSpotHistoryParams {
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
-  symbol: string;
+  symbol: KnownSymbol | (string & {});
   /**
    * Only return these fields of each row (array or comma-separated). Rows are then partial.
    */
@@ -1320,7 +1730,7 @@ export interface CvdSpotHistoryIterParams {
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
-  symbol: string;
+  symbol: KnownSymbol | (string & {});
   /**
    * Only return these fields of each row (array or comma-separated). Rows are then partial.
    */
@@ -1367,7 +1777,7 @@ export interface CvdSpotParams {
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
-  symbol: string;
+  symbol: KnownSymbol | (string & {});
   /**
    * Only return these fields of each row (array or comma-separated). Rows are then partial.
    */
@@ -1403,7 +1813,7 @@ export interface CvdParams {
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
-  symbol: string;
+  symbol: KnownSymbol | (string & {});
   /**
    * Only return these fields of each row (array or comma-separated). Rows are then partial.
    */
@@ -1904,7 +2314,7 @@ export interface EthGasMomentumResource {
   history: EthGasMomentumHistoryResource;
 }
 
-export interface EthRatioHistoryParams {
+export interface EthPriceBtcHistoryParams {
   /**
    * Lower time bound, inclusive. A `Date`, an ISO string (`2026-01-01`) or epoch milliseconds.
    */
@@ -1936,7 +2346,7 @@ export interface EthRatioHistoryParams {
   order?: Order;
 }
 
-export interface EthRatioHistoryIterParams {
+export interface EthPriceBtcHistoryIterParams {
   /**
    * Lower time bound, inclusive. A `Date`, an ISO string (`2026-01-01`) or epoch milliseconds.
    */
@@ -1957,40 +2367,41 @@ export interface EthRatioHistoryIterParams {
   order?: Order;
 }
 
-export type EthRatioHistoryIterOptions = EthRatioHistoryIterParams & IterOptions;
+export type EthPriceBtcHistoryIterOptions = EthPriceBtcHistoryIterParams & IterOptions;
 
-/** `/v1/eth/ratio/history`. */
-export interface EthRatioHistoryResource {
+/** `/v1/eth/price-btc/history`. */
+export interface EthPriceBtcHistoryResource {
   /**
-   * GET /v1/eth/ratio/history — ETH/BTC ratio history
+   * GET /v1/eth/price-btc/history — ETH price in BTC history
    *
    * One row per day. Most recent first, or oldest first with `order=asc`. Follow `next` to read
    * the following page (it never repeats a row).
    */
-  (params?: EthRatioHistoryParams, options?: RequestOptions): Promise<ApiResponse<Array<M.EthRatioHistoryItem>>>;
+  (params?: EthPriceBtcHistoryParams, options?: RequestOptions): Promise<ApiResponse<Array<M.EthPriceBtcHistoryItem>>>;
   /**
-   * Every row of `/v1/eth/ratio/history` over a period, following `next` page after page (`for
-   * await`).
+   * Every row of `/v1/eth/price-btc/history` over a period, following `next` page after page
+   * (`for await`).
    */
-  iter(params?: EthRatioHistoryIterOptions, options?: RequestOptions): RowIterator<M.EthRatioHistoryItem>;
+  iter(params?: EthPriceBtcHistoryIterOptions, options?: RequestOptions): RowIterator<M.EthPriceBtcHistoryItem>;
 }
 
-export interface EthRatioParams {
+export interface EthPriceBtcParams {
   /**
    * Only return these fields of each row (array or comma-separated). Rows are then partial.
    */
   fields?: Fields;
 }
 
-/** `/v1/eth/ratio` and its sub-routes. */
-export interface EthRatioResource {
+/** `/v1/eth/price-btc` and its sub-routes. */
+export interface EthPriceBtcResource {
   /**
-   * GET /v1/eth/ratio — ETH/BTC ratio
+   * GET /v1/eth/price-btc — ETH price in BTC
    *
-   * ETH/BTC price ratio, its 7-day momentum and which asset outperforms.
+   * The ETH price in BTC (`eth_price_btc`), with both USD prices, its 7-day change and which
+   * asset outperforms.
    */
-  (params?: EthRatioParams, options?: RequestOptions): Promise<ApiResponse<M.EthRatio | null>>;
-  history: EthRatioHistoryResource;
+  (params?: EthPriceBtcParams, options?: RequestOptions): Promise<ApiResponse<M.EthPriceBtc | null>>;
+  history: EthPriceBtcHistoryResource;
 }
 
 export interface EthSqueezeHistoryParams {
@@ -2267,7 +2678,7 @@ export interface EthResource {
   deflation: EthDeflationResource;
   gas: EthGasResource;
   gasMomentum: EthGasMomentumResource;
-  ratio: EthRatioResource;
+  priceBtc: EthPriceBtcResource;
   squeeze: EthSqueezeResource;
   staking: EthStakingResource;
   supply: EthSupplyResource;
@@ -2383,7 +2794,7 @@ export interface FundingCumulativeHistoryParams {
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
-  symbol: string;
+  symbol: KnownSymbol | (string & {});
   /**
    * Only return these fields of each row (array or comma-separated). Rows are then partial.
    */
@@ -2415,7 +2826,7 @@ export interface FundingCumulativeHistoryIterParams {
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
-  symbol: string;
+  symbol: KnownSymbol | (string & {});
   /**
    * Only return these fields of each row (array or comma-separated). Rows are then partial.
    */
@@ -2453,7 +2864,7 @@ export interface FundingCumulativeParams {
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
-  symbol: string;
+  symbol: KnownSymbol | (string & {});
   /**
    * Only return these fields of each row (array or comma-separated). Rows are then partial.
    */
@@ -2479,7 +2890,7 @@ export interface FundingNextParams {
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
-  symbol: string;
+  symbol: KnownSymbol | (string & {});
   /**
    * Only return these fields of each row (array or comma-separated). Rows are then partial.
    */
@@ -2517,7 +2928,7 @@ export interface FundingRateHistoryParams {
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
-  symbol: string;
+  symbol: KnownSymbol | (string & {});
   /**
    * Only return these fields of each row (array or comma-separated). Rows are then partial.
    */
@@ -2549,7 +2960,7 @@ export interface FundingRateHistoryIterParams {
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
-  symbol: string;
+  symbol: KnownSymbol | (string & {});
   /**
    * Only return these fields of each row (array or comma-separated). Rows are then partial.
    */
@@ -2568,7 +2979,7 @@ export interface FundingRateHistoryResource {
   /**
    * GET /v1/funding/rate/history — Settled funding history
    *
-   * One row per settled 8-hour window (`time` = start of the period), with `period_end` and
+   * One row per settled 8-hour window (`time` = start of the period), with `period_end_at` and
    * `settled_at`. Most recent first, or oldest first with `order=asc`. Follow `next` to read
    * the following page (it never repeats a row).
    */
@@ -2591,7 +3002,7 @@ export interface FundingRateParams {
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
-  symbol: string;
+  symbol: KnownSymbol | (string & {});
   /**
    * Only return these fields of each row (array or comma-separated). Rows are then partial.
    */
@@ -2620,7 +3031,7 @@ export interface FundingResource {
   rate: FundingRateResource;
 }
 
-export interface GlobalMarketHistoryParams {
+export interface GlobalHistoryParams {
   /**
    * Lower time bound, inclusive. A `Date`, an ISO string (`2026-01-01`) or epoch milliseconds.
    */
@@ -2658,7 +3069,7 @@ export interface GlobalMarketHistoryParams {
   order?: Order;
 }
 
-export interface GlobalMarketHistoryIterParams {
+export interface GlobalHistoryIterParams {
   /**
    * Lower time bound, inclusive. A `Date`, an ISO string (`2026-01-01`) or epoch milliseconds.
    */
@@ -2685,25 +3096,25 @@ export interface GlobalMarketHistoryIterParams {
   order?: Order;
 }
 
-export type GlobalMarketHistoryIterOptions = GlobalMarketHistoryIterParams & IterOptions;
+export type GlobalHistoryIterOptions = GlobalHistoryIterParams & IterOptions;
 
 /** `/v1/global/history`. */
-export interface GlobalMarketHistoryResource {
+export interface GlobalHistoryResource {
   /**
    * GET /v1/global/history — Total crypto market history
    *
    * Most recent first, or oldest first with `order=asc`. Follow `next` to read the following
    * page (it never repeats a row).
    */
-  (params?: GlobalMarketHistoryParams, options?: RequestOptions): Promise<ApiResponse<Array<M.GlobalMarketHistoryItem>>>;
+  (params?: GlobalHistoryParams, options?: RequestOptions): Promise<ApiResponse<Array<M.GlobalMarketHistoryItem>>>;
   /**
    * Every row of `/v1/global/history` over a period, following `next` page after page (`for
    * await`).
    */
-  iter(params?: GlobalMarketHistoryIterOptions, options?: RequestOptions): RowIterator<M.GlobalMarketHistoryItem>;
+  iter(params?: GlobalHistoryIterOptions, options?: RequestOptions): RowIterator<M.GlobalMarketHistoryItem>;
 }
 
-export interface GlobalMarketParams {
+export interface GlobalParams {
   /**
    * Only return these fields of each row (array or comma-separated). Rows are then partial.
    */
@@ -2711,14 +3122,14 @@ export interface GlobalMarketParams {
 }
 
 /** `/v1/global` and its sub-routes. */
-export interface GlobalMarketResource {
+export interface GlobalResource {
   /**
    * GET /v1/global — Total crypto market
    *
    * Total market capitalisation, 24 h volume and dominance of BTC, ETH and the rest.
    */
-  (params?: GlobalMarketParams, options?: RequestOptions): Promise<ApiResponse<M.GlobalMarket | null>>;
-  history: GlobalMarketHistoryResource;
+  (params?: GlobalParams, options?: RequestOptions): Promise<ApiResponse<M.GlobalMarket | null>>;
+  history: GlobalHistoryResource;
 }
 
 export interface HealthParams {
@@ -2729,7 +3140,7 @@ export interface HealthResource {
   /**
    * GET /v1/health — Service health
    *
-   * Liveness of the API and its database. No key needed, counted for nobody.
+   * Liveness of the API and its database (`data.database`). No key needed, counted for nobody.
    */
   (params?: HealthParams, options?: RequestOptions): Promise<ApiResponse<M.Health | null>>;
 }
@@ -2751,9 +3162,11 @@ export interface HeatmapClustersHistoryParams {
    */
   limit?: number;
   /**
-   * Required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. One row per closed bucket,
-   * aggregating its minutes (`sample_count` = minutes in the bucket); `1m` gives one row per
-   * minute, aligned on the minute. Missing: 422 `missing_parameter`.
+   * Required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. One row per closed bucket: for a
+   * STATE (basis, open interest, heatmap) the value of its LAST minute — its close —, for a
+   * FLOW (open-interest change, liquidations, trade sizes) the total over its minutes;
+   * `sample_count` = minutes with data in the bucket. `1m` gives one row per minute, aligned on
+   * the minute. Missing: 422 `missing_parameter`.
    */
   timeframe: Timeframe;
   /**
@@ -2761,7 +3174,7 @@ export interface HeatmapClustersHistoryParams {
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
-  symbol: string;
+  symbol: KnownSymbol | (string & {});
   /**
    * Only return these fields of each row (array or comma-separated). Rows are then partial.
    */
@@ -2789,9 +3202,11 @@ export interface HeatmapClustersHistoryIterParams {
    */
   until?: TimeLike;
   /**
-   * Required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. One row per closed bucket,
-   * aggregating its minutes (`sample_count` = minutes in the bucket); `1m` gives one row per
-   * minute, aligned on the minute. Missing: 422 `missing_parameter`.
+   * Required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. One row per closed bucket: for a
+   * STATE (basis, open interest, heatmap) the value of its LAST minute — its close —, for a
+   * FLOW (open-interest change, liquidations, trade sizes) the total over its minutes;
+   * `sample_count` = minutes with data in the bucket. `1m` gives one row per minute, aligned on
+   * the minute. Missing: 422 `missing_parameter`.
    */
   timeframe: Timeframe;
   /**
@@ -2799,7 +3214,7 @@ export interface HeatmapClustersHistoryIterParams {
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
-  symbol: string;
+  symbol: KnownSymbol | (string & {});
   /**
    * Only return these fields of each row (array or comma-separated). Rows are then partial.
    */
@@ -2835,7 +3250,7 @@ export interface HeatmapClustersParams {
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
-  symbol: string;
+  symbol: KnownSymbol | (string & {});
   /**
    * Only return these fields of each row (array or comma-separated). Rows are then partial.
    */
@@ -2866,13 +3281,13 @@ export interface IndicatorsResource {
   (params: IndicatorsParams, options?: RequestOptions): Promise<ApiResponse<IndicatorsResult | null>>;
 }
 
-export interface KlinesParams {
+export interface KlinesHistoryParams {
   /**
    * Candle size, required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h`, `1d` or `1w` (weekly candles
    * start on Monday 00:00 UTC). Missing: 422 `missing_parameter`; other values: 422
    * `invalid_timeframe` with the accepted list.
    */
-  timeframe: KlineTimeframe;
+  timeframe: Timeframe;
   /**
    * Lower time bound, inclusive. A `Date`, an ISO string (`2026-01-01`) or epoch milliseconds.
    */
@@ -2893,7 +3308,7 @@ export interface KlinesParams {
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
-  symbol: string;
+  symbol: KnownSymbol | (string & {});
   /**
    * Only return these fields of each row (array or comma-separated). Rows are then partial.
    */
@@ -2910,13 +3325,13 @@ export interface KlinesParams {
   order?: Order;
 }
 
-export interface KlinesIterParams {
+export interface KlinesHistoryIterParams {
   /**
    * Candle size, required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h`, `1d` or `1w` (weekly candles
    * start on Monday 00:00 UTC). Missing: 422 `missing_parameter`; other values: 422
    * `invalid_timeframe` with the accepted list.
    */
-  timeframe: KlineTimeframe;
+  timeframe: Timeframe;
   /**
    * Lower time bound, inclusive. A `Date`, an ISO string (`2026-01-01`) or epoch milliseconds.
    */
@@ -2931,7 +3346,7 @@ export interface KlinesIterParams {
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
-  symbol: string;
+  symbol: KnownSymbol | (string & {});
   /**
    * Only return these fields of each row (array or comma-separated). Rows are then partial.
    */
@@ -2943,12 +3358,12 @@ export interface KlinesIterParams {
   order?: Order;
 }
 
-export type KlinesIterOptions = KlinesIterParams & IterOptions;
+export type KlinesHistoryIterOptions = KlinesHistoryIterParams & IterOptions;
 
-/** `/v1/klines`. */
-export interface KlinesResource {
+/** `/v1/klines/history`. */
+export interface KlinesHistoryResource {
   /**
-   * GET /v1/klines — OHLCV candles
+   * GET /v1/klines/history — OHLCV candles
    *
    * Candles of `timeframe` (required: `1m` to `1w`) that have ENDED: the candle in progress is
    * never served. OHLC from one reference SPOT market per symbol. `volume`, `buy_volume` and
@@ -2961,11 +3376,44 @@ export interface KlinesResource {
    * have `null` volumes. Most recent first, or oldest first with `order=asc`. Follow `next` to
    * read the following page (it never repeats a row).
    */
-  (params: KlinesParams, options?: RequestOptions): Promise<ApiResponse<Array<M.Kline>>>;
+  (params: KlinesHistoryParams, options?: RequestOptions): Promise<ApiResponse<Array<M.KlineHistoryItem>>>;
   /**
-   * Every row of `/v1/klines` over a period, following `next` page after page (`for await`).
+   * Every row of `/v1/klines/history` over a period, following `next` page after page (`for
+   * await`).
    */
-  iter(params: KlinesIterOptions, options?: RequestOptions): RowIterator<M.Kline>;
+  iter(params: KlinesHistoryIterOptions, options?: RequestOptions): RowIterator<M.KlineHistoryItem>;
+}
+
+export interface KlinesParams {
+  /**
+   * Candle size, required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h`, `1d` or `1w` (weekly candles
+   * start on Monday 00:00 UTC). Missing: 422 `missing_parameter`; other values: 422
+   * `invalid_timeframe` with the accepted list.
+   */
+  timeframe: KlineTimeframe;
+  /**
+   * Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET /v1/symbols`.
+   * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
+   * pair returns 422 `invalid_symbol` with the accepted list.
+   */
+  symbol: KnownSymbol | (string & {});
+  /**
+   * Only return these fields of each row (array or comma-separated). Rows are then partial.
+   */
+  fields?: Fields;
+}
+
+/** `/v1/klines` and its sub-routes. */
+export interface KlinesResource {
+  /**
+   * GET /v1/klines — Latest OHLCV candle
+   *
+   * The latest CLOSED candle of `timeframe` (required: `1m` to `1w`): the first row of
+   * `/v1/klines/history`, an object. OHLC from one reference SPOT market per symbol; `volume`,
+   * `buy_volume` and `sell_volume` cover ALL markets.
+   */
+  (params: KlinesParams, options?: RequestOptions): Promise<ApiResponse<M.Kline | null>>;
+  history: KlinesHistoryResource;
 }
 
 export interface LimitsParams {
@@ -2981,14 +3429,152 @@ export interface LimitsResource {
    * GET /v1/limits — Your plan's limits
    *
    * What your key may do, read from the plan that served THIS request: `plan`, the data
-   * `families` it includes (`null` = all), the history window per `timeframe`
-   * (`window_minutes`, `null` = unlimited), the tick-by-tick window, the number of individual
-   * liquidations, and the per-minute `rate` and monthly `quota` with what is left. Use it to
-   * size `limit` and `since_ms` before paging instead of discovering the window through a 403
-   * `history_depth`. Free: not counted in your quota. With an unmetered key, every limit is
-   * `null`.
+   * `families` it includes (`null` = all), the history window per `timeframe` (`window_s`, in
+   * seconds, `null` = unlimited), the window of individual trades (`trades_window_s`), the
+   * number of individual liquidations (`liquidations_events_count`), and the per-minute `rate`
+   * and monthly `quota` with what is left (`remaining_count`). `0` = not in your plan, `null` =
+   * no limit. Use it to size `limit` and `since_ms` before paging instead of discovering the
+   * window through a 403 `history_depth`. Free: not counted in your quota. With an unmetered
+   * key, every limit is `null`.
    */
   (params?: LimitsParams, options?: RequestOptions): Promise<ApiResponse<M.Limits | null>>;
+}
+
+export interface LiquidationsBigSmallRatioHistoryParams {
+  /**
+   * Lower time bound, inclusive. A `Date`, an ISO string (`2026-01-01`) or epoch milliseconds.
+   */
+  since?: TimeLike;
+  /**
+   * Upper time bound, inclusive to the millisecond. A `Date`, an ISO string (`2026-01-01`) or
+   * epoch milliseconds.
+   */
+  until?: TimeLike;
+  /**
+   * Number of rows to return, in the reading order (most recent first by default). Bounded by
+   * your plan's history window: an explicit `limit` (or `since_ms`) reaching beyond it returns
+   * 403 `history_depth`; without them the page simply stops at the window.
+   */
+  limit?: number;
+  /**
+   * Required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. One row per closed bucket: for a
+   * STATE (basis, open interest, heatmap) the value of its LAST minute — its close —, for a
+   * FLOW (open-interest change, liquidations, trade sizes) the total over its minutes;
+   * `sample_count` = minutes with data in the bucket. `1m` gives one row per minute, aligned on
+   * the minute. Missing: 422 `missing_parameter`.
+   */
+  timeframe: Timeframe;
+  /**
+   * Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET /v1/symbols`.
+   * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
+   * pair returns 422 `invalid_symbol` with the accepted list.
+   */
+  symbol: KnownSymbol | (string & {});
+  /**
+   * Only return these fields of each row (array or comma-separated). Rows are then partial.
+   */
+  fields?: Fields;
+  /**
+   * Upper time bound, exclusive (rows strictly before it). Not combinable with `until`. A
+   * `Date`, an ISO string (`2026-01-01`) or epoch milliseconds.
+   */
+  before?: TimeLike;
+  /**
+   * Reading order: `desc` (most recent first, the default) or `asc` (oldest first, reading
+   * forward from `since_ms`, which is then required). Follow `next` to read the following page.
+   */
+  order?: Order;
+}
+
+export interface LiquidationsBigSmallRatioHistoryIterParams {
+  /**
+   * Lower time bound, inclusive. A `Date`, an ISO string (`2026-01-01`) or epoch milliseconds.
+   */
+  since?: TimeLike;
+  /**
+   * Upper time bound, inclusive to the millisecond. A `Date`, an ISO string (`2026-01-01`) or
+   * epoch milliseconds.
+   */
+  until?: TimeLike;
+  /**
+   * Required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. One row per closed bucket: for a
+   * STATE (basis, open interest, heatmap) the value of its LAST minute — its close —, for a
+   * FLOW (open-interest change, liquidations, trade sizes) the total over its minutes;
+   * `sample_count` = minutes with data in the bucket. `1m` gives one row per minute, aligned on
+   * the minute. Missing: 422 `missing_parameter`.
+   */
+  timeframe: Timeframe;
+  /**
+   * Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET /v1/symbols`.
+   * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
+   * pair returns 422 `invalid_symbol` with the accepted list.
+   */
+  symbol: KnownSymbol | (string & {});
+  /**
+   * Only return these fields of each row (array or comma-separated). Rows are then partial.
+   */
+  fields?: Fields;
+  /**
+   * Reading order: `desc` (most recent first, the default) or `asc` (oldest first, reading
+   * forward from `since_ms`, which is then required). Follow `next` to read the following page.
+   */
+  order?: Order;
+}
+
+export type LiquidationsBigSmallRatioHistoryIterOptions = LiquidationsBigSmallRatioHistoryIterParams & IterOptions;
+
+/** `/v1/liquidations/big-small-ratio/history`. */
+export interface LiquidationsBigSmallRatioHistoryResource {
+  /**
+   * GET /v1/liquidations/big-small-ratio/history — Big vs small liquidations history
+   *
+   * One row per closed bucket of `timeframe` (required). History depth is a number of rows per
+   * plan, whatever the timeframe: the last 100 on Free, 500 on Traders, 1,000 on Financial,
+   * 10,000 on Startup (1,000 per page at most: follow `next`); a larger `limit`, or a bound
+   * beyond those rows, returns 403 `history_depth`. Most recent first, or oldest first with
+   * `order=asc`. Follow `next` to read the following page (it never repeats a row).
+   */
+  (params: LiquidationsBigSmallRatioHistoryParams, options?: RequestOptions): Promise<ApiResponse<Array<M.LiquidationsBigSmallRatioHistoryItem>>>;
+  /**
+   * Every row of `/v1/liquidations/big-small-ratio/history` over a period, following `next`
+   * page after page (`for await`).
+   */
+  iter(params: LiquidationsBigSmallRatioHistoryIterOptions, options?: RequestOptions): RowIterator<M.LiquidationsBigSmallRatioHistoryItem>;
+}
+
+export interface LiquidationsBigSmallRatioParams {
+  /**
+   * Bucket size, required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. Missing: 422
+   * `missing_parameter`; other values: 422 `invalid_timeframe` with the accepted list. In any
+   * case (`1H` is `1h`), except `1M`: refused, since elsewhere it means a month and here `1m`
+   * is one minute.
+   */
+  timeframe: Timeframe;
+  /**
+   * Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET /v1/symbols`.
+   * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
+   * pair returns 422 `invalid_symbol` with the accepted list.
+   */
+  symbol: KnownSymbol | (string & {});
+  /**
+   * Only return these fields of each row (array or comma-separated). Rows are then partial.
+   */
+  fields?: Fields;
+}
+
+/** `/v1/liquidations/big-small-ratio` and its sub-routes. */
+export interface LiquidationsBigSmallRatioResource {
+  /**
+   * GET /v1/liquidations/big-small-ratio — Big vs small liquidations
+   *
+   * Liquidations of 100,000 USD or more versus smaller ones over the latest CLOSED bucket of
+   * `timeframe` (required) that had liquidations — the first row of
+   * `/v1/liquidations/big-small-ratio/history` for the same `timeframe` (`time` = its start,
+   * `is_closed: true`): counts, USD and `big_small_ratio`. A high ratio = large positions are
+   * being flushed.
+   */
+  (params: LiquidationsBigSmallRatioParams, options?: RequestOptions): Promise<ApiResponse<M.LiquidationsBigSmallRatio | null>>;
+  history: LiquidationsBigSmallRatioHistoryResource;
 }
 
 export interface LiquidationsCumulativeHistoryParams {
@@ -3017,7 +3603,7 @@ export interface LiquidationsCumulativeHistoryParams {
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
-  symbol: string;
+  symbol: KnownSymbol | (string & {});
   /**
    * Only return these fields of each row (array or comma-separated). Rows are then partial.
    */
@@ -3054,7 +3640,7 @@ export interface LiquidationsCumulativeHistoryIterParams {
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
-  symbol: string;
+  symbol: KnownSymbol | (string & {});
   /**
    * Only return these fields of each row (array or comma-separated). Rows are then partial.
    */
@@ -3092,7 +3678,7 @@ export interface LiquidationsCumulativeParams {
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
-  symbol: string;
+  symbol: KnownSymbol | (string & {});
   /**
    * Only return these fields of each row (array or comma-separated). Rows are then partial.
    */
@@ -3104,8 +3690,9 @@ export interface LiquidationsCumulativeResource {
   /**
    * GET /v1/liquidations/cumulative — Liquidations over the last 5 minutes
    *
-   * Longs and shorts liquidated, USD, all venues, over the last closed 5-minute window (from
-   * `window_start`, `window_s` long), aligned on the minute; `time` is its end.
+   * Longs and shorts liquidated, USD, all venues, over the last closed 5-minute ROLLING window,
+   * aligned on the minute: `time` is its END, `window_start_at` its start, `window_s` its
+   * length.
    */
   (params: LiquidationsCumulativeParams, options?: RequestOptions): Promise<ApiResponse<M.LiquidationsCumulative | null>>;
   history: LiquidationsCumulativeHistoryResource;
@@ -3128,7 +3715,7 @@ export interface LiquidationsEventsParams {
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
-  symbol: string;
+  symbol: KnownSymbol | (string & {});
   /**
    * Only return these fields of each row (array or comma-separated). Rows are then partial.
    */
@@ -3141,142 +3728,20 @@ export interface LiquidationsEventsResource {
    * GET /v1/liquidations/events — Individual liquidations
    *
    * Forced liquidations across futures venues, one row per event, most recent first. `limit` is
-   * a number of events (with `min_usd`: events of at least that size). History depth: the
-   * events within your plan's `1h` history window (`GET /v1/limits`), at most 1,000 per call; a
-   * larger `limit`, or a plan that sets a count (`liquidation_events`), is refused with 403
-   * `history_depth` beyond it.
+   * a number of events (with `min_usd`: events of at least that size), from the latest: your
+   * plan reads the latest 100 (Free), 500 (Traders), 1,000 (Financial) or 10,000 (Startup)
+   * events (`liquidations_events_count` of `GET /v1/limits`); a larger `limit` is refused with
+   * 403 `history_depth`. 10,000 is the route's maximum. No date bounds or pagination: the
+   * WebSocket channel `liquidations.<SYMBOL>` carries them live.
    */
   (params: LiquidationsEventsParams, options?: RequestOptions): Promise<ApiResponse<Array<M.LiquidationEvent>>>;
 }
 
-export interface LiquidationsRatioHistoryParams {
-  /**
-   * Lower time bound, inclusive. A `Date`, an ISO string (`2026-01-01`) or epoch milliseconds.
-   */
-  since?: TimeLike;
-  /**
-   * Upper time bound, inclusive to the millisecond. A `Date`, an ISO string (`2026-01-01`) or
-   * epoch milliseconds.
-   */
-  until?: TimeLike;
-  /**
-   * Number of rows to return, in the reading order (most recent first by default). Bounded by
-   * your plan's history window: an explicit `limit` (or `since_ms`) reaching beyond it returns
-   * 403 `history_depth`; without them the page simply stops at the window.
-   */
-  limit?: number;
-  /**
-   * Required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. One row per closed bucket,
-   * aggregating its minutes (`sample_count` = minutes in the bucket); `1m` gives one row per
-   * minute, aligned on the minute. Missing: 422 `missing_parameter`.
-   */
-  timeframe: Timeframe;
-  /**
-   * Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET /v1/symbols`.
-   * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
-   * pair returns 422 `invalid_symbol` with the accepted list.
-   */
-  symbol: string;
-  /**
-   * Only return these fields of each row (array or comma-separated). Rows are then partial.
-   */
-  fields?: Fields;
-  /**
-   * Upper time bound, exclusive (rows strictly before it). Not combinable with `until`. A
-   * `Date`, an ISO string (`2026-01-01`) or epoch milliseconds.
-   */
-  before?: TimeLike;
-  /**
-   * Reading order: `desc` (most recent first, the default) or `asc` (oldest first, reading
-   * forward from `since_ms`, which is then required). Follow `next` to read the following page.
-   */
-  order?: Order;
-}
-
-export interface LiquidationsRatioHistoryIterParams {
-  /**
-   * Lower time bound, inclusive. A `Date`, an ISO string (`2026-01-01`) or epoch milliseconds.
-   */
-  since?: TimeLike;
-  /**
-   * Upper time bound, inclusive to the millisecond. A `Date`, an ISO string (`2026-01-01`) or
-   * epoch milliseconds.
-   */
-  until?: TimeLike;
-  /**
-   * Required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. One row per closed bucket,
-   * aggregating its minutes (`sample_count` = minutes in the bucket); `1m` gives one row per
-   * minute, aligned on the minute. Missing: 422 `missing_parameter`.
-   */
-  timeframe: Timeframe;
-  /**
-   * Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET /v1/symbols`.
-   * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
-   * pair returns 422 `invalid_symbol` with the accepted list.
-   */
-  symbol: string;
-  /**
-   * Only return these fields of each row (array or comma-separated). Rows are then partial.
-   */
-  fields?: Fields;
-  /**
-   * Reading order: `desc` (most recent first, the default) or `asc` (oldest first, reading
-   * forward from `since_ms`, which is then required). Follow `next` to read the following page.
-   */
-  order?: Order;
-}
-
-export type LiquidationsRatioHistoryIterOptions = LiquidationsRatioHistoryIterParams & IterOptions;
-
-/** `/v1/liquidations/ratio/history`. */
-export interface LiquidationsRatioHistoryResource {
-  /**
-   * GET /v1/liquidations/ratio/history — Big vs small liquidations history
-   *
-   * One row per closed bucket of `timeframe` (required). History depth is a number of rows per
-   * plan, whatever the timeframe: the last 100 on Free, 500 on Traders, 1,000 on Financial,
-   * 10,000 on Startup (1,000 per page at most: follow `next`); a larger `limit`, or a bound
-   * beyond those rows, returns 403 `history_depth`. Most recent first, or oldest first with
-   * `order=asc`. Follow `next` to read the following page (it never repeats a row).
-   */
-  (params: LiquidationsRatioHistoryParams, options?: RequestOptions): Promise<ApiResponse<Array<M.LiquidationsRatioHistoryItem>>>;
-  /**
-   * Every row of `/v1/liquidations/ratio/history` over a period, following `next` page after
-   * page (`for await`).
-   */
-  iter(params: LiquidationsRatioHistoryIterOptions, options?: RequestOptions): RowIterator<M.LiquidationsRatioHistoryItem>;
-}
-
-export interface LiquidationsRatioParams {
-  /**
-   * Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET /v1/symbols`.
-   * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
-   * pair returns 422 `invalid_symbol` with the accepted list.
-   */
-  symbol: string;
-  /**
-   * Only return these fields of each row (array or comma-separated). Rows are then partial.
-   */
-  fields?: Fields;
-}
-
-/** `/v1/liquidations/ratio` and its sub-routes. */
-export interface LiquidationsRatioResource {
-  /**
-   * GET /v1/liquidations/ratio — Big vs small liquidations
-   *
-   * Liquidations of 100,000 USD or more versus smaller ones over the latest closed minute with
-   * liquidations: counts, USD and ratio. A high ratio = large positions are being flushed.
-   */
-  (params: LiquidationsRatioParams, options?: RequestOptions): Promise<ApiResponse<M.LiquidationsRatio | null>>;
-  history: LiquidationsRatioHistoryResource;
-}
-
 /** `/v1/liquidations` and its sub-routes. */
 export interface LiquidationsResource {
+  bigSmallRatio: LiquidationsBigSmallRatioResource;
   cumulative: LiquidationsCumulativeResource;
   events: LiquidationsEventsResource;
-  ratio: LiquidationsRatioResource;
 }
 
 export interface MacroCorrelationsParams {
@@ -3654,10 +4119,10 @@ export interface MacroParams {
 /** `/v1/macro` and its sub-routes. */
 export interface MacroResource {
   /**
-   * GET /v1/macro — Latest macro values
+   * GET /v1/macro — Latest value of one macro series
    *
-   * Latest value of one FRED series (`series` required; the latest value of every series is
-   * `/v1/macro/series`).
+   * Latest value of ONE FRED series (`series` required); the latest value of every series is
+   * `/v1/macro/series`.
    */
   (params: MacroParams, options?: RequestOptions): Promise<ApiResponse<M.Macro | null>>;
   correlations: MacroCorrelationsResource;
@@ -3669,7 +4134,7 @@ export interface MacroResource {
   series: MacroSeriesResource;
 }
 
-export interface OiDeltaHistoryParams {
+export interface OiChangeHistoryParams {
   /**
    * Lower time bound, inclusive. A `Date`, an ISO string (`2026-01-01`) or epoch milliseconds.
    */
@@ -3686,9 +4151,11 @@ export interface OiDeltaHistoryParams {
    */
   limit?: number;
   /**
-   * Required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. One row per closed bucket,
-   * aggregating its minutes (`sample_count` = minutes in the bucket); `1m` gives one row per
-   * minute, aligned on the minute. Missing: 422 `missing_parameter`.
+   * Required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. One row per closed bucket: for a
+   * STATE (basis, open interest, heatmap) the value of its LAST minute — its close —, for a
+   * FLOW (open-interest change, liquidations, trade sizes) the total over its minutes;
+   * `sample_count` = minutes with data in the bucket. `1m` gives one row per minute, aligned on
+   * the minute. Missing: 422 `missing_parameter`.
    */
   timeframe: Timeframe;
   /**
@@ -3696,7 +4163,7 @@ export interface OiDeltaHistoryParams {
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
-  symbol: string;
+  symbol: KnownSymbol | (string & {});
   /**
    * Only return these fields of each row (array or comma-separated). Rows are then partial.
    */
@@ -3713,7 +4180,7 @@ export interface OiDeltaHistoryParams {
   order?: Order;
 }
 
-export interface OiDeltaHistoryIterParams {
+export interface OiChangeHistoryIterParams {
   /**
    * Lower time bound, inclusive. A `Date`, an ISO string (`2026-01-01`) or epoch milliseconds.
    */
@@ -3724,9 +4191,11 @@ export interface OiDeltaHistoryIterParams {
    */
   until?: TimeLike;
   /**
-   * Required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. One row per closed bucket,
-   * aggregating its minutes (`sample_count` = minutes in the bucket); `1m` gives one row per
-   * minute, aligned on the minute. Missing: 422 `missing_parameter`.
+   * Required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. One row per closed bucket: for a
+   * STATE (basis, open interest, heatmap) the value of its LAST minute — its close —, for a
+   * FLOW (open-interest change, liquidations, trade sizes) the total over its minutes;
+   * `sample_count` = minutes with data in the bucket. `1m` gives one row per minute, aligned on
+   * the minute. Missing: 422 `missing_parameter`.
    */
   timeframe: Timeframe;
   /**
@@ -3734,7 +4203,7 @@ export interface OiDeltaHistoryIterParams {
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
-  symbol: string;
+  symbol: KnownSymbol | (string & {});
   /**
    * Only return these fields of each row (array or comma-separated). Rows are then partial.
    */
@@ -3746,47 +4215,48 @@ export interface OiDeltaHistoryIterParams {
   order?: Order;
 }
 
-export type OiDeltaHistoryIterOptions = OiDeltaHistoryIterParams & IterOptions;
+export type OiChangeHistoryIterOptions = OiChangeHistoryIterParams & IterOptions;
 
-/** `/v1/oi/delta/history`. */
-export interface OiDeltaHistoryResource {
+/** `/v1/oi/change/history`. */
+export interface OiChangeHistoryResource {
   /**
-   * GET /v1/oi/delta/history — Open interest change history
+   * GET /v1/oi/change/history — Open interest change history
    *
    * One row per closed bucket of `timeframe` (required). Most recent first, or oldest first
    * with `order=asc`. Follow `next` to read the following page (it never repeats a row).
    */
-  (params: OiDeltaHistoryParams, options?: RequestOptions): Promise<ApiResponse<Array<M.OiDeltaHistoryItem>>>;
+  (params: OiChangeHistoryParams, options?: RequestOptions): Promise<ApiResponse<Array<M.OiChangeHistoryItem>>>;
   /**
-   * Every row of `/v1/oi/delta/history` over a period, following `next` page after page (`for
+   * Every row of `/v1/oi/change/history` over a period, following `next` page after page (`for
    * await`).
    */
-  iter(params: OiDeltaHistoryIterOptions, options?: RequestOptions): RowIterator<M.OiDeltaHistoryItem>;
+  iter(params: OiChangeHistoryIterOptions, options?: RequestOptions): RowIterator<M.OiChangeHistoryItem>;
 }
 
-export interface OiDeltaParams {
+export interface OiChangeParams {
   /**
    * Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET /v1/symbols`.
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
-  symbol: string;
+  symbol: KnownSymbol | (string & {});
   /**
    * Only return these fields of each row (array or comma-separated). Rows are then partial.
    */
   fields?: Fields;
 }
 
-/** `/v1/oi/delta` and its sub-routes. */
-export interface OiDeltaResource {
+/** `/v1/oi/change` and its sub-routes. */
+export interface OiChangeResource {
   /**
-   * GET /v1/oi/delta — Open interest change
+   * GET /v1/oi/change — Open interest change
    *
    * Change of total open interest over the last minute, summed across venues: `oi` (now),
-   * `oi_previous`, `oi_change`, `oi_change_pct`.
+   * `previous_oi`, `oi_change`, `oi_change_pct`. A rolling value: `time` is the reading,
+   * `window_start_at` the one before.
    */
-  (params: OiDeltaParams, options?: RequestOptions): Promise<ApiResponse<M.OiDelta | null>>;
-  history: OiDeltaHistoryResource;
+  (params: OiChangeParams, options?: RequestOptions): Promise<ApiResponse<M.OiChange | null>>;
+  history: OiChangeHistoryResource;
 }
 
 export interface OiHistoryParams {
@@ -3806,9 +4276,11 @@ export interface OiHistoryParams {
    */
   limit?: number;
   /**
-   * Required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. One row per closed bucket,
-   * aggregating its minutes (`sample_count` = minutes in the bucket); `1m` gives one row per
-   * minute, aligned on the minute. Missing: 422 `missing_parameter`.
+   * Required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. One row per closed bucket: for a
+   * STATE (basis, open interest, heatmap) the value of its LAST minute — its close —, for a
+   * FLOW (open-interest change, liquidations, trade sizes) the total over its minutes;
+   * `sample_count` = minutes with data in the bucket. `1m` gives one row per minute, aligned on
+   * the minute. Missing: 422 `missing_parameter`.
    */
   timeframe: Timeframe;
   /**
@@ -3816,7 +4288,7 @@ export interface OiHistoryParams {
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
-  symbol: string;
+  symbol: KnownSymbol | (string & {});
   /**
    * Only return these fields of each row (array or comma-separated). Rows are then partial.
    */
@@ -3844,9 +4316,11 @@ export interface OiHistoryIterParams {
    */
   until?: TimeLike;
   /**
-   * Required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. One row per closed bucket,
-   * aggregating its minutes (`sample_count` = minutes in the bucket); `1m` gives one row per
-   * minute, aligned on the minute. Missing: 422 `missing_parameter`.
+   * Required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. One row per closed bucket: for a
+   * STATE (basis, open interest, heatmap) the value of its LAST minute — its close —, for a
+   * FLOW (open-interest change, liquidations, trade sizes) the total over its minutes;
+   * `sample_count` = minutes with data in the bucket. `1m` gives one row per minute, aligned on
+   * the minute. Missing: 422 `missing_parameter`.
    */
   timeframe: Timeframe;
   /**
@@ -3854,7 +4328,7 @@ export interface OiHistoryIterParams {
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
-  symbol: string;
+  symbol: KnownSymbol | (string & {});
   /**
    * Only return these fields of each row (array or comma-separated). Rows are then partial.
    */
@@ -3875,7 +4349,7 @@ export interface OiHistoryResource {
    *
    * Open interest summed across futures venues, per closed bucket of `timeframe` (required):
    * for each venue, its last open interest in the bucket — `oi` is the value at the END of the
-   * bucket, like a close. The same quantity, under the same name, as `oi` on `/v1/oi/delta`.
+   * bucket, like a close. The same quantity, under the same name, as `oi` on `/v1/oi/change`.
    * Older history is coarser: its source has one reading every 4 hours, then one a day further
    * back (BTCUSDT: hourly readings from 2026-06-24, 4-hourly from 2025-10-06). On a finer
    * `timeframe` such a period has one row per reading; the buckets in between are absent, never
@@ -3896,7 +4370,7 @@ export interface OiParams {
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
-  symbol: string;
+  symbol: KnownSymbol | (string & {});
   /**
    * Only return these fields of each row (array or comma-separated). Rows are then partial.
    */
@@ -3910,376 +4384,11 @@ export interface OiResource {
    *
    * Current total open interest of the perpetual futures, summed across venues (base asset
    * units): for each venue its latest reading, then the sum. The same `oi`, at the same
-   * instant, as `/v1/oi/delta`; its history is `/v1/oi/history`.
+   * instant, as `/v1/oi/change`; its history is `/v1/oi/history`.
    */
   (params: OiParams, options?: RequestOptions): Promise<ApiResponse<M.Oi | null>>;
-  delta: OiDeltaResource;
+  change: OiChangeResource;
   history: OiHistoryResource;
-}
-
-export interface OnchainActiveAddressesHistoryParams {
-  /**
-   * Lower time bound, inclusive. A `Date`, an ISO string (`2026-01-01`) or epoch milliseconds.
-   */
-  since?: TimeLike;
-  /**
-   * Upper time bound, inclusive to the millisecond. A `Date`, an ISO string (`2026-01-01`) or
-   * epoch milliseconds.
-   */
-  until?: TimeLike;
-  /**
-   * Number of rows to return, in the reading order (most recent first by default). Bounded by
-   * your plan's history window: an explicit `limit` (or `since_ms`) reaching beyond it returns
-   * 403 `history_depth`; without them the page simply stops at the window.
-   */
-  limit?: number;
-  /**
-   * Only return these fields of each row (array or comma-separated). Rows are then partial.
-   */
-  fields?: Fields;
-  /**
-   * Upper time bound, exclusive (rows strictly before it). Not combinable with `until`. A
-   * `Date`, an ISO string (`2026-01-01`) or epoch milliseconds.
-   */
-  before?: TimeLike;
-  /**
-   * Reading order: `desc` (most recent first, the default) or `asc` (oldest first, reading
-   * forward from `since_ms`, which is then required). Follow `next` to read the following page.
-   */
-  order?: Order;
-}
-
-export interface OnchainActiveAddressesHistoryIterParams {
-  /**
-   * Lower time bound, inclusive. A `Date`, an ISO string (`2026-01-01`) or epoch milliseconds.
-   */
-  since?: TimeLike;
-  /**
-   * Upper time bound, inclusive to the millisecond. A `Date`, an ISO string (`2026-01-01`) or
-   * epoch milliseconds.
-   */
-  until?: TimeLike;
-  /**
-   * Only return these fields of each row (array or comma-separated). Rows are then partial.
-   */
-  fields?: Fields;
-  /**
-   * Reading order: `desc` (most recent first, the default) or `asc` (oldest first, reading
-   * forward from `since_ms`, which is then required). Follow `next` to read the following page.
-   */
-  order?: Order;
-}
-
-export type OnchainActiveAddressesHistoryIterOptions = OnchainActiveAddressesHistoryIterParams & IterOptions;
-
-/** `/v1/onchain/active-addresses/history`. */
-export interface OnchainActiveAddressesHistoryResource {
-  /**
-   * GET /v1/onchain/active-addresses/history — Active addresses history
-   *
-   * One point per day. Most recent first, or oldest first with `order=asc`. Follow `next` to
-   * read the following page (it never repeats a row).
-   */
-  (params?: OnchainActiveAddressesHistoryParams, options?: RequestOptions): Promise<ApiResponse<Array<M.OnchainActiveAddressesHistoryItem>>>;
-  /**
-   * Every row of `/v1/onchain/active-addresses/history` over a period, following `next` page
-   * after page (`for await`).
-   */
-  iter(params?: OnchainActiveAddressesHistoryIterOptions, options?: RequestOptions): RowIterator<M.OnchainActiveAddressesHistoryItem>;
-}
-
-export interface OnchainActiveAddressesParams {
-  /**
-   * Only return these fields of each row (array or comma-separated). Rows are then partial.
-   */
-  fields?: Fields;
-}
-
-/** `/v1/onchain/active-addresses` and its sub-routes. */
-export interface OnchainActiveAddressesResource {
-  /**
-   * GET /v1/onchain/active-addresses — Bitcoin active addresses
-   *
-   * Daily active addresses, 7- and 30-day averages and momentum.
-   */
-  (params?: OnchainActiveAddressesParams, options?: RequestOptions): Promise<ApiResponse<M.OnchainActiveAddresses | null>>;
-  history: OnchainActiveAddressesHistoryResource;
-}
-
-export interface OnchainMinerStressHistoryParams {
-  /**
-   * Lower time bound, inclusive. A `Date`, an ISO string (`2026-01-01`) or epoch milliseconds.
-   */
-  since?: TimeLike;
-  /**
-   * Upper time bound, inclusive to the millisecond. A `Date`, an ISO string (`2026-01-01`) or
-   * epoch milliseconds.
-   */
-  until?: TimeLike;
-  /**
-   * Number of rows to return, in the reading order (most recent first by default). Bounded by
-   * your plan's history window: an explicit `limit` (or `since_ms`) reaching beyond it returns
-   * 403 `history_depth`; without them the page simply stops at the window.
-   */
-  limit?: number;
-  /**
-   * Only return these fields of each row (array or comma-separated). Rows are then partial.
-   */
-  fields?: Fields;
-  /**
-   * Upper time bound, exclusive (rows strictly before it). Not combinable with `until`. A
-   * `Date`, an ISO string (`2026-01-01`) or epoch milliseconds.
-   */
-  before?: TimeLike;
-  /**
-   * Reading order: `desc` (most recent first, the default) or `asc` (oldest first, reading
-   * forward from `since_ms`, which is then required). Follow `next` to read the following page.
-   */
-  order?: Order;
-}
-
-export interface OnchainMinerStressHistoryIterParams {
-  /**
-   * Lower time bound, inclusive. A `Date`, an ISO string (`2026-01-01`) or epoch milliseconds.
-   */
-  since?: TimeLike;
-  /**
-   * Upper time bound, inclusive to the millisecond. A `Date`, an ISO string (`2026-01-01`) or
-   * epoch milliseconds.
-   */
-  until?: TimeLike;
-  /**
-   * Only return these fields of each row (array or comma-separated). Rows are then partial.
-   */
-  fields?: Fields;
-  /**
-   * Reading order: `desc` (most recent first, the default) or `asc` (oldest first, reading
-   * forward from `since_ms`, which is then required). Follow `next` to read the following page.
-   */
-  order?: Order;
-}
-
-export type OnchainMinerStressHistoryIterOptions = OnchainMinerStressHistoryIterParams & IterOptions;
-
-/** `/v1/onchain/miner-stress/history`. */
-export interface OnchainMinerStressHistoryResource {
-  /**
-   * GET /v1/onchain/miner-stress/history — Miner stress history
-   *
-   * One point per day. Most recent first, or oldest first with `order=asc`. Follow `next` to
-   * read the following page (it never repeats a row).
-   */
-  (params?: OnchainMinerStressHistoryParams, options?: RequestOptions): Promise<ApiResponse<Array<M.OnchainMinerStressHistoryItem>>>;
-  /**
-   * Every row of `/v1/onchain/miner-stress/history` over a period, following `next` page after
-   * page (`for await`).
-   */
-  iter(params?: OnchainMinerStressHistoryIterOptions, options?: RequestOptions): RowIterator<M.OnchainMinerStressHistoryItem>;
-}
-
-export interface OnchainMinerStressParams {
-  /**
-   * Only return these fields of each row (array or comma-separated). Rows are then partial.
-   */
-  fields?: Fields;
-}
-
-/** `/v1/onchain/miner-stress` and its sub-routes. */
-export interface OnchainMinerStressResource {
-  /**
-   * GET /v1/onchain/miner-stress — Bitcoin miner stress
-   *
-   * Miner revenue per unit of difficulty against its 30-day average: healthy, stress or
-   * capitulation. Daily.
-   */
-  (params?: OnchainMinerStressParams, options?: RequestOptions): Promise<ApiResponse<M.OnchainMinerStress | null>>;
-  history: OnchainMinerStressHistoryResource;
-}
-
-export interface OnchainMvrvHistoryParams {
-  /**
-   * Lower time bound, inclusive. A `Date`, an ISO string (`2026-01-01`) or epoch milliseconds.
-   */
-  since?: TimeLike;
-  /**
-   * Upper time bound, inclusive to the millisecond. A `Date`, an ISO string (`2026-01-01`) or
-   * epoch milliseconds.
-   */
-  until?: TimeLike;
-  /**
-   * Number of rows to return, in the reading order (most recent first by default). Bounded by
-   * your plan's history window: an explicit `limit` (or `since_ms`) reaching beyond it returns
-   * 403 `history_depth`; without them the page simply stops at the window.
-   */
-  limit?: number;
-  /**
-   * Only return these fields of each row (array or comma-separated). Rows are then partial.
-   */
-  fields?: Fields;
-  /**
-   * Upper time bound, exclusive (rows strictly before it). Not combinable with `until`. A
-   * `Date`, an ISO string (`2026-01-01`) or epoch milliseconds.
-   */
-  before?: TimeLike;
-  /**
-   * Reading order: `desc` (most recent first, the default) or `asc` (oldest first, reading
-   * forward from `since_ms`, which is then required). Follow `next` to read the following page.
-   */
-  order?: Order;
-}
-
-export interface OnchainMvrvHistoryIterParams {
-  /**
-   * Lower time bound, inclusive. A `Date`, an ISO string (`2026-01-01`) or epoch milliseconds.
-   */
-  since?: TimeLike;
-  /**
-   * Upper time bound, inclusive to the millisecond. A `Date`, an ISO string (`2026-01-01`) or
-   * epoch milliseconds.
-   */
-  until?: TimeLike;
-  /**
-   * Only return these fields of each row (array or comma-separated). Rows are then partial.
-   */
-  fields?: Fields;
-  /**
-   * Reading order: `desc` (most recent first, the default) or `asc` (oldest first, reading
-   * forward from `since_ms`, which is then required). Follow `next` to read the following page.
-   */
-  order?: Order;
-}
-
-export type OnchainMvrvHistoryIterOptions = OnchainMvrvHistoryIterParams & IterOptions;
-
-/** `/v1/onchain/mvrv/history`. */
-export interface OnchainMvrvHistoryResource {
-  /**
-   * GET /v1/onchain/mvrv/history — MVRV history
-   *
-   * One point per day. Most recent first, or oldest first with `order=asc`. Follow `next` to
-   * read the following page (it never repeats a row).
-   */
-  (params?: OnchainMvrvHistoryParams, options?: RequestOptions): Promise<ApiResponse<Array<M.OnchainMvrvHistoryItem>>>;
-  /**
-   * Every row of `/v1/onchain/mvrv/history` over a period, following `next` page after page
-   * (`for await`).
-   */
-  iter(params?: OnchainMvrvHistoryIterOptions, options?: RequestOptions): RowIterator<M.OnchainMvrvHistoryItem>;
-}
-
-export interface OnchainMvrvParams {
-  /**
-   * Only return these fields of each row (array or comma-separated). Rows are then partial.
-   */
-  fields?: Fields;
-}
-
-/** `/v1/onchain/mvrv` and its sub-routes. */
-export interface OnchainMvrvResource {
-  /**
-   * GET /v1/onchain/mvrv — Bitcoin MVRV
-   *
-   * Market value / realised value with its zone and 30-day momentum. Daily.
-   */
-  (params?: OnchainMvrvParams, options?: RequestOptions): Promise<ApiResponse<M.OnchainMvrv | null>>;
-  history: OnchainMvrvHistoryResource;
-}
-
-export interface OnchainNvtHistoryParams {
-  /**
-   * Lower time bound, inclusive. A `Date`, an ISO string (`2026-01-01`) or epoch milliseconds.
-   */
-  since?: TimeLike;
-  /**
-   * Upper time bound, inclusive to the millisecond. A `Date`, an ISO string (`2026-01-01`) or
-   * epoch milliseconds.
-   */
-  until?: TimeLike;
-  /**
-   * Number of rows to return, in the reading order (most recent first by default). Bounded by
-   * your plan's history window: an explicit `limit` (or `since_ms`) reaching beyond it returns
-   * 403 `history_depth`; without them the page simply stops at the window.
-   */
-  limit?: number;
-  /**
-   * Only return these fields of each row (array or comma-separated). Rows are then partial.
-   */
-  fields?: Fields;
-  /**
-   * Upper time bound, exclusive (rows strictly before it). Not combinable with `until`. A
-   * `Date`, an ISO string (`2026-01-01`) or epoch milliseconds.
-   */
-  before?: TimeLike;
-  /**
-   * Reading order: `desc` (most recent first, the default) or `asc` (oldest first, reading
-   * forward from `since_ms`, which is then required). Follow `next` to read the following page.
-   */
-  order?: Order;
-}
-
-export interface OnchainNvtHistoryIterParams {
-  /**
-   * Lower time bound, inclusive. A `Date`, an ISO string (`2026-01-01`) or epoch milliseconds.
-   */
-  since?: TimeLike;
-  /**
-   * Upper time bound, inclusive to the millisecond. A `Date`, an ISO string (`2026-01-01`) or
-   * epoch milliseconds.
-   */
-  until?: TimeLike;
-  /**
-   * Only return these fields of each row (array or comma-separated). Rows are then partial.
-   */
-  fields?: Fields;
-  /**
-   * Reading order: `desc` (most recent first, the default) or `asc` (oldest first, reading
-   * forward from `since_ms`, which is then required). Follow `next` to read the following page.
-   */
-  order?: Order;
-}
-
-export type OnchainNvtHistoryIterOptions = OnchainNvtHistoryIterParams & IterOptions;
-
-/** `/v1/onchain/nvt/history`. */
-export interface OnchainNvtHistoryResource {
-  /**
-   * GET /v1/onchain/nvt/history — NVT history
-   *
-   * One point per day. Most recent first, or oldest first with `order=asc`. Follow `next` to
-   * read the following page (it never repeats a row).
-   */
-  (params?: OnchainNvtHistoryParams, options?: RequestOptions): Promise<ApiResponse<Array<M.OnchainNvtHistoryItem>>>;
-  /**
-   * Every row of `/v1/onchain/nvt/history` over a period, following `next` page after page
-   * (`for await`).
-   */
-  iter(params?: OnchainNvtHistoryIterOptions, options?: RequestOptions): RowIterator<M.OnchainNvtHistoryItem>;
-}
-
-export interface OnchainNvtParams {
-  /**
-   * Only return these fields of each row (array or comma-separated). Rows are then partial.
-   */
-  fields?: Fields;
-}
-
-/** `/v1/onchain/nvt` and its sub-routes. */
-export interface OnchainNvtResource {
-  /**
-   * GET /v1/onchain/nvt — Bitcoin NVT
-   *
-   * Network value to transactions ratio and its 90-day NVT Signal, derived on demand. Daily.
-   */
-  (params?: OnchainNvtParams, options?: RequestOptions): Promise<ApiResponse<M.OnchainNvt | null>>;
-  history: OnchainNvtHistoryResource;
-}
-
-/** `/v1/onchain` and its sub-routes. */
-export interface OnchainResource {
-  activeAddresses: OnchainActiveAddressesResource;
-  minerStress: OnchainMinerStressResource;
-  mvrv: OnchainMvrvResource;
-  nvt: OnchainNvtResource;
 }
 
 export interface OptionsExpiryParams {
@@ -4328,7 +4437,7 @@ export interface OptionsGreeksResource {
   (params: OptionsGreeksParams, options?: RequestOptions): Promise<ApiResponse<M.OptionsGreeks | null>>;
 }
 
-export interface OptionsIvKlinesParams {
+export interface OptionsIvKlinesHistoryParams {
   /**
    * Bucket size, required: `5m`, `15m`, `30m`, `1h`, `4h` or `1d` (`1m` is not served on
    * options). Missing: 422 `missing_parameter`; other values: 422 `invalid_timeframe`.
@@ -4370,7 +4479,7 @@ export interface OptionsIvKlinesParams {
   order?: Order;
 }
 
-export interface OptionsIvKlinesIterParams {
+export interface OptionsIvKlinesHistoryIterParams {
   /**
    * Bucket size, required: `5m`, `15m`, `30m`, `1h`, `4h` or `1d` (`1m` is not served on
    * options). Missing: 422 `missing_parameter`; other values: 422 `invalid_timeframe`.
@@ -4401,23 +4510,53 @@ export interface OptionsIvKlinesIterParams {
   order?: Order;
 }
 
-export type OptionsIvKlinesIterOptions = OptionsIvKlinesIterParams & IterOptions;
+export type OptionsIvKlinesHistoryIterOptions = OptionsIvKlinesHistoryIterParams & IterOptions;
 
-/** `/v1/options/iv/klines`. */
+/** `/v1/options/iv/klines/history`. */
+export interface OptionsIvKlinesHistoryResource {
+  /**
+   * GET /v1/options/iv/klines/history — 30-day ATM IV candles
+   *
+   * OHLC of the 30-day ATM implied volatility per bucket, in percent (`open_pct`...
+   * `close_pct`). Most recent first, or oldest first with `order=asc`. Follow `next` to read
+   * the following page (it never repeats a row).
+   */
+  (params: OptionsIvKlinesHistoryParams, options?: RequestOptions): Promise<ApiResponse<Array<M.OptionsIvKlineHistoryItem>>>;
+  /**
+   * Every row of `/v1/options/iv/klines/history` over a period, following `next` page after
+   * page (`for await`).
+   */
+  iter(params: OptionsIvKlinesHistoryIterOptions, options?: RequestOptions): RowIterator<M.OptionsIvKlineHistoryItem>;
+}
+
+export interface OptionsIvKlinesParams {
+  /**
+   * Bucket size, required: `5m`, `15m`, `30m`, `1h`, `4h` or `1d` (`1m` is not served on
+   * options). Missing: 422 `missing_parameter`; other values: 422 `invalid_timeframe`.
+   */
+  timeframe: OptionsTimeframe;
+  /**
+   * Asset, e.g. `BTC` or `ETH` (no quote currency), in any case (`eth` works; the envelope
+   * gives the canonical form). Unknown: 422 `invalid_asset`.
+   */
+  asset: Asset;
+  /**
+   * Only return these fields of each row (array or comma-separated). Rows are then partial.
+   */
+  fields?: Fields;
+}
+
+/** `/v1/options/iv/klines` and its sub-routes. */
 export interface OptionsIvKlinesResource {
   /**
-   * GET /v1/options/iv/klines — 30-day ATM IV candles
+   * GET /v1/options/iv/klines — Latest 30-day ATM IV candle
    *
-   * OHLC of the 30-day ATM implied volatility per bucket, in percent. Most recent first, or
-   * oldest first with `order=asc`. Follow `next` to read the following page (it never repeats a
-   * row).
+   * The latest CLOSED candle of the 30-day ATM implied volatility (`timeframe` required), in
+   * percent: `open_pct`, `high_pct`, `low_pct`, `close_pct`. The first row of
+   * `/v1/options/iv/klines/history`.
    */
-  (params: OptionsIvKlinesParams, options?: RequestOptions): Promise<ApiResponse<Array<M.OptionsIvKline>>>;
-  /**
-   * Every row of `/v1/options/iv/klines` over a period, following `next` page after page (`for
-   * await`).
-   */
-  iter(params: OptionsIvKlinesIterOptions, options?: RequestOptions): RowIterator<M.OptionsIvKline>;
+  (params: OptionsIvKlinesParams, options?: RequestOptions): Promise<ApiResponse<M.OptionsIvKline | null>>;
+  history: OptionsIvKlinesHistoryResource;
 }
 
 export interface OptionsIvParams {
@@ -4447,9 +4586,9 @@ export interface OptionsIvResource {
 
 export interface OptionsMaxPainHistoryParams {
   /**
-   * REQUIRED. Expiry: `YYYY-MM-DD`, or the `expiry` date-time as served
-   * (`2026-10-30T08:00:00.000Z`). Missing: 422 `missing_expiry`, and the error lists the active
-   * expiries.
+   * REQUIRED. Expiry: `YYYY-MM-DD`, or the `expiry_at` date-time as served
+   * (`2026-10-30T08:00:00.000Z`). Missing: 422 `missing_parameter`, and the error lists the
+   * active expiries.
    */
   expiry: string;
   /**
@@ -4490,9 +4629,9 @@ export interface OptionsMaxPainHistoryParams {
 
 export interface OptionsMaxPainHistoryIterParams {
   /**
-   * REQUIRED. Expiry: `YYYY-MM-DD`, or the `expiry` date-time as served
-   * (`2026-10-30T08:00:00.000Z`). Missing: 422 `missing_expiry`, and the error lists the active
-   * expiries.
+   * REQUIRED. Expiry: `YYYY-MM-DD`, or the `expiry_at` date-time as served
+   * (`2026-10-30T08:00:00.000Z`). Missing: 422 `missing_parameter`, and the error lists the
+   * active expiries.
    */
   expiry: string;
   /**
@@ -4555,14 +4694,14 @@ export interface OptionsMaxPainResource {
   /**
    * GET /v1/options/max-pain — Max pain per expiry
    *
-   * Max pain strike of every active expiry, with days to expiry, put/call ratio and open
-   * interest. `data` is a list.
+   * Max pain strike of every active expiry, with the time left (`time_to_expiry_s`), put/call
+   * ratio and open interest. `data` is a list.
    */
   (params: OptionsMaxPainParams, options?: RequestOptions): Promise<ApiResponse<Array<M.OptionsMaxPain>>>;
   history: OptionsMaxPainHistoryResource;
 }
 
-export interface OptionsOiDeltaHistoryParams {
+export interface OptionsOiChangeHistoryParams {
   /**
    * Bucket size, required: `5m`, `15m`, `30m`, `1h`, `4h` or `1d` (`1m` is not served on
    * options). Missing: 422 `missing_parameter`; other values: 422 `invalid_timeframe`.
@@ -4604,7 +4743,7 @@ export interface OptionsOiDeltaHistoryParams {
   order?: Order;
 }
 
-export interface OptionsOiDeltaHistoryIterParams {
+export interface OptionsOiChangeHistoryIterParams {
   /**
    * Bucket size, required: `5m`, `15m`, `30m`, `1h`, `4h` or `1d` (`1m` is not served on
    * options). Missing: 422 `missing_parameter`; other values: 422 `invalid_timeframe`.
@@ -4635,25 +4774,25 @@ export interface OptionsOiDeltaHistoryIterParams {
   order?: Order;
 }
 
-export type OptionsOiDeltaHistoryIterOptions = OptionsOiDeltaHistoryIterParams & IterOptions;
+export type OptionsOiChangeHistoryIterOptions = OptionsOiChangeHistoryIterParams & IterOptions;
 
-/** `/v1/options/oi/delta/history`. */
-export interface OptionsOiDeltaHistoryResource {
+/** `/v1/options/oi/change/history`. */
+export interface OptionsOiChangeHistoryResource {
   /**
-   * GET /v1/options/oi/delta/history — Options OI change history
+   * GET /v1/options/oi/change/history — Options OI change history
    *
    * Per bucket. Most recent first, or oldest first with `order=asc`. Follow `next` to read the
    * following page (it never repeats a row).
    */
-  (params: OptionsOiDeltaHistoryParams, options?: RequestOptions): Promise<ApiResponse<Array<M.OptionsOiDeltaHistoryItem>>>;
+  (params: OptionsOiChangeHistoryParams, options?: RequestOptions): Promise<ApiResponse<Array<M.OptionsOiChangeHistoryItem>>>;
   /**
-   * Every row of `/v1/options/oi/delta/history` over a period, following `next` page after page
-   * (`for await`).
+   * Every row of `/v1/options/oi/change/history` over a period, following `next` page after
+   * page (`for await`).
    */
-  iter(params: OptionsOiDeltaHistoryIterOptions, options?: RequestOptions): RowIterator<M.OptionsOiDeltaHistoryItem>;
+  iter(params: OptionsOiChangeHistoryIterOptions, options?: RequestOptions): RowIterator<M.OptionsOiChangeHistoryItem>;
 }
 
-export interface OptionsOiDeltaParams {
+export interface OptionsOiChangeParams {
   /**
    * Bucket size, required: `5m`, `15m`, `30m`, `1h`, `4h` or `1d` (`1m` is not served on
    * options). Missing: 422 `missing_parameter`; other values: 422 `invalid_timeframe`.
@@ -4670,22 +4809,23 @@ export interface OptionsOiDeltaParams {
   fields?: Fields;
 }
 
-/** `/v1/options/oi/delta` and its sub-routes. */
-export interface OptionsOiDeltaResource {
+/** `/v1/options/oi/change` and its sub-routes. */
+export interface OptionsOiChangeResource {
   /**
-   * GET /v1/options/oi/delta — Options open interest change
+   * GET /v1/options/oi/change — Options open interest change
    *
    * Change of call and put open interest over a rolling `timeframe`: from the snapshot
-   * `window_start` (at least `timeframe` earlier) to the latest one (`time`). `window_s` is
-   * their actual distance, in seconds. Always final: a rolling value carries no `is_closed`.
+   * `window_start_at` (at least `timeframe` earlier) to the latest one (`time`). `window_s` is
+   * their actual distance, in whole seconds. Always final: a rolling value carries no
+   * `is_closed`.
    */
-  (params: OptionsOiDeltaParams, options?: RequestOptions): Promise<ApiResponse<M.OptionsOiDelta | null>>;
-  history: OptionsOiDeltaHistoryResource;
+  (params: OptionsOiChangeParams, options?: RequestOptions): Promise<ApiResponse<M.OptionsOiChange | null>>;
+  history: OptionsOiChangeHistoryResource;
 }
 
 export interface OptionsOiDistributionParams {
   /**
-   * Restrict to one expiry: `YYYY-MM-DD`, or the `expiry` date-time as served
+   * Restrict to one expiry: `YYYY-MM-DD`, or the `expiry_at` date-time as served
    * (`2026-10-30T08:00:00.000Z`). Omit for every active expiry.
    */
   expiry?: string;
@@ -4821,12 +4961,12 @@ export interface OptionsOiResource {
    * Calls and puts, in USD and in coins.
    */
   (params: OptionsOiParams, options?: RequestOptions): Promise<ApiResponse<M.OptionsOi | null>>;
-  delta: OptionsOiDeltaResource;
+  change: OptionsOiChangeResource;
   distribution: OptionsOiDistributionResource;
   history: OptionsOiHistoryResource;
 }
 
-export interface OptionsPcRatioHistoryParams {
+export interface OptionsPutCallRatioHistoryParams {
   /**
    * Bucket size, required: `5m`, `15m`, `30m`, `1h`, `4h` or `1d` (`1m` is not served on
    * options). Missing: 422 `missing_parameter`; other values: 422 `invalid_timeframe`.
@@ -4868,7 +5008,7 @@ export interface OptionsPcRatioHistoryParams {
   order?: Order;
 }
 
-export interface OptionsPcRatioHistoryIterParams {
+export interface OptionsPutCallRatioHistoryIterParams {
   /**
    * Bucket size, required: `5m`, `15m`, `30m`, `1h`, `4h` or `1d` (`1m` is not served on
    * options). Missing: 422 `missing_parameter`; other values: 422 `invalid_timeframe`.
@@ -4899,25 +5039,25 @@ export interface OptionsPcRatioHistoryIterParams {
   order?: Order;
 }
 
-export type OptionsPcRatioHistoryIterOptions = OptionsPcRatioHistoryIterParams & IterOptions;
+export type OptionsPutCallRatioHistoryIterOptions = OptionsPutCallRatioHistoryIterParams & IterOptions;
 
-/** `/v1/options/pc-ratio/history`. */
-export interface OptionsPcRatioHistoryResource {
+/** `/v1/options/put-call-ratio/history`. */
+export interface OptionsPutCallRatioHistoryResource {
   /**
-   * GET /v1/options/pc-ratio/history — Put/call ratio history
+   * GET /v1/options/put-call-ratio/history — Put/call ratio history
    *
    * Per bucket. Most recent first, or oldest first with `order=asc`. Follow `next` to read the
    * following page (it never repeats a row).
    */
-  (params: OptionsPcRatioHistoryParams, options?: RequestOptions): Promise<ApiResponse<Array<M.OptionsPcRatioHistoryItem>>>;
+  (params: OptionsPutCallRatioHistoryParams, options?: RequestOptions): Promise<ApiResponse<Array<M.OptionsPutCallRatioHistoryItem>>>;
   /**
-   * Every row of `/v1/options/pc-ratio/history` over a period, following `next` page after page
-   * (`for await`).
+   * Every row of `/v1/options/put-call-ratio/history` over a period, following `next` page
+   * after page (`for await`).
    */
-  iter(params: OptionsPcRatioHistoryIterOptions, options?: RequestOptions): RowIterator<M.OptionsPcRatioHistoryItem>;
+  iter(params: OptionsPutCallRatioHistoryIterOptions, options?: RequestOptions): RowIterator<M.OptionsPutCallRatioHistoryItem>;
 }
 
-export interface OptionsPcRatioParams {
+export interface OptionsPutCallRatioParams {
   /**
    * Asset, e.g. `BTC` or `ETH` (no quote currency), in any case (`eth` works; the envelope
    * gives the canonical form). Unknown: 422 `invalid_asset`.
@@ -4929,15 +5069,15 @@ export interface OptionsPcRatioParams {
   fields?: Fields;
 }
 
-/** `/v1/options/pc-ratio` and its sub-routes. */
-export interface OptionsPcRatioResource {
+/** `/v1/options/put-call-ratio` and its sub-routes. */
+export interface OptionsPutCallRatioResource {
   /**
-   * GET /v1/options/pc-ratio — Put/call ratio
+   * GET /v1/options/put-call-ratio — Put/call ratio
    *
-   * Put/call open interest ratio and its reading.
+   * Put/call open interest ratio (`put_call_ratio`) and its reading (`put_call_label`).
    */
-  (params: OptionsPcRatioParams, options?: RequestOptions): Promise<ApiResponse<M.OptionsPcRatio | null>>;
-  history: OptionsPcRatioHistoryResource;
+  (params: OptionsPutCallRatioParams, options?: RequestOptions): Promise<ApiResponse<M.OptionsPutCallRatio | null>>;
+  history: OptionsPutCallRatioHistoryResource;
 }
 
 export interface OptionsSummaryParams {
@@ -5084,7 +5224,7 @@ export interface OptionsResource {
   iv: OptionsIvResource;
   maxPain: OptionsMaxPainResource;
   oi: OptionsOiResource;
-  pcRatio: OptionsPcRatioResource;
+  putCallRatio: OptionsPutCallRatioResource;
   summary: OptionsSummaryResource;
   volume: OptionsVolumeResource;
 }
@@ -5117,7 +5257,7 @@ export interface OrderbookFuturesHistoryParams {
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
-  symbol: string;
+  symbol: KnownSymbol | (string & {});
   /**
    * Only return these fields of each row (array or comma-separated). Rows are then partial.
    */
@@ -5156,7 +5296,7 @@ export interface OrderbookFuturesHistoryIterParams {
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
-  symbol: string;
+  symbol: KnownSymbol | (string & {});
   /**
    * Only return these fields of each row (array or comma-separated). Rows are then partial.
    */
@@ -5199,7 +5339,7 @@ export interface OrderbookFuturesParams {
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
-  symbol: string;
+  symbol: KnownSymbol | (string & {});
   /**
    * Only return these fields of each row (array or comma-separated). Rows are then partial.
    */
@@ -5246,7 +5386,7 @@ export interface OrderbookHistoryParams {
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
-  symbol: string;
+  symbol: KnownSymbol | (string & {});
   /**
    * Only return these fields of each row (array or comma-separated). Rows are then partial.
    */
@@ -5285,7 +5425,7 @@ export interface OrderbookHistoryIterParams {
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
-  symbol: string;
+  symbol: KnownSymbol | (string & {});
   /**
    * Only return these fields of each row (array or comma-separated). Rows are then partial.
    */
@@ -5344,7 +5484,7 @@ export interface OrderbookSpotHistoryParams {
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
-  symbol: string;
+  symbol: KnownSymbol | (string & {});
   /**
    * Only return these fields of each row (array or comma-separated). Rows are then partial.
    */
@@ -5383,7 +5523,7 @@ export interface OrderbookSpotHistoryIterParams {
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
-  symbol: string;
+  symbol: KnownSymbol | (string & {});
   /**
    * Only return these fields of each row (array or comma-separated). Rows are then partial.
    */
@@ -5425,7 +5565,7 @@ export interface OrderbookSpotParams {
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
-  symbol: string;
+  symbol: KnownSymbol | (string & {});
   /**
    * Only return these fields of each row (array or comma-separated). Rows are then partial.
    */
@@ -5456,7 +5596,7 @@ export interface OrderbookParams {
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
-  symbol: string;
+  symbol: KnownSymbol | (string & {});
   /**
    * Only return these fields of each row (array or comma-separated). Rows are then partial.
    */
@@ -5488,7 +5628,7 @@ export interface PriceChangeParams {
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
-  symbol: string;
+  symbol: KnownSymbol | (string & {});
   /**
    * Only return these fields of each row (array or comma-separated). Rows are then partial.
    */
@@ -5513,10 +5653,15 @@ export interface SnapshotParams {
   /** Trading pair, e.g. `BTCUSDT`. */
   symbol: string;
   /**
-   * Futures-spot basis (N latest minutes). Same content as `/v1/basis`. Value: depth N (at most
-   * 60), or `true` for 1.
+   * Futures-spot basis (latest value). Same content as `/v1/basis`. Value: `true` (or 1): the
+   * latest value only.
    */
-  basis?: Depth;
+  basis?: true | 1;
+  /**
+   * Bitcoin active addresses. Same content as `/v1/btc/active-addresses`. Value: `true` (or 1):
+   * the latest value only.
+   */
+  btc_active_addresses?: true | 1;
   /**
    * Recommended Bitcoin fees. Same content as `/v1/btc/fees`. Value: `true` (or 1): the latest
    * value only.
@@ -5533,15 +5678,23 @@ export interface SnapshotParams {
    */
   btc_mining?: true | 1;
   /**
+   * Bitcoin MVRV. Same content as `/v1/btc/mvrv`. Value: `true` (or 1): the latest value only.
+   */
+  btc_mvrv?: true | 1;
+  /**
    * Bitcoin network state. Same content as `/v1/btc/network`. Value: `true` (or 1): the latest
    * value only.
    */
   btc_network?: true | 1;
   /**
-   * Buy/sell volume ratio. Same content as `/v1/buysell/ratio`. Value: `true` (or 1): the
-   * latest value only.
+   * Bitcoin NVT. Same content as `/v1/btc/nvt`. Value: `true` (or 1): the latest value only.
    */
-  buysell_ratio?: true | 1;
+  btc_nvt?: true | 1;
+  /**
+   * Bitcoin revenue per difficulty. Same content as `/v1/btc/revenue-per-difficulty`. Value:
+   * `true` (or 1): the latest value only.
+   */
+  btc_revenue_per_difficulty?: true | 1;
   /**
    * Ethereum DeFi. Same content as `/v1/eth/defi`. Value: `true` (or 1): the latest value only.
    */
@@ -5561,10 +5714,10 @@ export interface SnapshotParams {
    */
   eth_gas_momentum?: true | 1;
   /**
-   * ETH/BTC ratio. Same content as `/v1/eth/ratio`. Value: `true` (or 1): the latest value
-   * only.
+   * ETH price in BTC. Same content as `/v1/eth/price-btc`. Value: `true` (or 1): the latest
+   * value only.
    */
-  eth_ratio?: true | 1;
+  eth_price_btc?: true | 1;
   /**
    * ETH supply squeeze index. Same content as `/v1/eth/squeeze`. Value: `true` (or 1): the
    * latest value only.
@@ -5611,25 +5764,15 @@ export interface SnapshotParams {
    */
   heatmap_clusters?: true | 1;
   /**
-   * Liquidations long/short USD (N latest minutes). Same content as
-   * `/v1/liquidations/cumulative`. Value: depth N (at most 1440), or `true` for 1.
+   * Liquidations long/short USD over the last 5 minutes (latest value). Same content as
+   * `/v1/liquidations/cumulative`. Value: `true` (or 1): the latest value only.
    */
-  liquidations_cumulative?: Depth;
+  liquidations_cumulative?: true | 1;
   /**
    * Individual liquidations (N latest events, at most your plan's count). Same content as
    * `/v1/liquidations/events`. Value: depth N (at most 10000), or `true` for 1.
    */
   liquidations_events?: Depth;
-  /**
-   * Big vs small liquidations. Same content as `/v1/liquidations/ratio`. Value: `true` (or 1):
-   * the latest value only.
-   */
-  liquidations_ratio?: true | 1;
-  /**
-   * Latest value of every FRED series. Same content as `/v1/macro/series`. Value: `true` (or
-   * 1): the latest value only.
-   */
-  macro?: true | 1;
   /**
    * BTC correlation with DXY, S&P 500, gold, VIX. Same content as `/v1/macro/correlations`.
    * Value: `true` (or 1): the latest value only.
@@ -5651,30 +5794,15 @@ export interface SnapshotParams {
    */
   macro_risk?: true | 1;
   /**
-   * Open interest change (N latest minutes). Same content as `/v1/oi/delta`. Value: depth N (at
-   * most 60), or `true` for 1.
-   */
-  oi_delta?: Depth;
-  /**
-   * Bitcoin active addresses. Same content as `/v1/onchain/active-addresses`. Value: `true` (or
+   * Latest value of every FRED series. Same content as `/v1/macro/series`. Value: `true` (or
    * 1): the latest value only.
    */
-  onchain_active_addresses?: true | 1;
+  macro_series?: true | 1;
   /**
-   * Bitcoin miner stress. Same content as `/v1/onchain/miner-stress`. Value: `true` (or 1): the
-   * latest value only.
+   * Open interest change (latest value). Same content as `/v1/oi/change`. Value: `true` (or 1):
+   * the latest value only.
    */
-  onchain_miner_stress?: true | 1;
-  /**
-   * Bitcoin MVRV. Same content as `/v1/onchain/mvrv`. Value: `true` (or 1): the latest value
-   * only.
-   */
-  onchain_mvrv?: true | 1;
-  /**
-   * Bitcoin NVT. Same content as `/v1/onchain/nvt`. Value: `true` (or 1): the latest value
-   * only.
-   */
-  onchain_nvt?: true | 1;
+  oi_change?: true | 1;
   /**
    * Options market summary for the symbol's asset. Same content as `/v1/options/summary`.
    * Value: `true` (or 1): the latest value only.
@@ -5691,11 +5819,6 @@ export interface SnapshotParams {
    */
   tokenomics?: true | 1;
   /**
-   * Average trade size. Same content as `/v1/trades/avg-size`. Value: `true` (or 1): the latest
-   * value only.
-   */
-  trades_avg_size?: true | 1;
-  /**
    * Individual futures trades (N trades), bounded by your plan's tick window. Same content as
    * `/v1/trades/futures`. Value: depth N (at most 10000), or `true` for 1.
    */
@@ -5710,16 +5833,22 @@ export interface SnapshotParams {
    * `/v1/trades/spot`. Value: depth N (at most 10000), or `true` for 1.
    */
   trades_spot?: Depth;
+  /** `buy_sell_ratio` per timeframe: `{ "1h": 24 }` = the 24 latest `buy_sell_ratio@1h` rows. */
+  buy_sell_ratio?: Partial<Record<Timeframe, Depth>>;
   /** `cvd` per timeframe: `{ "1h": 24 }` = the 24 latest `cvd@1h` rows. */
   cvd?: Partial<Record<Timeframe, Depth>>;
   /** `klines` per timeframe: `{ "1h": 24 }` = the 24 latest `klines@1h` rows. */
   klines?: Partial<Record<KlineTimeframe, Depth>>;
-  /** `oi_history` per timeframe: `{ "1h": 24 }` = the 24 latest `oi_history@1h` rows. */
-  oi_history?: Partial<Record<Timeframe, Depth>>;
+  /** `liquidations_big_small_ratio` per timeframe: `{ "1h": 24 }` = the 24 latest `liquidations_big_small_ratio@1h` rows. */
+  liquidations_big_small_ratio?: Partial<Record<Timeframe, Depth>>;
+  /** `oi` per timeframe: `{ "1h": 24 }` = the 24 latest `oi@1h` rows. */
+  oi?: Partial<Record<Timeframe, Depth>>;
   /** `orderbook` per timeframe: `{ "1h": 24 }` = the 24 latest `orderbook@1h` rows. */
   orderbook?: Partial<Record<Timeframe, Depth>>;
   /** `spread_interexchange` per timeframe: `{ "1h": 24 }` = the 24 latest `spread_interexchange@1h` rows. */
   spread_interexchange?: Partial<Record<Timeframe, Depth>>;
+  /** `trades_avg_size` per timeframe: `{ "1h": 24 }` = the 24 latest `trades_avg_size@1h` rows. */
+  trades_avg_size?: Partial<Record<Timeframe, Depth>>;
   /** `trades_kline` per timeframe: `{ "1h": 24 }` = the 24 latest `trades_kline@1h` rows. */
   trades_kline?: Partial<Record<Timeframe, Depth>>;
   /** `trades_kline_futures` per timeframe: `{ "1h": 24 }` = the 24 latest `trades_kline_futures@1h` rows. */
@@ -5730,17 +5859,20 @@ export interface SnapshotParams {
 
 /** The payload of `GET /v1/snapshot`: the requested fields, typed like their routes. */
 export interface SnapshotData {
-  basis?: M.Basis | Array<M.Basis> | null;
+  basis?: M.Basis | null;
+  btc_active_addresses?: M.BtcActiveAddresses | null;
   btc_fees?: M.BtcFees | null;
   btc_mempool?: M.BtcMempool | null;
   btc_mining?: M.BtcMining | null;
+  btc_mvrv?: M.BtcMvrv | null;
   btc_network?: M.BtcNetwork | null;
-  buysell_ratio?: M.BuysellRatio | null;
+  btc_nvt?: M.BtcNvt | null;
+  btc_revenue_per_difficulty?: M.BtcRevenuePerDifficulty | null;
   eth_defi?: M.EthDefi | null;
   eth_deflation?: M.EthDeflation | null;
   eth_gas?: M.EthGas | null;
   eth_gas_momentum?: M.EthGasMomentum | null;
-  eth_ratio?: M.EthRatio | null;
+  eth_price_btc?: M.EthPriceBtc | null;
   eth_squeeze?: M.EthSqueeze | null;
   eth_staking?: M.EthStaking | null;
   eth_supply?: M.EthSupply | null;
@@ -5750,98 +5882,116 @@ export interface SnapshotData {
   funding_rate?: M.FundingRate | null;
   global?: M.GlobalMarket | null;
   heatmap_clusters?: M.HeatmapClusters | null;
-  liquidations_cumulative?: M.LiquidationsCumulative | Array<M.LiquidationsCumulative> | null;
-  liquidations_events?: M.LiquidationEvent | Array<M.LiquidationEvent> | null;
-  liquidations_ratio?: M.LiquidationsRatio | null;
-  macro?: M.MacroSeriesInfo | null;
+  liquidations_cumulative?: M.LiquidationsCumulative | null;
+  liquidations_events?: Array<M.LiquidationEvent> | null;
   macro_correlations?: M.MacroCorrelations | null;
   macro_momentum?: M.MacroMomentum | null;
   macro_net_liquidity?: M.MacroNetLiquidity | null;
   macro_risk?: M.MacroRisk | null;
-  oi_delta?: M.OiDelta | Array<M.OiDelta> | null;
-  onchain_active_addresses?: M.OnchainActiveAddresses | null;
-  onchain_miner_stress?: M.OnchainMinerStress | null;
-  onchain_mvrv?: M.OnchainMvrv | null;
-  onchain_nvt?: M.OnchainNvt | null;
+  macro_series?: M.MacroSeriesInfo | null;
+  oi_change?: M.OiChange | null;
   options_summary?: M.OptionsSummary | null;
   price_change?: M.PriceChange | null;
   tokenomics?: M.Tokenomics | null;
-  trades_avg_size?: M.TradesAvgSize | null;
-  trades_futures?: M.Trade | Array<M.Trade> | null;
-  trades_kline_futures_seconds?: M.TradesKlineSecond | Array<M.TradesKlineSecond> | null;
-  trades_spot?: M.Trade | Array<M.Trade> | null;
-  "cvd@1m"?: M.Cvd | Array<M.Cvd> | null;
-  "cvd@5m"?: M.Cvd | Array<M.Cvd> | null;
-  "cvd@15m"?: M.Cvd | Array<M.Cvd> | null;
-  "cvd@30m"?: M.Cvd | Array<M.Cvd> | null;
-  "cvd@1h"?: M.Cvd | Array<M.Cvd> | null;
-  "cvd@4h"?: M.Cvd | Array<M.Cvd> | null;
-  "cvd@1d"?: M.Cvd | Array<M.Cvd> | null;
-  "klines@1m"?: M.Kline | Array<M.Kline> | null;
-  "klines@5m"?: M.Kline | Array<M.Kline> | null;
-  "klines@15m"?: M.Kline | Array<M.Kline> | null;
-  "klines@30m"?: M.Kline | Array<M.Kline> | null;
-  "klines@1h"?: M.Kline | Array<M.Kline> | null;
-  "klines@4h"?: M.Kline | Array<M.Kline> | null;
-  "klines@1d"?: M.Kline | Array<M.Kline> | null;
-  "klines@1w"?: M.Kline | Array<M.Kline> | null;
-  "oi_history@1m"?: M.OiHistoryItem | Array<M.OiHistoryItem> | null;
-  "oi_history@5m"?: M.OiHistoryItem | Array<M.OiHistoryItem> | null;
-  "oi_history@15m"?: M.OiHistoryItem | Array<M.OiHistoryItem> | null;
-  "oi_history@30m"?: M.OiHistoryItem | Array<M.OiHistoryItem> | null;
-  "oi_history@1h"?: M.OiHistoryItem | Array<M.OiHistoryItem> | null;
-  "oi_history@4h"?: M.OiHistoryItem | Array<M.OiHistoryItem> | null;
-  "oi_history@1d"?: M.OiHistoryItem | Array<M.OiHistoryItem> | null;
-  "orderbook@1m"?: M.Orderbook | Array<M.Orderbook> | null;
-  "orderbook@5m"?: M.Orderbook | Array<M.Orderbook> | null;
-  "orderbook@15m"?: M.Orderbook | Array<M.Orderbook> | null;
-  "orderbook@30m"?: M.Orderbook | Array<M.Orderbook> | null;
-  "orderbook@1h"?: M.Orderbook | Array<M.Orderbook> | null;
-  "orderbook@4h"?: M.Orderbook | Array<M.Orderbook> | null;
-  "orderbook@1d"?: M.Orderbook | Array<M.Orderbook> | null;
-  "spread_interexchange@1m"?: M.SpreadInterexchange | Array<M.SpreadInterexchange> | null;
-  "spread_interexchange@5m"?: M.SpreadInterexchange | Array<M.SpreadInterexchange> | null;
-  "spread_interexchange@15m"?: M.SpreadInterexchange | Array<M.SpreadInterexchange> | null;
-  "spread_interexchange@30m"?: M.SpreadInterexchange | Array<M.SpreadInterexchange> | null;
-  "spread_interexchange@1h"?: M.SpreadInterexchange | Array<M.SpreadInterexchange> | null;
-  "spread_interexchange@4h"?: M.SpreadInterexchange | Array<M.SpreadInterexchange> | null;
-  "spread_interexchange@1d"?: M.SpreadInterexchange | Array<M.SpreadInterexchange> | null;
-  "trades_kline@1m"?: M.TradesKline | Array<M.TradesKline> | null;
-  "trades_kline@5m"?: M.TradesKline | Array<M.TradesKline> | null;
-  "trades_kline@15m"?: M.TradesKline | Array<M.TradesKline> | null;
-  "trades_kline@30m"?: M.TradesKline | Array<M.TradesKline> | null;
-  "trades_kline@1h"?: M.TradesKline | Array<M.TradesKline> | null;
-  "trades_kline@4h"?: M.TradesKline | Array<M.TradesKline> | null;
-  "trades_kline@1d"?: M.TradesKline | Array<M.TradesKline> | null;
-  "trades_kline_futures@1m"?: M.TradesKline | Array<M.TradesKline> | null;
-  "trades_kline_futures@5m"?: M.TradesKline | Array<M.TradesKline> | null;
-  "trades_kline_futures@15m"?: M.TradesKline | Array<M.TradesKline> | null;
-  "trades_kline_futures@30m"?: M.TradesKline | Array<M.TradesKline> | null;
-  "trades_kline_futures@1h"?: M.TradesKline | Array<M.TradesKline> | null;
-  "trades_kline_futures@4h"?: M.TradesKline | Array<M.TradesKline> | null;
-  "trades_kline_futures@1d"?: M.TradesKline | Array<M.TradesKline> | null;
-  "trades_kline_spot@1m"?: M.TradesKline | Array<M.TradesKline> | null;
-  "trades_kline_spot@5m"?: M.TradesKline | Array<M.TradesKline> | null;
-  "trades_kline_spot@15m"?: M.TradesKline | Array<M.TradesKline> | null;
-  "trades_kline_spot@30m"?: M.TradesKline | Array<M.TradesKline> | null;
-  "trades_kline_spot@1h"?: M.TradesKline | Array<M.TradesKline> | null;
-  "trades_kline_spot@4h"?: M.TradesKline | Array<M.TradesKline> | null;
-  "trades_kline_spot@1d"?: M.TradesKline | Array<M.TradesKline> | null;
+  trades_futures?: Array<M.Trade> | null;
+  trades_kline_futures_seconds?: Array<M.TradesKlineSecond> | null;
+  trades_spot?: Array<M.Trade> | null;
+  "buy_sell_ratio@1m"?: Array<M.BuySellRatioHistoryItem> | null;
+  "buy_sell_ratio@5m"?: Array<M.BuySellRatioHistoryItem> | null;
+  "buy_sell_ratio@15m"?: Array<M.BuySellRatioHistoryItem> | null;
+  "buy_sell_ratio@30m"?: Array<M.BuySellRatioHistoryItem> | null;
+  "buy_sell_ratio@1h"?: Array<M.BuySellRatioHistoryItem> | null;
+  "buy_sell_ratio@4h"?: Array<M.BuySellRatioHistoryItem> | null;
+  "buy_sell_ratio@1d"?: Array<M.BuySellRatioHistoryItem> | null;
+  "cvd@1m"?: Array<M.CvdHistoryItem> | null;
+  "cvd@5m"?: Array<M.CvdHistoryItem> | null;
+  "cvd@15m"?: Array<M.CvdHistoryItem> | null;
+  "cvd@30m"?: Array<M.CvdHistoryItem> | null;
+  "cvd@1h"?: Array<M.CvdHistoryItem> | null;
+  "cvd@4h"?: Array<M.CvdHistoryItem> | null;
+  "cvd@1d"?: Array<M.CvdHistoryItem> | null;
+  "klines@1m"?: Array<M.KlineHistoryItem> | null;
+  "klines@5m"?: Array<M.KlineHistoryItem> | null;
+  "klines@15m"?: Array<M.KlineHistoryItem> | null;
+  "klines@30m"?: Array<M.KlineHistoryItem> | null;
+  "klines@1h"?: Array<M.KlineHistoryItem> | null;
+  "klines@4h"?: Array<M.KlineHistoryItem> | null;
+  "klines@1d"?: Array<M.KlineHistoryItem> | null;
+  "klines@1w"?: Array<M.KlineHistoryItem> | null;
+  "liquidations_big_small_ratio@1m"?: Array<M.LiquidationsBigSmallRatioHistoryItem> | null;
+  "liquidations_big_small_ratio@5m"?: Array<M.LiquidationsBigSmallRatioHistoryItem> | null;
+  "liquidations_big_small_ratio@15m"?: Array<M.LiquidationsBigSmallRatioHistoryItem> | null;
+  "liquidations_big_small_ratio@30m"?: Array<M.LiquidationsBigSmallRatioHistoryItem> | null;
+  "liquidations_big_small_ratio@1h"?: Array<M.LiquidationsBigSmallRatioHistoryItem> | null;
+  "liquidations_big_small_ratio@4h"?: Array<M.LiquidationsBigSmallRatioHistoryItem> | null;
+  "liquidations_big_small_ratio@1d"?: Array<M.LiquidationsBigSmallRatioHistoryItem> | null;
+  "oi@1m"?: Array<M.OiHistoryItem> | null;
+  "oi@5m"?: Array<M.OiHistoryItem> | null;
+  "oi@15m"?: Array<M.OiHistoryItem> | null;
+  "oi@30m"?: Array<M.OiHistoryItem> | null;
+  "oi@1h"?: Array<M.OiHistoryItem> | null;
+  "oi@4h"?: Array<M.OiHistoryItem> | null;
+  "oi@1d"?: Array<M.OiHistoryItem> | null;
+  "orderbook@1m"?: Array<M.Orderbook> | null;
+  "orderbook@5m"?: Array<M.Orderbook> | null;
+  "orderbook@15m"?: Array<M.Orderbook> | null;
+  "orderbook@30m"?: Array<M.Orderbook> | null;
+  "orderbook@1h"?: Array<M.Orderbook> | null;
+  "orderbook@4h"?: Array<M.Orderbook> | null;
+  "orderbook@1d"?: Array<M.Orderbook> | null;
+  "spread_interexchange@1m"?: Array<M.SpreadInterexchange> | null;
+  "spread_interexchange@5m"?: Array<M.SpreadInterexchange> | null;
+  "spread_interexchange@15m"?: Array<M.SpreadInterexchange> | null;
+  "spread_interexchange@30m"?: Array<M.SpreadInterexchange> | null;
+  "spread_interexchange@1h"?: Array<M.SpreadInterexchange> | null;
+  "spread_interexchange@4h"?: Array<M.SpreadInterexchange> | null;
+  "spread_interexchange@1d"?: Array<M.SpreadInterexchange> | null;
+  "trades_avg_size@1m"?: Array<M.TradesAvgSizeHistoryItem> | null;
+  "trades_avg_size@5m"?: Array<M.TradesAvgSizeHistoryItem> | null;
+  "trades_avg_size@15m"?: Array<M.TradesAvgSizeHistoryItem> | null;
+  "trades_avg_size@30m"?: Array<M.TradesAvgSizeHistoryItem> | null;
+  "trades_avg_size@1h"?: Array<M.TradesAvgSizeHistoryItem> | null;
+  "trades_avg_size@4h"?: Array<M.TradesAvgSizeHistoryItem> | null;
+  "trades_avg_size@1d"?: Array<M.TradesAvgSizeHistoryItem> | null;
+  "trades_kline@1m"?: Array<M.TradesKline> | null;
+  "trades_kline@5m"?: Array<M.TradesKline> | null;
+  "trades_kline@15m"?: Array<M.TradesKline> | null;
+  "trades_kline@30m"?: Array<M.TradesKline> | null;
+  "trades_kline@1h"?: Array<M.TradesKline> | null;
+  "trades_kline@4h"?: Array<M.TradesKline> | null;
+  "trades_kline@1d"?: Array<M.TradesKline> | null;
+  "trades_kline_futures@1m"?: Array<M.TradesKline> | null;
+  "trades_kline_futures@5m"?: Array<M.TradesKline> | null;
+  "trades_kline_futures@15m"?: Array<M.TradesKline> | null;
+  "trades_kline_futures@30m"?: Array<M.TradesKline> | null;
+  "trades_kline_futures@1h"?: Array<M.TradesKline> | null;
+  "trades_kline_futures@4h"?: Array<M.TradesKline> | null;
+  "trades_kline_futures@1d"?: Array<M.TradesKline> | null;
+  "trades_kline_spot@1m"?: Array<M.TradesKline> | null;
+  "trades_kline_spot@5m"?: Array<M.TradesKline> | null;
+  "trades_kline_spot@15m"?: Array<M.TradesKline> | null;
+  "trades_kline_spot@30m"?: Array<M.TradesKline> | null;
+  "trades_kline_spot@1h"?: Array<M.TradesKline> | null;
+  "trades_kline_spot@4h"?: Array<M.TradesKline> | null;
+  "trades_kline_spot@1d"?: Array<M.TradesKline> | null;
   [extra: string]: unknown;
 }
 
 export const SNAPSHOT_FIELDS: Record<string, { base: string; timeframe: string | null; model: string | null }> = {
   "basis": { base: "basis", timeframe: null, model: "Basis" },
+  "btc_active_addresses": { base: "btc_active_addresses", timeframe: null, model: "BtcActiveAddresses" },
   "btc_fees": { base: "btc_fees", timeframe: null, model: "BtcFees" },
   "btc_mempool": { base: "btc_mempool", timeframe: null, model: "BtcMempool" },
   "btc_mining": { base: "btc_mining", timeframe: null, model: "BtcMining" },
+  "btc_mvrv": { base: "btc_mvrv", timeframe: null, model: "BtcMvrv" },
   "btc_network": { base: "btc_network", timeframe: null, model: "BtcNetwork" },
-  "buysell_ratio": { base: "buysell_ratio", timeframe: null, model: "BuysellRatio" },
+  "btc_nvt": { base: "btc_nvt", timeframe: null, model: "BtcNvt" },
+  "btc_revenue_per_difficulty": { base: "btc_revenue_per_difficulty", timeframe: null, model: "BtcRevenuePerDifficulty" },
   "eth_defi": { base: "eth_defi", timeframe: null, model: "EthDefi" },
   "eth_deflation": { base: "eth_deflation", timeframe: null, model: "EthDeflation" },
   "eth_gas": { base: "eth_gas", timeframe: null, model: "EthGas" },
   "eth_gas_momentum": { base: "eth_gas_momentum", timeframe: null, model: "EthGasMomentum" },
-  "eth_ratio": { base: "eth_ratio", timeframe: null, model: "EthRatio" },
+  "eth_price_btc": { base: "eth_price_btc", timeframe: null, model: "EthPriceBtc" },
   "eth_squeeze": { base: "eth_squeeze", timeframe: null, model: "EthSqueeze" },
   "eth_staking": { base: "eth_staking", timeframe: null, model: "EthStaking" },
   "eth_supply": { base: "eth_supply", timeframe: null, model: "EthSupply" },
@@ -5853,46 +6003,54 @@ export const SNAPSHOT_FIELDS: Record<string, { base: string; timeframe: string |
   "heatmap_clusters": { base: "heatmap_clusters", timeframe: null, model: "HeatmapClusters" },
   "liquidations_cumulative": { base: "liquidations_cumulative", timeframe: null, model: "LiquidationsCumulative" },
   "liquidations_events": { base: "liquidations_events", timeframe: null, model: "LiquidationEvent" },
-  "liquidations_ratio": { base: "liquidations_ratio", timeframe: null, model: "LiquidationsRatio" },
-  "macro": { base: "macro", timeframe: null, model: "MacroSeriesInfo" },
   "macro_correlations": { base: "macro_correlations", timeframe: null, model: "MacroCorrelations" },
   "macro_momentum": { base: "macro_momentum", timeframe: null, model: "MacroMomentum" },
   "macro_net_liquidity": { base: "macro_net_liquidity", timeframe: null, model: "MacroNetLiquidity" },
   "macro_risk": { base: "macro_risk", timeframe: null, model: "MacroRisk" },
-  "oi_delta": { base: "oi_delta", timeframe: null, model: "OiDelta" },
-  "onchain_active_addresses": { base: "onchain_active_addresses", timeframe: null, model: "OnchainActiveAddresses" },
-  "onchain_miner_stress": { base: "onchain_miner_stress", timeframe: null, model: "OnchainMinerStress" },
-  "onchain_mvrv": { base: "onchain_mvrv", timeframe: null, model: "OnchainMvrv" },
-  "onchain_nvt": { base: "onchain_nvt", timeframe: null, model: "OnchainNvt" },
+  "macro_series": { base: "macro_series", timeframe: null, model: "MacroSeriesInfo" },
+  "oi_change": { base: "oi_change", timeframe: null, model: "OiChange" },
   "options_summary": { base: "options_summary", timeframe: null, model: "OptionsSummary" },
   "price_change": { base: "price_change", timeframe: null, model: "PriceChange" },
   "tokenomics": { base: "tokenomics", timeframe: null, model: "Tokenomics" },
-  "trades_avg_size": { base: "trades_avg_size", timeframe: null, model: "TradesAvgSize" },
   "trades_futures": { base: "trades_futures", timeframe: null, model: "Trade" },
   "trades_kline_futures_seconds": { base: "trades_kline_futures_seconds", timeframe: null, model: "TradesKlineSecond" },
   "trades_spot": { base: "trades_spot", timeframe: null, model: "Trade" },
-  "cvd@1m": { base: "cvd", timeframe: "1m", model: "Cvd" },
-  "cvd@5m": { base: "cvd", timeframe: "5m", model: "Cvd" },
-  "cvd@15m": { base: "cvd", timeframe: "15m", model: "Cvd" },
-  "cvd@30m": { base: "cvd", timeframe: "30m", model: "Cvd" },
-  "cvd@1h": { base: "cvd", timeframe: "1h", model: "Cvd" },
-  "cvd@4h": { base: "cvd", timeframe: "4h", model: "Cvd" },
-  "cvd@1d": { base: "cvd", timeframe: "1d", model: "Cvd" },
-  "klines@1m": { base: "klines", timeframe: "1m", model: "Kline" },
-  "klines@5m": { base: "klines", timeframe: "5m", model: "Kline" },
-  "klines@15m": { base: "klines", timeframe: "15m", model: "Kline" },
-  "klines@30m": { base: "klines", timeframe: "30m", model: "Kline" },
-  "klines@1h": { base: "klines", timeframe: "1h", model: "Kline" },
-  "klines@4h": { base: "klines", timeframe: "4h", model: "Kline" },
-  "klines@1d": { base: "klines", timeframe: "1d", model: "Kline" },
-  "klines@1w": { base: "klines", timeframe: "1w", model: "Kline" },
-  "oi_history@1m": { base: "oi_history", timeframe: "1m", model: "OiHistoryItem" },
-  "oi_history@5m": { base: "oi_history", timeframe: "5m", model: "OiHistoryItem" },
-  "oi_history@15m": { base: "oi_history", timeframe: "15m", model: "OiHistoryItem" },
-  "oi_history@30m": { base: "oi_history", timeframe: "30m", model: "OiHistoryItem" },
-  "oi_history@1h": { base: "oi_history", timeframe: "1h", model: "OiHistoryItem" },
-  "oi_history@4h": { base: "oi_history", timeframe: "4h", model: "OiHistoryItem" },
-  "oi_history@1d": { base: "oi_history", timeframe: "1d", model: "OiHistoryItem" },
+  "buy_sell_ratio@1m": { base: "buy_sell_ratio", timeframe: "1m", model: "BuySellRatioHistoryItem" },
+  "buy_sell_ratio@5m": { base: "buy_sell_ratio", timeframe: "5m", model: "BuySellRatioHistoryItem" },
+  "buy_sell_ratio@15m": { base: "buy_sell_ratio", timeframe: "15m", model: "BuySellRatioHistoryItem" },
+  "buy_sell_ratio@30m": { base: "buy_sell_ratio", timeframe: "30m", model: "BuySellRatioHistoryItem" },
+  "buy_sell_ratio@1h": { base: "buy_sell_ratio", timeframe: "1h", model: "BuySellRatioHistoryItem" },
+  "buy_sell_ratio@4h": { base: "buy_sell_ratio", timeframe: "4h", model: "BuySellRatioHistoryItem" },
+  "buy_sell_ratio@1d": { base: "buy_sell_ratio", timeframe: "1d", model: "BuySellRatioHistoryItem" },
+  "cvd@1m": { base: "cvd", timeframe: "1m", model: "CvdHistoryItem" },
+  "cvd@5m": { base: "cvd", timeframe: "5m", model: "CvdHistoryItem" },
+  "cvd@15m": { base: "cvd", timeframe: "15m", model: "CvdHistoryItem" },
+  "cvd@30m": { base: "cvd", timeframe: "30m", model: "CvdHistoryItem" },
+  "cvd@1h": { base: "cvd", timeframe: "1h", model: "CvdHistoryItem" },
+  "cvd@4h": { base: "cvd", timeframe: "4h", model: "CvdHistoryItem" },
+  "cvd@1d": { base: "cvd", timeframe: "1d", model: "CvdHistoryItem" },
+  "klines@1m": { base: "klines", timeframe: "1m", model: "KlineHistoryItem" },
+  "klines@5m": { base: "klines", timeframe: "5m", model: "KlineHistoryItem" },
+  "klines@15m": { base: "klines", timeframe: "15m", model: "KlineHistoryItem" },
+  "klines@30m": { base: "klines", timeframe: "30m", model: "KlineHistoryItem" },
+  "klines@1h": { base: "klines", timeframe: "1h", model: "KlineHistoryItem" },
+  "klines@4h": { base: "klines", timeframe: "4h", model: "KlineHistoryItem" },
+  "klines@1d": { base: "klines", timeframe: "1d", model: "KlineHistoryItem" },
+  "klines@1w": { base: "klines", timeframe: "1w", model: "KlineHistoryItem" },
+  "liquidations_big_small_ratio@1m": { base: "liquidations_big_small_ratio", timeframe: "1m", model: "LiquidationsBigSmallRatioHistoryItem" },
+  "liquidations_big_small_ratio@5m": { base: "liquidations_big_small_ratio", timeframe: "5m", model: "LiquidationsBigSmallRatioHistoryItem" },
+  "liquidations_big_small_ratio@15m": { base: "liquidations_big_small_ratio", timeframe: "15m", model: "LiquidationsBigSmallRatioHistoryItem" },
+  "liquidations_big_small_ratio@30m": { base: "liquidations_big_small_ratio", timeframe: "30m", model: "LiquidationsBigSmallRatioHistoryItem" },
+  "liquidations_big_small_ratio@1h": { base: "liquidations_big_small_ratio", timeframe: "1h", model: "LiquidationsBigSmallRatioHistoryItem" },
+  "liquidations_big_small_ratio@4h": { base: "liquidations_big_small_ratio", timeframe: "4h", model: "LiquidationsBigSmallRatioHistoryItem" },
+  "liquidations_big_small_ratio@1d": { base: "liquidations_big_small_ratio", timeframe: "1d", model: "LiquidationsBigSmallRatioHistoryItem" },
+  "oi@1m": { base: "oi", timeframe: "1m", model: "OiHistoryItem" },
+  "oi@5m": { base: "oi", timeframe: "5m", model: "OiHistoryItem" },
+  "oi@15m": { base: "oi", timeframe: "15m", model: "OiHistoryItem" },
+  "oi@30m": { base: "oi", timeframe: "30m", model: "OiHistoryItem" },
+  "oi@1h": { base: "oi", timeframe: "1h", model: "OiHistoryItem" },
+  "oi@4h": { base: "oi", timeframe: "4h", model: "OiHistoryItem" },
+  "oi@1d": { base: "oi", timeframe: "1d", model: "OiHistoryItem" },
   "orderbook@1m": { base: "orderbook", timeframe: "1m", model: "Orderbook" },
   "orderbook@5m": { base: "orderbook", timeframe: "5m", model: "Orderbook" },
   "orderbook@15m": { base: "orderbook", timeframe: "15m", model: "Orderbook" },
@@ -5907,6 +6065,13 @@ export const SNAPSHOT_FIELDS: Record<string, { base: string; timeframe: string |
   "spread_interexchange@1h": { base: "spread_interexchange", timeframe: "1h", model: "SpreadInterexchange" },
   "spread_interexchange@4h": { base: "spread_interexchange", timeframe: "4h", model: "SpreadInterexchange" },
   "spread_interexchange@1d": { base: "spread_interexchange", timeframe: "1d", model: "SpreadInterexchange" },
+  "trades_avg_size@1m": { base: "trades_avg_size", timeframe: "1m", model: "TradesAvgSizeHistoryItem" },
+  "trades_avg_size@5m": { base: "trades_avg_size", timeframe: "5m", model: "TradesAvgSizeHistoryItem" },
+  "trades_avg_size@15m": { base: "trades_avg_size", timeframe: "15m", model: "TradesAvgSizeHistoryItem" },
+  "trades_avg_size@30m": { base: "trades_avg_size", timeframe: "30m", model: "TradesAvgSizeHistoryItem" },
+  "trades_avg_size@1h": { base: "trades_avg_size", timeframe: "1h", model: "TradesAvgSizeHistoryItem" },
+  "trades_avg_size@4h": { base: "trades_avg_size", timeframe: "4h", model: "TradesAvgSizeHistoryItem" },
+  "trades_avg_size@1d": { base: "trades_avg_size", timeframe: "1d", model: "TradesAvgSizeHistoryItem" },
   "trades_kline@1m": { base: "trades_kline", timeframe: "1m", model: "TradesKline" },
   "trades_kline@5m": { base: "trades_kline", timeframe: "5m", model: "TradesKline" },
   "trades_kline@15m": { base: "trades_kline", timeframe: "15m", model: "TradesKline" },
@@ -5929,8 +6094,8 @@ export const SNAPSHOT_FIELDS: Record<string, { base: string; timeframe: string |
   "trades_kline_spot@4h": { base: "trades_kline_spot", timeframe: "4h", model: "TradesKline" },
   "trades_kline_spot@1d": { base: "trades_kline_spot", timeframe: "1d", model: "TradesKline" },
 };
-export const SNAPSHOT_SINGLE_FIELDS = ["basis", "btc_fees", "btc_mempool", "btc_mining", "btc_network", "buysell_ratio", "eth_defi", "eth_deflation", "eth_gas", "eth_gas_momentum", "eth_ratio", "eth_squeeze", "eth_staking", "eth_supply", "fear_greed", "funding_cumulative", "funding_next", "funding_rate", "global", "heatmap_clusters", "liquidations_cumulative", "liquidations_events", "liquidations_ratio", "macro", "macro_correlations", "macro_momentum", "macro_net_liquidity", "macro_risk", "oi_delta", "onchain_active_addresses", "onchain_miner_stress", "onchain_mvrv", "onchain_nvt", "options_summary", "price_change", "tokenomics", "trades_avg_size", "trades_futures", "trades_kline_futures_seconds", "trades_spot"] as const;
-export const SNAPSHOT_MULTI_FIELDS = ["cvd", "klines", "oi_history", "orderbook", "spread_interexchange", "trades_kline", "trades_kline_futures", "trades_kline_spot"] as const;
+export const SNAPSHOT_SINGLE_FIELDS = ["basis", "btc_active_addresses", "btc_fees", "btc_mempool", "btc_mining", "btc_mvrv", "btc_network", "btc_nvt", "btc_revenue_per_difficulty", "eth_defi", "eth_deflation", "eth_gas", "eth_gas_momentum", "eth_price_btc", "eth_squeeze", "eth_staking", "eth_supply", "fear_greed", "funding_cumulative", "funding_next", "funding_rate", "global", "heatmap_clusters", "liquidations_cumulative", "liquidations_events", "macro_correlations", "macro_momentum", "macro_net_liquidity", "macro_risk", "macro_series", "oi_change", "options_summary", "price_change", "tokenomics", "trades_futures", "trades_kline_futures_seconds", "trades_spot"] as const;
+export const SNAPSHOT_MULTI_FIELDS = ["buy_sell_ratio", "cvd", "klines", "liquidations_big_small_ratio", "oi", "orderbook", "spread_interexchange", "trades_avg_size", "trades_kline", "trades_kline_futures", "trades_kline_spot"] as const;
 
 /** `/v1/snapshot`. */
 export interface SnapshotResource {
@@ -5970,7 +6135,7 @@ export interface SpreadInterexchangeHistoryParams {
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
-  symbol: string;
+  symbol: KnownSymbol | (string & {});
   /**
    * Only return these fields of each row (array or comma-separated). Rows are then partial.
    */
@@ -6009,7 +6174,7 @@ export interface SpreadInterexchangeHistoryIterParams {
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
-  symbol: string;
+  symbol: KnownSymbol | (string & {});
   /**
    * Only return these fields of each row (array or comma-separated). Rows are then partial.
    */
@@ -6057,7 +6222,7 @@ export interface SpreadInterexchangeParams {
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
-  symbol: string;
+  symbol: KnownSymbol | (string & {});
   /**
    * Only return these fields of each row (array or comma-separated). Rows are then partial.
    */
@@ -6090,35 +6255,13 @@ export interface StatusResource {
   /**
    * GET /v1/status — Freshness of every feed
    *
-   * One row per public feed with its age and staleness threshold (1.5 × the feed's expected
-   * interval). Use it to tell 'no event' from 'feed down'. Counted as one request of the price
-   * & volume family.
+   * One row per public feed: its name, its family, the public `routes` it supplies, its age and
+   * staleness threshold (1.5 × the feed's expected interval). `data.state` = `ok`, or
+   * `degraded` when a feed is stale or could not be checked (the envelope's `status` is `ok`
+   * whenever the request succeeded). Use it to tell 'no event' from 'feed down'. Counted as one
+   * request of the price & volume family.
    */
   (params?: StatusParams, options?: RequestOptions): Promise<ApiResponse<M.Status | null>>;
-}
-
-export interface SymbolsCapabilitiesParams {
-  /**
-   * Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET /v1/symbols`.
-   * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
-   * pair returns 422 `invalid_symbol` with the accepted list.
-   */
-  symbol: string;
-  /**
-   * Only return these fields of each row (array or comma-separated). Rows are then partial.
-   */
-  fields?: Fields;
-}
-
-/** `/v1/symbols/{symbol}/capabilities`. */
-export interface SymbolsCapabilitiesResource {
-  /**
-   * GET /v1/symbols/{symbol}/capabilities — What a symbol supports
-   *
-   * Which raw feeds were active over the last 24 h, and which derived metrics are available,
-   * blocked (with the missing feeds) or not applicable (stablecoins have no futures).
-   */
-  (params: SymbolsCapabilitiesParams, options?: RequestOptions): Promise<ApiResponse<M.SymbolsCapabilities | null>>;
 }
 
 export interface SymbolsParams {
@@ -6128,7 +6271,7 @@ export interface SymbolsParams {
   fields?: Fields;
 }
 
-/** `/v1/symbols` and its sub-routes. */
+/** `/v1/symbols`. */
 export interface SymbolsResource {
   /**
    * GET /v1/symbols — List the served trading pairs
@@ -6138,7 +6281,6 @@ export interface SymbolsResource {
    * spot-only stablecoin pairs (USDCUSDT, USDTUSDC).
    */
   (params?: SymbolsParams, options?: RequestOptions): Promise<ApiResponse<Array<M.SymbolInfo>>>;
-  capabilities: SymbolsCapabilitiesResource;
 }
 
 export interface TokenomicsHistoryParams {
@@ -6162,7 +6304,7 @@ export interface TokenomicsHistoryParams {
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
-  symbol: string;
+  symbol: KnownSymbol | (string & {});
   /**
    * Only return these fields of each row (array or comma-separated). Rows are then partial.
    */
@@ -6194,7 +6336,7 @@ export interface TokenomicsHistoryIterParams {
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
-  symbol: string;
+  symbol: KnownSymbol | (string & {});
   /**
    * Only return these fields of each row (array or comma-separated). Rows are then partial.
    */
@@ -6230,7 +6372,7 @@ export interface TokenomicsParams {
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
-  symbol: string;
+  symbol: KnownSymbol | (string & {});
   /**
    * Only return these fields of each row (array or comma-separated). Rows are then partial.
    */
@@ -6255,7 +6397,7 @@ export interface TradesKlineFuturesHistoryParams {
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
-  symbol: string;
+  symbol: KnownSymbol | (string & {});
   /**
    * Bucket size, required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. Missing: 422
    * `missing_parameter`; other values: 422 `invalid_timeframe` with the accepted list. In any
@@ -6300,7 +6442,7 @@ export interface TradesKlineFuturesHistoryIterParams {
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
-  symbol: string;
+  symbol: KnownSymbol | (string & {});
   /**
    * Bucket size, required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. Missing: 422
    * `missing_parameter`; other values: 422 `invalid_timeframe` with the accepted list. In any
@@ -6372,11 +6514,16 @@ export interface TradesKlineFuturesSecondsParams {
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
-  symbol: string;
+  symbol: KnownSymbol | (string & {});
   /**
    * Only return these fields of each row (array or comma-separated). Rows are then partial.
    */
   fields?: Fields;
+  /**
+   * Upper time bound, exclusive (rows strictly before it). Not combinable with `until`. A
+   * `Date`, an ISO string (`2026-01-01`) or epoch milliseconds.
+   */
+  before?: TimeLike;
 }
 
 export interface TradesKlineFuturesSecondsIterParams {
@@ -6400,7 +6547,7 @@ export interface TradesKlineFuturesSecondsIterParams {
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
-  symbol: string;
+  symbol: KnownSymbol | (string & {});
   /**
    * Only return these fields of each row (array or comma-separated). Rows are then partial.
    */
@@ -6436,7 +6583,7 @@ export interface TradesKlineFuturesParams {
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
-  symbol: string;
+  symbol: KnownSymbol | (string & {});
   /**
    * Bucket size, required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. Missing: 422
    * `missing_parameter`; other values: 422 `invalid_timeframe` with the accepted list. In any
@@ -6475,7 +6622,7 @@ export interface TradesKlineHistoryParams {
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
-  symbol: string;
+  symbol: KnownSymbol | (string & {});
   /**
    * Bucket size, required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. Missing: 422
    * `missing_parameter`; other values: 422 `invalid_timeframe` with the accepted list. In any
@@ -6520,7 +6667,7 @@ export interface TradesKlineHistoryIterParams {
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
-  symbol: string;
+  symbol: KnownSymbol | (string & {});
   /**
    * Bucket size, required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. Missing: 422
    * `missing_parameter`; other values: 422 `invalid_timeframe` with the accepted list. In any
@@ -6572,7 +6719,7 @@ export interface TradesKlineSpotHistoryParams {
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
-  symbol: string;
+  symbol: KnownSymbol | (string & {});
   /**
    * Bucket size, required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. Missing: 422
    * `missing_parameter`; other values: 422 `invalid_timeframe` with the accepted list. In any
@@ -6617,7 +6764,7 @@ export interface TradesKlineSpotHistoryIterParams {
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
-  symbol: string;
+  symbol: KnownSymbol | (string & {});
   /**
    * Bucket size, required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. Missing: 422
    * `missing_parameter`; other values: 422 `invalid_timeframe` with the accepted list. In any
@@ -6669,7 +6816,7 @@ export interface TradesKlineSpotParams {
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
-  symbol: string;
+  symbol: KnownSymbol | (string & {});
   /**
    * Bucket size, required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. Missing: 422
    * `missing_parameter`; other values: 422 `invalid_timeframe` with the accepted list. In any
@@ -6706,7 +6853,7 @@ export interface TradesKlineParams {
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
-  symbol: string;
+  symbol: KnownSymbol | (string & {});
   /**
    * Bucket size, required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. Missing: 422
    * `missing_parameter`; other values: 422 `invalid_timeframe` with the accepted list. In any
@@ -6759,9 +6906,11 @@ export interface TradesAvgSizeFuturesHistoryParams {
    */
   limit?: number;
   /**
-   * Required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. One row per closed bucket,
-   * aggregating its minutes (`sample_count` = minutes in the bucket); `1m` gives one row per
-   * minute, aligned on the minute. Missing: 422 `missing_parameter`.
+   * Required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. One row per closed bucket: for a
+   * STATE (basis, open interest, heatmap) the value of its LAST minute — its close —, for a
+   * FLOW (open-interest change, liquidations, trade sizes) the total over its minutes;
+   * `sample_count` = minutes with data in the bucket. `1m` gives one row per minute, aligned on
+   * the minute. Missing: 422 `missing_parameter`.
    */
   timeframe: Timeframe;
   /**
@@ -6769,7 +6918,7 @@ export interface TradesAvgSizeFuturesHistoryParams {
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
-  symbol: string;
+  symbol: KnownSymbol | (string & {});
   /**
    * Only return these fields of each row (array or comma-separated). Rows are then partial.
    */
@@ -6797,9 +6946,11 @@ export interface TradesAvgSizeFuturesHistoryIterParams {
    */
   until?: TimeLike;
   /**
-   * Required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. One row per closed bucket,
-   * aggregating its minutes (`sample_count` = minutes in the bucket); `1m` gives one row per
-   * minute, aligned on the minute. Missing: 422 `missing_parameter`.
+   * Required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. One row per closed bucket: for a
+   * STATE (basis, open interest, heatmap) the value of its LAST minute — its close —, for a
+   * FLOW (open-interest change, liquidations, trade sizes) the total over its minutes;
+   * `sample_count` = minutes with data in the bucket. `1m` gives one row per minute, aligned on
+   * the minute. Missing: 422 `missing_parameter`.
    */
   timeframe: Timeframe;
   /**
@@ -6807,7 +6958,7 @@ export interface TradesAvgSizeFuturesHistoryIterParams {
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
-  symbol: string;
+  symbol: KnownSymbol | (string & {});
   /**
    * Only return these fields of each row (array or comma-separated). Rows are then partial.
    */
@@ -6840,11 +6991,18 @@ export interface TradesAvgSizeFuturesHistoryResource {
 
 export interface TradesAvgSizeFuturesParams {
   /**
+   * Bucket size, required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. Missing: 422
+   * `missing_parameter`; other values: 422 `invalid_timeframe` with the accepted list. In any
+   * case (`1H` is `1h`), except `1M`: refused, since elsewhere it means a month and here `1m`
+   * is one minute.
+   */
+  timeframe: Timeframe;
+  /**
    * Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET /v1/symbols`.
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
-  symbol: string;
+  symbol: KnownSymbol | (string & {});
   /**
    * Only return these fields of each row (array or comma-separated). Rows are then partial.
    */
@@ -6879,9 +7037,11 @@ export interface TradesAvgSizeHistoryParams {
    */
   limit?: number;
   /**
-   * Required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. One row per closed bucket,
-   * aggregating its minutes (`sample_count` = minutes in the bucket); `1m` gives one row per
-   * minute, aligned on the minute. Missing: 422 `missing_parameter`.
+   * Required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. One row per closed bucket: for a
+   * STATE (basis, open interest, heatmap) the value of its LAST minute — its close —, for a
+   * FLOW (open-interest change, liquidations, trade sizes) the total over its minutes;
+   * `sample_count` = minutes with data in the bucket. `1m` gives one row per minute, aligned on
+   * the minute. Missing: 422 `missing_parameter`.
    */
   timeframe: Timeframe;
   /**
@@ -6889,7 +7049,7 @@ export interface TradesAvgSizeHistoryParams {
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
-  symbol: string;
+  symbol: KnownSymbol | (string & {});
   /**
    * Only return these fields of each row (array or comma-separated). Rows are then partial.
    */
@@ -6917,9 +7077,11 @@ export interface TradesAvgSizeHistoryIterParams {
    */
   until?: TimeLike;
   /**
-   * Required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. One row per closed bucket,
-   * aggregating its minutes (`sample_count` = minutes in the bucket); `1m` gives one row per
-   * minute, aligned on the minute. Missing: 422 `missing_parameter`.
+   * Required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. One row per closed bucket: for a
+   * STATE (basis, open interest, heatmap) the value of its LAST minute — its close —, for a
+   * FLOW (open-interest change, liquidations, trade sizes) the total over its minutes;
+   * `sample_count` = minutes with data in the bucket. `1m` gives one row per minute, aligned on
+   * the minute. Missing: 422 `missing_parameter`.
    */
   timeframe: Timeframe;
   /**
@@ -6927,7 +7089,7 @@ export interface TradesAvgSizeHistoryIterParams {
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
-  symbol: string;
+  symbol: KnownSymbol | (string & {});
   /**
    * Only return these fields of each row (array or comma-separated). Rows are then partial.
    */
@@ -6981,9 +7143,11 @@ export interface TradesAvgSizeSpotHistoryParams {
    */
   limit?: number;
   /**
-   * Required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. One row per closed bucket,
-   * aggregating its minutes (`sample_count` = minutes in the bucket); `1m` gives one row per
-   * minute, aligned on the minute. Missing: 422 `missing_parameter`.
+   * Required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. One row per closed bucket: for a
+   * STATE (basis, open interest, heatmap) the value of its LAST minute — its close —, for a
+   * FLOW (open-interest change, liquidations, trade sizes) the total over its minutes;
+   * `sample_count` = minutes with data in the bucket. `1m` gives one row per minute, aligned on
+   * the minute. Missing: 422 `missing_parameter`.
    */
   timeframe: Timeframe;
   /**
@@ -6991,7 +7155,7 @@ export interface TradesAvgSizeSpotHistoryParams {
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
-  symbol: string;
+  symbol: KnownSymbol | (string & {});
   /**
    * Only return these fields of each row (array or comma-separated). Rows are then partial.
    */
@@ -7019,9 +7183,11 @@ export interface TradesAvgSizeSpotHistoryIterParams {
    */
   until?: TimeLike;
   /**
-   * Required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. One row per closed bucket,
-   * aggregating its minutes (`sample_count` = minutes in the bucket); `1m` gives one row per
-   * minute, aligned on the minute. Missing: 422 `missing_parameter`.
+   * Required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. One row per closed bucket: for a
+   * STATE (basis, open interest, heatmap) the value of its LAST minute — its close —, for a
+   * FLOW (open-interest change, liquidations, trade sizes) the total over its minutes;
+   * `sample_count` = minutes with data in the bucket. `1m` gives one row per minute, aligned on
+   * the minute. Missing: 422 `missing_parameter`.
    */
   timeframe: Timeframe;
   /**
@@ -7029,7 +7195,7 @@ export interface TradesAvgSizeSpotHistoryIterParams {
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
-  symbol: string;
+  symbol: KnownSymbol | (string & {});
   /**
    * Only return these fields of each row (array or comma-separated). Rows are then partial.
    */
@@ -7060,11 +7226,18 @@ export interface TradesAvgSizeSpotHistoryResource {
 
 export interface TradesAvgSizeSpotParams {
   /**
+   * Bucket size, required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. Missing: 422
+   * `missing_parameter`; other values: 422 `invalid_timeframe` with the accepted list. In any
+   * case (`1H` is `1h`), except `1M`: refused, since elsewhere it means a month and here `1m`
+   * is one minute.
+   */
+  timeframe: Timeframe;
+  /**
    * Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET /v1/symbols`.
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
-  symbol: string;
+  symbol: KnownSymbol | (string & {});
   /**
    * Only return these fields of each row (array or comma-separated). Rows are then partial.
    */
@@ -7084,11 +7257,18 @@ export interface TradesAvgSizeSpotResource {
 
 export interface TradesAvgSizeParams {
   /**
+   * Bucket size, required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. Missing: 422
+   * `missing_parameter`; other values: 422 `invalid_timeframe` with the accepted list. In any
+   * case (`1H` is `1h`), except `1M`: refused, since elsewhere it means a month and here `1m`
+   * is one minute.
+   */
+  timeframe: Timeframe;
+  /**
    * Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET /v1/symbols`.
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
-  symbol: string;
+  symbol: KnownSymbol | (string & {});
   /**
    * Only return these fields of each row (array or comma-separated). Rows are then partial.
    */
@@ -7100,12 +7280,13 @@ export interface TradesAvgSizeResource {
   /**
    * GET /v1/trades/avg-size — Average trade size
    *
-   * Average trade size (volume / number of trades, all venues) over the latest closed
-   * one-minute trade candle (null if no trade in the last day). The market is in the PATH: no
-   * suffix = all markets (spot + perpetual futures), `/spot`, `/futures`; the envelope says
-   * which (`market`). Spot base-asset quantities are measured since 2026-09-27: before that
-   * date, spot and all-market buy/sell volumes are estimated from USD amounts
-   * (`is_volume_estimated: true`); `/futures` serves the full futures history.
+   * Average trade size (volume / number of trades, all venues) of the latest CLOSED bucket of
+   * `timeframe` (required): the first row of `/v1/trades/avg-size/history` for the same
+   * `timeframe` (`time` = its start, `is_closed: true`). The market is in the PATH: no suffix =
+   * all markets (spot + perpetual futures), `/spot`, `/futures`; the envelope says which
+   * (`market`). Spot base-asset quantities are measured since 2026-09-27: before that date,
+   * spot and all-market buy/sell volumes are estimated from USD amounts (`is_volume_estimated:
+   * true`); `/futures` serves the full futures history.
    */
   (params: TradesAvgSizeParams, options?: RequestOptions): Promise<ApiResponse<M.TradesAvgSize | null>>;
   futures: TradesAvgSizeFuturesResource;
@@ -7151,7 +7332,7 @@ export interface TradesFuturesParams {
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
-  symbol: string;
+  symbol: KnownSymbol | (string & {});
   /**
    * Only return these fields of each row (array or comma-separated). Rows are then partial.
    */
@@ -7179,7 +7360,7 @@ export interface TradesFuturesIterParams {
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
-  symbol: string;
+  symbol: KnownSymbol | (string & {});
   /**
    * Only return these fields of each row (array or comma-separated). Rows are then partial.
    */
@@ -7252,7 +7433,7 @@ export interface TradesLargeParams {
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
-  symbol: string;
+  symbol: KnownSymbol | (string & {});
   /**
    * Only return these fields of each row (array or comma-separated). Rows are then partial.
    */
@@ -7284,7 +7465,7 @@ export interface TradesLargeIterParams {
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
-  symbol: string;
+  symbol: KnownSymbol | (string & {});
   /**
    * Only return these fields of each row (array or comma-separated). Rows are then partial.
    */
@@ -7350,7 +7531,7 @@ export interface TradesSpotParams {
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
-  symbol: string;
+  symbol: KnownSymbol | (string & {});
   /**
    * Only return these fields of each row (array or comma-separated). Rows are then partial.
    */
@@ -7378,7 +7559,7 @@ export interface TradesSpotIterParams {
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
-  symbol: string;
+  symbol: KnownSymbol | (string & {});
   /**
    * Only return these fields of each row (array or comma-separated). Rows are then partial.
    */
@@ -7420,13 +7601,14 @@ export interface TradesResource {
 export interface Resources {
   basis: BasisResource;
   btc: BtcResource;
-  buysell: BuysellResource;
+  buySellRatio: BuySellRatioResource;
+  capabilities: CapabilitiesResource;
   cvd: CvdResource;
   etf: EtfResource;
   eth: EthResource;
   fearGreed: FearGreedResource;
   funding: FundingResource;
-  globalMarket: GlobalMarketResource;
+  global: GlobalResource;
   health: HealthResource;
   heatmap: HeatmapResource;
   indicators: IndicatorsResource;
@@ -7435,7 +7617,6 @@ export interface Resources {
   liquidations: LiquidationsResource;
   macro: MacroResource;
   oi: OiResource;
-  onchain: OnchainResource;
   options: OptionsResource;
   orderbook: OrderbookResource;
   priceChange: PriceChangeResource;
@@ -7455,6 +7636,9 @@ export function createResources(core: Core): Resources {
       history: core.resource(R_BASIS_HISTORY)
     }) as BasisResource,
     btc: {
+      activeAddresses: Object.assign(core.resource(R_BTC_ACTIVE_ADDRESSES), {
+        history: core.resource(R_BTC_ACTIVE_ADDRESSES_HISTORY)
+      }),
       fees: Object.assign(core.resource(R_BTC_FEES), {
         history: core.resource(R_BTC_FEES_HISTORY)
       }),
@@ -7464,21 +7648,29 @@ export function createResources(core: Core): Resources {
       mining: Object.assign(core.resource(R_BTC_MINING), {
         history: core.resource(R_BTC_MINING_HISTORY)
       }),
+      mvrv: Object.assign(core.resource(R_BTC_MVRV), {
+        history: core.resource(R_BTC_MVRV_HISTORY)
+      }),
       network: Object.assign(core.resource(R_BTC_NETWORK), {
         history: core.resource(R_BTC_NETWORK_HISTORY)
+      }),
+      nvt: Object.assign(core.resource(R_BTC_NVT), {
+        history: core.resource(R_BTC_NVT_HISTORY)
+      }),
+      revenuePerDifficulty: Object.assign(core.resource(R_BTC_REVENUE_PER_DIFFICULTY), {
+        history: core.resource(R_BTC_REVENUE_PER_DIFFICULTY_HISTORY)
       })
     } as BtcResource,
-    buysell: {
-      ratio: Object.assign(core.resource(R_BUYSELL_RATIO), {
-        futures: Object.assign(core.resource(R_BUYSELL_RATIO_FUTURES), {
-          history: core.resource(R_BUYSELL_RATIO_FUTURES_HISTORY)
-        }),
-        history: core.resource(R_BUYSELL_RATIO_HISTORY),
-        spot: Object.assign(core.resource(R_BUYSELL_RATIO_SPOT), {
-          history: core.resource(R_BUYSELL_RATIO_SPOT_HISTORY)
-        })
+    buySellRatio: Object.assign(core.resource(R_BUY_SELL_RATIO), {
+      futures: Object.assign(core.resource(R_BUY_SELL_RATIO_FUTURES), {
+        history: core.resource(R_BUY_SELL_RATIO_FUTURES_HISTORY)
+      }),
+      history: core.resource(R_BUY_SELL_RATIO_HISTORY),
+      spot: Object.assign(core.resource(R_BUY_SELL_RATIO_SPOT), {
+        history: core.resource(R_BUY_SELL_RATIO_SPOT_HISTORY)
       })
-    } as BuysellResource,
+    }) as BuySellRatioResource,
+    capabilities: core.resource(R_CAPABILITIES) as CapabilitiesResource,
     cvd: Object.assign(core.resource(R_CVD), {
       futures: Object.assign(core.resource(R_CVD_FUTURES), {
         history: core.resource(R_CVD_FUTURES_HISTORY)
@@ -7506,8 +7698,8 @@ export function createResources(core: Core): Resources {
       gasMomentum: Object.assign(core.resource(R_ETH_GAS_MOMENTUM), {
         history: core.resource(R_ETH_GAS_MOMENTUM_HISTORY)
       }),
-      ratio: Object.assign(core.resource(R_ETH_RATIO), {
-        history: core.resource(R_ETH_RATIO_HISTORY)
+      priceBtc: Object.assign(core.resource(R_ETH_PRICE_BTC), {
+        history: core.resource(R_ETH_PRICE_BTC_HISTORY)
       }),
       squeeze: Object.assign(core.resource(R_ETH_SQUEEZE), {
         history: core.resource(R_ETH_SQUEEZE_HISTORY)
@@ -7531,9 +7723,9 @@ export function createResources(core: Core): Resources {
         history: core.resource(R_FUNDING_RATE_HISTORY)
       })
     } as FundingResource,
-    globalMarket: Object.assign(core.resource(R_GLOBAL_MARKET), {
-      history: core.resource(R_GLOBAL_MARKET_HISTORY)
-    }) as GlobalMarketResource,
+    global: Object.assign(core.resource(R_GLOBAL), {
+      history: core.resource(R_GLOBAL_HISTORY)
+    }) as GlobalResource,
     health: core.resource(R_HEALTH) as HealthResource,
     heatmap: {
       clusters: Object.assign(core.resource(R_HEATMAP_CLUSTERS), {
@@ -7541,16 +7733,18 @@ export function createResources(core: Core): Resources {
       })
     } as HeatmapResource,
     indicators: core.indicatorsResource(R_INDICATORS) as IndicatorsResource,
-    klines: core.resource(R_KLINES) as KlinesResource,
+    klines: Object.assign(core.resource(R_KLINES), {
+      history: core.resource(R_KLINES_HISTORY)
+    }) as KlinesResource,
     limits: core.resource(R_LIMITS) as LimitsResource,
     liquidations: {
+      bigSmallRatio: Object.assign(core.resource(R_LIQUIDATIONS_BIG_SMALL_RATIO), {
+        history: core.resource(R_LIQUIDATIONS_BIG_SMALL_RATIO_HISTORY)
+      }),
       cumulative: Object.assign(core.resource(R_LIQUIDATIONS_CUMULATIVE), {
         history: core.resource(R_LIQUIDATIONS_CUMULATIVE_HISTORY)
       }),
-      events: core.resource(R_LIQUIDATIONS_EVENTS),
-      ratio: Object.assign(core.resource(R_LIQUIDATIONS_RATIO), {
-        history: core.resource(R_LIQUIDATIONS_RATIO_HISTORY)
-      })
+      events: core.resource(R_LIQUIDATIONS_EVENTS)
     } as LiquidationsResource,
     macro: Object.assign(core.resource(R_MACRO), {
       correlations: core.resource(R_MACRO_CORRELATIONS),
@@ -7567,43 +7761,31 @@ export function createResources(core: Core): Resources {
       series: core.resource(R_MACRO_SERIES)
     }) as MacroResource,
     oi: Object.assign(core.resource(R_OI), {
-      delta: Object.assign(core.resource(R_OI_DELTA), {
-        history: core.resource(R_OI_DELTA_HISTORY)
+      change: Object.assign(core.resource(R_OI_CHANGE), {
+        history: core.resource(R_OI_CHANGE_HISTORY)
       }),
       history: core.resource(R_OI_HISTORY)
     }) as OiResource,
-    onchain: {
-      activeAddresses: Object.assign(core.resource(R_ONCHAIN_ACTIVE_ADDRESSES), {
-        history: core.resource(R_ONCHAIN_ACTIVE_ADDRESSES_HISTORY)
-      }),
-      minerStress: Object.assign(core.resource(R_ONCHAIN_MINER_STRESS), {
-        history: core.resource(R_ONCHAIN_MINER_STRESS_HISTORY)
-      }),
-      mvrv: Object.assign(core.resource(R_ONCHAIN_MVRV), {
-        history: core.resource(R_ONCHAIN_MVRV_HISTORY)
-      }),
-      nvt: Object.assign(core.resource(R_ONCHAIN_NVT), {
-        history: core.resource(R_ONCHAIN_NVT_HISTORY)
-      })
-    } as OnchainResource,
     options: {
       expiry: core.resource(R_OPTIONS_EXPIRY),
       greeks: core.resource(R_OPTIONS_GREEKS),
       iv: Object.assign(core.resource(R_OPTIONS_IV), {
-        klines: core.resource(R_OPTIONS_IV_KLINES)
+        klines: Object.assign(core.resource(R_OPTIONS_IV_KLINES), {
+          history: core.resource(R_OPTIONS_IV_KLINES_HISTORY)
+        })
       }),
       maxPain: Object.assign(core.resource(R_OPTIONS_MAX_PAIN), {
         history: core.resource(R_OPTIONS_MAX_PAIN_HISTORY)
       }),
       oi: Object.assign(core.resource(R_OPTIONS_OI), {
-        delta: Object.assign(core.resource(R_OPTIONS_OI_DELTA), {
-          history: core.resource(R_OPTIONS_OI_DELTA_HISTORY)
+        change: Object.assign(core.resource(R_OPTIONS_OI_CHANGE), {
+          history: core.resource(R_OPTIONS_OI_CHANGE_HISTORY)
         }),
         distribution: core.resource(R_OPTIONS_OI_DISTRIBUTION),
         history: core.resource(R_OPTIONS_OI_HISTORY)
       }),
-      pcRatio: Object.assign(core.resource(R_OPTIONS_PC_RATIO), {
-        history: core.resource(R_OPTIONS_PC_RATIO_HISTORY)
+      putCallRatio: Object.assign(core.resource(R_OPTIONS_PUT_CALL_RATIO), {
+        history: core.resource(R_OPTIONS_PUT_CALL_RATIO_HISTORY)
       }),
       summary: core.resource(R_OPTIONS_SUMMARY),
       volume: Object.assign(core.resource(R_OPTIONS_VOLUME), {
@@ -7627,9 +7809,7 @@ export function createResources(core: Core): Resources {
       })
     } as SpreadResource,
     status: core.resource(R_STATUS) as StatusResource,
-    symbols: Object.assign(core.resource(R_SYMBOLS), {
-      capabilities: core.resource(R_SYMBOLS_CAPABILITIES)
-    }) as SymbolsResource,
+    symbols: core.resource(R_SYMBOLS) as SymbolsResource,
     tokenomics: Object.assign(core.resource(R_TOKENOMICS), {
       history: core.resource(R_TOKENOMICS_HISTORY)
     }) as TokenomicsResource,
@@ -7664,20 +7844,29 @@ export function createResources(core: Core): Resources {
 export const ROUTES: Record<string, string> = {
   "/v1/basis": "basis",
   "/v1/basis/history": "basis.history",
+  "/v1/btc/active-addresses": "btc.activeAddresses",
+  "/v1/btc/active-addresses/history": "btc.activeAddresses.history",
   "/v1/btc/fees": "btc.fees",
   "/v1/btc/fees/history": "btc.fees.history",
   "/v1/btc/mempool": "btc.mempool",
   "/v1/btc/mempool/history": "btc.mempool.history",
   "/v1/btc/mining": "btc.mining",
   "/v1/btc/mining/history": "btc.mining.history",
+  "/v1/btc/mvrv": "btc.mvrv",
+  "/v1/btc/mvrv/history": "btc.mvrv.history",
   "/v1/btc/network": "btc.network",
   "/v1/btc/network/history": "btc.network.history",
-  "/v1/buysell/ratio": "buysell.ratio",
-  "/v1/buysell/ratio/futures": "buysell.ratio.futures",
-  "/v1/buysell/ratio/futures/history": "buysell.ratio.futures.history",
-  "/v1/buysell/ratio/history": "buysell.ratio.history",
-  "/v1/buysell/ratio/spot": "buysell.ratio.spot",
-  "/v1/buysell/ratio/spot/history": "buysell.ratio.spot.history",
+  "/v1/btc/nvt": "btc.nvt",
+  "/v1/btc/nvt/history": "btc.nvt.history",
+  "/v1/btc/revenue-per-difficulty": "btc.revenuePerDifficulty",
+  "/v1/btc/revenue-per-difficulty/history": "btc.revenuePerDifficulty.history",
+  "/v1/buy-sell-ratio": "buySellRatio",
+  "/v1/buy-sell-ratio/futures": "buySellRatio.futures",
+  "/v1/buy-sell-ratio/futures/history": "buySellRatio.futures.history",
+  "/v1/buy-sell-ratio/history": "buySellRatio.history",
+  "/v1/buy-sell-ratio/spot": "buySellRatio.spot",
+  "/v1/buy-sell-ratio/spot/history": "buySellRatio.spot.history",
+  "/v1/capabilities": "capabilities",
   "/v1/cvd": "cvd",
   "/v1/cvd/futures": "cvd.futures",
   "/v1/cvd/futures/history": "cvd.futures.history",
@@ -7694,8 +7883,8 @@ export const ROUTES: Record<string, string> = {
   "/v1/eth/gas-momentum": "eth.gasMomentum",
   "/v1/eth/gas-momentum/history": "eth.gasMomentum.history",
   "/v1/eth/gas/history": "eth.gas.history",
-  "/v1/eth/ratio": "eth.ratio",
-  "/v1/eth/ratio/history": "eth.ratio.history",
+  "/v1/eth/price-btc": "eth.priceBtc",
+  "/v1/eth/price-btc/history": "eth.priceBtc.history",
   "/v1/eth/squeeze": "eth.squeeze",
   "/v1/eth/squeeze/history": "eth.squeeze.history",
   "/v1/eth/staking": "eth.staking",
@@ -7709,19 +7898,20 @@ export const ROUTES: Record<string, string> = {
   "/v1/funding/next": "funding.next",
   "/v1/funding/rate": "funding.rate",
   "/v1/funding/rate/history": "funding.rate.history",
-  "/v1/global": "globalMarket",
-  "/v1/global/history": "globalMarket.history",
+  "/v1/global": "global",
+  "/v1/global/history": "global.history",
   "/v1/health": "health",
   "/v1/heatmap/clusters": "heatmap.clusters",
   "/v1/heatmap/clusters/history": "heatmap.clusters.history",
   "/v1/indicators": "indicators",
   "/v1/klines": "klines",
+  "/v1/klines/history": "klines.history",
   "/v1/limits": "limits",
+  "/v1/liquidations/big-small-ratio": "liquidations.bigSmallRatio",
+  "/v1/liquidations/big-small-ratio/history": "liquidations.bigSmallRatio.history",
   "/v1/liquidations/cumulative": "liquidations.cumulative",
   "/v1/liquidations/cumulative/history": "liquidations.cumulative.history",
   "/v1/liquidations/events": "liquidations.events",
-  "/v1/liquidations/ratio": "liquidations.ratio",
-  "/v1/liquidations/ratio/history": "liquidations.ratio.history",
   "/v1/macro": "macro",
   "/v1/macro/correlations": "macro.correlations",
   "/v1/macro/history": "macro.history",
@@ -7733,30 +7923,23 @@ export const ROUTES: Record<string, string> = {
   "/v1/macro/risk": "macro.risk",
   "/v1/macro/series": "macro.series",
   "/v1/oi": "oi",
-  "/v1/oi/delta": "oi.delta",
-  "/v1/oi/delta/history": "oi.delta.history",
+  "/v1/oi/change": "oi.change",
+  "/v1/oi/change/history": "oi.change.history",
   "/v1/oi/history": "oi.history",
-  "/v1/onchain/active-addresses": "onchain.activeAddresses",
-  "/v1/onchain/active-addresses/history": "onchain.activeAddresses.history",
-  "/v1/onchain/miner-stress": "onchain.minerStress",
-  "/v1/onchain/miner-stress/history": "onchain.minerStress.history",
-  "/v1/onchain/mvrv": "onchain.mvrv",
-  "/v1/onchain/mvrv/history": "onchain.mvrv.history",
-  "/v1/onchain/nvt": "onchain.nvt",
-  "/v1/onchain/nvt/history": "onchain.nvt.history",
   "/v1/options/expiry": "options.expiry",
   "/v1/options/greeks": "options.greeks",
   "/v1/options/iv": "options.iv",
   "/v1/options/iv/klines": "options.iv.klines",
+  "/v1/options/iv/klines/history": "options.iv.klines.history",
   "/v1/options/max-pain": "options.maxPain",
   "/v1/options/max-pain/history": "options.maxPain.history",
   "/v1/options/oi": "options.oi",
-  "/v1/options/oi/delta": "options.oi.delta",
-  "/v1/options/oi/delta/history": "options.oi.delta.history",
+  "/v1/options/oi/change": "options.oi.change",
+  "/v1/options/oi/change/history": "options.oi.change.history",
   "/v1/options/oi/distribution": "options.oi.distribution",
   "/v1/options/oi/history": "options.oi.history",
-  "/v1/options/pc-ratio": "options.pcRatio",
-  "/v1/options/pc-ratio/history": "options.pcRatio.history",
+  "/v1/options/put-call-ratio": "options.putCallRatio",
+  "/v1/options/put-call-ratio/history": "options.putCallRatio.history",
   "/v1/options/summary": "options.summary",
   "/v1/options/volume": "options.volume",
   "/v1/options/volume/history": "options.volume.history",
@@ -7772,7 +7955,6 @@ export const ROUTES: Record<string, string> = {
   "/v1/spread/interexchange/history": "spread.interexchange.history",
   "/v1/status": "status",
   "/v1/symbols": "symbols",
-  "/v1/symbols/{symbol}/capabilities": "symbols.capabilities",
   "/v1/tokenomics": "tokenomics",
   "/v1/tokenomics/history": "tokenomics.history",
   "/v1/trades-kline": "tradesKline",
@@ -7793,4 +7975,4 @@ export const ROUTES: Record<string, string> = {
   "/v1/trades/spot": "trades.spot",
 };
 /** `info.version` of the contract this SDK was generated from. */
-export const API_VERSION = "2.6.0";
+export const API_VERSION = "4.0.0";

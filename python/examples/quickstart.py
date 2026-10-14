@@ -7,7 +7,11 @@
 from bytnode import Bytnode, InvalidRequestError
 
 with Bytnode() as client:
-    candles = client.klines("BTCUSDT", "1h", limit=3)
+    last = client.klines("BTCUSDT", "1h").data  # the last CLOSED candle
+    if last is not None:
+        print(f"last close {last.close:.2f} at {last.time:%Y-%m-%d %H:%M}")
+
+    candles = client.klines.history("BTCUSDT", "1h", limit=3)  # newest first
     for c in candles:
         print(f"{c.time:%Y-%m-%d %H:%M}  open {c.open:>10.2f}  close {c.close:>10.2f}  volume {c.volume or 0:,.1f}")
 

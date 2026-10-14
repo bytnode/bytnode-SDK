@@ -12,7 +12,6 @@ from pydantic import ValidationError as PydanticValidationError
 
 from ._ratelimit import RateLimit
 from ._routes import RouteSpec
-from ._time import TIMEFRAME_MS
 
 if TYPE_CHECKING:
     import pandas as pd
@@ -25,22 +24,48 @@ CURSOR_KEYS = ("since_ms", "until_ms", "before_ms", "after_id", "order")
 _CONTRAT_SIGNALE = False
 
 
+def _version(texte: str) -> tuple[int, int]:
+    try:
+        majeure, mineure = (int(x) for x in texte.split(".")[:2])
+    except ValueError:
+        return (0, 0)
+    return majeure, mineure
+
+
+def contract_drift(served: str, generated: str) -> str | None:
+    """What the served contract version means for this SDK, or None when nothing to say.
+
+    Another MAJOR: names or meanings changed, upgrade before relying on the models.
+    A newer MINOR: only additions (routes, fields, accepted values) the SDK does not
+    know yet; they are returned unvalidated, nothing breaks.
+    """
+    s, g = _version(served), _version(generated)
+    if s[0] != g[0]:
+        return (
+            f"bytnode: the API serves contract {served}, this SDK was generated for {generated} "
+            "(another MAJOR version: names or meanings changed). Upgrade the SDK "
+            "(https://bytnode.com/docs/sdk)."
+        )
+    if s[1] > g[1]:
+        return (
+            f"bytnode: the API serves contract {served}, newer than {generated} (MINOR: additions "
+            "only, returned unvalidated). Upgrade the SDK to type them (https://bytnode.com/docs/sdk)."
+        )
+    return None
+
+
 def _verifier_contrat(headers: Mapping[str, str]) -> None:
-    """Warn once when the API serves another MAJOR contract version than this SDK."""
+    """Warn ONCE when the API serves another MAJOR, or a newer MINOR, contract version."""
     global _CONTRAT_SIGNALE
     servi = headers.get("bytnode-contract-version") or headers.get("BytNode-Contract-Version")
     if _CONTRAT_SIGNALE or not servi:
         return
     from ._generated.routes import API_VERSION
 
-    if servi.split(".")[0] != API_VERSION.split(".")[0]:
+    message = contract_drift(servi, API_VERSION)
+    if message:
         _CONTRAT_SIGNALE = True
-        warnings.warn(
-            f"bytnode: the API serves contract {servi}, this SDK was generated for {API_VERSION}. "
-            "Upgrade the SDK (https://bytnode.com/docs/sdk).",
-            BytnodeWarning,
-            stacklevel=3,
-        )
+        warnings.warn(message, BytnodeWarning, stacklevel=3)
 
 
 class BytnodeWarning(UserWarning):
@@ -209,32 +234,29 @@ def rows_to_frame(rows: list[dict[str, Any]], *, flatten: bool = False, index: s
 
 
 def _indicators_frame(resp: Response[Any]) -> pd.DataFrame:
+    """One column per output (`rsi_14`, `macd.signal`...), indexed by candle time, oldest first."""
     pd = _require_pandas()
     data = resp.data
     indicators = getattr(data, "indicators", None) or {}
-    step = TIMEFRAME_MS.get(resp.timeframe or "", 0)
-    columns: dict[str, list[Any]] = {}
-    last_time = None
-    length = 0
+    table: dict[Any, dict[str, Any]] = {}
     for ident, ind in indicators.items():
-        values = ind.values if hasattr(ind, "values") else ind.get("values")
-        last_time = getattr(ind, "time", None) or last_time
-        if isinstance(values, dict):
-            for key, series in values.items():
-                columns[f"{ident}.{key}"] = list(series)
-                length = max(length, len(series))
-        else:
-            columns[ident] = list(values or [])
-            length = max(length, len(values or []))
-    # every series ends on the same candle: right-align them
-    for key, series in columns.items():
-        columns[key] = [None] * (length - len(series)) + series
-    frame = pd.DataFrame(columns)
-    if last_time is not None and step:
-        end = pd.Timestamp(last_time)
-        frame.index = pd.DatetimeIndex(
-            [end - pd.Timedelta(milliseconds=step * (length - 1 - i)) for i in range(length)], name="time"
-        )
+        rows = ind.values if hasattr(ind, "values") else ind.get("values")
+        for row in rows or []:
+            obj = row.model_dump() if isinstance(row, BaseModel) else dict(row)
+            when = obj.pop("time", None)
+            if when is None:
+                continue
+            cells = table.setdefault(when, {})
+            if set(obj) <= {"value"}:
+                cells[ident] = obj.get("value")
+            else:
+                for key, value in obj.items():
+                    if key != "value" or value is not None:
+                        cells[f"{ident}.{key}"] = value
+    frame = pd.DataFrame.from_dict(table, orient="index")
+    if len(frame.index):
+        frame.index = pd.DatetimeIndex(pd.to_datetime(frame.index, utc=True), name="time")
+        frame = frame.sort_index()
     return frame
 
 
@@ -319,7 +341,7 @@ class _IterBase(Generic[T]):
 class RowIterator(_IterBase[T]):
     """Every row of a period, fetched page after page as you iterate.
 
-    `for row in client.klines.iter(...)`, or collect with `.to_list()` / `.to_pandas()`.
+    `for row in client.klines.history.iter(...)`, or collect with `.to_list()` / `.to_pandas()`.
     `.pages()` yields the `Response` of each page (rate limit, `server_time`...).
     """
 
@@ -366,7 +388,7 @@ class RowIterator(_IterBase[T]):
 
 
 class AsyncRowIterator(_IterBase[T]):
-    """Async twin of `RowIterator`: `async for row in client.klines.iter(...)`,
+    """Async twin of `RowIterator`: `async for row in client.klines.history.iter(...)`,
     `await it.to_list()`, `await it.to_pandas()`."""
 
     def __init__(

@@ -19,17 +19,20 @@ class SnapshotData(BytnodeModel):
     response's `unavailable` / `out_of_plan_fields` say which.
     """
 
-    basis: m.Basis | list[m.Basis] | None = PydField(None, alias='basis', description='Futures-spot basis (N latest minutes). Same content as `/v1/basis`. Value: depth N (at most 60), or `true` for 1.')
+    basis: m.Basis | None = PydField(None, alias='basis', description='Futures-spot basis (latest value). Same content as `/v1/basis`. Value: `true` (or 1): the latest value only.')
+    btc_active_addresses: m.BtcActiveAddresses | None = PydField(None, alias='btc_active_addresses', description='Bitcoin active addresses. Same content as `/v1/btc/active-addresses`. Value: `true` (or 1): the latest value only.')
     btc_fees: m.BtcFees | None = PydField(None, alias='btc_fees', description='Recommended Bitcoin fees. Same content as `/v1/btc/fees`. Value: `true` (or 1): the latest value only.')
     btc_mempool: m.BtcMempool | None = PydField(None, alias='btc_mempool', description='Bitcoin mempool. Same content as `/v1/btc/mempool`. Value: `true` (or 1): the latest value only.')
     btc_mining: m.BtcMining | None = PydField(None, alias='btc_mining', description='Mining pool concentration. Same content as `/v1/btc/mining`. Value: `true` (or 1): the latest value only.')
+    btc_mvrv: m.BtcMvrv | None = PydField(None, alias='btc_mvrv', description='Bitcoin MVRV. Same content as `/v1/btc/mvrv`. Value: `true` (or 1): the latest value only.')
     btc_network: m.BtcNetwork | None = PydField(None, alias='btc_network', description='Bitcoin network state. Same content as `/v1/btc/network`. Value: `true` (or 1): the latest value only.')
-    buysell_ratio: m.BuysellRatio | None = PydField(None, alias='buysell_ratio', description='Buy/sell volume ratio. Same content as `/v1/buysell/ratio`. Value: `true` (or 1): the latest value only.')
+    btc_nvt: m.BtcNvt | None = PydField(None, alias='btc_nvt', description='Bitcoin NVT. Same content as `/v1/btc/nvt`. Value: `true` (or 1): the latest value only.')
+    btc_revenue_per_difficulty: m.BtcRevenuePerDifficulty | None = PydField(None, alias='btc_revenue_per_difficulty', description='Bitcoin revenue per difficulty. Same content as `/v1/btc/revenue-per-difficulty`. Value: `true` (or 1): the latest value only.')
     eth_defi: m.EthDefi | None = PydField(None, alias='eth_defi', description='Ethereum DeFi. Same content as `/v1/eth/defi`. Value: `true` (or 1): the latest value only.')
     eth_deflation: m.EthDeflation | None = PydField(None, alias='eth_deflation', description='ETH deflation. Same content as `/v1/eth/deflation`. Value: `true` (or 1): the latest value only.')
     eth_gas: m.EthGas | None = PydField(None, alias='eth_gas', description='Ethereum gas. Same content as `/v1/eth/gas`. Value: `true` (or 1): the latest value only.')
     eth_gas_momentum: m.EthGasMomentum | None = PydField(None, alias='eth_gas_momentum', description='Gas momentum. Same content as `/v1/eth/gas-momentum`. Value: `true` (or 1): the latest value only.')
-    eth_ratio: m.EthRatio | None = PydField(None, alias='eth_ratio', description='ETH/BTC ratio. Same content as `/v1/eth/ratio`. Value: `true` (or 1): the latest value only.')
+    eth_price_btc: m.EthPriceBtc | None = PydField(None, alias='eth_price_btc', description='ETH price in BTC. Same content as `/v1/eth/price-btc`. Value: `true` (or 1): the latest value only.')
     eth_squeeze: m.EthSqueeze | None = PydField(None, alias='eth_squeeze', description='ETH supply squeeze index. Same content as `/v1/eth/squeeze`. Value: `true` (or 1): the latest value only.')
     eth_staking: m.EthStaking | None = PydField(None, alias='eth_staking', description='ETH staking. Same content as `/v1/eth/staking`. Value: `true` (or 1): the latest value only.')
     eth_supply: m.EthSupply | None = PydField(None, alias='eth_supply', description='ETH supply and burn. Same content as `/v1/eth/supply`. Value: `true` (or 1): the latest value only.')
@@ -37,99 +40,117 @@ class SnapshotData(BytnodeModel):
     funding_cumulative: m.FundingCumulative | None = PydField(None, alias='funding_cumulative', description='Funding summed over 24 h. Same content as `/v1/funding/cumulative`. Value: `true` (or 1): the latest value only.')
     funding_next: m.FundingNext | None = PydField(None, alias='funding_next', description='Next funding forecast. Same content as `/v1/funding/next`. Value: `true` (or 1): the latest value only.')
     funding_rate: m.FundingRate | None = PydField(None, alias='funding_rate', description='Latest settled funding window. Same content as `/v1/funding/rate`. Value: `true` (or 1): the latest value only.')
-    global_market: m.GlobalMarket | None = PydField(None, alias='global', description='Total crypto market cap and dominance. Same content as `/v1/global`. Value: `true` (or 1): the latest value only.')
+    global_: m.GlobalMarket | None = PydField(None, alias='global', description='Total crypto market cap and dominance. Same content as `/v1/global`. Value: `true` (or 1): the latest value only.')
     heatmap_clusters: m.HeatmapClusters | None = PydField(None, alias='heatmap_clusters', description='Liquidation heatmap clusters. Same content as `/v1/heatmap/clusters`. Value: `true` (or 1): the latest value only.')
-    liquidations_cumulative: m.LiquidationsCumulative | list[m.LiquidationsCumulative] | None = PydField(None, alias='liquidations_cumulative', description='Liquidations long/short USD (N latest minutes). Same content as `/v1/liquidations/cumulative`. Value: depth N (at most 1440), or `true` for 1.')
-    liquidations_events: m.LiquidationEvent | list[m.LiquidationEvent] | None = PydField(None, alias='liquidations_events', description="Individual liquidations (N latest events, at most your plan's count). Same content as `/v1/liquidations/events`. Value: depth N (at most 10000), or `true` for 1.")
-    liquidations_ratio: m.LiquidationsRatio | None = PydField(None, alias='liquidations_ratio', description='Big vs small liquidations. Same content as `/v1/liquidations/ratio`. Value: `true` (or 1): the latest value only.')
-    macro: m.MacroSeriesInfo | None = PydField(None, alias='macro', description='Latest value of every FRED series. Same content as `/v1/macro/series`. Value: `true` (or 1): the latest value only.')
+    liquidations_cumulative: m.LiquidationsCumulative | None = PydField(None, alias='liquidations_cumulative', description='Liquidations long/short USD over the last 5 minutes (latest value). Same content as `/v1/liquidations/cumulative`. Value: `true` (or 1): the latest value only.')
+    liquidations_events: list[m.LiquidationEvent] | None = PydField(None, alias='liquidations_events', description="Individual liquidations (N latest events, at most your plan's count). Same content as `/v1/liquidations/events`. Value: depth N (at most 10000), or `true` for 1.")
     macro_correlations: m.MacroCorrelations | None = PydField(None, alias='macro_correlations', description='BTC correlation with DXY, S&P 500, gold, VIX. Same content as `/v1/macro/correlations`. Value: `true` (or 1): the latest value only.')
     macro_momentum: m.MacroMomentum | None = PydField(None, alias='macro_momentum', description='Macro momentum score. Same content as `/v1/macro/momentum`. Value: `true` (or 1): the latest value only.')
     macro_net_liquidity: m.MacroNetLiquidity | None = PydField(None, alias='macro_net_liquidity', description='US net liquidity. Same content as `/v1/macro/net-liquidity`. Value: `true` (or 1): the latest value only.')
     macro_risk: m.MacroRisk | None = PydField(None, alias='macro_risk', description='Risk-on / risk-off score. Same content as `/v1/macro/risk`. Value: `true` (or 1): the latest value only.')
-    oi_delta: m.OiDelta | list[m.OiDelta] | None = PydField(None, alias='oi_delta', description='Open interest change (N latest minutes). Same content as `/v1/oi/delta`. Value: depth N (at most 60), or `true` for 1.')
-    onchain_active_addresses: m.OnchainActiveAddresses | None = PydField(None, alias='onchain_active_addresses', description='Bitcoin active addresses. Same content as `/v1/onchain/active-addresses`. Value: `true` (or 1): the latest value only.')
-    onchain_miner_stress: m.OnchainMinerStress | None = PydField(None, alias='onchain_miner_stress', description='Bitcoin miner stress. Same content as `/v1/onchain/miner-stress`. Value: `true` (or 1): the latest value only.')
-    onchain_mvrv: m.OnchainMvrv | None = PydField(None, alias='onchain_mvrv', description='Bitcoin MVRV. Same content as `/v1/onchain/mvrv`. Value: `true` (or 1): the latest value only.')
-    onchain_nvt: m.OnchainNvt | None = PydField(None, alias='onchain_nvt', description='Bitcoin NVT. Same content as `/v1/onchain/nvt`. Value: `true` (or 1): the latest value only.')
+    macro_series: m.MacroSeriesInfo | None = PydField(None, alias='macro_series', description='Latest value of every FRED series. Same content as `/v1/macro/series`. Value: `true` (or 1): the latest value only.')
+    oi_change: m.OiChange | None = PydField(None, alias='oi_change', description='Open interest change (latest value). Same content as `/v1/oi/change`. Value: `true` (or 1): the latest value only.')
     options_summary: m.OptionsSummary | None = PydField(None, alias='options_summary', description="Options market summary for the symbol's asset. Same content as `/v1/options/summary`. Value: `true` (or 1): the latest value only.")
     price_change: m.PriceChange | None = PydField(None, alias='price_change', description='Price change over 1m to 1w, in percent. Same content as `/v1/price-change`. Value: `true` (or 1): the latest value only.')
     tokenomics: m.Tokenomics | None = PydField(None, alias='tokenomics', description='Supply, market cap, FDV. Same content as `/v1/tokenomics`. Value: `true` (or 1): the latest value only.')
-    trades_avg_size: m.TradesAvgSize | None = PydField(None, alias='trades_avg_size', description='Average trade size. Same content as `/v1/trades/avg-size`. Value: `true` (or 1): the latest value only.')
-    trades_futures: m.Trade | list[m.Trade] | None = PydField(None, alias='trades_futures', description="Individual futures trades (N trades), bounded by your plan's tick window. Same content as `/v1/trades/futures`. Value: depth N (at most 10000), or `true` for 1.")
-    trades_kline_futures_seconds: m.TradesKlineSecond | list[m.TradesKlineSecond] | None = PydField(None, alias='trades_kline_futures_seconds', description='Futures trades aggregated per second (N seconds). Same content as `/v1/trades-kline/futures/seconds`. Value: depth N (at most 1000), or `true` for 1.')
-    trades_spot: m.Trade | list[m.Trade] | None = PydField(None, alias='trades_spot', description="Individual spot trades (N trades), bounded by your plan's tick window. Same content as `/v1/trades/spot`. Value: depth N (at most 10000), or `true` for 1.")
-    cvd_1m: m.Cvd | list[m.Cvd] | None = PydField(None, alias='cvd@1m', description='CVD per bucket (N latest closed buckets). Timeframe 1m. Same content as `/v1/cvd?timeframe=1m`.')
-    cvd_5m: m.Cvd | list[m.Cvd] | None = PydField(None, alias='cvd@5m', description='CVD per bucket (N latest closed buckets). Timeframe 5m. Same content as `/v1/cvd?timeframe=5m`.')
-    cvd_15m: m.Cvd | list[m.Cvd] | None = PydField(None, alias='cvd@15m', description='CVD per bucket (N latest closed buckets). Timeframe 15m. Same content as `/v1/cvd?timeframe=15m`.')
-    cvd_30m: m.Cvd | list[m.Cvd] | None = PydField(None, alias='cvd@30m', description='CVD per bucket (N latest closed buckets). Timeframe 30m. Same content as `/v1/cvd?timeframe=30m`.')
-    cvd_1h: m.Cvd | list[m.Cvd] | None = PydField(None, alias='cvd@1h', description='CVD per bucket (N latest closed buckets). Timeframe 1h. Same content as `/v1/cvd?timeframe=1h`.')
-    cvd_4h: m.Cvd | list[m.Cvd] | None = PydField(None, alias='cvd@4h', description='CVD per bucket (N latest closed buckets). Timeframe 4h. Same content as `/v1/cvd?timeframe=4h`.')
-    cvd_1d: m.Cvd | list[m.Cvd] | None = PydField(None, alias='cvd@1d', description='CVD per bucket (N latest closed buckets). Timeframe 1d. Same content as `/v1/cvd?timeframe=1d`.')
-    klines_1m: m.Kline | list[m.Kline] | None = PydField(None, alias='klines@1m', description='OHLCV candles (N latest closed candles). Timeframe 1m. Same content as `/v1/klines?timeframe=1m`.')
-    klines_5m: m.Kline | list[m.Kline] | None = PydField(None, alias='klines@5m', description='OHLCV candles (N latest closed candles). Timeframe 5m. Same content as `/v1/klines?timeframe=5m`.')
-    klines_15m: m.Kline | list[m.Kline] | None = PydField(None, alias='klines@15m', description='OHLCV candles (N latest closed candles). Timeframe 15m. Same content as `/v1/klines?timeframe=15m`.')
-    klines_30m: m.Kline | list[m.Kline] | None = PydField(None, alias='klines@30m', description='OHLCV candles (N latest closed candles). Timeframe 30m. Same content as `/v1/klines?timeframe=30m`.')
-    klines_1h: m.Kline | list[m.Kline] | None = PydField(None, alias='klines@1h', description='OHLCV candles (N latest closed candles). Timeframe 1h. Same content as `/v1/klines?timeframe=1h`.')
-    klines_4h: m.Kline | list[m.Kline] | None = PydField(None, alias='klines@4h', description='OHLCV candles (N latest closed candles). Timeframe 4h. Same content as `/v1/klines?timeframe=4h`.')
-    klines_1d: m.Kline | list[m.Kline] | None = PydField(None, alias='klines@1d', description='OHLCV candles (N latest closed candles). Timeframe 1d. Same content as `/v1/klines?timeframe=1d`.')
-    klines_1w: m.Kline | list[m.Kline] | None = PydField(None, alias='klines@1w', description='OHLCV candles (N latest closed candles). Timeframe 1w. Same content as `/v1/klines?timeframe=1w`.')
-    oi_history_1m: m.OiHistoryItem | list[m.OiHistoryItem] | None = PydField(None, alias='oi_history@1m', description='Total open interest per closed bucket (N buckets). Timeframe 1m. Same content as `/v1/oi/history?timeframe=1m`.')
-    oi_history_5m: m.OiHistoryItem | list[m.OiHistoryItem] | None = PydField(None, alias='oi_history@5m', description='Total open interest per closed bucket (N buckets). Timeframe 5m. Same content as `/v1/oi/history?timeframe=5m`.')
-    oi_history_15m: m.OiHistoryItem | list[m.OiHistoryItem] | None = PydField(None, alias='oi_history@15m', description='Total open interest per closed bucket (N buckets). Timeframe 15m. Same content as `/v1/oi/history?timeframe=15m`.')
-    oi_history_30m: m.OiHistoryItem | list[m.OiHistoryItem] | None = PydField(None, alias='oi_history@30m', description='Total open interest per closed bucket (N buckets). Timeframe 30m. Same content as `/v1/oi/history?timeframe=30m`.')
-    oi_history_1h: m.OiHistoryItem | list[m.OiHistoryItem] | None = PydField(None, alias='oi_history@1h', description='Total open interest per closed bucket (N buckets). Timeframe 1h. Same content as `/v1/oi/history?timeframe=1h`.')
-    oi_history_4h: m.OiHistoryItem | list[m.OiHistoryItem] | None = PydField(None, alias='oi_history@4h', description='Total open interest per closed bucket (N buckets). Timeframe 4h. Same content as `/v1/oi/history?timeframe=4h`.')
-    oi_history_1d: m.OiHistoryItem | list[m.OiHistoryItem] | None = PydField(None, alias='oi_history@1d', description='Total open interest per closed bucket (N buckets). Timeframe 1d. Same content as `/v1/oi/history?timeframe=1d`.')
-    orderbook_1m: m.Orderbook | list[m.Orderbook] | None = PydField(None, alias='orderbook@1m', description='Order book depth by price range per closed bucket (book at the end of the bucket), spot + futures (`orderbook@1m=1` = the latest closed minute). Timeframe 1m. Same content as `/v1/orderbook?timeframe=1m`.')
-    orderbook_5m: m.Orderbook | list[m.Orderbook] | None = PydField(None, alias='orderbook@5m', description='Order book depth by price range per closed bucket (book at the end of the bucket), spot + futures (`orderbook@1m=1` = the latest closed minute). Timeframe 5m. Same content as `/v1/orderbook?timeframe=5m`.')
-    orderbook_15m: m.Orderbook | list[m.Orderbook] | None = PydField(None, alias='orderbook@15m', description='Order book depth by price range per closed bucket (book at the end of the bucket), spot + futures (`orderbook@1m=1` = the latest closed minute). Timeframe 15m. Same content as `/v1/orderbook?timeframe=15m`.')
-    orderbook_30m: m.Orderbook | list[m.Orderbook] | None = PydField(None, alias='orderbook@30m', description='Order book depth by price range per closed bucket (book at the end of the bucket), spot + futures (`orderbook@1m=1` = the latest closed minute). Timeframe 30m. Same content as `/v1/orderbook?timeframe=30m`.')
-    orderbook_1h: m.Orderbook | list[m.Orderbook] | None = PydField(None, alias='orderbook@1h', description='Order book depth by price range per closed bucket (book at the end of the bucket), spot + futures (`orderbook@1m=1` = the latest closed minute). Timeframe 1h. Same content as `/v1/orderbook?timeframe=1h`.')
-    orderbook_4h: m.Orderbook | list[m.Orderbook] | None = PydField(None, alias='orderbook@4h', description='Order book depth by price range per closed bucket (book at the end of the bucket), spot + futures (`orderbook@1m=1` = the latest closed minute). Timeframe 4h. Same content as `/v1/orderbook?timeframe=4h`.')
-    orderbook_1d: m.Orderbook | list[m.Orderbook] | None = PydField(None, alias='orderbook@1d', description='Order book depth by price range per closed bucket (book at the end of the bucket), spot + futures (`orderbook@1m=1` = the latest closed minute). Timeframe 1d. Same content as `/v1/orderbook?timeframe=1d`.')
-    spread_interexchange_1m: m.SpreadInterexchange | list[m.SpreadInterexchange] | None = PydField(None, alias='spread_interexchange@1m', description='Inter-venue spread per bucket. Timeframe 1m. Same content as `/v1/spread/interexchange?timeframe=1m`.')
-    spread_interexchange_5m: m.SpreadInterexchange | list[m.SpreadInterexchange] | None = PydField(None, alias='spread_interexchange@5m', description='Inter-venue spread per bucket. Timeframe 5m. Same content as `/v1/spread/interexchange?timeframe=5m`.')
-    spread_interexchange_15m: m.SpreadInterexchange | list[m.SpreadInterexchange] | None = PydField(None, alias='spread_interexchange@15m', description='Inter-venue spread per bucket. Timeframe 15m. Same content as `/v1/spread/interexchange?timeframe=15m`.')
-    spread_interexchange_30m: m.SpreadInterexchange | list[m.SpreadInterexchange] | None = PydField(None, alias='spread_interexchange@30m', description='Inter-venue spread per bucket. Timeframe 30m. Same content as `/v1/spread/interexchange?timeframe=30m`.')
-    spread_interexchange_1h: m.SpreadInterexchange | list[m.SpreadInterexchange] | None = PydField(None, alias='spread_interexchange@1h', description='Inter-venue spread per bucket. Timeframe 1h. Same content as `/v1/spread/interexchange?timeframe=1h`.')
-    spread_interexchange_4h: m.SpreadInterexchange | list[m.SpreadInterexchange] | None = PydField(None, alias='spread_interexchange@4h', description='Inter-venue spread per bucket. Timeframe 4h. Same content as `/v1/spread/interexchange?timeframe=4h`.')
-    spread_interexchange_1d: m.SpreadInterexchange | list[m.SpreadInterexchange] | None = PydField(None, alias='spread_interexchange@1d', description='Inter-venue spread per bucket. Timeframe 1d. Same content as `/v1/spread/interexchange?timeframe=1d`.')
-    trades_kline_1m: m.TradesKline | list[m.TradesKline] | None = PydField(None, alias='trades_kline@1m', description='Trade candles, spot + futures (N latest closed buckets). Timeframe 1m. Same content as `/v1/trades-kline?timeframe=1m`.')
-    trades_kline_5m: m.TradesKline | list[m.TradesKline] | None = PydField(None, alias='trades_kline@5m', description='Trade candles, spot + futures (N latest closed buckets). Timeframe 5m. Same content as `/v1/trades-kline?timeframe=5m`.')
-    trades_kline_15m: m.TradesKline | list[m.TradesKline] | None = PydField(None, alias='trades_kline@15m', description='Trade candles, spot + futures (N latest closed buckets). Timeframe 15m. Same content as `/v1/trades-kline?timeframe=15m`.')
-    trades_kline_30m: m.TradesKline | list[m.TradesKline] | None = PydField(None, alias='trades_kline@30m', description='Trade candles, spot + futures (N latest closed buckets). Timeframe 30m. Same content as `/v1/trades-kline?timeframe=30m`.')
-    trades_kline_1h: m.TradesKline | list[m.TradesKline] | None = PydField(None, alias='trades_kline@1h', description='Trade candles, spot + futures (N latest closed buckets). Timeframe 1h. Same content as `/v1/trades-kline?timeframe=1h`.')
-    trades_kline_4h: m.TradesKline | list[m.TradesKline] | None = PydField(None, alias='trades_kline@4h', description='Trade candles, spot + futures (N latest closed buckets). Timeframe 4h. Same content as `/v1/trades-kline?timeframe=4h`.')
-    trades_kline_1d: m.TradesKline | list[m.TradesKline] | None = PydField(None, alias='trades_kline@1d', description='Trade candles, spot + futures (N latest closed buckets). Timeframe 1d. Same content as `/v1/trades-kline?timeframe=1d`.')
-    trades_kline_futures_1m: m.TradesKline | list[m.TradesKline] | None = PydField(None, alias='trades_kline_futures@1m', description='Trade candles, futures only. Timeframe 1m. Same content as `/v1/trades-kline/futures?timeframe=1m`.')
-    trades_kline_futures_5m: m.TradesKline | list[m.TradesKline] | None = PydField(None, alias='trades_kline_futures@5m', description='Trade candles, futures only. Timeframe 5m. Same content as `/v1/trades-kline/futures?timeframe=5m`.')
-    trades_kline_futures_15m: m.TradesKline | list[m.TradesKline] | None = PydField(None, alias='trades_kline_futures@15m', description='Trade candles, futures only. Timeframe 15m. Same content as `/v1/trades-kline/futures?timeframe=15m`.')
-    trades_kline_futures_30m: m.TradesKline | list[m.TradesKline] | None = PydField(None, alias='trades_kline_futures@30m', description='Trade candles, futures only. Timeframe 30m. Same content as `/v1/trades-kline/futures?timeframe=30m`.')
-    trades_kline_futures_1h: m.TradesKline | list[m.TradesKline] | None = PydField(None, alias='trades_kline_futures@1h', description='Trade candles, futures only. Timeframe 1h. Same content as `/v1/trades-kline/futures?timeframe=1h`.')
-    trades_kline_futures_4h: m.TradesKline | list[m.TradesKline] | None = PydField(None, alias='trades_kline_futures@4h', description='Trade candles, futures only. Timeframe 4h. Same content as `/v1/trades-kline/futures?timeframe=4h`.')
-    trades_kline_futures_1d: m.TradesKline | list[m.TradesKline] | None = PydField(None, alias='trades_kline_futures@1d', description='Trade candles, futures only. Timeframe 1d. Same content as `/v1/trades-kline/futures?timeframe=1d`.')
-    trades_kline_spot_1m: m.TradesKline | list[m.TradesKline] | None = PydField(None, alias='trades_kline_spot@1m', description='Trade candles, spot only. Timeframe 1m. Same content as `/v1/trades-kline/spot?timeframe=1m`.')
-    trades_kline_spot_5m: m.TradesKline | list[m.TradesKline] | None = PydField(None, alias='trades_kline_spot@5m', description='Trade candles, spot only. Timeframe 5m. Same content as `/v1/trades-kline/spot?timeframe=5m`.')
-    trades_kline_spot_15m: m.TradesKline | list[m.TradesKline] | None = PydField(None, alias='trades_kline_spot@15m', description='Trade candles, spot only. Timeframe 15m. Same content as `/v1/trades-kline/spot?timeframe=15m`.')
-    trades_kline_spot_30m: m.TradesKline | list[m.TradesKline] | None = PydField(None, alias='trades_kline_spot@30m', description='Trade candles, spot only. Timeframe 30m. Same content as `/v1/trades-kline/spot?timeframe=30m`.')
-    trades_kline_spot_1h: m.TradesKline | list[m.TradesKline] | None = PydField(None, alias='trades_kline_spot@1h', description='Trade candles, spot only. Timeframe 1h. Same content as `/v1/trades-kline/spot?timeframe=1h`.')
-    trades_kline_spot_4h: m.TradesKline | list[m.TradesKline] | None = PydField(None, alias='trades_kline_spot@4h', description='Trade candles, spot only. Timeframe 4h. Same content as `/v1/trades-kline/spot?timeframe=4h`.')
-    trades_kline_spot_1d: m.TradesKline | list[m.TradesKline] | None = PydField(None, alias='trades_kline_spot@1d', description='Trade candles, spot only. Timeframe 1d. Same content as `/v1/trades-kline/spot?timeframe=1d`.')
+    trades_futures: list[m.Trade] | None = PydField(None, alias='trades_futures', description="Individual futures trades (N trades), bounded by your plan's tick window. Same content as `/v1/trades/futures`. Value: depth N (at most 10000), or `true` for 1.")
+    trades_kline_futures_seconds: list[m.TradesKlineSecond] | None = PydField(None, alias='trades_kline_futures_seconds', description='Futures trades aggregated per second (N seconds). Same content as `/v1/trades-kline/futures/seconds`. Value: depth N (at most 1000), or `true` for 1.')
+    trades_spot: list[m.Trade] | None = PydField(None, alias='trades_spot', description="Individual spot trades (N trades), bounded by your plan's tick window. Same content as `/v1/trades/spot`. Value: depth N (at most 10000), or `true` for 1.")
+    buy_sell_ratio_1m: list[m.BuySellRatioHistoryItem] | None = PydField(None, alias='buy_sell_ratio@1m', description='Buy/sell volume ratio per bucket (`buy_sell_ratio@<tf>=N`: the N latest closed buckets). Timeframe 1m. Same content as `/v1/buy-sell-ratio/history?timeframe=1m`.')
+    buy_sell_ratio_5m: list[m.BuySellRatioHistoryItem] | None = PydField(None, alias='buy_sell_ratio@5m', description='Buy/sell volume ratio per bucket (`buy_sell_ratio@<tf>=N`: the N latest closed buckets). Timeframe 5m. Same content as `/v1/buy-sell-ratio/history?timeframe=5m`.')
+    buy_sell_ratio_15m: list[m.BuySellRatioHistoryItem] | None = PydField(None, alias='buy_sell_ratio@15m', description='Buy/sell volume ratio per bucket (`buy_sell_ratio@<tf>=N`: the N latest closed buckets). Timeframe 15m. Same content as `/v1/buy-sell-ratio/history?timeframe=15m`.')
+    buy_sell_ratio_30m: list[m.BuySellRatioHistoryItem] | None = PydField(None, alias='buy_sell_ratio@30m', description='Buy/sell volume ratio per bucket (`buy_sell_ratio@<tf>=N`: the N latest closed buckets). Timeframe 30m. Same content as `/v1/buy-sell-ratio/history?timeframe=30m`.')
+    buy_sell_ratio_1h: list[m.BuySellRatioHistoryItem] | None = PydField(None, alias='buy_sell_ratio@1h', description='Buy/sell volume ratio per bucket (`buy_sell_ratio@<tf>=N`: the N latest closed buckets). Timeframe 1h. Same content as `/v1/buy-sell-ratio/history?timeframe=1h`.')
+    buy_sell_ratio_4h: list[m.BuySellRatioHistoryItem] | None = PydField(None, alias='buy_sell_ratio@4h', description='Buy/sell volume ratio per bucket (`buy_sell_ratio@<tf>=N`: the N latest closed buckets). Timeframe 4h. Same content as `/v1/buy-sell-ratio/history?timeframe=4h`.')
+    buy_sell_ratio_1d: list[m.BuySellRatioHistoryItem] | None = PydField(None, alias='buy_sell_ratio@1d', description='Buy/sell volume ratio per bucket (`buy_sell_ratio@<tf>=N`: the N latest closed buckets). Timeframe 1d. Same content as `/v1/buy-sell-ratio/history?timeframe=1d`.')
+    cvd_1m: list[m.CvdHistoryItem] | None = PydField(None, alias='cvd@1m', description='CVD per bucket (`cvd@<tf>=N`: the N latest closed buckets). Timeframe 1m. Same content as `/v1/cvd/history?timeframe=1m`.')
+    cvd_5m: list[m.CvdHistoryItem] | None = PydField(None, alias='cvd@5m', description='CVD per bucket (`cvd@<tf>=N`: the N latest closed buckets). Timeframe 5m. Same content as `/v1/cvd/history?timeframe=5m`.')
+    cvd_15m: list[m.CvdHistoryItem] | None = PydField(None, alias='cvd@15m', description='CVD per bucket (`cvd@<tf>=N`: the N latest closed buckets). Timeframe 15m. Same content as `/v1/cvd/history?timeframe=15m`.')
+    cvd_30m: list[m.CvdHistoryItem] | None = PydField(None, alias='cvd@30m', description='CVD per bucket (`cvd@<tf>=N`: the N latest closed buckets). Timeframe 30m. Same content as `/v1/cvd/history?timeframe=30m`.')
+    cvd_1h: list[m.CvdHistoryItem] | None = PydField(None, alias='cvd@1h', description='CVD per bucket (`cvd@<tf>=N`: the N latest closed buckets). Timeframe 1h. Same content as `/v1/cvd/history?timeframe=1h`.')
+    cvd_4h: list[m.CvdHistoryItem] | None = PydField(None, alias='cvd@4h', description='CVD per bucket (`cvd@<tf>=N`: the N latest closed buckets). Timeframe 4h. Same content as `/v1/cvd/history?timeframe=4h`.')
+    cvd_1d: list[m.CvdHistoryItem] | None = PydField(None, alias='cvd@1d', description='CVD per bucket (`cvd@<tf>=N`: the N latest closed buckets). Timeframe 1d. Same content as `/v1/cvd/history?timeframe=1d`.')
+    klines_1m: list[m.KlineHistoryItem] | None = PydField(None, alias='klines@1m', description='OHLCV candles (`klines@<tf>=N`: the N latest closed candles). Timeframe 1m. Same content as `/v1/klines/history?timeframe=1m`.')
+    klines_5m: list[m.KlineHistoryItem] | None = PydField(None, alias='klines@5m', description='OHLCV candles (`klines@<tf>=N`: the N latest closed candles). Timeframe 5m. Same content as `/v1/klines/history?timeframe=5m`.')
+    klines_15m: list[m.KlineHistoryItem] | None = PydField(None, alias='klines@15m', description='OHLCV candles (`klines@<tf>=N`: the N latest closed candles). Timeframe 15m. Same content as `/v1/klines/history?timeframe=15m`.')
+    klines_30m: list[m.KlineHistoryItem] | None = PydField(None, alias='klines@30m', description='OHLCV candles (`klines@<tf>=N`: the N latest closed candles). Timeframe 30m. Same content as `/v1/klines/history?timeframe=30m`.')
+    klines_1h: list[m.KlineHistoryItem] | None = PydField(None, alias='klines@1h', description='OHLCV candles (`klines@<tf>=N`: the N latest closed candles). Timeframe 1h. Same content as `/v1/klines/history?timeframe=1h`.')
+    klines_4h: list[m.KlineHistoryItem] | None = PydField(None, alias='klines@4h', description='OHLCV candles (`klines@<tf>=N`: the N latest closed candles). Timeframe 4h. Same content as `/v1/klines/history?timeframe=4h`.')
+    klines_1d: list[m.KlineHistoryItem] | None = PydField(None, alias='klines@1d', description='OHLCV candles (`klines@<tf>=N`: the N latest closed candles). Timeframe 1d. Same content as `/v1/klines/history?timeframe=1d`.')
+    klines_1w: list[m.KlineHistoryItem] | None = PydField(None, alias='klines@1w', description='OHLCV candles (`klines@<tf>=N`: the N latest closed candles). Timeframe 1w. Same content as `/v1/klines/history?timeframe=1w`.')
+    liquidations_big_small_ratio_1m: list[m.LiquidationsBigSmallRatioHistoryItem] | None = PydField(None, alias='liquidations_big_small_ratio@1m', description='Big vs small liquidations per bucket (`liquidations_big_small_ratio@<tf>=N`: the N latest closed buckets with liquidations). Timeframe 1m. Same content as `/v1/liquidations/big-small-ratio/history?timeframe=1m`.')
+    liquidations_big_small_ratio_5m: list[m.LiquidationsBigSmallRatioHistoryItem] | None = PydField(None, alias='liquidations_big_small_ratio@5m', description='Big vs small liquidations per bucket (`liquidations_big_small_ratio@<tf>=N`: the N latest closed buckets with liquidations). Timeframe 5m. Same content as `/v1/liquidations/big-small-ratio/history?timeframe=5m`.')
+    liquidations_big_small_ratio_15m: list[m.LiquidationsBigSmallRatioHistoryItem] | None = PydField(None, alias='liquidations_big_small_ratio@15m', description='Big vs small liquidations per bucket (`liquidations_big_small_ratio@<tf>=N`: the N latest closed buckets with liquidations). Timeframe 15m. Same content as `/v1/liquidations/big-small-ratio/history?timeframe=15m`.')
+    liquidations_big_small_ratio_30m: list[m.LiquidationsBigSmallRatioHistoryItem] | None = PydField(None, alias='liquidations_big_small_ratio@30m', description='Big vs small liquidations per bucket (`liquidations_big_small_ratio@<tf>=N`: the N latest closed buckets with liquidations). Timeframe 30m. Same content as `/v1/liquidations/big-small-ratio/history?timeframe=30m`.')
+    liquidations_big_small_ratio_1h: list[m.LiquidationsBigSmallRatioHistoryItem] | None = PydField(None, alias='liquidations_big_small_ratio@1h', description='Big vs small liquidations per bucket (`liquidations_big_small_ratio@<tf>=N`: the N latest closed buckets with liquidations). Timeframe 1h. Same content as `/v1/liquidations/big-small-ratio/history?timeframe=1h`.')
+    liquidations_big_small_ratio_4h: list[m.LiquidationsBigSmallRatioHistoryItem] | None = PydField(None, alias='liquidations_big_small_ratio@4h', description='Big vs small liquidations per bucket (`liquidations_big_small_ratio@<tf>=N`: the N latest closed buckets with liquidations). Timeframe 4h. Same content as `/v1/liquidations/big-small-ratio/history?timeframe=4h`.')
+    liquidations_big_small_ratio_1d: list[m.LiquidationsBigSmallRatioHistoryItem] | None = PydField(None, alias='liquidations_big_small_ratio@1d', description='Big vs small liquidations per bucket (`liquidations_big_small_ratio@<tf>=N`: the N latest closed buckets with liquidations). Timeframe 1d. Same content as `/v1/liquidations/big-small-ratio/history?timeframe=1d`.')
+    oi_1m: list[m.OiHistoryItem] | None = PydField(None, alias='oi@1m', description='Total open interest per closed bucket (`oi@<tf>=N`: the N latest buckets). Timeframe 1m. Same content as `/v1/oi/history?timeframe=1m`.')
+    oi_5m: list[m.OiHistoryItem] | None = PydField(None, alias='oi@5m', description='Total open interest per closed bucket (`oi@<tf>=N`: the N latest buckets). Timeframe 5m. Same content as `/v1/oi/history?timeframe=5m`.')
+    oi_15m: list[m.OiHistoryItem] | None = PydField(None, alias='oi@15m', description='Total open interest per closed bucket (`oi@<tf>=N`: the N latest buckets). Timeframe 15m. Same content as `/v1/oi/history?timeframe=15m`.')
+    oi_30m: list[m.OiHistoryItem] | None = PydField(None, alias='oi@30m', description='Total open interest per closed bucket (`oi@<tf>=N`: the N latest buckets). Timeframe 30m. Same content as `/v1/oi/history?timeframe=30m`.')
+    oi_1h: list[m.OiHistoryItem] | None = PydField(None, alias='oi@1h', description='Total open interest per closed bucket (`oi@<tf>=N`: the N latest buckets). Timeframe 1h. Same content as `/v1/oi/history?timeframe=1h`.')
+    oi_4h: list[m.OiHistoryItem] | None = PydField(None, alias='oi@4h', description='Total open interest per closed bucket (`oi@<tf>=N`: the N latest buckets). Timeframe 4h. Same content as `/v1/oi/history?timeframe=4h`.')
+    oi_1d: list[m.OiHistoryItem] | None = PydField(None, alias='oi@1d', description='Total open interest per closed bucket (`oi@<tf>=N`: the N latest buckets). Timeframe 1d. Same content as `/v1/oi/history?timeframe=1d`.')
+    orderbook_1m: list[m.Orderbook] | None = PydField(None, alias='orderbook@1m', description='Order book depth by price range per closed bucket (book at the end of the bucket), spot + futures (`orderbook@1m=1` = a list with the latest closed minute). Timeframe 1m. Same content as `/v1/orderbook?timeframe=1m`.')
+    orderbook_5m: list[m.Orderbook] | None = PydField(None, alias='orderbook@5m', description='Order book depth by price range per closed bucket (book at the end of the bucket), spot + futures (`orderbook@1m=1` = a list with the latest closed minute). Timeframe 5m. Same content as `/v1/orderbook?timeframe=5m`.')
+    orderbook_15m: list[m.Orderbook] | None = PydField(None, alias='orderbook@15m', description='Order book depth by price range per closed bucket (book at the end of the bucket), spot + futures (`orderbook@1m=1` = a list with the latest closed minute). Timeframe 15m. Same content as `/v1/orderbook?timeframe=15m`.')
+    orderbook_30m: list[m.Orderbook] | None = PydField(None, alias='orderbook@30m', description='Order book depth by price range per closed bucket (book at the end of the bucket), spot + futures (`orderbook@1m=1` = a list with the latest closed minute). Timeframe 30m. Same content as `/v1/orderbook?timeframe=30m`.')
+    orderbook_1h: list[m.Orderbook] | None = PydField(None, alias='orderbook@1h', description='Order book depth by price range per closed bucket (book at the end of the bucket), spot + futures (`orderbook@1m=1` = a list with the latest closed minute). Timeframe 1h. Same content as `/v1/orderbook?timeframe=1h`.')
+    orderbook_4h: list[m.Orderbook] | None = PydField(None, alias='orderbook@4h', description='Order book depth by price range per closed bucket (book at the end of the bucket), spot + futures (`orderbook@1m=1` = a list with the latest closed minute). Timeframe 4h. Same content as `/v1/orderbook?timeframe=4h`.')
+    orderbook_1d: list[m.Orderbook] | None = PydField(None, alias='orderbook@1d', description='Order book depth by price range per closed bucket (book at the end of the bucket), spot + futures (`orderbook@1m=1` = a list with the latest closed minute). Timeframe 1d. Same content as `/v1/orderbook?timeframe=1d`.')
+    spread_interexchange_1m: list[m.SpreadInterexchange] | None = PydField(None, alias='spread_interexchange@1m', description='Inter-venue spread per bucket. Timeframe 1m. Same content as `/v1/spread/interexchange?timeframe=1m`.')
+    spread_interexchange_5m: list[m.SpreadInterexchange] | None = PydField(None, alias='spread_interexchange@5m', description='Inter-venue spread per bucket. Timeframe 5m. Same content as `/v1/spread/interexchange?timeframe=5m`.')
+    spread_interexchange_15m: list[m.SpreadInterexchange] | None = PydField(None, alias='spread_interexchange@15m', description='Inter-venue spread per bucket. Timeframe 15m. Same content as `/v1/spread/interexchange?timeframe=15m`.')
+    spread_interexchange_30m: list[m.SpreadInterexchange] | None = PydField(None, alias='spread_interexchange@30m', description='Inter-venue spread per bucket. Timeframe 30m. Same content as `/v1/spread/interexchange?timeframe=30m`.')
+    spread_interexchange_1h: list[m.SpreadInterexchange] | None = PydField(None, alias='spread_interexchange@1h', description='Inter-venue spread per bucket. Timeframe 1h. Same content as `/v1/spread/interexchange?timeframe=1h`.')
+    spread_interexchange_4h: list[m.SpreadInterexchange] | None = PydField(None, alias='spread_interexchange@4h', description='Inter-venue spread per bucket. Timeframe 4h. Same content as `/v1/spread/interexchange?timeframe=4h`.')
+    spread_interexchange_1d: list[m.SpreadInterexchange] | None = PydField(None, alias='spread_interexchange@1d', description='Inter-venue spread per bucket. Timeframe 1d. Same content as `/v1/spread/interexchange?timeframe=1d`.')
+    trades_avg_size_1m: list[m.TradesAvgSizeHistoryItem] | None = PydField(None, alias='trades_avg_size@1m', description='Average trade size per bucket (`trades_avg_size@<tf>=N`: the N latest closed buckets). Timeframe 1m. Same content as `/v1/trades/avg-size/history?timeframe=1m`.')
+    trades_avg_size_5m: list[m.TradesAvgSizeHistoryItem] | None = PydField(None, alias='trades_avg_size@5m', description='Average trade size per bucket (`trades_avg_size@<tf>=N`: the N latest closed buckets). Timeframe 5m. Same content as `/v1/trades/avg-size/history?timeframe=5m`.')
+    trades_avg_size_15m: list[m.TradesAvgSizeHistoryItem] | None = PydField(None, alias='trades_avg_size@15m', description='Average trade size per bucket (`trades_avg_size@<tf>=N`: the N latest closed buckets). Timeframe 15m. Same content as `/v1/trades/avg-size/history?timeframe=15m`.')
+    trades_avg_size_30m: list[m.TradesAvgSizeHistoryItem] | None = PydField(None, alias='trades_avg_size@30m', description='Average trade size per bucket (`trades_avg_size@<tf>=N`: the N latest closed buckets). Timeframe 30m. Same content as `/v1/trades/avg-size/history?timeframe=30m`.')
+    trades_avg_size_1h: list[m.TradesAvgSizeHistoryItem] | None = PydField(None, alias='trades_avg_size@1h', description='Average trade size per bucket (`trades_avg_size@<tf>=N`: the N latest closed buckets). Timeframe 1h. Same content as `/v1/trades/avg-size/history?timeframe=1h`.')
+    trades_avg_size_4h: list[m.TradesAvgSizeHistoryItem] | None = PydField(None, alias='trades_avg_size@4h', description='Average trade size per bucket (`trades_avg_size@<tf>=N`: the N latest closed buckets). Timeframe 4h. Same content as `/v1/trades/avg-size/history?timeframe=4h`.')
+    trades_avg_size_1d: list[m.TradesAvgSizeHistoryItem] | None = PydField(None, alias='trades_avg_size@1d', description='Average trade size per bucket (`trades_avg_size@<tf>=N`: the N latest closed buckets). Timeframe 1d. Same content as `/v1/trades/avg-size/history?timeframe=1d`.')
+    trades_kline_1m: list[m.TradesKline] | None = PydField(None, alias='trades_kline@1m', description='Trade candles, spot + futures (N latest closed buckets). Timeframe 1m. Same content as `/v1/trades-kline?timeframe=1m`.')
+    trades_kline_5m: list[m.TradesKline] | None = PydField(None, alias='trades_kline@5m', description='Trade candles, spot + futures (N latest closed buckets). Timeframe 5m. Same content as `/v1/trades-kline?timeframe=5m`.')
+    trades_kline_15m: list[m.TradesKline] | None = PydField(None, alias='trades_kline@15m', description='Trade candles, spot + futures (N latest closed buckets). Timeframe 15m. Same content as `/v1/trades-kline?timeframe=15m`.')
+    trades_kline_30m: list[m.TradesKline] | None = PydField(None, alias='trades_kline@30m', description='Trade candles, spot + futures (N latest closed buckets). Timeframe 30m. Same content as `/v1/trades-kline?timeframe=30m`.')
+    trades_kline_1h: list[m.TradesKline] | None = PydField(None, alias='trades_kline@1h', description='Trade candles, spot + futures (N latest closed buckets). Timeframe 1h. Same content as `/v1/trades-kline?timeframe=1h`.')
+    trades_kline_4h: list[m.TradesKline] | None = PydField(None, alias='trades_kline@4h', description='Trade candles, spot + futures (N latest closed buckets). Timeframe 4h. Same content as `/v1/trades-kline?timeframe=4h`.')
+    trades_kline_1d: list[m.TradesKline] | None = PydField(None, alias='trades_kline@1d', description='Trade candles, spot + futures (N latest closed buckets). Timeframe 1d. Same content as `/v1/trades-kline?timeframe=1d`.')
+    trades_kline_futures_1m: list[m.TradesKline] | None = PydField(None, alias='trades_kline_futures@1m', description='Trade candles, futures only. Timeframe 1m. Same content as `/v1/trades-kline/futures?timeframe=1m`.')
+    trades_kline_futures_5m: list[m.TradesKline] | None = PydField(None, alias='trades_kline_futures@5m', description='Trade candles, futures only. Timeframe 5m. Same content as `/v1/trades-kline/futures?timeframe=5m`.')
+    trades_kline_futures_15m: list[m.TradesKline] | None = PydField(None, alias='trades_kline_futures@15m', description='Trade candles, futures only. Timeframe 15m. Same content as `/v1/trades-kline/futures?timeframe=15m`.')
+    trades_kline_futures_30m: list[m.TradesKline] | None = PydField(None, alias='trades_kline_futures@30m', description='Trade candles, futures only. Timeframe 30m. Same content as `/v1/trades-kline/futures?timeframe=30m`.')
+    trades_kline_futures_1h: list[m.TradesKline] | None = PydField(None, alias='trades_kline_futures@1h', description='Trade candles, futures only. Timeframe 1h. Same content as `/v1/trades-kline/futures?timeframe=1h`.')
+    trades_kline_futures_4h: list[m.TradesKline] | None = PydField(None, alias='trades_kline_futures@4h', description='Trade candles, futures only. Timeframe 4h. Same content as `/v1/trades-kline/futures?timeframe=4h`.')
+    trades_kline_futures_1d: list[m.TradesKline] | None = PydField(None, alias='trades_kline_futures@1d', description='Trade candles, futures only. Timeframe 1d. Same content as `/v1/trades-kline/futures?timeframe=1d`.')
+    trades_kline_spot_1m: list[m.TradesKline] | None = PydField(None, alias='trades_kline_spot@1m', description='Trade candles, spot only. Timeframe 1m. Same content as `/v1/trades-kline/spot?timeframe=1m`.')
+    trades_kline_spot_5m: list[m.TradesKline] | None = PydField(None, alias='trades_kline_spot@5m', description='Trade candles, spot only. Timeframe 5m. Same content as `/v1/trades-kline/spot?timeframe=5m`.')
+    trades_kline_spot_15m: list[m.TradesKline] | None = PydField(None, alias='trades_kline_spot@15m', description='Trade candles, spot only. Timeframe 15m. Same content as `/v1/trades-kline/spot?timeframe=15m`.')
+    trades_kline_spot_30m: list[m.TradesKline] | None = PydField(None, alias='trades_kline_spot@30m', description='Trade candles, spot only. Timeframe 30m. Same content as `/v1/trades-kline/spot?timeframe=30m`.')
+    trades_kline_spot_1h: list[m.TradesKline] | None = PydField(None, alias='trades_kline_spot@1h', description='Trade candles, spot only. Timeframe 1h. Same content as `/v1/trades-kline/spot?timeframe=1h`.')
+    trades_kline_spot_4h: list[m.TradesKline] | None = PydField(None, alias='trades_kline_spot@4h', description='Trade candles, spot only. Timeframe 4h. Same content as `/v1/trades-kline/spot?timeframe=4h`.')
+    trades_kline_spot_1d: list[m.TradesKline] | None = PydField(None, alias='trades_kline_spot@1d', description='Trade candles, spot only. Timeframe 1d. Same content as `/v1/trades-kline/spot?timeframe=1d`.')
 
 
 SNAPSHOT_FIELDS: dict[str, tuple[str, str | None]] = {
     'basis': ('basis', None),
+    'btc_active_addresses': ('btc_active_addresses', None),
     'btc_fees': ('btc_fees', None),
     'btc_mempool': ('btc_mempool', None),
     'btc_mining': ('btc_mining', None),
+    'btc_mvrv': ('btc_mvrv', None),
     'btc_network': ('btc_network', None),
-    'buysell_ratio': ('buysell_ratio', None),
+    'btc_nvt': ('btc_nvt', None),
+    'btc_revenue_per_difficulty': ('btc_revenue_per_difficulty', None),
     'eth_defi': ('eth_defi', None),
     'eth_deflation': ('eth_deflation', None),
     'eth_gas': ('eth_gas', None),
     'eth_gas_momentum': ('eth_gas_momentum', None),
-    'eth_ratio': ('eth_ratio', None),
+    'eth_price_btc': ('eth_price_btc', None),
     'eth_squeeze': ('eth_squeeze', None),
     'eth_staking': ('eth_staking', None),
     'eth_supply': ('eth_supply', None),
@@ -141,24 +162,25 @@ SNAPSHOT_FIELDS: dict[str, tuple[str, str | None]] = {
     'heatmap_clusters': ('heatmap_clusters', None),
     'liquidations_cumulative': ('liquidations_cumulative', None),
     'liquidations_events': ('liquidations_events', None),
-    'liquidations_ratio': ('liquidations_ratio', None),
-    'macro': ('macro', None),
     'macro_correlations': ('macro_correlations', None),
     'macro_momentum': ('macro_momentum', None),
     'macro_net_liquidity': ('macro_net_liquidity', None),
     'macro_risk': ('macro_risk', None),
-    'oi_delta': ('oi_delta', None),
-    'onchain_active_addresses': ('onchain_active_addresses', None),
-    'onchain_miner_stress': ('onchain_miner_stress', None),
-    'onchain_mvrv': ('onchain_mvrv', None),
-    'onchain_nvt': ('onchain_nvt', None),
+    'macro_series': ('macro_series', None),
+    'oi_change': ('oi_change', None),
     'options_summary': ('options_summary', None),
     'price_change': ('price_change', None),
     'tokenomics': ('tokenomics', None),
-    'trades_avg_size': ('trades_avg_size', None),
     'trades_futures': ('trades_futures', None),
     'trades_kline_futures_seconds': ('trades_kline_futures_seconds', None),
     'trades_spot': ('trades_spot', None),
+    'buy_sell_ratio@1m': ('buy_sell_ratio', '1m'),
+    'buy_sell_ratio@5m': ('buy_sell_ratio', '5m'),
+    'buy_sell_ratio@15m': ('buy_sell_ratio', '15m'),
+    'buy_sell_ratio@30m': ('buy_sell_ratio', '30m'),
+    'buy_sell_ratio@1h': ('buy_sell_ratio', '1h'),
+    'buy_sell_ratio@4h': ('buy_sell_ratio', '4h'),
+    'buy_sell_ratio@1d': ('buy_sell_ratio', '1d'),
     'cvd@1m': ('cvd', '1m'),
     'cvd@5m': ('cvd', '5m'),
     'cvd@15m': ('cvd', '15m'),
@@ -174,13 +196,20 @@ SNAPSHOT_FIELDS: dict[str, tuple[str, str | None]] = {
     'klines@4h': ('klines', '4h'),
     'klines@1d': ('klines', '1d'),
     'klines@1w': ('klines', '1w'),
-    'oi_history@1m': ('oi_history', '1m'),
-    'oi_history@5m': ('oi_history', '5m'),
-    'oi_history@15m': ('oi_history', '15m'),
-    'oi_history@30m': ('oi_history', '30m'),
-    'oi_history@1h': ('oi_history', '1h'),
-    'oi_history@4h': ('oi_history', '4h'),
-    'oi_history@1d': ('oi_history', '1d'),
+    'liquidations_big_small_ratio@1m': ('liquidations_big_small_ratio', '1m'),
+    'liquidations_big_small_ratio@5m': ('liquidations_big_small_ratio', '5m'),
+    'liquidations_big_small_ratio@15m': ('liquidations_big_small_ratio', '15m'),
+    'liquidations_big_small_ratio@30m': ('liquidations_big_small_ratio', '30m'),
+    'liquidations_big_small_ratio@1h': ('liquidations_big_small_ratio', '1h'),
+    'liquidations_big_small_ratio@4h': ('liquidations_big_small_ratio', '4h'),
+    'liquidations_big_small_ratio@1d': ('liquidations_big_small_ratio', '1d'),
+    'oi@1m': ('oi', '1m'),
+    'oi@5m': ('oi', '5m'),
+    'oi@15m': ('oi', '15m'),
+    'oi@30m': ('oi', '30m'),
+    'oi@1h': ('oi', '1h'),
+    'oi@4h': ('oi', '4h'),
+    'oi@1d': ('oi', '1d'),
     'orderbook@1m': ('orderbook', '1m'),
     'orderbook@5m': ('orderbook', '5m'),
     'orderbook@15m': ('orderbook', '15m'),
@@ -195,6 +224,13 @@ SNAPSHOT_FIELDS: dict[str, tuple[str, str | None]] = {
     'spread_interexchange@1h': ('spread_interexchange', '1h'),
     'spread_interexchange@4h': ('spread_interexchange', '4h'),
     'spread_interexchange@1d': ('spread_interexchange', '1d'),
+    'trades_avg_size@1m': ('trades_avg_size', '1m'),
+    'trades_avg_size@5m': ('trades_avg_size', '5m'),
+    'trades_avg_size@15m': ('trades_avg_size', '15m'),
+    'trades_avg_size@30m': ('trades_avg_size', '30m'),
+    'trades_avg_size@1h': ('trades_avg_size', '1h'),
+    'trades_avg_size@4h': ('trades_avg_size', '4h'),
+    'trades_avg_size@1d': ('trades_avg_size', '1d'),
     'trades_kline@1m': ('trades_kline', '1m'),
     'trades_kline@5m': ('trades_kline', '5m'),
     'trades_kline@15m': ('trades_kline', '15m'),

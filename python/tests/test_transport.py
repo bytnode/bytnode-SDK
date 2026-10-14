@@ -206,3 +206,12 @@ async def test_async_client(respx_mock: respx.MockRouter) -> None:
     async with AsyncBytnode(api_key="cb_live_k", base_url=BASE) as client:
         resp = await client.funding.rate("BTCUSDT")
     assert resp.data_type == "funding_rate"
+
+
+def test_contract_drift_major_and_newer_minor() -> None:
+    from bytnode._response import contract_drift
+
+    assert contract_drift("3.1.0", "3.1.0") is None
+    assert contract_drift("3.0.0", "3.1.0") is None  # an older minor: nothing missing for the caller
+    assert "MINOR" in (contract_drift("3.2.0", "3.1.0") or "")
+    assert "MAJOR" in (contract_drift("4.0.0", "3.1.0") or "")

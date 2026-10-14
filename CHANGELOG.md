@@ -4,6 +4,41 @@ All notable changes to the BytNode SDKs. Both packages share one version number.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow
 [Semantic Versioning](https://semver.org/).
 
+## [0.4.0] — 2026-10-14
+
+Generated from contract `4.0.0`. The contract had two MAJOR revisions since 0.3.0 (`3.0.0` on
+2026-10-13, `4.0.0` on 2026-10-14): 0.3.0 no longer matches the API — upgrade.
+
+### Changed (breaking, following the contract)
+
+- Every method is named after the path of its route (contract 3.0.0): `client.oi.change`
+  (was `oi.delta`), `client.options.put_call_ratio`, `client.buy_sell_ratio`,
+  `client.liquidations.big_small_ratio`, `client.eth.price_btc`, Bitcoin on-chain under
+  `client.btc.*` (`mvrv`, `nvt`, `active_addresses`, `revenue_per_difficulty`),
+  `client.capabilities(symbol)`.
+- `client.klines(symbol, timeframe)` returns the latest CLOSED candle (one model); the list is
+  `client.klines.history(...)` and `client.klines.history.iter(...)`. Same for
+  `client.options.iv.klines`.
+- `client.buy_sell_ratio`, `client.trades.avg_size` and `client.liquidations.big_small_ratio`
+  require `timeframe` and return the latest closed bucket (contract 4.0.0); their snapshot fields
+  take a timeframe mapping (`buy_sell_ratio={"5m": 12}`).
+- Snapshot: a multi-timeframe field (`klines_1h`, `cvd_1h`...) is typed as a LIST, never
+  `Model | list[Model]`; a field without a timeframe is the object of its route (`True` or `1`).
+- `client.indicators(..., limit=N)` (was `results=`); `values` is a list of dated rows,
+  `IndicatorRow(time, value)` or the named outputs, most recent first; `to_pandas()` builds its
+  columns from them.
+- `global` is a Python keyword: `client.global_()` (was `client.global_market()`); the TypeScript
+  property is `client.global`.
+- WebSocket: `ch.orderbook(symbol, market=...)` (the channel is `orderbook.*`; `ch.book` stays as
+  an alias), messages of kind `orderbook` carry `avg_mid_price`.
+- Field names follow the contract: `*_at` instants, `*_s` durations, `*_count` counts,
+  `step` in the envelope of a list, `is_partial` on the snapshot.
+
+### Added
+
+- A warning when the API serves a newer MAJOR contract, or a newer MINOR one, than the SDK was
+  generated from (`contract_drift`).
+
 ## [0.3.0] — 2026-10-13
 
 Generated from contract `2.6.0` (additions only since 2.0.0).

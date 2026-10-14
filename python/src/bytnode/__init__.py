@@ -3,8 +3,8 @@
     from bytnode import Bytnode
 
     client = Bytnode()                         # reads BYTNODE_API_KEY
-    candles = client.klines("BTCUSDT", "1h", limit=24)
-    df = client.klines.iter("BTCUSDT", "1h", since="2026-01-01").to_pandas()
+    candles = client.klines.history("BTCUSDT", "1h", limit=24)
+    df = client.klines.history.iter("BTCUSDT", "1h", since="2026-01-01").to_pandas()
 
 Docs: https://bytnode.com/docs · Reference: https://api.bytnode.com/openapi.json
 """

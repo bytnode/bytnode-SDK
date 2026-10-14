@@ -5,7 +5,7 @@ API: candles, order flow, derivatives, liquidations, options, macro, on-chain an
 typed, paginated for you, plus the real-time WebSocket stream.
 
 ```bash
-npm install https://github.com/bytnode/bytnode-SDK/releases/download/v0.3.0/bytnode-0.3.0.tgz
+npm install https://github.com/bytnode/bytnode-SDK/releases/download/v0.4.0/bytnode-0.4.0.tgz
 export BYTNODE_API_KEY=cb_live_...   # create one at https://bytnode.com/dashboard/keys
 ```
 
@@ -14,8 +14,11 @@ import { Bytnode } from 'bytnode';
 
 const client = new Bytnode(); // reads BYTNODE_API_KEY
 
-const candles = await client.klines({ symbol: 'BTCUSDT', timeframe: '1h', limit: 24 });
-console.log(candles.data[0].close, candles.data[0].time); // typed rows, times are Date
+const last = await client.klines({ symbol: 'BTCUSDT', timeframe: '1h' }); // the latest CLOSED candle
+console.log(last.data?.close, last.data?.time); // typed model, times are Date
+
+const candles = await client.klines.history({ symbol: 'BTCUSDT', timeframe: '1h', limit: 24 }); // newest first
+console.log(candles.data?.[0]?.close, candles.data?.length);
 
 const since = new Date(Date.now() - 7 * 86_400_000); // inside every plan's window
 for await (const row of client.funding.rate.history.iter({ symbol: 'BTCUSDT', since })) {
@@ -39,12 +42,14 @@ Every route of the [API reference](https://bytnode.com/docs) is a property named
 
 | Route | Method |
 |---|---|
-| `GET /v1/klines` | `client.klines({ symbol, timeframe, ... })` |
+| `GET /v1/klines` | `client.klines({ symbol, timeframe })` — the latest closed candle |
+| `GET /v1/klines/history` | `client.klines.history({ symbol, timeframe, ... })` |
 | `GET /v1/funding/rate` | `client.funding.rate({ symbol })` |
 | `GET /v1/funding/rate/history` | `client.funding.rate.history({ symbol, ... })` |
+| `GET /v1/buy-sell-ratio/spot` | `client.buySellRatio.spot({ symbol, timeframe })` |
 | `GET /v1/options/max-pain/history` | `client.options.maxPain.history({ expiry: '2026-12-25', asset: 'BTC' })` |
-| `GET /v1/symbols/{symbol}/capabilities` | `client.symbols.capabilities({ symbol: 'BTCUSDT' })` |
-| `GET /v1/global` | `client.globalMarket()` |
+| `GET /v1/capabilities` | `client.capabilities({ symbol: 'BTCUSDT' })` |
+| `GET /v1/global` | `client.global()` |
 
 Path segments are camelCase; parameter and field names are the API's own (`snake_case`), so the docs
 read the same. Closed values are typed (`timeframe: Timeframe`, `asset: Asset`): a typo does not
@@ -77,7 +82,7 @@ const page = await client.oi.history({ symbol: 'BTCUSDT', timeframe: '1h', since
 page.next; // relative URL of the following page, or null (.iter() follows it for you)
 
 // .iter() follows `next` for you, page after page:
-const rows = await client.klines.iter({ symbol: 'ETHUSDT', timeframe: '4h', since: new Date(Date.now() - 3 * 86_400_000) }).toArray();
+const rows = await client.klines.history.iter({ symbol: 'ETHUSDT', timeframe: '4h', since: new Date(Date.now() - 3 * 86_400_000) }).toArray();
 for await (const page of client.cvd.history.iter({ symbol: 'BTCUSDT', timeframe: '1h', since }).pages()) {
   console.log(page.data.length, page.rateLimit?.quotaRemaining);
 }
@@ -102,7 +107,7 @@ try {
 |---|---|---|
 | `InvalidRequestError` | 400 / 422 | `code`, `param`, `apiMessage` |
 | `AuthenticationError` | 401 | |
-| `PermissionDeniedError` | 403: outside your plan | `reason` (`family`, `depth`, `websocket`), `code` |
+| `PermissionDeniedError` | 403: outside your plan | `code` (`plan_family`, `history_depth`, `plan_websocket`), `details` |
 | `NotFoundError` | 404: unknown or retired route | the message names the replacement |
 | `RateLimitError` | 429 | `retryAfter`, `isQuota` |
 | `ServerError` | 5xx (after retries) | `status` |
@@ -124,18 +129,26 @@ quota** is never retried (`RateLimitError` with `isQuota`).
 
 ```ts
 const client = new Bytnode({ timeout: 10_000, maxRetries: 5 });
-await client.klines({ symbol: 'BTCUSDT', timeframe: '1m' }, { timeout: 60_000, maxRetries: 0, signal });
+await client.klines.history({ symbol: 'BTCUSDT', timeframe: '1m' }, { timeout: 60_000, maxRetries: 0, signal });
 client.lastRateLimit; // { limit, remaining, resetSeconds, quotaLimit, quotaRemaining, ... }
 ```
 
 ## Snapshot: many fields in one call
 
 ```ts
-const snap = await client.snapshot({ symbol: 'BTCUSDT', funding_rate: true, basis: 5, klines: { '1h': 24, '1d': 7 } });
-snap.data.funding_rate;   // a depth-1-only field: the object of /v1/funding/rate, or null
-const bars = snap.data['klines@1h']; // Kline | Kline[] | null: a list above depth 1
-if (Array.isArray(bars)) console.log(bars[0].close);
-(await client.snapshot.catalog({ symbol: 'BTCUSDT' })).meta.available_fields;
+// A field without a timeframe is the OBJECT of its route (true or 1); a multi-timeframe field
+// takes { timeframe: N } and is ALWAYS an array of the N latest closed buckets.
+const snap = await client.snapshot({
+  symbol: 'BTCUSDT',
+  funding_rate: true,
+  basis: true,
+  klines: { '1h': 24, '1d': 7 },
+  buy_sell_ratio: { '5m': 12 },
+});
+snap.data?.funding_rate;                 // the object of /v1/funding/rate, or null
+const bars = snap.data?.['klines@1h'];   // KlineHistoryItem[] | null, most recent first
+console.log(bars?.[0]?.close);
+(await client.snapshot.catalog({ symbol: 'BTCUSDT' })).data;
 ```
 
 ## Technical indicators
@@ -147,9 +160,10 @@ const res = await client.indicators({
   symbol: 'BTCUSDT',
   timeframe: '1h',
   indicators: [ind.rsi(14), ind.macd(), ind.bb({ period: 20, std: 2.5 })],
-  results: 200,
+  limit: 200,
 });
-res.data?.indicators['rsi_14']?.values; // oldest to newest
+res.data?.indicators['rsi_14']?.values[0]; // { time: Date, value: number }: rows newest first
+res.data?.indicators['macd_12_26_9']?.values[0]?.signal; // named outputs of a multi-output indicator
 ```
 
 Builders are typed and check their bounds locally; ids are generated (`rsi_14`) or given
@@ -161,13 +175,13 @@ Builders are typed and check their bounds locally; ids are generated (`rsi_14`) 
 import { channels } from 'bytnode';
 
 const stream = client.stream({
-  channels: [channels.trades('BTCUSDT'), channels.book('BTCUSDT')],
+  channels: [channels.trades('BTCUSDT'), channels.orderbook('BTCUSDT')],
   depth: 5,
   onGap: (channel, lost) => console.warn(`${lost} message(s) lost on ${channel}`),
 });
 
 for await (const msg of stream) {
-  if (msg.kind === 'book') console.log(msg.data.mid_avg, msg.data.bids[0]);
+  if (msg.kind === 'orderbook') console.log(msg.data.avg_mid_price, msg.data.bids[0]);
   else for (const t of msg.data) console.log(t.side, t.price, t.quantity);
 }
 ```
