@@ -20,7 +20,7 @@ class Basis(BytnodeModel):
     basis_value: float = PydField(description='Futures price - spot price, in the quote currency (USDT for BTCUSDT), like the two prices. Unit: quote currency (USDT for BTCUSDT).')
     basis_pct: float = PydField(description='(futures - spot) / spot, in percent. Positive = contango. Unit: percent (58.5 = 58.5 %).')
     futures_price: float = PydField(description='Perpetual futures price, open-interest weighted across venues. Unit: quote currency (USDT for BTCUSDT).')
-    spot_price: float = PydField(description='Spot price across venues. Unit: quote currency (USDT for BTCUSDT).')
+    spot_price: float = PydField(description='Spot price across venues at the instant of the row, paired with the futures price of the same instant. Not the latest trade price: that is the `price` of `/v1/price-change`, i.e. the close of `/v1/klines?live=1`. Unit: quote currency (USDT for BTCUSDT).')
 
 
 class BasisHistoryItem(BytnodeModel):
@@ -30,9 +30,9 @@ class BasisHistoryItem(BytnodeModel):
     basis_value: float = PydField(description='Futures price - spot price, in the quote currency (USDT for BTCUSDT), like the two prices. Unit: quote currency (USDT for BTCUSDT).')
     basis_pct: float = PydField(description='(futures - spot) / spot, in percent. Positive = contango. Unit: percent (58.5 = 58.5 %).')
     futures_price: float = PydField(description='Perpetual futures price, open-interest weighted across venues. Unit: quote currency (USDT for BTCUSDT).')
-    spot_price: float = PydField(description='Spot price across venues. Unit: quote currency (USDT for BTCUSDT).')
+    spot_price: float = PydField(description='Spot price across venues at the instant of the row, paired with the futures price of the same instant. Not the latest trade price: that is the `price` of `/v1/price-change`, i.e. the close of `/v1/klines?live=1`. Unit: quote currency (USDT for BTCUSDT).')
     sample_count: int = PydField(description="Number of source points in the bucket (one-minute points with data). For a state (basis, open interest) the value is the LAST of them — the bucket's close —; for a flow it is their total. Unit: count.")
-    is_closed: bool = PydField(description='`true` = the row is final and will never change; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it.')
+    is_closed: bool = PydField(description='`true` = the row is final; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it. Exception, rare: when a venue delivers trades LATE (seconds to minutes, e.g. during a burst), a closed row built from trades (trade candles, candle volumes, CVD, buy/sell ratio, trades per second) is corrected afterwards to include them, usually within minutes and at most one hour later; the correction only adds the late trades.')
 
 
 class BtcActiveAddresses(BytnodeModel):
@@ -55,7 +55,7 @@ class BtcActiveAddressesHistoryItem(BytnodeModel):
     active_addresses_sma_30d: float = PydField(description='30-day simple moving average of active_addresses. Unit: count.')
     sma_7d_vs_30d_pct: float = PydField(description='(7-day simple moving average - 30-day simple moving average) / 30-day average, percent. Unit: percent (58.5 = 58.5 %).')
     label: str = PydField(description='7-day vs 30-day average: `accelerating` (> +5 %), `decelerating` (< -5 %) or `stable`.')
-    is_closed: bool = PydField(description='`true` = the row is final and will never change; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it.')
+    is_closed: bool = PydField(description='`true` = the row is final; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it. Exception, rare: when a venue delivers trades LATE (seconds to minutes, e.g. during a burst), a closed row built from trades (trade candles, candle volumes, CVD, buy/sell ratio, trades per second) is corrected afterwards to include them, usually within minutes and at most one hour later; the correction only adds the late trades.')
 
 
 class BtcFeesFeePressure(BytnodeModel):
@@ -91,7 +91,7 @@ class BtcFeesHistoryItem(BytnodeModel):
     hour_fee_sat_vb: int = PydField(description='Fee rate for confirmation within ~1 hour. Unit: satoshis per virtual byte (sat/vB).')
     economy_fee_sat_vb: int = PydField(description='Fee rate for a low-priority confirmation. Unit: satoshis per virtual byte (sat/vB).')
     minimum_fee_sat_vb: int = PydField(description='Minimum relay fee rate. Unit: satoshis per virtual byte (sat/vB).')
-    is_closed: bool = PydField(description='`true` = the row is final and will never change; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it.')
+    is_closed: bool = PydField(description='`true` = the row is final; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it. Exception, rare: when a venue delivers trades LATE (seconds to minutes, e.g. during a burst), a closed row built from trades (trade candles, candle volumes, CVD, buy/sell ratio, trades per second) is corrected afterwards to include them, usually within minutes and at most one hour later; the correction only adds the late trades.')
 
 
 class BtcMempoolTrend(BytnodeModel):
@@ -121,7 +121,7 @@ class BtcMempoolHistoryItem(BytnodeModel):
     tx_count: int = PydField(description='Unconfirmed transactions in the mempool. Unit: count.')
     vsize: int = PydField(description='Total virtual size of the mempool. Unit: virtual bytes.')
     total_fee_sats: int = PydField(description='Total fees waiting in the mempool. Unit: satoshis.')
-    is_closed: bool = PydField(description='`true` = the row is final and will never change; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it.')
+    is_closed: bool = PydField(description='`true` = the row is final; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it. Exception, rare: when a venue delivers trades LATE (seconds to minutes, e.g. during a burst), a closed row built from trades (trade candles, candle volumes, CVD, buy/sell ratio, trades per second) is corrected afterwards to include them, usually within minutes and at most one hour later; the correction only adds the late trades.')
 
 
 class BtcMiningConcentration(BytnodeModel):
@@ -172,7 +172,7 @@ class BtcMiningHistoryItem(BytnodeModel):
     top3_share_pct: float = PydField(description='Share of blocks mined by the three largest pools. Unit: percent (58.5 = 58.5 %).')
     pool_count: int = PydField(description='Number of pools that mined at least one block. Unit: count.')
     label: str = PydField(description='Centralisation risk from the top-3 pool share: `healthy` (<= 40 %), `moderate` (> 40 %), `high_risk` (> 50 %).')
-    is_closed: bool = PydField(description='`true` = the row is final and will never change; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it.')
+    is_closed: bool = PydField(description='`true` = the row is final; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it. Exception, rare: when a venue delivers trades LATE (seconds to minutes, e.g. during a burst), a closed row built from trades (trade candles, candle volumes, CVD, buy/sell ratio, trades per second) is corrected afterwards to include them, usually within minutes and at most one hour later; the correction only adds the late trades.')
     block_height: int | None = PydField(None, description='Height of a block: the latest block on `/v1/btc/network`; the reward sample in `latest_reward`; the block where a difficulty adjustment took effect on `/v1/btc/mining/history?dataset=difficulty`. Unit: block height.')
     avg_reward_sats: int | None = PydField(None, description='Average block reward. Unit: satoshis.')
     avg_reward_usd: float | None = PydField(None, description='Average block reward in USD. Unit: USD.')
@@ -206,7 +206,7 @@ class BtcMvrvHistoryItem(BytnodeModel):
     mvrv: float = PydField(description='Market value / realised value. Unit: dimensionless ratio.')
     label: str = PydField(description='`undervalued` (<= 1), `fair` (> 1), `elevated` (> 2.5), `overvalued` (> 3.5).')
     change_30d_pct: float | None = PydField(None, description='Relative change of the value over 30 days, percent. Unit: percent (58.5 = 58.5 %).')
-    is_closed: bool = PydField(description='`true` = the row is final and will never change; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it.')
+    is_closed: bool = PydField(description='`true` = the row is final; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it. Exception, rare: when a venue delivers trades LATE (seconds to minutes, e.g. during a burst), a closed row built from trades (trade candles, candle volumes, CVD, buy/sell ratio, trades per second) is corrected afterwards to include them, usually within minutes and at most one hour later; the correction only adds the late trades.')
 
 
 class BtcNetworkBlockTime(BytnodeModel):
@@ -246,7 +246,7 @@ class BtcNetworkHistoryItem(BytnodeModel):
     block_height: int = PydField(description='Height of a block: the latest block on `/v1/btc/network`; the reward sample in `latest_reward`; the block where a difficulty adjustment took effect on `/v1/btc/mining/history?dataset=difficulty`. Unit: block height.')
     progress_pct: float = PydField(description='Progress through the current 2016-block difficulty period. Unit: percent (58.5 = 58.5 %).')
     difficulty_change_pct: float = PydField(description='Expected difficulty change at the next adjustment (`/v1/btc/mining/history?dataset=difficulty`: the change applied at that adjustment). Unit: percent (58.5 = 58.5 %).')
-    is_closed: bool = PydField(description='`true` = the row is final and will never change; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it.')
+    is_closed: bool = PydField(description='`true` = the row is final; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it. Exception, rare: when a venue delivers trades LATE (seconds to minutes, e.g. during a burst), a closed row built from trades (trade candles, candle volumes, CVD, buy/sell ratio, trades per second) is corrected afterwards to include them, usually within minutes and at most one hour later; the correction only adds the late trades.')
 
 
 class BtcNvt(BytnodeModel):
@@ -265,7 +265,7 @@ class BtcNvtHistoryItem(BytnodeModel):
     nvt: float = PydField(description='Market cap / daily on-chain transaction volume (NVT ratio). Unit: dimensionless ratio.')
     nvt_signal: float = PydField(description='NVT smoothed over 90 days (NVT Signal), less noisy. Unit: dimensionless ratio.')
     label: str = PydField(description='Zone of the NVT Signal: `undervalued` (<= 45), `fair` (> 45), `overvalued` (> 100), `bubble` (> 150).')
-    is_closed: bool = PydField(description='`true` = the row is final and will never change; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it.')
+    is_closed: bool = PydField(description='`true` = the row is final; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it. Exception, rare: when a venue delivers trades LATE (seconds to minutes, e.g. during a burst), a closed row built from trades (trade candles, candle volumes, CVD, buy/sell ratio, trades per second) is corrected afterwards to include them, usually within minutes and at most one hour later; the correction only adds the late trades.')
 
 
 class BtcRevenuePerDifficulty(BytnodeModel):
@@ -284,7 +284,7 @@ class BtcRevenuePerDifficultyHistoryItem(BytnodeModel):
     revenue_per_difficulty_usd: float = PydField(description="Miners' daily revenue (USD) divided by the network difficulty of the day: revenue per unit of work. Read it against its 30-day average. Unit: USD per unit of difficulty.")
     revenue_per_difficulty_sma_30d_usd: float = PydField(description='30-day simple moving average of revenue_per_difficulty_usd. Unit: USD per unit of difficulty.')
     label: str = PydField(description='`healthy` (at or above its 30-day average), `stress` (below it), `capitulation` (below 70 % of it — historically near BTC bottoms).')
-    is_closed: bool = PydField(description='`true` = the row is final and will never change; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it.')
+    is_closed: bool = PydField(description='`true` = the row is final; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it. Exception, rare: when a venue delivers trades LATE (seconds to minutes, e.g. during a burst), a closed row built from trades (trade candles, candle volumes, CVD, buy/sell ratio, trades per second) is corrected afterwards to include them, usually within minutes and at most one hour later; the correction only adds the late trades.')
 
 
 class BuySellRatio(BytnodeModel):
@@ -295,8 +295,8 @@ class BuySellRatio(BytnodeModel):
     sell_volume: float | None = PydField(None, description='Aggressive (taker) sell volume, base asset units, aggregated across venues. Unit: base asset quantity (BTC for BTCUSDT).')
     buy_ratio: float | None = PydField(None, description='buy_volume / (buy_volume + sell_volume). Above 0.5 = buyers dominate. Unit: fraction (0.585 = 58.5 %).')
     sample_count: int | None = PydField(None, description='Number of points of the CVD series behind the bucket — the `sample_count` of `/v1/cvd` for the same bucket. Unit: count.')
-    is_volume_estimated: bool = PydField(description="`true` when base-asset quantities of this row were ESTIMATED from USD amounts ÷ the candle's typical price (high + low + close) / 3 (data written before quantities were recorded; mean error 0.04 % in 1m, 0.37 % in 1d); `false` = measured.")
-    is_closed: bool | None = PydField(None, description='`true` = the row is final and will never change; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it.')
+    is_volume_estimated: bool | None = PydField(None, description="`true` when base-asset quantities of this row were ESTIMATED from USD amounts ÷ the candle's typical price (high + low + close) / 3 (data written before quantities were recorded; mean error 0.04 % in 1m, 0.37 % in 1d); `false` = measured. `null` when the volume itself is `null` (not available).")
+    is_closed: bool | None = PydField(None, description='`true` = the row is final; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it. Exception, rare: when a venue delivers trades LATE (seconds to minutes, e.g. during a burst), a closed row built from trades (trade candles, candle volumes, CVD, buy/sell ratio, trades per second) is corrected afterwards to include them, usually within minutes and at most one hour later; the correction only adds the late trades.')
 
 
 class BuySellRatioHistoryItem(BytnodeModel):
@@ -307,8 +307,8 @@ class BuySellRatioHistoryItem(BytnodeModel):
     sell_volume: float | None = PydField(None, description='Aggressive (taker) sell volume, base asset units, aggregated across venues. Unit: base asset quantity (BTC for BTCUSDT).')
     buy_ratio: float | None = PydField(None, description='buy_volume / (buy_volume + sell_volume). Above 0.5 = buyers dominate. Unit: fraction (0.585 = 58.5 %).')
     sample_count: int = PydField(description='Number of points of the CVD series behind the bucket — the `sample_count` of `/v1/cvd/history` for the same bucket. Unit: count.')
-    is_volume_estimated: bool = PydField(description="`true` when base-asset quantities of this row were ESTIMATED from USD amounts ÷ the candle's typical price (high + low + close) / 3 (data written before quantities were recorded; mean error 0.04 % in 1m, 0.37 % in 1d); `false` = measured.")
-    is_closed: bool = PydField(description='`true` = the row is final and will never change; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it.')
+    is_volume_estimated: bool | None = PydField(None, description="`true` when base-asset quantities of this row were ESTIMATED from USD amounts ÷ the candle's typical price (high + low + close) / 3 (data written before quantities were recorded; mean error 0.04 % in 1m, 0.37 % in 1d); `false` = measured. `null` when the volume itself is `null` (not available).")
+    is_closed: bool = PydField(description='`true` = the row is final; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it. Exception, rare: when a venue delivers trades LATE (seconds to minutes, e.g. during a burst), a closed row built from trades (trade candles, candle volumes, CVD, buy/sell ratio, trades per second) is corrected afterwards to include them, usually within minutes and at most one hour later; the correction only adds the late trades.')
 
 
 class CapabilitiesFeedsActiveLast24h(BytnodeModel):
@@ -361,8 +361,8 @@ class Cvd(BytnodeModel):
     buy_volume: float | None = PydField(None, description='Aggressive (taker) buy volume, base asset units, aggregated across venues. Unit: base asset quantity (BTC for BTCUSDT).')
     sell_volume: float | None = PydField(None, description='Aggressive (taker) sell volume, base asset units, aggregated across venues. Unit: base asset quantity (BTC for BTCUSDT).')
     sample_count: int = PydField(description='Number of one-minute points in `cvd_series`. Unit: count.')
-    is_volume_estimated: bool = PydField(description="`true` when base-asset quantities of this row were ESTIMATED from USD amounts ÷ the candle's typical price (high + low + close) / 3 (data written before quantities were recorded; mean error 0.04 % in 1m, 0.37 % in 1d); `false` = measured.")
-    is_closed: bool = PydField(description='`true` = the row is final and will never change; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it.')
+    is_volume_estimated: bool | None = PydField(None, description="`true` when base-asset quantities of this row were ESTIMATED from USD amounts ÷ the candle's typical price (high + low + close) / 3 (data written before quantities were recorded; mean error 0.04 % in 1m, 0.37 % in 1d); `false` = measured. `null` when the volume itself is `null` (not available).")
+    is_closed: bool = PydField(description='`true` = the row is final; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it. Exception, rare: when a venue delivers trades LATE (seconds to minutes, e.g. during a burst), a closed row built from trades (trade candles, candle volumes, CVD, buy/sell ratio, trades per second) is corrected afterwards to include them, usually within minutes and at most one hour later; the correction only adds the late trades.')
 
 
 class CvdHistoryItem(BytnodeModel):
@@ -374,8 +374,8 @@ class CvdHistoryItem(BytnodeModel):
     buy_volume: float | None = PydField(None, description='Aggressive (taker) buy volume, base asset units, aggregated across venues. Unit: base asset quantity (BTC for BTCUSDT).')
     sell_volume: float | None = PydField(None, description='Aggressive (taker) sell volume, base asset units, aggregated across venues. Unit: base asset quantity (BTC for BTCUSDT).')
     sample_count: int = PydField(description='Number of one-minute points in `cvd_series`. Unit: count.')
-    is_volume_estimated: bool = PydField(description="`true` when base-asset quantities of this row were ESTIMATED from USD amounts ÷ the candle's typical price (high + low + close) / 3 (data written before quantities were recorded; mean error 0.04 % in 1m, 0.37 % in 1d); `false` = measured.")
-    is_closed: bool = PydField(description='`true` = the row is final and will never change; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it.')
+    is_volume_estimated: bool | None = PydField(None, description="`true` when base-asset quantities of this row were ESTIMATED from USD amounts ÷ the candle's typical price (high + low + close) / 3 (data written before quantities were recorded; mean error 0.04 % in 1m, 0.37 % in 1d); `false` = measured. `null` when the volume itself is `null` (not available).")
+    is_closed: bool = PydField(description='`true` = the row is final; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it. Exception, rare: when a venue delivers trades LATE (seconds to minutes, e.g. during a burst), a closed row built from trades (trade candles, candle volumes, CVD, buy/sell ratio, trades per second) is corrected afterwards to include them, usually within minutes and at most one hour later; the correction only adds the late trades.')
 
 
 class EtfFundamentals(BytnodeModel):
@@ -408,7 +408,7 @@ class EtfFundamentalsHistoryItem(BytnodeModel):
     filing_url: str = PydField(description='Link to the filing on SEC EDGAR.')
     holdings: float | None = PydField(None, description='Crypto held by the fund, in units of the asset. Unit: units of the asset (BTC for asset=BTC, ETH for asset=ETH).')
     is_holdings_estimated: bool | None = PydField(None, description='`true` if the holdings are derived from net assets / price rather than read in the filing.')
-    is_closed: bool = PydField(description='`true` = the row is final and will never change; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it.')
+    is_closed: bool = PydField(description='`true` = the row is final; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it. Exception, rare: when a venue delivers trades LATE (seconds to minutes, e.g. during a burst), a closed row built from trades (trade candles, candle volumes, CVD, buy/sell ratio, trades per second) is corrected afterwards to include them, usually within minutes and at most one hour later; the correction only adds the late trades.')
 
 
 class EthDefi(BytnodeModel):
@@ -435,7 +435,7 @@ class EthDefiHistoryItem(BytnodeModel):
     defi_health_ratio: float = PydField(description='tvl_usd / eth_market_cap_usd. Unit: fraction (0.585 = 58.5 %).')
     defi_health_change_30d_pct: float | None = PydField(None, description='Relative change of `defi_health_ratio` (TVL / ETH market cap) over 30 days, percent. Unit: percent (58.5 = 58.5 %).')
     label: str | None = PydField(None, description='30-day trend of `defi_health_ratio` (TVL / ETH market cap): `growing`, `declining` or `stable`.')
-    is_closed: bool = PydField(description='`true` = the row is final and will never change; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it.')
+    is_closed: bool = PydField(description='`true` = the row is final; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it. Exception, rare: when a venue delivers trades LATE (seconds to minutes, e.g. during a burst), a closed row built from trades (trade candles, candle volumes, CVD, buy/sell ratio, trades per second) is corrected afterwards to include them, usually within minutes and at most one hour later; the correction only adds the late trades.')
 
 
 class EthDeflation(BytnodeModel):
@@ -456,7 +456,7 @@ class EthDeflationHistoryItem(BytnodeModel):
     net_issuance_24h: float | None = PydField(None, description='New ETH issued minus ETH burnt over 24 h. Negative = deflationary. Unit: ETH.')
     net_issuance_annualized_pct: float | None = PydField(None, description='Net issuance annualised, as a percent of supply. Negative = the supply shrinks. Unit: percent (58.5 = 58.5 %).')
     label: str | None = PydField(None, description='`deflationary` (24 h net issuance < 0) or `inflationary`.')
-    is_closed: bool = PydField(description='`true` = the row is final and will never change; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it.')
+    is_closed: bool = PydField(description='`true` = the row is final; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it. Exception, rare: when a venue delivers trades LATE (seconds to minutes, e.g. during a burst), a closed row built from trades (trade candles, candle volumes, CVD, buy/sell ratio, trades per second) is corrected afterwards to include them, usually within minutes and at most one hour later; the correction only adds the late trades.')
 
 
 class EthGas(BytnodeModel):
@@ -493,7 +493,7 @@ class EthGasMomentumHistoryItem(BytnodeModel):
     gas_sma_30d_gwei: float = PydField(description='30-day simple moving average of the base fee. Unit: gwei.')
     sma_7d_vs_30d_pct: float = PydField(description='(7-day simple moving average - 30-day simple moving average) / 30-day average, percent. Unit: percent (58.5 = 58.5 %).')
     label: str = PydField(description='`high_demand` (gas_used_ratio > 0.8 and sma_7d_vs_30d_pct > 0), `low_demand` (< 0.5 and sma_7d_vs_30d_pct < 0), otherwise `normal`.')
-    is_closed: bool = PydField(description='`true` = the row is final and will never change; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it.')
+    is_closed: bool = PydField(description='`true` = the row is final; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it. Exception, rare: when a venue delivers trades LATE (seconds to minutes, e.g. during a burst), a closed row built from trades (trade candles, candle volumes, CVD, buy/sell ratio, trades per second) is corrected afterwards to include them, usually within minutes and at most one hour later; the correction only adds the late trades.')
 
 
 class EthGasHistoryItem(BytnodeModel):
@@ -506,7 +506,7 @@ class EthGasHistoryItem(BytnodeModel):
     base_fee_gwei: float = PydField(description='EIP-1559 base fee (burnt). Unit: gwei.')
     gas_used_ratio: float = PydField(description='Block gas used / gas target over recent blocks. Unit: fraction (0.585 = 58.5 %).')
     label: str = PydField(description='Congestion: `low` (gas_used_ratio < 0.5), `normal`, or `high` (> 0.8).')
-    is_closed: bool = PydField(description='`true` = the row is final and will never change; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it.')
+    is_closed: bool = PydField(description='`true` = the row is final; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it. Exception, rare: when a venue delivers trades LATE (seconds to minutes, e.g. during a burst), a closed row built from trades (trade candles, candle volumes, CVD, buy/sell ratio, trades per second) is corrected afterwards to include them, usually within minutes and at most one hour later; the correction only adds the late trades.')
 
 
 class EthPriceBtc(BytnodeModel):
@@ -529,7 +529,7 @@ class EthPriceBtcHistoryItem(BytnodeModel):
     eth_price_btc: float = PydField(description='ETH price in BTC (ETH price / BTC price). Unit: BTC.')
     change_7d_pct: float | None = PydField(None, description='Relative change of the value over 7 days, percent. Unit: percent (58.5 = 58.5 %).')
     label: str | None = PydField(None, description='7-day momentum of ETH/BTC: `eth_outperform` (> 0), `btc_outperform` (< 0) or `neutral`.')
-    is_closed: bool = PydField(description='`true` = the row is final and will never change; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it.')
+    is_closed: bool = PydField(description='`true` = the row is final; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it. Exception, rare: when a venue delivers trades LATE (seconds to minutes, e.g. during a burst), a closed row built from trades (trade candles, candle volumes, CVD, buy/sell ratio, trades per second) is corrected afterwards to include them, usually within minutes and at most one hour later; the correction only adds the late trades.')
 
 
 class EthSqueeze(BytnodeModel):
@@ -550,7 +550,7 @@ class EthSqueezeHistoryItem(BytnodeModel):
     net_issuance_annualized_pct: float | None = PydField(None, description='Net issuance annualised, as a percent of supply. Negative = the supply shrinks. Unit: percent (58.5 = 58.5 %).')
     squeeze_index: float | None = PydField(None, description='Supply squeeze index: combines the staked share and net issuance. Higher = less liquid ETH available. Unit: score from 0 to 100.')
     label: str | None = PydField(None, description='`low` (< 33), `moderate` (>= 33), `high` (>= 66).')
-    is_closed: bool = PydField(description='`true` = the row is final and will never change; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it.')
+    is_closed: bool = PydField(description='`true` = the row is final; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it. Exception, rare: when a venue delivers trades LATE (seconds to minutes, e.g. during a burst), a closed row built from trades (trade candles, candle volumes, CVD, buy/sell ratio, trades per second) is corrected afterwards to include them, usually within minutes and at most one hour later; the correction only adds the late trades.')
 
 
 class EthStaking(BytnodeModel):
@@ -571,7 +571,7 @@ class EthStakingHistoryItem(BytnodeModel):
     total_staked: float | None = PydField(None, description='ETH staked (beacon chain). Unit: ETH.')
     total_supply: float | None = PydField(None, description='Total coins issued (circulating + locked), net of burns. Unit: coins.')
     apr_pct: float = PydField(description='Annualised rate in percent. Unit: percent (58.5 = 58.5 %).')
-    is_closed: bool = PydField(description='`true` = the row is final and will never change; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it.')
+    is_closed: bool = PydField(description='`true` = the row is final; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it. Exception, rare: when a venue delivers trades LATE (seconds to minutes, e.g. during a burst), a closed row built from trades (trade candles, candle volumes, CVD, buy/sell ratio, trades per second) is corrected afterwards to include them, usually within minutes and at most one hour later; the correction only adds the late trades.')
 
 
 class EthSupply(BytnodeModel):
@@ -600,7 +600,7 @@ class EthSupplyHistoryItem(BytnodeModel):
     burn_24h: float | None = PydField(None, description='ETH burnt over the last 24 h. Unit: ETH.')
     net_issuance_24h: float | None = PydField(None, description='New ETH issued minus ETH burnt over 24 h. Negative = deflationary. Unit: ETH.')
     label: str | None = PydField(None, description='`deflationary` (24 h net issuance < 0), `inflationary` (> 0) or `neutral`.')
-    is_closed: bool = PydField(description='`true` = the row is final and will never change; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it.')
+    is_closed: bool = PydField(description='`true` = the row is final; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it. Exception, rare: when a venue delivers trades LATE (seconds to minutes, e.g. during a burst), a closed row built from trades (trade candles, candle volumes, CVD, buy/sell ratio, trades per second) is corrected afterwards to include them, usually within minutes and at most one hour later; the correction only adds the late trades.')
 
 
 class FearGreed(BytnodeModel):
@@ -617,7 +617,7 @@ class FearGreedHistoryItem(BytnodeModel):
     time: datetime = PydField(description='The day the value refers to, at midnight UTC. Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
     value: int = PydField(description='Crypto Fear & Greed Index (alternative.me). 0 = extreme fear, 100 = extreme greed. Unit: score from 0 to 100.')
     label: str = PydField(description="Label of the value, from alternative.me's scale: `extreme_fear`, `fear`, `neutral`, `greed` or `extreme_greed` (snake_case, like every label of the API).")
-    is_closed: bool = PydField(description='`true` = the row is final and will never change; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it.')
+    is_closed: bool = PydField(description='`true` = the row is final; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it. Exception, rare: when a venue delivers trades LATE (seconds to minutes, e.g. during a burst), a closed row built from trades (trade candles, candle volumes, CVD, buy/sell ratio, trades per second) is corrected afterwards to include them, usually within minutes and at most one hour later; the correction only adds the late trades.')
 
 
 class FundingCumulative(BytnodeModel):
@@ -640,7 +640,7 @@ class FundingCumulativeHistoryItem(BytnodeModel):
     rolling_24h_rate_pct: float = PydField(description='Sum of the last three settled 8-hour funding rates — a ROLLING 24-hour window — in percent. A row is published every 8 hours and covers 24: consecutive rows OVERLAP by 16 hours, so never add them up (sum `rate_pct` of `/v1/funding/rate/history` instead). Unit: percent (58.5 = 58.5 %).')
     apr_pct: float = PydField(description='Annualised rate in percent. Unit: percent (58.5 = 58.5 %).')
     sample_count: int = PydField(description='Number of 8-hour funding windows summed. Unit: count.')
-    is_closed: bool = PydField(description='`true` = the row is final and will never change; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it.')
+    is_closed: bool = PydField(description='`true` = the row is final; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it. Exception, rare: when a venue delivers trades LATE (seconds to minutes, e.g. during a burst), a closed row built from trades (trade candles, candle volumes, CVD, buy/sell ratio, trades per second) is corrected afterwards to include them, usually within minutes and at most one hour later; the correction only adds the late trades.')
 
 
 class FundingNext(BytnodeModel):
@@ -657,10 +657,10 @@ class FundingRate(BytnodeModel):
 
     time: datetime = PydField(description='Start of the 8-hour funding period. The window is PAID by the settlement at its end: read `period_end_at` / `settled_at` for when it was settled. Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
     period_end_at: datetime = PydField(description='End of the 8-hour funding period (exclusive): the instant of the settlement that pays it. Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
-    settled_at: datetime = PydField(description='Instant of the last settlement counted in the window: `period_end_at` for a complete settled window; for the window in progress (`?live=1`), the latest settlement already paid inside it (some venues settle every hour), so the period itself is not settled yet. Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
+    settled_at: datetime | None = PydField(None, description='Instant of the last settlement counted in the window: `period_end_at` for a complete settled window; `null` for the window in progress (`?live=1`), which is not settled yet. Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
     rate_pct: float = PydField(description='Settled funding rate of the 8-hour period, in percent (0.01 = 0.01 % per 8 h), normalised to 8 h and open-interest weighted across venues. Unit: percent (58.5 = 58.5 %).')
     apr_pct: float = PydField(description='Annualised rate in percent. Unit: percent (58.5 = 58.5 %).')
-    is_closed: bool = PydField(description='`true` = the row is final and will never change; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it.')
+    is_closed: bool = PydField(description='`true` = the row is final; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it. Exception, rare: when a venue delivers trades LATE (seconds to minutes, e.g. during a burst), a closed row built from trades (trade candles, candle volumes, CVD, buy/sell ratio, trades per second) is corrected afterwards to include them, usually within minutes and at most one hour later; the correction only adds the late trades.')
 
 
 class GlobalMarket(BytnodeModel):
@@ -685,7 +685,7 @@ class GlobalMarketHistoryItem(BytnodeModel):
     eth_dominance_pct: float = PydField(description='Ether share of the total market cap. Unit: percent (58.5 = 58.5 %).')
     others_dominance_pct: float = PydField(description='Share of every other asset. Unit: percent (58.5 = 58.5 %).')
     active_cryptocurrency_count: int = PydField(description='Number of tracked crypto assets. Unit: count.')
-    is_closed: bool = PydField(description='`true` = the row is final and will never change; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it.')
+    is_closed: bool = PydField(description='`true` = the row is final; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it. Exception, rare: when a venue delivers trades LATE (seconds to minutes, e.g. during a burst), a closed row built from trades (trade candles, candle volumes, CVD, buy/sell ratio, trades per second) is corrected afterwards to include them, usually within minutes and at most one hour later; the correction only adds the late trades.')
 
 
 class Health(BytnodeModel):
@@ -717,7 +717,7 @@ class HeatmapClustersHistoryItem(BytnodeModel):
     attraction_up: float = PydField(description='density_up / dist_up_ratio²: how strongly the cluster above pulls the price. Unit: dimensionless score.')
     attraction_down: float = PydField(description='density_down / dist_down_ratio²: how strongly the cluster below pulls the price. Compare with attraction_up. Unit: dimensionless score.')
     sample_count: int = PydField(description="Number of source points in the bucket (one-minute points with data). For a state (basis, open interest) the value is the LAST of them — the bucket's close —; for a flow it is their total. Unit: count.")
-    is_closed: bool = PydField(description='`true` = the row is final and will never change; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it.')
+    is_closed: bool = PydField(description='`true` = the row is final; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it. Exception, rare: when a venue delivers trades LATE (seconds to minutes, e.g. during a burst), a closed row built from trades (trade candles, candle volumes, CVD, buy/sell ratio, trades per second) is corrected afterwards to include them, usually within minutes and at most one hour later; the correction only adds the late trades.')
 
 
 class Kline(BytnodeModel):
@@ -731,16 +731,16 @@ class Kline(BytnodeModel):
     volume: float | None = PydField(None, description="Traded volume over the row, base asset units (BTC for BTCUSDT, NOT dollars), aggregated across venues, over the market(s) the route covers: spot + perpetual futures on `/v1/klines` and `/v1/trades-kline`, the path's market alone on a `/spot` or `/futures` route (a name without a market suffix covers every market of its route; `volume_spot` / `volume_futures` restrict). `null` when a market is not available (never a partial sum). Unit: base asset quantity (BTC for BTCUSDT).")
     buy_volume: float | None = PydField(None, description='Aggressive (taker) buy volume, base asset units, aggregated across venues. Unit: base asset quantity (BTC for BTCUSDT).')
     sell_volume: float | None = PydField(None, description='Aggressive (taker) sell volume, base asset units, aggregated across venues. Unit: base asset quantity (BTC for BTCUSDT).')
-    is_volume_estimated: bool = PydField(description="`true` when base-asset quantities of this row were ESTIMATED from USD amounts ÷ the candle's typical price (high + low + close) / 3 (data written before quantities were recorded; mean error 0.04 % in 1m, 0.37 % in 1d); `false` = measured.")
+    is_volume_estimated: bool | None = PydField(None, description="`true` when base-asset quantities of this row were ESTIMATED from USD amounts ÷ the candle's typical price (high + low + close) / 3 (data written before quantities were recorded; mean error 0.04 % in 1m, 0.37 % in 1d); `false` = measured. `null` when the volume itself is `null` (not available).")
     volume_spot: float | None = PydField(None, description='Volume traded on the SPOT market, summed across venues, base asset units. `null` while not available yet (never a partial sum). Unit: base asset quantity (BTC for BTCUSDT).')
     buy_volume_spot: float | None = PydField(None, description='Aggressive (taker) buy volume on the SPOT market, across venues. Unit: base asset quantity (BTC for BTCUSDT).')
     sell_volume_spot: float | None = PydField(None, description='Aggressive (taker) sell volume on the SPOT market, across venues. Unit: base asset quantity (BTC for BTCUSDT).')
-    is_volume_spot_estimated: bool = PydField(description="`true` when the spot quantities of this candle were ESTIMATED from USD amounts and the candle's typical price (high + low + close) / 3 (data written before quantities were recorded; mean error 0.04 % in 1m, 0.37 % in 1d); `false` = measured.")
+    is_volume_spot_estimated: bool | None = PydField(None, description="`true` when the spot quantities of this candle were ESTIMATED from USD amounts and the candle's typical price (high + low + close) / 3 (data written before quantities were recorded; mean error 0.04 % in 1m, 0.37 % in 1d); `false` = measured. `null` when the volume itself is `null` (not available).")
     volume_futures: float | None = PydField(None, description='Volume traded on PERPETUAL FUTURES, summed across venues, in base asset units. `null` when not available yet (never a partial sum). Unit: base asset quantity (BTC for BTCUSDT).')
     buy_volume_futures: float | None = PydField(None, description='Aggressive (taker) buy volume on PERPETUAL FUTURES, across venues. Unit: base asset quantity (BTC for BTCUSDT).')
     sell_volume_futures: float | None = PydField(None, description='Aggressive (taker) sell volume on PERPETUAL FUTURES, across venues. Unit: base asset quantity (BTC for BTCUSDT).')
-    is_volume_futures_estimated: bool | None = PydField(None, description="`true` when `volume_futures` was ESTIMATED from USD amounts and the candle's typical price; `false` = measured.")
-    is_closed: bool = PydField(description='`true` = the row is final and will never change; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it.')
+    is_volume_futures_estimated: bool | None = PydField(None, description="`true` when `volume_futures` was ESTIMATED from USD amounts and the candle's typical price; `false` = measured. `null` when the volume itself is `null` (not available).")
+    is_closed: bool = PydField(description='`true` = the row is final; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it. Exception, rare: when a venue delivers trades LATE (seconds to minutes, e.g. during a burst), a closed row built from trades (trade candles, candle volumes, CVD, buy/sell ratio, trades per second) is corrected afterwards to include them, usually within minutes and at most one hour later; the correction only adds the late trades.')
 
 
 class KlineHistoryItem(BytnodeModel):
@@ -754,16 +754,16 @@ class KlineHistoryItem(BytnodeModel):
     volume: float | None = PydField(None, description="Traded volume over the row, base asset units (BTC for BTCUSDT, NOT dollars), aggregated across venues, over the market(s) the route covers: spot + perpetual futures on `/v1/klines` and `/v1/trades-kline`, the path's market alone on a `/spot` or `/futures` route (a name without a market suffix covers every market of its route; `volume_spot` / `volume_futures` restrict). `null` when a market is not available (never a partial sum). Unit: base asset quantity (BTC for BTCUSDT).")
     buy_volume: float | None = PydField(None, description='Aggressive (taker) buy volume, base asset units, aggregated across venues. Unit: base asset quantity (BTC for BTCUSDT).')
     sell_volume: float | None = PydField(None, description='Aggressive (taker) sell volume, base asset units, aggregated across venues. Unit: base asset quantity (BTC for BTCUSDT).')
-    is_volume_estimated: bool | None = PydField(None, description="`true` when base-asset quantities of this row were ESTIMATED from USD amounts ÷ the candle's typical price (high + low + close) / 3 (data written before quantities were recorded; mean error 0.04 % in 1m, 0.37 % in 1d); `false` = measured.")
+    is_volume_estimated: bool | None = PydField(None, description="`true` when base-asset quantities of this row were ESTIMATED from USD amounts ÷ the candle's typical price (high + low + close) / 3 (data written before quantities were recorded; mean error 0.04 % in 1m, 0.37 % in 1d); `false` = measured. `null` when the volume itself is `null` (not available).")
     volume_spot: float | None = PydField(None, description='Volume traded on the SPOT market, summed across venues, base asset units. `null` while not available yet (never a partial sum). Unit: base asset quantity (BTC for BTCUSDT).')
     buy_volume_spot: float | None = PydField(None, description='Aggressive (taker) buy volume on the SPOT market, across venues. Unit: base asset quantity (BTC for BTCUSDT).')
     sell_volume_spot: float | None = PydField(None, description='Aggressive (taker) sell volume on the SPOT market, across venues. Unit: base asset quantity (BTC for BTCUSDT).')
-    is_volume_spot_estimated: bool = PydField(description="`true` when the spot quantities of this candle were ESTIMATED from USD amounts and the candle's typical price (high + low + close) / 3 (data written before quantities were recorded; mean error 0.04 % in 1m, 0.37 % in 1d); `false` = measured.")
+    is_volume_spot_estimated: bool | None = PydField(None, description="`true` when the spot quantities of this candle were ESTIMATED from USD amounts and the candle's typical price (high + low + close) / 3 (data written before quantities were recorded; mean error 0.04 % in 1m, 0.37 % in 1d); `false` = measured. `null` when the volume itself is `null` (not available).")
     volume_futures: float | None = PydField(None, description='Volume traded on PERPETUAL FUTURES, summed across venues, in base asset units. `null` when not available yet (never a partial sum). Unit: base asset quantity (BTC for BTCUSDT).')
     buy_volume_futures: float | None = PydField(None, description='Aggressive (taker) buy volume on PERPETUAL FUTURES, across venues. Unit: base asset quantity (BTC for BTCUSDT).')
     sell_volume_futures: float | None = PydField(None, description='Aggressive (taker) sell volume on PERPETUAL FUTURES, across venues. Unit: base asset quantity (BTC for BTCUSDT).')
-    is_volume_futures_estimated: bool | None = PydField(None, description="`true` when `volume_futures` was ESTIMATED from USD amounts and the candle's typical price; `false` = measured.")
-    is_closed: bool = PydField(description='`true` = the row is final and will never change; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it.')
+    is_volume_futures_estimated: bool | None = PydField(None, description="`true` when `volume_futures` was ESTIMATED from USD amounts and the candle's typical price; `false` = measured. `null` when the volume itself is `null` (not available).")
+    is_closed: bool = PydField(description='`true` = the row is final; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it. Exception, rare: when a venue delivers trades LATE (seconds to minutes, e.g. during a burst), a closed row built from trades (trade candles, candle volumes, CVD, buy/sell ratio, trades per second) is corrected afterwards to include them, usually within minutes and at most one hour later; the correction only adds the late trades.')
 
 
 class LimitsHistoryItem(BytnodeModel):
@@ -814,7 +814,7 @@ class LiquidationsBigSmallRatio(BytnodeModel):
     small_usd: float = PydField(description='Notional of liquidations below 100,000 USD. Unit: USD.')
     big_small_ratio: float | None = PydField(None, description='big_usd / small_usd: the notional of liquidations of 100,000 USD or more DIVIDED BY that of the smaller ones (8.2 = the big ones weigh 8.2 times the small ones: a quotient, not a share). `null` when small_usd is 0. Unit: big / small.')
     sample_count: int | None = PydField(None, description="Number of source points in the bucket (one-minute points with data). For a state (basis, open interest) the value is the LAST of them — the bucket's close —; for a flow it is their total. Unit: count.")
-    is_closed: bool = PydField(description='`true` = the row is final and will never change; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it.')
+    is_closed: bool = PydField(description='`true` = the row is final; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it. Exception, rare: when a venue delivers trades LATE (seconds to minutes, e.g. during a burst), a closed row built from trades (trade candles, candle volumes, CVD, buy/sell ratio, trades per second) is corrected afterwards to include them, usually within minutes and at most one hour later; the correction only adds the late trades.')
 
 
 class LiquidationsBigSmallRatioHistoryItem(BytnodeModel):
@@ -827,7 +827,7 @@ class LiquidationsBigSmallRatioHistoryItem(BytnodeModel):
     small_usd: float = PydField(description='Notional of liquidations below 100,000 USD. Unit: USD.')
     big_small_ratio: float | None = PydField(None, description='big_usd / small_usd: the notional of liquidations of 100,000 USD or more DIVIDED BY that of the smaller ones (8.2 = the big ones weigh 8.2 times the small ones: a quotient, not a share). `null` when small_usd is 0. Unit: big / small.')
     sample_count: int = PydField(description='Minutes of the bucket that had at least one liquidation. Unit: count.')
-    is_closed: bool = PydField(description='`true` = the row is final and will never change; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it.')
+    is_closed: bool = PydField(description='`true` = the row is final; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it. Exception, rare: when a venue delivers trades LATE (seconds to minutes, e.g. during a burst), a closed row built from trades (trade candles, candle volumes, CVD, buy/sell ratio, trades per second) is corrected afterwards to include them, usually within minutes and at most one hour later; the correction only adds the late trades.')
 
 
 class LiquidationsCumulative(BytnodeModel):
@@ -849,7 +849,7 @@ class LiquidationsCumulativeHistoryItem(BytnodeModel):
     short_usd: float = PydField(description='Short positions liquidated, USD. Unit: USD.')
     total_usd: float = PydField(description='Total, USD. Unit: USD.')
     sample_count: int = PydField(description="Number of source points in the bucket (one-minute points with data). For a state (basis, open interest) the value is the LAST of them — the bucket's close —; for a flow it is their total. Unit: count.")
-    is_closed: bool = PydField(description='`true` = the row is final and will never change; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it.')
+    is_closed: bool = PydField(description='`true` = the row is final; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it. Exception, rare: when a venue delivers trades LATE (seconds to minutes, e.g. during a burst), a closed row built from trades (trade candles, candle volumes, CVD, buy/sell ratio, trades per second) is corrected afterwards to include them, usually within minutes and at most one hour later; the correction only adds the late trades.')
 
 
 class LiquidationEvent(BytnodeModel):
@@ -988,7 +988,7 @@ class MacroHistoryItem(BytnodeModel):
 
     time: datetime = PydField(description='The day of the observation, at midnight UTC. Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
     value: float = PydField(description='Value of the series on the day of `time`. Unit: see the series `units`.')
-    is_closed: bool = PydField(description='`true` = the row is final and will never change; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it.')
+    is_closed: bool = PydField(description='`true` = the row is final; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it. Exception, rare: when a venue delivers trades LATE (seconds to minutes, e.g. during a burst), a closed row built from trades (trade candles, candle volumes, CVD, buy/sell ratio, trades per second) is corrected afterwards to include them, usually within minutes and at most one hour later; the correction only adds the late trades.')
 
 
 class MacroIntraday(BytnodeModel):
@@ -1000,7 +1000,7 @@ class MacroIntraday(BytnodeModel):
     low: float = PydField(description='Low. Unit: series unit.')
     close: float = PydField(description='Close. Unit: series unit.')
     volume: float | None = PydField(None, description='Volume reported by the source for this instrument (not the whole market). Unit: see `volume_kind`.')
-    is_closed: bool = PydField(description='`true` = the row is final and will never change; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it.')
+    is_closed: bool = PydField(description='`true` = the row is final; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it. Exception, rare: when a venue delivers trades LATE (seconds to minutes, e.g. during a burst), a closed row built from trades (trade candles, candle volumes, CVD, buy/sell ratio, trades per second) is corrected afterwards to include them, usually within minutes and at most one hour later; the correction only adds the late trades.')
 
 
 class MacroIntradaySeriesInfoLastCandleAt(BytnodeModel):
@@ -1093,7 +1093,7 @@ class MacroNetLiquidityHistoryItem(BytnodeModel):
     rrp_usd: float = PydField(description='Overnight reverse repo (RRPONTSYD) of that day. Unit: USD.')
     walcl_date: date | None = PydField(None, description='Observation day of the WALCL value used (weekly series). Unit: calendar date (YYYY-MM-DD).')
     tga_date: date | None = PydField(None, description='Observation day of the TGA value used (weekly series). Unit: calendar date (YYYY-MM-DD).')
-    is_closed: bool = PydField(description='`true` = the row is final and will never change; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it.')
+    is_closed: bool = PydField(description='`true` = the row is final; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it. Exception, rare: when a venue delivers trades LATE (seconds to minutes, e.g. during a burst), a closed row built from trades (trade candles, candle volumes, CVD, buy/sell ratio, trades per second) is corrected afterwards to include them, usually within minutes and at most one hour later; the correction only adds the late trades.')
 
 
 class MacroRiskSignalsVix(BytnodeModel):
@@ -1213,7 +1213,7 @@ class OiChangeHistoryItem(BytnodeModel):
     oi_change: float = PydField(description='oi - previous_oi, base asset units. Unit: base asset quantity (BTC for BTCUSDT).')
     oi_change_pct: float = PydField(description='Relative open interest change, percent. Unit: percent (58.5 = 58.5 %).')
     sample_count: int = PydField(description="Number of source points in the bucket (one-minute points with data). For a state (basis, open interest) the value is the LAST of them — the bucket's close —; for a flow it is their total. Unit: count.")
-    is_closed: bool = PydField(description='`true` = the row is final and will never change; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it.')
+    is_closed: bool = PydField(description='`true` = the row is final; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it. Exception, rare: when a venue delivers trades LATE (seconds to minutes, e.g. during a burst), a closed row built from trades (trade candles, candle volumes, CVD, buy/sell ratio, trades per second) is corrected afterwards to include them, usually within minutes and at most one hour later; the correction only adds the late trades.')
 
 
 class OiHistoryItem(BytnodeModel):
@@ -1222,7 +1222,7 @@ class OiHistoryItem(BytnodeModel):
     time: datetime = PydField(description='Start of the bucket the row covers: a 1h bucket at 14:00 covers 14:00:00 to 14:59:59.999. Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
     oi: float = PydField(description='Total open interest across venues, base asset units. On a bucketed row, the value at the END of the bucket (like a close); on `/v1/oi/change`, the latest measurement. Unit: base asset quantity (BTC for BTCUSDT).')
     sample_count: int = PydField(description="Number of source points in the bucket (one-minute points with data). For a state (basis, open interest) the value is the LAST of them — the bucket's close —; for a flow it is their total. Unit: count.")
-    is_closed: bool = PydField(description='`true` = the row is final and will never change; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it.')
+    is_closed: bool = PydField(description='`true` = the row is final; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it. Exception, rare: when a venue delivers trades LATE (seconds to minutes, e.g. during a burst), a closed row built from trades (trade candles, candle volumes, CVD, buy/sell ratio, trades per second) is corrected afterwards to include them, usually within minutes and at most one hour later; the correction only adds the late trades.')
 
 
 class OptionsExpiry(BytnodeModel):
@@ -1273,7 +1273,7 @@ class OptionsIvKline(BytnodeModel):
     high_pct: float = PydField(description='Highest 30-day ATM IV. Unit: percent (58.5 = 58.5 %).')
     low_pct: float = PydField(description='Lowest 30-day ATM IV. Unit: percent (58.5 = 58.5 %).')
     close_pct: float = PydField(description='30-day ATM IV at the end of the bucket. Unit: percent (58.5 = 58.5 %).')
-    is_closed: bool = PydField(description='`true` = the row is final and will never change; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it.')
+    is_closed: bool = PydField(description='`true` = the row is final; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it. Exception, rare: when a venue delivers trades LATE (seconds to minutes, e.g. during a burst), a closed row built from trades (trade candles, candle volumes, CVD, buy/sell ratio, trades per second) is corrected afterwards to include them, usually within minutes and at most one hour later; the correction only adds the late trades.')
 
 
 class OptionsIvKlineHistoryItem(BytnodeModel):
@@ -1284,7 +1284,7 @@ class OptionsIvKlineHistoryItem(BytnodeModel):
     high_pct: float = PydField(description='Highest 30-day ATM IV. Unit: percent (58.5 = 58.5 %).')
     low_pct: float = PydField(description='Lowest 30-day ATM IV. Unit: percent (58.5 = 58.5 %).')
     close_pct: float = PydField(description='30-day ATM IV at the end of the bucket. Unit: percent (58.5 = 58.5 %).')
-    is_closed: bool = PydField(description='`true` = the row is final and will never change; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it.')
+    is_closed: bool = PydField(description='`true` = the row is final; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it. Exception, rare: when a venue delivers trades LATE (seconds to minutes, e.g. during a burst), a closed row built from trades (trade candles, candle volumes, CVD, buy/sell ratio, trades per second) is corrected afterwards to include them, usually within minutes and at most one hour later; the correction only adds the late trades.')
 
 
 class OptionsMaxPain(BytnodeModel):
@@ -1305,7 +1305,7 @@ class OptionsMaxPainHistoryItem(BytnodeModel):
     time: datetime = PydField(description='The instant of the options snapshot the max pain was computed on (one row per snapshot, about every minute; no `timeframe`). Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
     max_pain_strike_usd: float = PydField(description='Strike at which option holders lose the most at expiry (max pain). Unit: USD.')
     put_call_ratio: float | None = PydField(None, description='Put/call open interest ratio (a quotient, not a share: 1.2 = 1.2 puts per call). Below 1 = more calls than puts. Unit: puts / calls.')
-    is_closed: bool = PydField(description='`true` = the row is final and will never change; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it.')
+    is_closed: bool = PydField(description='`true` = the row is final; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it. Exception, rare: when a venue delivers trades LATE (seconds to minutes, e.g. during a burst), a closed row built from trades (trade candles, candle volumes, CVD, buy/sell ratio, trades per second) is corrected afterwards to include them, usually within minutes and at most one hour later; the correction only adds the late trades.')
 
 
 class OptionsOiCoverage(BytnodeModel):
@@ -1344,7 +1344,7 @@ class OptionsOiChangeHistoryItem(BytnodeModel):
     oi_change_call_usd: float | None = PydField(None, description='Change of call open interest from `window_start_at` to `time`, USD. Unit: USD.')
     oi_change_put_usd: float | None = PydField(None, description='Change of put open interest from `window_start_at` to `time`, USD. Unit: USD.')
     oi_change_total_usd: float | None = PydField(None, description='Change of total open interest from `window_start_at` to `time`, USD. Unit: USD.')
-    is_closed: bool = PydField(description='`true` = the row is final and will never change; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it.')
+    is_closed: bool = PydField(description='`true` = the row is final; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it. Exception, rare: when a venue delivers trades LATE (seconds to minutes, e.g. during a burst), a closed row built from trades (trade candles, candle volumes, CVD, buy/sell ratio, trades per second) is corrected afterwards to include them, usually within minutes and at most one hour later; the correction only adds the late trades.')
 
 
 class OptionsOiDistribution(BytnodeModel):
@@ -1366,7 +1366,7 @@ class OptionsOiHistoryItem(BytnodeModel):
     oi_put_usd: float | None = PydField(None, description='Put open interest, USD. Unit: USD.')
     oi_call: float = PydField(description='Call open interest, in coins (base asset). Unit: base asset quantity (BTC for BTCUSDT).')
     oi_put: float = PydField(description='Put open interest, in coins (base asset). Unit: base asset quantity (BTC for BTCUSDT).')
-    is_closed: bool = PydField(description='`true` = the row is final and will never change; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it.')
+    is_closed: bool = PydField(description='`true` = the row is final; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it. Exception, rare: when a venue delivers trades LATE (seconds to minutes, e.g. during a burst), a closed row built from trades (trade candles, candle volumes, CVD, buy/sell ratio, trades per second) is corrected afterwards to include them, usually within minutes and at most one hour later; the correction only adds the late trades.')
 
 
 class OptionsPutCallRatio(BytnodeModel):
@@ -1383,7 +1383,7 @@ class OptionsPutCallRatioHistoryItem(BytnodeModel):
     time: datetime = PydField(description='Start of the bucket; the value is the LAST options snapshot of the bucket. Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
     put_call_ratio: float | None = PydField(None, description='Put/call open interest ratio (a quotient, not a share: 1.2 = 1.2 puts per call). Below 1 = more calls than puts. Unit: puts / calls.')
     put_call_label: str = PydField(description='`bullish` (put_call_ratio < 0.7), `neutral`, or `bearish` (put_call_ratio > 1).')
-    is_closed: bool = PydField(description='`true` = the row is final and will never change; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it.')
+    is_closed: bool = PydField(description='`true` = the row is final; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it. Exception, rare: when a venue delivers trades LATE (seconds to minutes, e.g. during a burst), a closed row built from trades (trade candles, candle volumes, CVD, buy/sell ratio, trades per second) is corrected afterwards to include them, usually within minutes and at most one hour later; the correction only adds the late trades.')
 
 
 class OptionsSummaryNearestExpiry(BytnodeModel):
@@ -1406,7 +1406,7 @@ class OptionsSummary(BytnodeModel):
     """Row of `/v1/options/summary`."""
 
     time: datetime = PydField(description='Point-in-time value: the instant of the options snapshot (all venues read together). Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
-    underlying_price_usd: float = PydField(description="Index (spot) price of the underlying, from the options venues. Each expiry's ATM strike and greeks use that expiry's own forward price. Unit: USD.")
+    underlying_price_usd: float = PydField(description="Index (spot) price of the underlying, from the options venues. Each expiry's ATM strike and greeks use that expiry's own forward price. Not the latest trade price: that is the `price` of `/v1/price-change`, i.e. the close of `/v1/klines?live=1`. Unit: USD.")
     oi_total_usd: float = PydField(description='Total open interest, USD. Unit: USD.')
     oi_call_usd: float | None = PydField(None, description='Call open interest, USD. Unit: USD.')
     oi_put_usd: float | None = PydField(None, description='Put open interest, USD. Unit: USD.')
@@ -1443,7 +1443,7 @@ class OptionsVolumeHistoryItem(BytnodeModel):
     volume_total_usd: float = PydField(description='Total traded volume, USD. Unit: USD.')
     volume_call_usd: float = PydField(description='Call volume, USD. Unit: USD.')
     volume_put_usd: float = PydField(description='Put volume, USD. Unit: USD.')
-    is_closed: bool = PydField(description='`true` = the row is final and will never change; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it.')
+    is_closed: bool = PydField(description='`true` = the row is final; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it. Exception, rare: when a venue delivers trades LATE (seconds to minutes, e.g. during a burst), a closed row built from trades (trade candles, candle volumes, CVD, buy/sell ratio, trades per second) is corrected afterwards to include them, usually within minutes and at most one hour later; the correction only adds the late trades.')
 
 
 class OrderbookRangesItem(BytnodeModel):
@@ -1461,7 +1461,7 @@ class Orderbook(BytnodeModel):
     """Row of `/v1/orderbook`, `/v1/orderbook/futures`, `/v1/orderbook/futures/history`, `/v1/orderbook/history`, `/v1/orderbook/spot`, `/v1/orderbook/spot/history`."""
 
     time: datetime = PydField(description='Start of the bucket; the depth is the photo of the order book at the END of the bucket. Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
-    is_closed: bool = PydField(description='`true` = the row is final and will never change; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it.')
+    is_closed: bool = PydField(description='`true` = the row is final; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it. Exception, rare: when a venue delivers trades LATE (seconds to minutes, e.g. during a burst), a closed row built from trades (trade candles, candle volumes, CVD, buy/sell ratio, trades per second) is corrected afterwards to include them, usually within minutes and at most one hour later; the correction only adds the late trades.')
     ranges: list[OrderbookRangesItem] = PydField(description='One entry per price range around the mid price, from the tightest (±0.25 %) to the widest (±10 %). Each range is cumulative: ±1 % includes everything inside ±0.5 %.')
 
 
@@ -1481,7 +1481,7 @@ class PriceChangeChangesPct(BytnodeModel):
 class PriceChange(BytnodeModel):
     """Row of `/v1/price-change`."""
 
-    time: datetime = PydField(description='Start of the latest closed one-minute candle; `price` is its close. Exception: USDTUSDC, which no spot candle source lists, gives the instant of its latest trade, `price` being the volume-weighted price of its last 90 seconds. Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
+    time: datetime = PydField(description="Instant of the latest trade of the reference spot market (`price` is that trade's price, the close of `/v1/klines?live=1`); if it has not traded since the latest closed one-minute candle, the end of that candle (`price` = its close). Exception: USDTUSDC, which no spot candle source lists, gives the instant of its latest trade, `price` being the volume-weighted price of its last 90 seconds. Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).")
     price: float = PydField(description='Price. Unit: quote currency (USDT for BTCUSDT).')
     changes_pct: PriceChangeChangesPct = PydField(description='Price change over each window, keyed by window (`1m` … `1w`), in percent.')
 
@@ -1498,8 +1498,8 @@ class SpreadInterexchange(BytnodeModel):
     """Row of `/v1/spread/interexchange`, `/v1/spread/interexchange/history`."""
 
     time: datetime = PydField(description='Start of the bucket the row covers: a 1h bucket at 14:00 covers 14:00:00 to 14:59:59.999. Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
-    is_closed: bool = PydField(description='`true` = the row is final and will never change; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it.')
-    ref_price: float = PydField(description='Reference price: the volume-weighted average price across venues over the bucket. Unit: quote currency (USDT for BTCUSDT).')
+    is_closed: bool = PydField(description='`true` = the row is final; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it. Exception, rare: when a venue delivers trades LATE (seconds to minutes, e.g. during a burst), a closed row built from trades (trade candles, candle volumes, CVD, buy/sell ratio, trades per second) is corrected afterwards to include them, usually within minutes and at most one hour later; the correction only adds the late trades.')
+    ref_price: float = PydField(description='Reference price: the volume-weighted average price across venues over the bucket. Not the latest trade price: that is the `price` of `/v1/price-change`, i.e. the close of `/v1/klines?live=1`. Unit: quote currency (USDT for BTCUSDT).')
     weighting: str = PydField(description='How venues are combined: `oi` (open-interest weighted) or `volume` (volume weighted).')
     max_spread_bps: float = PydField(description='Gap between the highest and the lowest venue price, relative to ref_price. Unit: basis points (1 bp = 0.01 %).')
     high_venue: str = PydField(description='Venue with the highest price over the bucket.')
@@ -1551,7 +1551,7 @@ class Tokenomics(BytnodeModel):
     circulating_supply: float | None = PydField(None, description='Coins in circulation. Unit: coins.')
     total_supply: float | None = PydField(None, description='Total coins issued (circulating + locked), net of burns. Unit: coins.')
     max_supply: float | None = PydField(None, description='Hard cap on supply. `null` = no cap. Unit: coins.')
-    price_usd: float = PydField(description='Latest price used for market_cap_usd and fdv_usd (the USDT price of the pair, read as USD). Unit: USD.')
+    price_usd: float = PydField(description='Price used for market_cap_usd and fdv_usd: the close of the latest closed one-minute candle (the USDT price of the pair, read as USD), refreshed every minute. Not the latest trade price: that is the `price` of `/v1/price-change`, i.e. the close of `/v1/klines?live=1`. Unit: USD.')
     priced_at: datetime | None = PydField(None, description="Instant of `price_usd` (the row's `time` is the instant of the supply data). `null` when the price is the stablecoin peg. Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).")
     market_cap_usd: float | None = PydField(None, description='circulating_supply × current price, in USD, derived at request time. Unit: USD.')
     fdv_usd: float | None = PydField(None, description='Fully diluted valuation: max_supply (or total_supply if uncapped) × price. `null` for stablecoins. Unit: USD.')
@@ -1567,7 +1567,7 @@ class TokenomicsHistoryItem(BytnodeModel):
     max_supply: float | None = PydField(None, description='Hard cap on supply. `null` = no cap. Unit: coins.')
     market_cap_usd: float | None = PydField(None, description='circulating_supply × current price, in USD, derived at request time. Unit: USD.')
     fdv_usd: float | None = PydField(None, description='Fully diluted valuation: max_supply (or total_supply if uncapped) × price. `null` for stablecoins. Unit: USD.')
-    is_closed: bool = PydField(description='`true` = the row is final and will never change; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it.')
+    is_closed: bool = PydField(description='`true` = the row is final; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it. Exception, rare: when a venue delivers trades LATE (seconds to minutes, e.g. during a burst), a closed row built from trades (trade candles, candle volumes, CVD, buy/sell ratio, trades per second) is corrected afterwards to include them, usually within minutes and at most one hour later; the correction only adds the late trades.')
 
 
 class TradesKline(BytnodeModel):
@@ -1581,8 +1581,8 @@ class TradesKline(BytnodeModel):
     sell_volume: float | None = PydField(None, description='Aggressive (taker) sell volume, base asset units, aggregated across venues. Unit: base asset quantity (BTC for BTCUSDT).')
     net_volume: float | None = PydField(None, description='buy_volume - sell_volume over the row, base asset units. Positive = net buying. Unit: base asset quantity (BTC for BTCUSDT).')
     trade_rate: float = PydField(description='Average number of trades per second over the bucket. Unit: trades per second.')
-    is_volume_estimated: bool = PydField(description="`true` when base-asset quantities of this row were ESTIMATED from USD amounts ÷ the candle's typical price (high + low + close) / 3 (data written before quantities were recorded; mean error 0.04 % in 1m, 0.37 % in 1d); `false` = measured.")
-    is_closed: bool = PydField(description='`true` = the row is final and will never change; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it.')
+    is_volume_estimated: bool | None = PydField(None, description="`true` when base-asset quantities of this row were ESTIMATED from USD amounts ÷ the candle's typical price (high + low + close) / 3 (data written before quantities were recorded; mean error 0.04 % in 1m, 0.37 % in 1d); `false` = measured. `null` when the volume itself is `null` (not available).")
+    is_closed: bool = PydField(description='`true` = the row is final; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it. Exception, rare: when a venue delivers trades LATE (seconds to minutes, e.g. during a burst), a closed row built from trades (trade candles, candle volumes, CVD, buy/sell ratio, trades per second) is corrected afterwards to include them, usually within minutes and at most one hour later; the correction only adds the late trades.')
 
 
 class TradesKlineSecond(BytnodeModel):
@@ -1593,11 +1593,11 @@ class TradesKlineSecond(BytnodeModel):
     trade_count: int = PydField(description='Number of trades. Unit: count.')
     buy_volume: float | None = PydField(None, description='Aggressive (taker) buy volume, base asset units, aggregated across venues. Unit: base asset quantity (BTC for BTCUSDT).')
     sell_volume: float | None = PydField(None, description='Aggressive (taker) sell volume, base asset units, aggregated across venues. Unit: base asset quantity (BTC for BTCUSDT).')
-    is_closed: bool = PydField(description='`true` = the row is final and will never change; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it.')
+    is_closed: bool = PydField(description='`true` = the row is final; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it. Exception, rare: when a venue delivers trades LATE (seconds to minutes, e.g. during a burst), a closed row built from trades (trade candles, candle volumes, CVD, buy/sell ratio, trades per second) is corrected afterwards to include them, usually within minutes and at most one hour later; the correction only adds the late trades.')
     net_volume: float | None = PydField(None, description='buy_volume - sell_volume over the row, base asset units. Positive = net buying. Unit: base asset quantity (BTC for BTCUSDT).')
     avg_trade_size: float | None = PydField(None, description='Average trade size, base asset units (NOT dollars: multiply by the price for a notional). Unit: base asset quantity (BTC for BTCUSDT).')
     trade_rate: float = PydField(description='Average number of trades per second over the bucket. Unit: trades per second.')
-    is_volume_estimated: bool = PydField(description="`true` when base-asset quantities of this row were ESTIMATED from USD amounts ÷ the candle's typical price (high + low + close) / 3 (data written before quantities were recorded; mean error 0.04 % in 1m, 0.37 % in 1d); `false` = measured.")
+    is_volume_estimated: bool | None = PydField(None, description="`true` when base-asset quantities of this row were ESTIMATED from USD amounts ÷ the candle's typical price (high + low + close) / 3 (data written before quantities were recorded; mean error 0.04 % in 1m, 0.37 % in 1d); `false` = measured. `null` when the volume itself is `null` (not available).")
 
 
 class TradesAvgSize(BytnodeModel):
@@ -1607,9 +1607,9 @@ class TradesAvgSize(BytnodeModel):
     avg_trade_size: float | None = PydField(None, description='Average trade size, base asset units (NOT dollars: multiply by the price for a notional). Unit: base asset quantity (BTC for BTCUSDT).')
     volume: float | None = PydField(None, description="Traded volume over the row, base asset units (BTC for BTCUSDT, NOT dollars), aggregated across venues, over the market(s) the route covers: spot + perpetual futures on `/v1/klines` and `/v1/trades-kline`, the path's market alone on a `/spot` or `/futures` route (a name without a market suffix covers every market of its route; `volume_spot` / `volume_futures` restrict). `null` when a market is not available (never a partial sum). Unit: base asset quantity (BTC for BTCUSDT).")
     trade_count: int = PydField(description='Number of trades. Unit: count.')
-    is_volume_estimated: bool = PydField(description="`true` when base-asset quantities of this row were ESTIMATED from USD amounts ÷ the candle's typical price (high + low + close) / 3 (data written before quantities were recorded; mean error 0.04 % in 1m, 0.37 % in 1d); `false` = measured.")
+    is_volume_estimated: bool | None = PydField(None, description="`true` when base-asset quantities of this row were ESTIMATED from USD amounts ÷ the candle's typical price (high + low + close) / 3 (data written before quantities were recorded; mean error 0.04 % in 1m, 0.37 % in 1d); `false` = measured. `null` when the volume itself is `null` (not available).")
     sample_count: int | None = PydField(None, description="Number of source points in the bucket (one-minute points with data). For a state (basis, open interest) the value is the LAST of them — the bucket's close —; for a flow it is their total. Unit: count.")
-    is_closed: bool = PydField(description='`true` = the row is final and will never change; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it.')
+    is_closed: bool = PydField(description='`true` = the row is final; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it. Exception, rare: when a venue delivers trades LATE (seconds to minutes, e.g. during a burst), a closed row built from trades (trade candles, candle volumes, CVD, buy/sell ratio, trades per second) is corrected afterwards to include them, usually within minutes and at most one hour later; the correction only adds the late trades.')
 
 
 class TradesAvgSizeHistoryItem(BytnodeModel):
@@ -1619,9 +1619,9 @@ class TradesAvgSizeHistoryItem(BytnodeModel):
     avg_trade_size: float | None = PydField(None, description='Average trade size, base asset units (NOT dollars: multiply by the price for a notional). Unit: base asset quantity (BTC for BTCUSDT).')
     volume: float | None = PydField(None, description="Traded volume over the row, base asset units (BTC for BTCUSDT, NOT dollars), aggregated across venues, over the market(s) the route covers: spot + perpetual futures on `/v1/klines` and `/v1/trades-kline`, the path's market alone on a `/spot` or `/futures` route (a name without a market suffix covers every market of its route; `volume_spot` / `volume_futures` restrict). `null` when a market is not available (never a partial sum). Unit: base asset quantity (BTC for BTCUSDT).")
     trade_count: int = PydField(description='Number of trades. Unit: count.')
-    is_volume_estimated: bool = PydField(description="`true` when base-asset quantities of this row were ESTIMATED from USD amounts ÷ the candle's typical price (high + low + close) / 3 (data written before quantities were recorded; mean error 0.04 % in 1m, 0.37 % in 1d); `false` = measured.")
+    is_volume_estimated: bool | None = PydField(None, description="`true` when base-asset quantities of this row were ESTIMATED from USD amounts ÷ the candle's typical price (high + low + close) / 3 (data written before quantities were recorded; mean error 0.04 % in 1m, 0.37 % in 1d); `false` = measured. `null` when the volume itself is `null` (not available).")
     sample_count: int = PydField(description="Number of source points in the bucket (one-minute points with data). For a state (basis, open interest) the value is the LAST of them — the bucket's close —; for a flow it is their total. Unit: count.")
-    is_closed: bool = PydField(description='`true` = the row is final and will never change; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it.')
+    is_closed: bool = PydField(description='`true` = the row is final; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it. Exception, rare: when a venue delivers trades LATE (seconds to minutes, e.g. during a burst), a closed row built from trades (trade candles, candle volumes, CVD, buy/sell ratio, trades per second) is corrected afterwards to include them, usually within minutes and at most one hour later; the correction only adds the late trades.')
 
 
 class Trade(BytnodeModel):

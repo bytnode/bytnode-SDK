@@ -3398,7 +3398,8 @@ class FundingNextResource(SyncResource):
     ) -> Response[m.FundingNext | None]:
         """GET /v1/funding/next — Next funding forecast
 
-        Each venue's forecast of its next settlement, normalised to 8 h and OI-weighted.
+        Each venue's forecast of its next settlement, normalised to 8 h and OI-weighted. The
+        same value is the rate of the period in progress on `/v1/funding/rate?live=1`.
 
         Args:
             symbol: Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET
@@ -3530,11 +3531,12 @@ class FundingRateResource(SyncResource):
         """GET /v1/funding/rate — Latest settled funding rate
 
         The last fully settled 8-hour funding window, normalised to 8 h and weighted by the
-        open interest of each venue at that time. `?live=1` for the window in progress.
-        `time` is the START of the period; the period is `[time, period_end_at)` and
-        `settled_at` says when its last settlement was paid — compare it with the `time` of
-        `/v1/funding/next` (the next settlement), not with this `time`. `rate_pct` is in
-        percent per 8 h.
+        open interest of each venue at that time. `?live=1` for the window in progress
+        (`is_closed: false`, `settled_at: null`): its rate is the venues' FORECAST for the
+        period, the same value as `estimated_rate_pct` of `/v1/funding/next`. `time` is the
+        START of the period; the period is `[time, period_end_at)` and `settled_at` says
+        when its last settlement was paid — compare it with the `time` of `/v1/funding/next`
+        (the next settlement), not with this `time`. `rate_pct` is in percent per 8 h.
 
         Args:
             symbol: Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET
@@ -3942,7 +3944,8 @@ class KlinesHistoryResource(SyncResource):
         across venues); `volume_spot` / `volume_futures` and their buy/sell split cover one
         market. `is_closed` says whether the candle's VOLUMES are final: `false` for a few
         seconds after its end (about 5 s for a 1m candle; they can still be `null` or
-        change), then `true` for good. To sync incrementally, resume FROM the oldest row
+        change), then `true` (rare exception: trades a venue delivers late are added
+        afterwards, see `is_closed`). To sync incrementally, resume FROM the oldest row
         still `is_closed: false` (read it again), not after it. Candles older than the trade
         history (BTCUSDT: before 2023-10-01, daily and weekly candles reach back to 2017)
         have `null` volumes. Most recent first, or oldest first with `order=asc`. Follow
@@ -6692,8 +6695,10 @@ class PriceChangeResource(SyncResource):
     ) -> Response[m.PriceChange | None]:
         """GET /v1/price-change — Price change over 1m to 1w
 
-        Rolling price change in percent over eight windows, from the latest price.
-        Spot-based for stablecoins.
+        Rolling price change in percent over eight windows, from the LATEST PRICE: the last
+        trade of the symbol's reference spot market, i.e. the close of `/v1/klines?live=1`
+        (`time` is the instant of that trade). Each window compares it with the one-minute
+        close at or before that instant minus the window. Spot-based for stablecoins.
 
         Args:
             symbol: Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET
@@ -7337,12 +7342,13 @@ class TradesKlineFuturesSecondsResource(SyncResource):
 
         Every PERPETUAL FUTURES trade of every venue summed per second: volume, trade count,
         taker buy and sell, and `is_closed` (a second is final 21 s after it ends: a venue
-        can still deliver a late trade before). Kept 72 hours. Without range parameters: the
-        last `limit` seconds, and a full page carries `next` (the older seconds). With
-        `since_ms`, `until_ms` or `order`: a page of `limit` seconds of the range, and
-        `next` is the URL of the following page (`null` at the end of the range). Most
-        recent first, or oldest first with `order=asc`. Follow `next` to read the following
-        page (it never repeats a row).
+        can still deliver a late trade before; a trade delivered later still is added
+        afterwards, so the seconds of a minute always add up to its trades). Kept 72 hours.
+        Without range parameters: the last `limit` seconds, and a full page carries `next`
+        (the older seconds). With `since_ms`, `until_ms` or `order`: a page of `limit`
+        seconds of the range, and `next` is the URL of the following page (`null` at the end
+        of the range). Most recent first, or oldest first with `order=asc`. Follow `next` to
+        read the following page (it never repeats a row).
 
         Args:
             symbol: Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET

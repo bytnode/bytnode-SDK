@@ -4,6 +4,23 @@ All notable changes to the BytNode SDKs. Both packages share one version number.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow
 [Semantic Versioning](https://semver.org/).
 
+## [0.6.0] — 2026-10-15
+
+Generated from contract `4.4.0` (was `4.3.1`; includes `4.3.2`).
+
+### Changed
+
+- `is_volume_estimated`, `is_volume_spot_estimated` and `is_volume_futures_estimated` are
+  `None` / `null` when their volume is `null` (they were `false`): type the field as optional.
+- `client.price_change(...)`: `price` is now the latest trade of the reference spot market (the
+  close of `client.klines(..., live=True)`), `time` the instant of that trade; it was the close
+  of the latest closed one-minute candle.
+- `client.funding.rate(..., live=True)`: the period in progress carries the venues' forecast
+  (the value of `client.funding.next(...)`) and `settled_at` is `None`; it was the sum of the
+  settlements already paid in the period.
+- Docstrings and JSDoc follow the contract texts (freshness, late trades completing a closed
+  row, history depth).
+
 ## [0.5.1] — 2026-10-15
 
 Generated from contract `4.3.1` (was `4.3.0`). Nothing breaks.

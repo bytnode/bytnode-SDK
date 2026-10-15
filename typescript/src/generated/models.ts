@@ -29,7 +29,9 @@ export interface Basis {
    */
   futures_price: number;
   /**
-   * Spot price across venues. Unit: quote currency (USDT for BTCUSDT).
+   * Spot price across venues at the instant of the row, paired with the futures price of the
+   * same instant. Not the latest trade price: that is the `price` of `/v1/price-change`, i.e.
+   * the close of `/v1/klines?live=1`. Unit: quote currency (USDT for BTCUSDT).
    */
   spot_price: number;
 }
@@ -58,7 +60,9 @@ export interface BasisHistoryItem {
    */
   futures_price: number;
   /**
-   * Spot price across venues. Unit: quote currency (USDT for BTCUSDT).
+   * Spot price across venues at the instant of the row, paired with the futures price of the
+   * same instant. Not the latest trade price: that is the `price` of `/v1/price-change`, i.e.
+   * the close of `/v1/klines?live=1`. Unit: quote currency (USDT for BTCUSDT).
    */
   spot_price: number;
   /**
@@ -68,9 +72,13 @@ export interface BasisHistoryItem {
    */
   sample_count: number;
   /**
-   * `true` = the row is final and will never change; `false` = provisional: the latest bucket
-   * while it still settles (a few seconds after its end, e.g. a candle whose volumes are not
-   * final yet), or the period in progress with `?live=1` on the routes that take it.
+   * `true` = the row is final; `false` = provisional: the latest bucket while it still settles
+   * (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period
+   * in progress with `?live=1` on the routes that take it. Exception, rare: when a venue
+   * delivers trades LATE (seconds to minutes, e.g. during a burst), a closed row built from
+   * trades (trade candles, candle volumes, CVD, buy/sell ratio, trades per second) is corrected
+   * afterwards to include them, usually within minutes and at most one hour later; the
+   * correction only adds the late trades.
    */
   is_closed: boolean;
 }
@@ -138,9 +146,13 @@ export interface BtcActiveAddressesHistoryItem {
    */
   label: string;
   /**
-   * `true` = the row is final and will never change; `false` = provisional: the latest bucket
-   * while it still settles (a few seconds after its end, e.g. a candle whose volumes are not
-   * final yet), or the period in progress with `?live=1` on the routes that take it.
+   * `true` = the row is final; `false` = provisional: the latest bucket while it still settles
+   * (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period
+   * in progress with `?live=1` on the routes that take it. Exception, rare: when a venue
+   * delivers trades LATE (seconds to minutes, e.g. during a burst), a closed row built from
+   * trades (trade candles, candle volumes, CVD, buy/sell ratio, trades per second) is corrected
+   * afterwards to include them, usually within minutes and at most one hour later; the
+   * correction only adds the late trades.
    */
   is_closed: boolean;
 }
@@ -246,9 +258,13 @@ export interface BtcFeesHistoryItem {
    */
   minimum_fee_sat_vb: number;
   /**
-   * `true` = the row is final and will never change; `false` = provisional: the latest bucket
-   * while it still settles (a few seconds after its end, e.g. a candle whose volumes are not
-   * final yet), or the period in progress with `?live=1` on the routes that take it.
+   * `true` = the row is final; `false` = provisional: the latest bucket while it still settles
+   * (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period
+   * in progress with `?live=1` on the routes that take it. Exception, rare: when a venue
+   * delivers trades LATE (seconds to minutes, e.g. during a burst), a closed row built from
+   * trades (trade candles, candle volumes, CVD, buy/sell ratio, trades per second) is corrected
+   * afterwards to include them, usually within minutes and at most one hour later; the
+   * correction only adds the late trades.
    */
   is_closed: boolean;
 }
@@ -331,9 +347,13 @@ export interface BtcMempoolHistoryItem {
    */
   total_fee_sats: number;
   /**
-   * `true` = the row is final and will never change; `false` = provisional: the latest bucket
-   * while it still settles (a few seconds after its end, e.g. a candle whose volumes are not
-   * final yet), or the period in progress with `?live=1` on the routes that take it.
+   * `true` = the row is final; `false` = provisional: the latest bucket while it still settles
+   * (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period
+   * in progress with `?live=1` on the routes that take it. Exception, rare: when a venue
+   * delivers trades LATE (seconds to minutes, e.g. during a burst), a closed row built from
+   * trades (trade candles, candle volumes, CVD, buy/sell ratio, trades per second) is corrected
+   * afterwards to include them, usually within minutes and at most one hour later; the
+   * correction only adds the late trades.
    */
   is_closed: boolean;
 }
@@ -476,9 +496,13 @@ export interface BtcMiningHistoryItem {
    */
   label: string;
   /**
-   * `true` = the row is final and will never change; `false` = provisional: the latest bucket
-   * while it still settles (a few seconds after its end, e.g. a candle whose volumes are not
-   * final yet), or the period in progress with `?live=1` on the routes that take it.
+   * `true` = the row is final; `false` = provisional: the latest bucket while it still settles
+   * (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period
+   * in progress with `?live=1` on the routes that take it. Exception, rare: when a venue
+   * delivers trades LATE (seconds to minutes, e.g. during a burst), a closed row built from
+   * trades (trade candles, candle volumes, CVD, buy/sell ratio, trades per second) is corrected
+   * afterwards to include them, usually within minutes and at most one hour later; the
+   * correction only adds the late trades.
    */
   is_closed: boolean;
   /**
@@ -600,9 +624,13 @@ export interface BtcMvrvHistoryItem {
    */
   change_30d_pct: number | null;
   /**
-   * `true` = the row is final and will never change; `false` = provisional: the latest bucket
-   * while it still settles (a few seconds after its end, e.g. a candle whose volumes are not
-   * final yet), or the period in progress with `?live=1` on the routes that take it.
+   * `true` = the row is final; `false` = provisional: the latest bucket while it still settles
+   * (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period
+   * in progress with `?live=1` on the routes that take it. Exception, rare: when a venue
+   * delivers trades LATE (seconds to minutes, e.g. during a burst), a closed row built from
+   * trades (trade candles, candle volumes, CVD, buy/sell ratio, trades per second) is corrected
+   * afterwards to include them, usually within minutes and at most one hour later; the
+   * correction only adds the late trades.
    */
   is_closed: boolean;
 }
@@ -721,9 +749,13 @@ export interface BtcNetworkHistoryItem {
    */
   difficulty_change_pct: number;
   /**
-   * `true` = the row is final and will never change; `false` = provisional: the latest bucket
-   * while it still settles (a few seconds after its end, e.g. a candle whose volumes are not
-   * final yet), or the period in progress with `?live=1` on the routes that take it.
+   * `true` = the row is final; `false` = provisional: the latest bucket while it still settles
+   * (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period
+   * in progress with `?live=1` on the routes that take it. Exception, rare: when a venue
+   * delivers trades LATE (seconds to minutes, e.g. during a burst), a closed row built from
+   * trades (trade candles, candle volumes, CVD, buy/sell ratio, trades per second) is corrected
+   * afterwards to include them, usually within minutes and at most one hour later; the
+   * correction only adds the late trades.
    */
   is_closed: boolean;
 }
@@ -775,9 +807,13 @@ export interface BtcNvtHistoryItem {
    */
   label: string;
   /**
-   * `true` = the row is final and will never change; `false` = provisional: the latest bucket
-   * while it still settles (a few seconds after its end, e.g. a candle whose volumes are not
-   * final yet), or the period in progress with `?live=1` on the routes that take it.
+   * `true` = the row is final; `false` = provisional: the latest bucket while it still settles
+   * (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period
+   * in progress with `?live=1` on the routes that take it. Exception, rare: when a venue
+   * delivers trades LATE (seconds to minutes, e.g. during a burst), a closed row built from
+   * trades (trade candles, candle volumes, CVD, buy/sell ratio, trades per second) is corrected
+   * afterwards to include them, usually within minutes and at most one hour later; the
+   * correction only adds the late trades.
    */
   is_closed: boolean;
 }
@@ -833,9 +869,13 @@ export interface BtcRevenuePerDifficultyHistoryItem {
    */
   label: string;
   /**
-   * `true` = the row is final and will never change; `false` = provisional: the latest bucket
-   * while it still settles (a few seconds after its end, e.g. a candle whose volumes are not
-   * final yet), or the period in progress with `?live=1` on the routes that take it.
+   * `true` = the row is final; `false` = provisional: the latest bucket while it still settles
+   * (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period
+   * in progress with `?live=1` on the routes that take it. Exception, rare: when a venue
+   * delivers trades LATE (seconds to minutes, e.g. during a burst), a closed row built from
+   * trades (trade candles, candle volumes, CVD, buy/sell ratio, trades per second) is corrected
+   * afterwards to include them, usually within minutes and at most one hour later; the
+   * correction only adds the late trades.
    */
   is_closed: boolean;
 }
@@ -873,13 +913,18 @@ export interface BuySellRatio {
   /**
    * `true` when base-asset quantities of this row were ESTIMATED from USD amounts ÷ the
    * candle's typical price (high + low + close) / 3 (data written before quantities were
-   * recorded; mean error 0.04 % in 1m, 0.37 % in 1d); `false` = measured.
+   * recorded; mean error 0.04 % in 1m, 0.37 % in 1d); `false` = measured. `null` when the
+   * volume itself is `null` (not available).
    */
-  is_volume_estimated: boolean;
+  is_volume_estimated: boolean | null;
   /**
-   * `true` = the row is final and will never change; `false` = provisional: the latest bucket
-   * while it still settles (a few seconds after its end, e.g. a candle whose volumes are not
-   * final yet), or the period in progress with `?live=1` on the routes that take it.
+   * `true` = the row is final; `false` = provisional: the latest bucket while it still settles
+   * (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period
+   * in progress with `?live=1` on the routes that take it. Exception, rare: when a venue
+   * delivers trades LATE (seconds to minutes, e.g. during a burst), a closed row built from
+   * trades (trade candles, candle volumes, CVD, buy/sell ratio, trades per second) is corrected
+   * afterwards to include them, usually within minutes and at most one hour later; the
+   * correction only adds the late trades.
    */
   is_closed: boolean | null;
 }
@@ -917,13 +962,18 @@ export interface BuySellRatioHistoryItem {
   /**
    * `true` when base-asset quantities of this row were ESTIMATED from USD amounts ÷ the
    * candle's typical price (high + low + close) / 3 (data written before quantities were
-   * recorded; mean error 0.04 % in 1m, 0.37 % in 1d); `false` = measured.
+   * recorded; mean error 0.04 % in 1m, 0.37 % in 1d); `false` = measured. `null` when the
+   * volume itself is `null` (not available).
    */
-  is_volume_estimated: boolean;
+  is_volume_estimated: boolean | null;
   /**
-   * `true` = the row is final and will never change; `false` = provisional: the latest bucket
-   * while it still settles (a few seconds after its end, e.g. a candle whose volumes are not
-   * final yet), or the period in progress with `?live=1` on the routes that take it.
+   * `true` = the row is final; `false` = provisional: the latest bucket while it still settles
+   * (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period
+   * in progress with `?live=1` on the routes that take it. Exception, rare: when a venue
+   * delivers trades LATE (seconds to minutes, e.g. during a burst), a closed row built from
+   * trades (trade candles, candle volumes, CVD, buy/sell ratio, trades per second) is corrected
+   * afterwards to include them, usually within minutes and at most one hour later; the
+   * correction only adds the late trades.
    */
   is_closed: boolean;
 }
@@ -1104,13 +1154,18 @@ export interface Cvd {
   /**
    * `true` when base-asset quantities of this row were ESTIMATED from USD amounts ÷ the
    * candle's typical price (high + low + close) / 3 (data written before quantities were
-   * recorded; mean error 0.04 % in 1m, 0.37 % in 1d); `false` = measured.
+   * recorded; mean error 0.04 % in 1m, 0.37 % in 1d); `false` = measured. `null` when the
+   * volume itself is `null` (not available).
    */
-  is_volume_estimated: boolean;
+  is_volume_estimated: boolean | null;
   /**
-   * `true` = the row is final and will never change; `false` = provisional: the latest bucket
-   * while it still settles (a few seconds after its end, e.g. a candle whose volumes are not
-   * final yet), or the period in progress with `?live=1` on the routes that take it.
+   * `true` = the row is final; `false` = provisional: the latest bucket while it still settles
+   * (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period
+   * in progress with `?live=1` on the routes that take it. Exception, rare: when a venue
+   * delivers trades LATE (seconds to minutes, e.g. during a burst), a closed row built from
+   * trades (trade candles, candle volumes, CVD, buy/sell ratio, trades per second) is corrected
+   * afterwards to include them, usually within minutes and at most one hour later; the
+   * correction only adds the late trades.
    */
   is_closed: boolean;
 }
@@ -1151,13 +1206,18 @@ export interface CvdHistoryItem {
   /**
    * `true` when base-asset quantities of this row were ESTIMATED from USD amounts ÷ the
    * candle's typical price (high + low + close) / 3 (data written before quantities were
-   * recorded; mean error 0.04 % in 1m, 0.37 % in 1d); `false` = measured.
+   * recorded; mean error 0.04 % in 1m, 0.37 % in 1d); `false` = measured. `null` when the
+   * volume itself is `null` (not available).
    */
-  is_volume_estimated: boolean;
+  is_volume_estimated: boolean | null;
   /**
-   * `true` = the row is final and will never change; `false` = provisional: the latest bucket
-   * while it still settles (a few seconds after its end, e.g. a candle whose volumes are not
-   * final yet), or the period in progress with `?live=1` on the routes that take it.
+   * `true` = the row is final; `false` = provisional: the latest bucket while it still settles
+   * (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period
+   * in progress with `?live=1` on the routes that take it. Exception, rare: when a venue
+   * delivers trades LATE (seconds to minutes, e.g. during a burst), a closed row built from
+   * trades (trade candles, candle volumes, CVD, buy/sell ratio, trades per second) is corrected
+   * afterwards to include them, usually within minutes and at most one hour later; the
+   * correction only adds the late trades.
    */
   is_closed: boolean;
 }
@@ -1267,9 +1327,13 @@ export interface EtfFundamentalsHistoryItem {
    */
   is_holdings_estimated: boolean | null;
   /**
-   * `true` = the row is final and will never change; `false` = provisional: the latest bucket
-   * while it still settles (a few seconds after its end, e.g. a candle whose volumes are not
-   * final yet), or the period in progress with `?live=1` on the routes that take it.
+   * `true` = the row is final; `false` = provisional: the latest bucket while it still settles
+   * (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period
+   * in progress with `?live=1` on the routes that take it. Exception, rare: when a venue
+   * delivers trades LATE (seconds to minutes, e.g. during a burst), a closed row built from
+   * trades (trade candles, candle volumes, CVD, buy/sell ratio, trades per second) is corrected
+   * afterwards to include them, usually within minutes and at most one hour later; the
+   * correction only adds the late trades.
    */
   is_closed: boolean;
 }
@@ -1355,9 +1419,13 @@ export interface EthDefiHistoryItem {
    */
   label: string | null;
   /**
-   * `true` = the row is final and will never change; `false` = provisional: the latest bucket
-   * while it still settles (a few seconds after its end, e.g. a candle whose volumes are not
-   * final yet), or the period in progress with `?live=1` on the routes that take it.
+   * `true` = the row is final; `false` = provisional: the latest bucket while it still settles
+   * (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period
+   * in progress with `?live=1` on the routes that take it. Exception, rare: when a venue
+   * delivers trades LATE (seconds to minutes, e.g. during a burst), a closed row built from
+   * trades (trade candles, candle volumes, CVD, buy/sell ratio, trades per second) is corrected
+   * afterwards to include them, usually within minutes and at most one hour later; the
+   * correction only adds the late trades.
    */
   is_closed: boolean;
 }
@@ -1417,9 +1485,13 @@ export interface EthDeflationHistoryItem {
    */
   label: string | null;
   /**
-   * `true` = the row is final and will never change; `false` = provisional: the latest bucket
-   * while it still settles (a few seconds after its end, e.g. a candle whose volumes are not
-   * final yet), or the period in progress with `?live=1` on the routes that take it.
+   * `true` = the row is final; `false` = provisional: the latest bucket while it still settles
+   * (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period
+   * in progress with `?live=1` on the routes that take it. Exception, rare: when a venue
+   * delivers trades LATE (seconds to minutes, e.g. during a burst), a closed row built from
+   * trades (trade candles, candle volumes, CVD, buy/sell ratio, trades per second) is corrected
+   * afterwards to include them, usually within minutes and at most one hour later; the
+   * correction only adds the late trades.
    */
   is_closed: boolean;
 }
@@ -1532,9 +1604,13 @@ export interface EthGasMomentumHistoryItem {
    */
   label: string;
   /**
-   * `true` = the row is final and will never change; `false` = provisional: the latest bucket
-   * while it still settles (a few seconds after its end, e.g. a candle whose volumes are not
-   * final yet), or the period in progress with `?live=1` on the routes that take it.
+   * `true` = the row is final; `false` = provisional: the latest bucket while it still settles
+   * (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period
+   * in progress with `?live=1` on the routes that take it. Exception, rare: when a venue
+   * delivers trades LATE (seconds to minutes, e.g. during a burst), a closed row built from
+   * trades (trade candles, candle volumes, CVD, buy/sell ratio, trades per second) is corrected
+   * afterwards to include them, usually within minutes and at most one hour later; the
+   * correction only adds the late trades.
    */
   is_closed: boolean;
 }
@@ -1573,9 +1649,13 @@ export interface EthGasHistoryItem {
    */
   label: string;
   /**
-   * `true` = the row is final and will never change; `false` = provisional: the latest bucket
-   * while it still settles (a few seconds after its end, e.g. a candle whose volumes are not
-   * final yet), or the period in progress with `?live=1` on the routes that take it.
+   * `true` = the row is final; `false` = provisional: the latest bucket while it still settles
+   * (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period
+   * in progress with `?live=1` on the routes that take it. Exception, rare: when a venue
+   * delivers trades LATE (seconds to minutes, e.g. during a burst), a closed row built from
+   * trades (trade candles, candle volumes, CVD, buy/sell ratio, trades per second) is corrected
+   * afterwards to include them, usually within minutes and at most one hour later; the
+   * correction only adds the late trades.
    */
   is_closed: boolean;
 }
@@ -1645,9 +1725,13 @@ export interface EthPriceBtcHistoryItem {
    */
   label: string | null;
   /**
-   * `true` = the row is final and will never change; `false` = provisional: the latest bucket
-   * while it still settles (a few seconds after its end, e.g. a candle whose volumes are not
-   * final yet), or the period in progress with `?live=1` on the routes that take it.
+   * `true` = the row is final; `false` = provisional: the latest bucket while it still settles
+   * (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period
+   * in progress with `?live=1` on the routes that take it. Exception, rare: when a venue
+   * delivers trades LATE (seconds to minutes, e.g. during a burst), a closed row built from
+   * trades (trade candles, candle volumes, CVD, buy/sell ratio, trades per second) is corrected
+   * afterwards to include them, usually within minutes and at most one hour later; the
+   * correction only adds the late trades.
    */
   is_closed: boolean;
 }
@@ -1709,9 +1793,13 @@ export interface EthSqueezeHistoryItem {
    */
   label: string | null;
   /**
-   * `true` = the row is final and will never change; `false` = provisional: the latest bucket
-   * while it still settles (a few seconds after its end, e.g. a candle whose volumes are not
-   * final yet), or the period in progress with `?live=1` on the routes that take it.
+   * `true` = the row is final; `false` = provisional: the latest bucket while it still settles
+   * (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period
+   * in progress with `?live=1` on the routes that take it. Exception, rare: when a venue
+   * delivers trades LATE (seconds to minutes, e.g. during a burst), a closed row built from
+   * trades (trade candles, candle volumes, CVD, buy/sell ratio, trades per second) is corrected
+   * afterwards to include them, usually within minutes and at most one hour later; the
+   * correction only adds the late trades.
    */
   is_closed: boolean;
 }
@@ -1769,9 +1857,13 @@ export interface EthStakingHistoryItem {
    */
   apr_pct: number;
   /**
-   * `true` = the row is final and will never change; `false` = provisional: the latest bucket
-   * while it still settles (a few seconds after its end, e.g. a candle whose volumes are not
-   * final yet), or the period in progress with `?live=1` on the routes that take it.
+   * `true` = the row is final; `false` = provisional: the latest bucket while it still settles
+   * (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period
+   * in progress with `?live=1` on the routes that take it. Exception, rare: when a venue
+   * delivers trades LATE (seconds to minutes, e.g. during a burst), a closed row built from
+   * trades (trade candles, candle volumes, CVD, buy/sell ratio, trades per second) is corrected
+   * afterwards to include them, usually within minutes and at most one hour later; the
+   * correction only adds the late trades.
    */
   is_closed: boolean;
 }
@@ -1867,9 +1959,13 @@ export interface EthSupplyHistoryItem {
    */
   label: string | null;
   /**
-   * `true` = the row is final and will never change; `false` = provisional: the latest bucket
-   * while it still settles (a few seconds after its end, e.g. a candle whose volumes are not
-   * final yet), or the period in progress with `?live=1` on the routes that take it.
+   * `true` = the row is final; `false` = provisional: the latest bucket while it still settles
+   * (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period
+   * in progress with `?live=1` on the routes that take it. Exception, rare: when a venue
+   * delivers trades LATE (seconds to minutes, e.g. during a burst), a closed row built from
+   * trades (trade candles, candle volumes, CVD, buy/sell ratio, trades per second) is corrected
+   * afterwards to include them, usually within minutes and at most one hour later; the
+   * correction only adds the late trades.
    */
   is_closed: boolean;
 }
@@ -1915,9 +2011,13 @@ export interface FearGreedHistoryItem {
    */
   label: string;
   /**
-   * `true` = the row is final and will never change; `false` = provisional: the latest bucket
-   * while it still settles (a few seconds after its end, e.g. a candle whose volumes are not
-   * final yet), or the period in progress with `?live=1` on the routes that take it.
+   * `true` = the row is final; `false` = provisional: the latest bucket while it still settles
+   * (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period
+   * in progress with `?live=1` on the routes that take it. Exception, rare: when a venue
+   * delivers trades LATE (seconds to minutes, e.g. during a burst), a closed row built from
+   * trades (trade candles, candle volumes, CVD, buy/sell ratio, trades per second) is corrected
+   * afterwards to include them, usually within minutes and at most one hour later; the
+   * correction only adds the late trades.
    */
   is_closed: boolean;
 }
@@ -1994,9 +2094,13 @@ export interface FundingCumulativeHistoryItem {
    */
   sample_count: number;
   /**
-   * `true` = the row is final and will never change; `false` = provisional: the latest bucket
-   * while it still settles (a few seconds after its end, e.g. a candle whose volumes are not
-   * final yet), or the period in progress with `?live=1` on the routes that take it.
+   * `true` = the row is final; `false` = provisional: the latest bucket while it still settles
+   * (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period
+   * in progress with `?live=1` on the routes that take it. Exception, rare: when a venue
+   * delivers trades LATE (seconds to minutes, e.g. during a burst), a closed row built from
+   * trades (trade candles, candle volumes, CVD, buy/sell ratio, trades per second) is corrected
+   * afterwards to include them, usually within minutes and at most one hour later; the
+   * correction only adds the late trades.
    */
   is_closed: boolean;
 }
@@ -2043,11 +2147,10 @@ export interface FundingRate {
   period_end_at: Date;
   /**
    * Instant of the last settlement counted in the window: `period_end_at` for a complete
-   * settled window; for the window in progress (`?live=1`), the latest settlement already paid
-   * inside it (some venues settle every hour), so the period itself is not settled yet. Unit:
-   * ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).
+   * settled window; `null` for the window in progress (`?live=1`), which is not settled yet.
+   * Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).
    */
-  settled_at: Date;
+  settled_at: Date | null;
   /**
    * Settled funding rate of the 8-hour period, in percent (0.01 = 0.01 % per 8 h), normalised
    * to 8 h and open-interest weighted across venues. Unit: percent (58.5 = 58.5 %).
@@ -2058,9 +2161,13 @@ export interface FundingRate {
    */
   apr_pct: number;
   /**
-   * `true` = the row is final and will never change; `false` = provisional: the latest bucket
-   * while it still settles (a few seconds after its end, e.g. a candle whose volumes are not
-   * final yet), or the period in progress with `?live=1` on the routes that take it.
+   * `true` = the row is final; `false` = provisional: the latest bucket while it still settles
+   * (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period
+   * in progress with `?live=1` on the routes that take it. Exception, rare: when a venue
+   * delivers trades LATE (seconds to minutes, e.g. during a burst), a closed row built from
+   * trades (trade candles, candle volumes, CVD, buy/sell ratio, trades per second) is corrected
+   * afterwards to include them, usually within minutes and at most one hour later; the
+   * correction only adds the late trades.
    */
   is_closed: boolean;
 }
@@ -2135,9 +2242,13 @@ export interface GlobalMarketHistoryItem {
    */
   active_cryptocurrency_count: number;
   /**
-   * `true` = the row is final and will never change; `false` = provisional: the latest bucket
-   * while it still settles (a few seconds after its end, e.g. a candle whose volumes are not
-   * final yet), or the period in progress with `?live=1` on the routes that take it.
+   * `true` = the row is final; `false` = provisional: the latest bucket while it still settles
+   * (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period
+   * in progress with `?live=1` on the routes that take it. Exception, rare: when a venue
+   * delivers trades LATE (seconds to minutes, e.g. during a burst), a closed row built from
+   * trades (trade candles, candle volumes, CVD, buy/sell ratio, trades per second) is corrected
+   * afterwards to include them, usually within minutes and at most one hour later; the
+   * correction only adds the late trades.
    */
   is_closed: boolean;
 }
@@ -2240,9 +2351,13 @@ export interface HeatmapClustersHistoryItem {
    */
   sample_count: number;
   /**
-   * `true` = the row is final and will never change; `false` = provisional: the latest bucket
-   * while it still settles (a few seconds after its end, e.g. a candle whose volumes are not
-   * final yet), or the period in progress with `?live=1` on the routes that take it.
+   * `true` = the row is final; `false` = provisional: the latest bucket while it still settles
+   * (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period
+   * in progress with `?live=1` on the routes that take it. Exception, rare: when a venue
+   * delivers trades LATE (seconds to minutes, e.g. during a burst), a closed row built from
+   * trades (trade candles, candle volumes, CVD, buy/sell ratio, trades per second) is corrected
+   * afterwards to include them, usually within minutes and at most one hour later; the
+   * correction only adds the late trades.
    */
   is_closed: boolean;
 }
@@ -2296,9 +2411,10 @@ export interface Kline {
   /**
    * `true` when base-asset quantities of this row were ESTIMATED from USD amounts ÷ the
    * candle's typical price (high + low + close) / 3 (data written before quantities were
-   * recorded; mean error 0.04 % in 1m, 0.37 % in 1d); `false` = measured.
+   * recorded; mean error 0.04 % in 1m, 0.37 % in 1d); `false` = measured. `null` when the
+   * volume itself is `null` (not available).
    */
-  is_volume_estimated: boolean;
+  is_volume_estimated: boolean | null;
   /**
    * Volume traded on the SPOT market, summed across venues, base asset units. `null` while not
    * available yet (never a partial sum). Unit: base asset quantity (BTC for BTCUSDT).
@@ -2317,9 +2433,10 @@ export interface Kline {
   /**
    * `true` when the spot quantities of this candle were ESTIMATED from USD amounts and the
    * candle's typical price (high + low + close) / 3 (data written before quantities were
-   * recorded; mean error 0.04 % in 1m, 0.37 % in 1d); `false` = measured.
+   * recorded; mean error 0.04 % in 1m, 0.37 % in 1d); `false` = measured. `null` when the
+   * volume itself is `null` (not available).
    */
-  is_volume_spot_estimated: boolean;
+  is_volume_spot_estimated: boolean | null;
   /**
    * Volume traded on PERPETUAL FUTURES, summed across venues, in base asset units. `null` when
    * not available yet (never a partial sum). Unit: base asset quantity (BTC for BTCUSDT).
@@ -2337,13 +2454,17 @@ export interface Kline {
   sell_volume_futures: number | null;
   /**
    * `true` when `volume_futures` was ESTIMATED from USD amounts and the candle's typical price;
-   * `false` = measured.
+   * `false` = measured. `null` when the volume itself is `null` (not available).
    */
   is_volume_futures_estimated: boolean | null;
   /**
-   * `true` = the row is final and will never change; `false` = provisional: the latest bucket
-   * while it still settles (a few seconds after its end, e.g. a candle whose volumes are not
-   * final yet), or the period in progress with `?live=1` on the routes that take it.
+   * `true` = the row is final; `false` = provisional: the latest bucket while it still settles
+   * (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period
+   * in progress with `?live=1` on the routes that take it. Exception, rare: when a venue
+   * delivers trades LATE (seconds to minutes, e.g. during a burst), a closed row built from
+   * trades (trade candles, candle volumes, CVD, buy/sell ratio, trades per second) is corrected
+   * afterwards to include them, usually within minutes and at most one hour later; the
+   * correction only adds the late trades.
    */
   is_closed: boolean;
 }
@@ -2396,7 +2517,8 @@ export interface KlineHistoryItem {
   /**
    * `true` when base-asset quantities of this row were ESTIMATED from USD amounts ÷ the
    * candle's typical price (high + low + close) / 3 (data written before quantities were
-   * recorded; mean error 0.04 % in 1m, 0.37 % in 1d); `false` = measured.
+   * recorded; mean error 0.04 % in 1m, 0.37 % in 1d); `false` = measured. `null` when the
+   * volume itself is `null` (not available).
    */
   is_volume_estimated: boolean | null;
   /**
@@ -2417,9 +2539,10 @@ export interface KlineHistoryItem {
   /**
    * `true` when the spot quantities of this candle were ESTIMATED from USD amounts and the
    * candle's typical price (high + low + close) / 3 (data written before quantities were
-   * recorded; mean error 0.04 % in 1m, 0.37 % in 1d); `false` = measured.
+   * recorded; mean error 0.04 % in 1m, 0.37 % in 1d); `false` = measured. `null` when the
+   * volume itself is `null` (not available).
    */
-  is_volume_spot_estimated: boolean;
+  is_volume_spot_estimated: boolean | null;
   /**
    * Volume traded on PERPETUAL FUTURES, summed across venues, in base asset units. `null` when
    * not available yet (never a partial sum). Unit: base asset quantity (BTC for BTCUSDT).
@@ -2437,13 +2560,17 @@ export interface KlineHistoryItem {
   sell_volume_futures: number | null;
   /**
    * `true` when `volume_futures` was ESTIMATED from USD amounts and the candle's typical price;
-   * `false` = measured.
+   * `false` = measured. `null` when the volume itself is `null` (not available).
    */
   is_volume_futures_estimated: boolean | null;
   /**
-   * `true` = the row is final and will never change; `false` = provisional: the latest bucket
-   * while it still settles (a few seconds after its end, e.g. a candle whose volumes are not
-   * final yet), or the period in progress with `?live=1` on the routes that take it.
+   * `true` = the row is final; `false` = provisional: the latest bucket while it still settles
+   * (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period
+   * in progress with `?live=1` on the routes that take it. Exception, rare: when a venue
+   * delivers trades LATE (seconds to minutes, e.g. during a burst), a closed row built from
+   * trades (trade candles, candle volumes, CVD, buy/sell ratio, trades per second) is corrected
+   * afterwards to include them, usually within minutes and at most one hour later; the
+   * correction only adds the late trades.
    */
   is_closed: boolean;
 }
@@ -2594,9 +2721,13 @@ export interface LiquidationsBigSmallRatio {
    */
   sample_count: number | null;
   /**
-   * `true` = the row is final and will never change; `false` = provisional: the latest bucket
-   * while it still settles (a few seconds after its end, e.g. a candle whose volumes are not
-   * final yet), or the period in progress with `?live=1` on the routes that take it.
+   * `true` = the row is final; `false` = provisional: the latest bucket while it still settles
+   * (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period
+   * in progress with `?live=1` on the routes that take it. Exception, rare: when a venue
+   * delivers trades LATE (seconds to minutes, e.g. during a burst), a closed row built from
+   * trades (trade candles, candle volumes, CVD, buy/sell ratio, trades per second) is corrected
+   * afterwards to include them, usually within minutes and at most one hour later; the
+   * correction only adds the late trades.
    */
   is_closed: boolean;
 }
@@ -2638,9 +2769,13 @@ export interface LiquidationsBigSmallRatioHistoryItem {
    */
   sample_count: number;
   /**
-   * `true` = the row is final and will never change; `false` = provisional: the latest bucket
-   * while it still settles (a few seconds after its end, e.g. a candle whose volumes are not
-   * final yet), or the period in progress with `?live=1` on the routes that take it.
+   * `true` = the row is final; `false` = provisional: the latest bucket while it still settles
+   * (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period
+   * in progress with `?live=1` on the routes that take it. Exception, rare: when a venue
+   * delivers trades LATE (seconds to minutes, e.g. during a burst), a closed row built from
+   * trades (trade candles, candle volumes, CVD, buy/sell ratio, trades per second) is corrected
+   * afterwards to include them, usually within minutes and at most one hour later; the
+   * correction only adds the late trades.
    */
   is_closed: boolean;
 }
@@ -2708,9 +2843,13 @@ export interface LiquidationsCumulativeHistoryItem {
    */
   sample_count: number;
   /**
-   * `true` = the row is final and will never change; `false` = provisional: the latest bucket
-   * while it still settles (a few seconds after its end, e.g. a candle whose volumes are not
-   * final yet), or the period in progress with `?live=1` on the routes that take it.
+   * `true` = the row is final; `false` = provisional: the latest bucket while it still settles
+   * (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period
+   * in progress with `?live=1` on the routes that take it. Exception, rare: when a venue
+   * delivers trades LATE (seconds to minutes, e.g. during a burst), a closed row built from
+   * trades (trade candles, candle volumes, CVD, buy/sell ratio, trades per second) is corrected
+   * afterwards to include them, usually within minutes and at most one hour later; the
+   * correction only adds the late trades.
    */
   is_closed: boolean;
 }
@@ -3055,9 +3194,13 @@ export interface MacroHistoryItem {
    */
   value: number;
   /**
-   * `true` = the row is final and will never change; `false` = provisional: the latest bucket
-   * while it still settles (a few seconds after its end, e.g. a candle whose volumes are not
-   * final yet), or the period in progress with `?live=1` on the routes that take it.
+   * `true` = the row is final; `false` = provisional: the latest bucket while it still settles
+   * (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period
+   * in progress with `?live=1` on the routes that take it. Exception, rare: when a venue
+   * delivers trades LATE (seconds to minutes, e.g. during a burst), a closed row built from
+   * trades (trade candles, candle volumes, CVD, buy/sell ratio, trades per second) is corrected
+   * afterwards to include them, usually within minutes and at most one hour later; the
+   * correction only adds the late trades.
    */
   is_closed: boolean;
 }
@@ -3093,9 +3236,13 @@ export interface MacroIntraday {
    */
   volume: number | null;
   /**
-   * `true` = the row is final and will never change; `false` = provisional: the latest bucket
-   * while it still settles (a few seconds after its end, e.g. a candle whose volumes are not
-   * final yet), or the period in progress with `?live=1` on the routes that take it.
+   * `true` = the row is final; `false` = provisional: the latest bucket while it still settles
+   * (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period
+   * in progress with `?live=1` on the routes that take it. Exception, rare: when a venue
+   * delivers trades LATE (seconds to minutes, e.g. during a burst), a closed row built from
+   * trades (trade candles, candle volumes, CVD, buy/sell ratio, trades per second) is corrected
+   * afterwards to include them, usually within minutes and at most one hour later; the
+   * correction only adds the late trades.
    */
   is_closed: boolean;
 }
@@ -3353,9 +3500,13 @@ export interface MacroNetLiquidityHistoryItem {
    */
   tga_date: string | null;
   /**
-   * `true` = the row is final and will never change; `false` = provisional: the latest bucket
-   * while it still settles (a few seconds after its end, e.g. a candle whose volumes are not
-   * final yet), or the period in progress with `?live=1` on the routes that take it.
+   * `true` = the row is final; `false` = provisional: the latest bucket while it still settles
+   * (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period
+   * in progress with `?live=1` on the routes that take it. Exception, rare: when a venue
+   * delivers trades LATE (seconds to minutes, e.g. during a burst), a closed row built from
+   * trades (trade candles, candle volumes, CVD, buy/sell ratio, trades per second) is corrected
+   * afterwards to include them, usually within minutes and at most one hour later; the
+   * correction only adds the late trades.
    */
   is_closed: boolean;
 }
@@ -3694,9 +3845,13 @@ export interface OiChangeHistoryItem {
    */
   sample_count: number;
   /**
-   * `true` = the row is final and will never change; `false` = provisional: the latest bucket
-   * while it still settles (a few seconds after its end, e.g. a candle whose volumes are not
-   * final yet), or the period in progress with `?live=1` on the routes that take it.
+   * `true` = the row is final; `false` = provisional: the latest bucket while it still settles
+   * (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period
+   * in progress with `?live=1` on the routes that take it. Exception, rare: when a venue
+   * delivers trades LATE (seconds to minutes, e.g. during a burst), a closed row built from
+   * trades (trade candles, candle volumes, CVD, buy/sell ratio, trades per second) is corrected
+   * afterwards to include them, usually within minutes and at most one hour later; the
+   * correction only adds the late trades.
    */
   is_closed: boolean;
 }
@@ -3723,9 +3878,13 @@ export interface OiHistoryItem {
    */
   sample_count: number;
   /**
-   * `true` = the row is final and will never change; `false` = provisional: the latest bucket
-   * while it still settles (a few seconds after its end, e.g. a candle whose volumes are not
-   * final yet), or the period in progress with `?live=1` on the routes that take it.
+   * `true` = the row is final; `false` = provisional: the latest bucket while it still settles
+   * (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period
+   * in progress with `?live=1` on the routes that take it. Exception, rare: when a venue
+   * delivers trades LATE (seconds to minutes, e.g. during a burst), a closed row built from
+   * trades (trade candles, candle volumes, CVD, buy/sell ratio, trades per second) is corrected
+   * afterwards to include them, usually within minutes and at most one hour later; the
+   * correction only adds the late trades.
    */
   is_closed: boolean;
 }
@@ -3873,9 +4032,13 @@ export interface OptionsIvKline {
    */
   close_pct: number;
   /**
-   * `true` = the row is final and will never change; `false` = provisional: the latest bucket
-   * while it still settles (a few seconds after its end, e.g. a candle whose volumes are not
-   * final yet), or the period in progress with `?live=1` on the routes that take it.
+   * `true` = the row is final; `false` = provisional: the latest bucket while it still settles
+   * (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period
+   * in progress with `?live=1` on the routes that take it. Exception, rare: when a venue
+   * delivers trades LATE (seconds to minutes, e.g. during a burst), a closed row built from
+   * trades (trade candles, candle volumes, CVD, buy/sell ratio, trades per second) is corrected
+   * afterwards to include them, usually within minutes and at most one hour later; the
+   * correction only adds the late trades.
    */
   is_closed: boolean;
 }
@@ -3906,9 +4069,13 @@ export interface OptionsIvKlineHistoryItem {
    */
   close_pct: number;
   /**
-   * `true` = the row is final and will never change; `false` = provisional: the latest bucket
-   * while it still settles (a few seconds after its end, e.g. a candle whose volumes are not
-   * final yet), or the period in progress with `?live=1` on the routes that take it.
+   * `true` = the row is final; `false` = provisional: the latest bucket while it still settles
+   * (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period
+   * in progress with `?live=1` on the routes that take it. Exception, rare: when a venue
+   * delivers trades LATE (seconds to minutes, e.g. during a burst), a closed row built from
+   * trades (trade candles, candle volumes, CVD, buy/sell ratio, trades per second) is corrected
+   * afterwards to include them, usually within minutes and at most one hour later; the
+   * correction only adds the late trades.
    */
   is_closed: boolean;
 }
@@ -3970,9 +4137,13 @@ export interface OptionsMaxPainHistoryItem {
    */
   put_call_ratio: number | null;
   /**
-   * `true` = the row is final and will never change; `false` = provisional: the latest bucket
-   * while it still settles (a few seconds after its end, e.g. a candle whose volumes are not
-   * final yet), or the period in progress with `?live=1` on the routes that take it.
+   * `true` = the row is final; `false` = provisional: the latest bucket while it still settles
+   * (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period
+   * in progress with `?live=1` on the routes that take it. Exception, rare: when a venue
+   * delivers trades LATE (seconds to minutes, e.g. during a burst), a closed row built from
+   * trades (trade candles, candle volumes, CVD, buy/sell ratio, trades per second) is corrected
+   * afterwards to include them, usually within minutes and at most one hour later; the
+   * correction only adds the late trades.
    */
   is_closed: boolean;
 }
@@ -4080,9 +4251,13 @@ export interface OptionsOiChangeHistoryItem {
    */
   oi_change_total_usd: number | null;
   /**
-   * `true` = the row is final and will never change; `false` = provisional: the latest bucket
-   * while it still settles (a few seconds after its end, e.g. a candle whose volumes are not
-   * final yet), or the period in progress with `?live=1` on the routes that take it.
+   * `true` = the row is final; `false` = provisional: the latest bucket while it still settles
+   * (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period
+   * in progress with `?live=1` on the routes that take it. Exception, rare: when a venue
+   * delivers trades LATE (seconds to minutes, e.g. during a burst), a closed row built from
+   * trades (trade candles, candle volumes, CVD, buy/sell ratio, trades per second) is corrected
+   * afterwards to include them, usually within minutes and at most one hour later; the
+   * correction only adds the late trades.
    */
   is_closed: boolean;
 }
@@ -4145,9 +4320,13 @@ export interface OptionsOiHistoryItem {
    */
   oi_put: number;
   /**
-   * `true` = the row is final and will never change; `false` = provisional: the latest bucket
-   * while it still settles (a few seconds after its end, e.g. a candle whose volumes are not
-   * final yet), or the period in progress with `?live=1` on the routes that take it.
+   * `true` = the row is final; `false` = provisional: the latest bucket while it still settles
+   * (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period
+   * in progress with `?live=1` on the routes that take it. Exception, rare: when a venue
+   * delivers trades LATE (seconds to minutes, e.g. during a burst), a closed row built from
+   * trades (trade candles, candle volumes, CVD, buy/sell ratio, trades per second) is corrected
+   * afterwards to include them, usually within minutes and at most one hour later; the
+   * correction only adds the late trades.
    */
   is_closed: boolean;
 }
@@ -4191,9 +4370,13 @@ export interface OptionsPutCallRatioHistoryItem {
    */
   put_call_label: string;
   /**
-   * `true` = the row is final and will never change; `false` = provisional: the latest bucket
-   * while it still settles (a few seconds after its end, e.g. a candle whose volumes are not
-   * final yet), or the period in progress with `?live=1` on the routes that take it.
+   * `true` = the row is final; `false` = provisional: the latest bucket while it still settles
+   * (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period
+   * in progress with `?live=1` on the routes that take it. Exception, rare: when a venue
+   * delivers trades LATE (seconds to minutes, e.g. during a burst), a closed row built from
+   * trades (trade candles, candle volumes, CVD, buy/sell ratio, trades per second) is corrected
+   * afterwards to include them, usually within minutes and at most one hour later; the
+   * correction only adds the late trades.
    */
   is_closed: boolean;
 }
@@ -4250,7 +4433,8 @@ export interface OptionsSummary {
   time: Date;
   /**
    * Index (spot) price of the underlying, from the options venues. Each expiry's ATM strike and
-   * greeks use that expiry's own forward price. Unit: USD.
+   * greeks use that expiry's own forward price. Not the latest trade price: that is the `price`
+   * of `/v1/price-change`, i.e. the close of `/v1/klines?live=1`. Unit: USD.
    */
   underlying_price_usd: number;
   /**
@@ -4366,9 +4550,13 @@ export interface OptionsVolumeHistoryItem {
    */
   volume_put_usd: number;
   /**
-   * `true` = the row is final and will never change; `false` = provisional: the latest bucket
-   * while it still settles (a few seconds after its end, e.g. a candle whose volumes are not
-   * final yet), or the period in progress with `?live=1` on the routes that take it.
+   * `true` = the row is final; `false` = provisional: the latest bucket while it still settles
+   * (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period
+   * in progress with `?live=1` on the routes that take it. Exception, rare: when a venue
+   * delivers trades LATE (seconds to minutes, e.g. during a burst), a closed row built from
+   * trades (trade candles, candle volumes, CVD, buy/sell ratio, trades per second) is corrected
+   * afterwards to include them, usually within minutes and at most one hour later; the
+   * correction only adds the late trades.
    */
   is_closed: boolean;
 }
@@ -4419,9 +4607,13 @@ export interface Orderbook {
    */
   time: Date;
   /**
-   * `true` = the row is final and will never change; `false` = provisional: the latest bucket
-   * while it still settles (a few seconds after its end, e.g. a candle whose volumes are not
-   * final yet), or the period in progress with `?live=1` on the routes that take it.
+   * `true` = the row is final; `false` = provisional: the latest bucket while it still settles
+   * (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period
+   * in progress with `?live=1` on the routes that take it. Exception, rare: when a venue
+   * delivers trades LATE (seconds to minutes, e.g. during a burst), a closed row built from
+   * trades (trade candles, candle volumes, CVD, buy/sell ratio, trades per second) is corrected
+   * afterwards to include them, usually within minutes and at most one hour later; the
+   * correction only adds the late trades.
    */
   is_closed: boolean;
   /**
@@ -4474,8 +4666,10 @@ export interface PriceChangeChangesPct {
  */
 export interface PriceChange {
   /**
-   * Start of the latest closed one-minute candle; `price` is its close. Exception: USDTUSDC,
-   * which no spot candle source lists, gives the instant of its latest trade, `price` being the
+   * Instant of the latest trade of the reference spot market (`price` is that trade's price,
+   * the close of `/v1/klines?live=1`); if it has not traded since the latest closed one-minute
+   * candle, the end of that candle (`price` = its close). Exception: USDTUSDC, which no spot
+   * candle source lists, gives the instant of its latest trade, `price` being the
    * volume-weighted price of its last 90 seconds. Unit: ISO 8601 UTC, milliseconds
    * (2026-09-28T14:00:00.000Z).
    */
@@ -4520,14 +4714,19 @@ export interface SpreadInterexchange {
    */
   time: Date;
   /**
-   * `true` = the row is final and will never change; `false` = provisional: the latest bucket
-   * while it still settles (a few seconds after its end, e.g. a candle whose volumes are not
-   * final yet), or the period in progress with `?live=1` on the routes that take it.
+   * `true` = the row is final; `false` = provisional: the latest bucket while it still settles
+   * (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period
+   * in progress with `?live=1` on the routes that take it. Exception, rare: when a venue
+   * delivers trades LATE (seconds to minutes, e.g. during a burst), a closed row built from
+   * trades (trade candles, candle volumes, CVD, buy/sell ratio, trades per second) is corrected
+   * afterwards to include them, usually within minutes and at most one hour later; the
+   * correction only adds the late trades.
    */
   is_closed: boolean;
   /**
-   * Reference price: the volume-weighted average price across venues over the bucket. Unit:
-   * quote currency (USDT for BTCUSDT).
+   * Reference price: the volume-weighted average price across venues over the bucket. Not the
+   * latest trade price: that is the `price` of `/v1/price-change`, i.e. the close of
+   * `/v1/klines?live=1`. Unit: quote currency (USDT for BTCUSDT).
    */
   ref_price: number;
   /**
@@ -4691,7 +4890,9 @@ export interface Tokenomics {
    */
   max_supply: number | null;
   /**
-   * Latest price used for market_cap_usd and fdv_usd (the USDT price of the pair, read as USD).
+   * Price used for market_cap_usd and fdv_usd: the close of the latest closed one-minute candle
+   * (the USDT price of the pair, read as USD), refreshed every minute. Not the latest trade
+   * price: that is the `price` of `/v1/price-change`, i.e. the close of `/v1/klines?live=1`.
    * Unit: USD.
    */
   price_usd: number;
@@ -4747,9 +4948,13 @@ export interface TokenomicsHistoryItem {
    */
   fdv_usd: number | null;
   /**
-   * `true` = the row is final and will never change; `false` = provisional: the latest bucket
-   * while it still settles (a few seconds after its end, e.g. a candle whose volumes are not
-   * final yet), or the period in progress with `?live=1` on the routes that take it.
+   * `true` = the row is final; `false` = provisional: the latest bucket while it still settles
+   * (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period
+   * in progress with `?live=1` on the routes that take it. Exception, rare: when a venue
+   * delivers trades LATE (seconds to minutes, e.g. during a burst), a closed row built from
+   * trades (trade candles, candle volumes, CVD, buy/sell ratio, trades per second) is corrected
+   * afterwards to include them, usually within minutes and at most one hour later; the
+   * correction only adds the late trades.
    */
   is_closed: boolean;
 }
@@ -4804,13 +5009,18 @@ export interface TradesKline {
   /**
    * `true` when base-asset quantities of this row were ESTIMATED from USD amounts ÷ the
    * candle's typical price (high + low + close) / 3 (data written before quantities were
-   * recorded; mean error 0.04 % in 1m, 0.37 % in 1d); `false` = measured.
+   * recorded; mean error 0.04 % in 1m, 0.37 % in 1d); `false` = measured. `null` when the
+   * volume itself is `null` (not available).
    */
-  is_volume_estimated: boolean;
+  is_volume_estimated: boolean | null;
   /**
-   * `true` = the row is final and will never change; `false` = provisional: the latest bucket
-   * while it still settles (a few seconds after its end, e.g. a candle whose volumes are not
-   * final yet), or the period in progress with `?live=1` on the routes that take it.
+   * `true` = the row is final; `false` = provisional: the latest bucket while it still settles
+   * (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period
+   * in progress with `?live=1` on the routes that take it. Exception, rare: when a venue
+   * delivers trades LATE (seconds to minutes, e.g. during a burst), a closed row built from
+   * trades (trade candles, candle volumes, CVD, buy/sell ratio, trades per second) is corrected
+   * afterwards to include them, usually within minutes and at most one hour later; the
+   * correction only adds the late trades.
    */
   is_closed: boolean;
 }
@@ -4848,9 +5058,13 @@ export interface TradesKlineSecond {
    */
   sell_volume: number | null;
   /**
-   * `true` = the row is final and will never change; `false` = provisional: the latest bucket
-   * while it still settles (a few seconds after its end, e.g. a candle whose volumes are not
-   * final yet), or the period in progress with `?live=1` on the routes that take it.
+   * `true` = the row is final; `false` = provisional: the latest bucket while it still settles
+   * (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period
+   * in progress with `?live=1` on the routes that take it. Exception, rare: when a venue
+   * delivers trades LATE (seconds to minutes, e.g. during a burst), a closed row built from
+   * trades (trade candles, candle volumes, CVD, buy/sell ratio, trades per second) is corrected
+   * afterwards to include them, usually within minutes and at most one hour later; the
+   * correction only adds the late trades.
    */
   is_closed: boolean;
   /**
@@ -4870,9 +5084,10 @@ export interface TradesKlineSecond {
   /**
    * `true` when base-asset quantities of this row were ESTIMATED from USD amounts ÷ the
    * candle's typical price (high + low + close) / 3 (data written before quantities were
-   * recorded; mean error 0.04 % in 1m, 0.37 % in 1d); `false` = measured.
+   * recorded; mean error 0.04 % in 1m, 0.37 % in 1d); `false` = measured. `null` when the
+   * volume itself is `null` (not available).
    */
-  is_volume_estimated: boolean;
+  is_volume_estimated: boolean | null;
 }
 
 /**
@@ -4906,9 +5121,10 @@ export interface TradesAvgSize {
   /**
    * `true` when base-asset quantities of this row were ESTIMATED from USD amounts ÷ the
    * candle's typical price (high + low + close) / 3 (data written before quantities were
-   * recorded; mean error 0.04 % in 1m, 0.37 % in 1d); `false` = measured.
+   * recorded; mean error 0.04 % in 1m, 0.37 % in 1d); `false` = measured. `null` when the
+   * volume itself is `null` (not available).
    */
-  is_volume_estimated: boolean;
+  is_volume_estimated: boolean | null;
   /**
    * Number of source points in the bucket (one-minute points with data). For a state (basis,
    * open interest) the value is the LAST of them — the bucket's close —; for a flow it is their
@@ -4916,9 +5132,13 @@ export interface TradesAvgSize {
    */
   sample_count: number | null;
   /**
-   * `true` = the row is final and will never change; `false` = provisional: the latest bucket
-   * while it still settles (a few seconds after its end, e.g. a candle whose volumes are not
-   * final yet), or the period in progress with `?live=1` on the routes that take it.
+   * `true` = the row is final; `false` = provisional: the latest bucket while it still settles
+   * (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period
+   * in progress with `?live=1` on the routes that take it. Exception, rare: when a venue
+   * delivers trades LATE (seconds to minutes, e.g. during a burst), a closed row built from
+   * trades (trade candles, candle volumes, CVD, buy/sell ratio, trades per second) is corrected
+   * afterwards to include them, usually within minutes and at most one hour later; the
+   * correction only adds the late trades.
    */
   is_closed: boolean;
 }
@@ -4955,9 +5175,10 @@ export interface TradesAvgSizeHistoryItem {
   /**
    * `true` when base-asset quantities of this row were ESTIMATED from USD amounts ÷ the
    * candle's typical price (high + low + close) / 3 (data written before quantities were
-   * recorded; mean error 0.04 % in 1m, 0.37 % in 1d); `false` = measured.
+   * recorded; mean error 0.04 % in 1m, 0.37 % in 1d); `false` = measured. `null` when the
+   * volume itself is `null` (not available).
    */
-  is_volume_estimated: boolean;
+  is_volume_estimated: boolean | null;
   /**
    * Number of source points in the bucket (one-minute points with data). For a state (basis,
    * open interest) the value is the LAST of them — the bucket's close —; for a flow it is their
@@ -4965,9 +5186,13 @@ export interface TradesAvgSizeHistoryItem {
    */
   sample_count: number;
   /**
-   * `true` = the row is final and will never change; `false` = provisional: the latest bucket
-   * while it still settles (a few seconds after its end, e.g. a candle whose volumes are not
-   * final yet), or the period in progress with `?live=1` on the routes that take it.
+   * `true` = the row is final; `false` = provisional: the latest bucket while it still settles
+   * (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period
+   * in progress with `?live=1` on the routes that take it. Exception, rare: when a venue
+   * delivers trades LATE (seconds to minutes, e.g. during a burst), a closed row built from
+   * trades (trade candles, candle volumes, CVD, buy/sell ratio, trades per second) is corrected
+   * afterwards to include them, usually within minutes and at most one hour later; the
+   * correction only adds the late trades.
    */
   is_closed: boolean;
 }
