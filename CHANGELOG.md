@@ -4,7 +4,7 @@ All notable changes to the BytNode SDKs. Both packages share one version number.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow
 [Semantic Versioning](https://semver.org/).
 
-## [0.5.0] — unreleased
+## [0.5.0] — 2026-10-15
 
 Generated from contract `4.3.0` (was `4.0.0`). Nothing breaks: the contract only had MINOR
 revisions since 0.4.0. With 0.4.0, every client warned at start-up that the API runs a newer
