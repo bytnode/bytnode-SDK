@@ -4,8 +4,8 @@ Official client libraries for the [BytNode](https://bytnode.com) crypto market-d
 
 | Language | Package | Install | Docs |
 |---|---|---|---|
-| Python 3.10+ | `bytnode` | `pip install https://github.com/bytnode/bytnode-SDK/releases/download/v0.5.0/bytnode-0.5.0-py3-none-any.whl` | [python/README.md](python/README.md) |
-| TypeScript / JavaScript (Node 18+, Deno, Bun) | `bytnode` | `npm install https://github.com/bytnode/bytnode-SDK/releases/download/v0.5.0/bytnode-0.5.0.tgz` | [typescript/README.md](typescript/README.md) |
+| Python 3.10+ | `bytnode` | `pip install https://github.com/bytnode/bytnode-SDK/releases/download/v0.5.1/bytnode-0.5.1-py3-none-any.whl` | [python/README.md](python/README.md) |
+| TypeScript / JavaScript (Node 18+, Deno, Bun) | `bytnode` | `npm install https://github.com/bytnode/bytnode-SDK/releases/download/v0.5.1/bytnode-0.5.1.tgz` | [typescript/README.md](typescript/README.md) |
 
 The packages are attached to each [GitHub release](https://github.com/bytnode/bytnode-SDK/releases);
 they are not on PyPI or npm yet.
