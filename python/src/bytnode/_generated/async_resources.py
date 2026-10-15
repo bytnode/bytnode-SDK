@@ -3941,12 +3941,12 @@ class AsyncKlinesHistoryResource(AsyncResource):
         `buy_volume` and `sell_volume` cover ALL markets (spot + perpetual futures, summed
         across venues); `volume_spot` / `volume_futures` and their buy/sell split cover one
         market. `is_closed` says whether the candle's VOLUMES are final: `false` for a few
-        seconds after its end (they can still be `null` or change), then `true` for good. To
-        sync incrementally, resume FROM the oldest row still `is_closed: false` (read it
-        again), not after it. Candles older than the trade history (BTCUSDT: before
-        2023-10-01, daily and weekly candles reach back to 2017) have `null` volumes. Most
-        recent first, or oldest first with `order=asc`. Follow `next` to read the following
-        page (it never repeats a row).
+        seconds after its end (about 5 s for a 1m candle; they can still be `null` or
+        change), then `true` for good. To sync incrementally, resume FROM the oldest row
+        still `is_closed: false` (read it again), not after it. Candles older than the trade
+        history (BTCUSDT: before 2023-10-01, daily and weekly candles reach back to 2017)
+        have `null` volumes. Most recent first, or oldest first with `order=asc`. Follow
+        `next` to read the following page (it never repeats a row).
 
         Args:
             symbol: Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET
@@ -4045,14 +4045,19 @@ class AsyncKlinesResource(AsyncResource):
         symbol: KnownSymbol | str,
         timeframe: KlineTimeframe,
         *,
+        live: bool | None = None,
         fields: Fields | None = None,
         request_options: RequestOptions | None = None,
     ) -> Response[m.Kline | None]:
         """GET /v1/klines — Latest OHLCV candle
 
         The latest CLOSED candle of `timeframe` (required: `1m` to `1w`): the first row of
-        `/v1/klines/history`, an object. OHLC from one reference SPOT market per symbol;
-        `volume`, `buy_volume` and `sell_volume` cover ALL markets.
+        `/v1/klines/history`, an object, served as soon as its volumes are final (about 5
+        seconds after a 1m candle ends). OHLC from one reference SPOT market per symbol;
+        `volume`, `buy_volume` and `sell_volume` cover ALL markets. Add `?live=1` for the
+        candle IN PROGRESS (`is_closed: false`): its OHLC comes from the same reference
+        market, its volumes are provisional and grow until it closes; with nothing traded
+        yet in the period, the latest closed candle is returned.
 
         Args:
             symbol: Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET
@@ -4063,12 +4068,14 @@ class AsyncKlinesResource(AsyncResource):
                 `1w` (weekly candles start on Monday 00:00 UTC). Missing: 422
                 `missing_parameter`; other values: 422 `invalid_timeframe` with the accepted
                 list.
+            live: `1` or `true` to return the CURRENT, still-open period computed on the fly
+                (`is_closed: false`). Default: the last closed period only.
             fields: Only return these fields of each row (a list or a comma-separated
                 string; dotted paths reach nested keys). Rows are then partial and not
                 validated.
             request_options: Per-request `timeout`, `max_retries` or extra `headers`.
         """
-        return await self._call(self._route, {'symbol': symbol, 'timeframe': timeframe, 'fields': fields}, request_options)
+        return await self._call(self._route, {'symbol': symbol, 'timeframe': timeframe, 'live': live, 'fields': fields}, request_options)
 
 
 class AsyncLimitsResource(AsyncResource):

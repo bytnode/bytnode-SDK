@@ -2252,8 +2252,9 @@ export interface HeatmapClustersHistoryItem {
  */
 export interface Kline {
   /**
-   * Start of the latest CLOSED candle of `timeframe` (the first row of `/v1/klines/history`).
-   * Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).
+   * Start of the latest CLOSED candle of `timeframe` (the first row of `/v1/klines/history`);
+   * with `?live=1`, of the candle in progress. Unit: ISO 8601 UTC, milliseconds
+   * (2026-09-28T14:00:00.000Z).
    */
   time: Date;
   /**

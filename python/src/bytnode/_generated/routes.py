@@ -138,5 +138,5 @@ ROUTES: dict[str, str] = {
     '/v1/trades/large': 'trades.large',
     '/v1/trades/spot': 'trades.spot',
 }
-API_VERSION = '4.3.0'
+API_VERSION = '4.3.1'
 """`info.version` of the contract this SDK was generated from."""

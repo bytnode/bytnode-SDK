@@ -723,7 +723,7 @@ class HeatmapClustersHistoryItem(BytnodeModel):
 class Kline(BytnodeModel):
     """Row of `/v1/klines`."""
 
-    time: datetime = PydField(description='Start of the latest CLOSED candle of `timeframe` (the first row of `/v1/klines/history`). Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
+    time: datetime = PydField(description='Start of the latest CLOSED candle of `timeframe` (the first row of `/v1/klines/history`); with `?live=1`, of the candle in progress. Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
     open: float = PydField(description='Opening price of the candle. Unit: quote currency (USDT for BTCUSDT).')
     high: float = PydField(description='Highest price of the candle. Unit: quote currency (USDT for BTCUSDT).')
     low: float = PydField(description='Lowest price of the candle. Unit: quote currency (USDT for BTCUSDT).')

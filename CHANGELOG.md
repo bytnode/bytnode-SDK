@@ -4,6 +4,21 @@ All notable changes to the BytNode SDKs. Both packages share one version number.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow
 [Semantic Versioning](https://semver.org/).
 
+## [0.5.1] — 2026-10-15
+
+Generated from contract `4.3.1` (was `4.3.0`). Nothing breaks.
+
+### Added
+
+- `client.klines(symbol, timeframe, live=True)` in Python, `client.klines({ symbol, timeframe,
+  live: true })` in TypeScript: the candle in progress, `is_closed: false`, its OHLC from the
+  same reference market and its volumes provisional until it closes.
+
+### Changed
+
+- Docstrings and JSDoc follow the contract texts: a 1m candle is closed about 5 s after its end
+  (it was about 21 s), a 1m order book about 2 s after.
+
 ## [0.5.0] — 2026-10-15
 
 Generated from contract `4.3.0` (was `4.0.0`). Nothing breaks: the contract only had MINOR
