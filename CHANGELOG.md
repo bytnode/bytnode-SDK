@@ -4,6 +4,22 @@ All notable changes to the BytNode SDKs. Both packages share one version number.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow
 [Semantic Versioning](https://semver.org/).
 
+## [0.5.0] — unreleased
+
+Generated from contract `4.3.0` (was `4.0.0`). Nothing breaks: the contract only had MINOR
+revisions since 0.4.0. With 0.4.0, every client warned at start-up that the API runs a newer
+contract; 0.5.0 matches it.
+
+### Added
+
+- `client.klines.history(symbol, "1w")`: the weekly timeframe, already accepted by the API, is
+  now in the type (`KlineTimeframe`).
+
+### Changed
+
+- Docstrings and JSDoc follow the contract texts (CVD volumes read from `/v1/trades-kline`,
+  `period_end_at`, `window_start_at`, the `series` parameter of the macro intraday routes).
+
 ## [0.4.0] — 2026-10-14
 
 Generated from contract `4.0.0`. The contract had two MAJOR revisions since 0.3.0 (`3.0.0` on

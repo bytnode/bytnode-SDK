@@ -930,8 +930,8 @@ export interface BuySellRatioHistoryItem {
 
 /**
  * Per source feed, under its `/v1/status` name (`trades_spot`, `trades_kline_futures_seconds`,
- * `oi_history`, `funding_rate`, `klines_1m`...): whether it received data for this symbol in
- * the last 24 h.
+ * `oi`, `funding_rate`, `klines_1m`...): whether it received data for this symbol in the last
+ * 24 h.
  */
 export interface CapabilitiesFeedsActiveLast24h {
   /**
@@ -1039,8 +1039,8 @@ export interface Capabilities {
   asset_class: string;
   /**
    * Per source feed, under its `/v1/status` name (`trades_spot`,
-   * `trades_kline_futures_seconds`, `oi_history`, `funding_rate`, `klines_1m`...): whether it
-   * received data for this symbol in the last 24 h.
+   * `trades_kline_futures_seconds`, `oi`, `funding_rate`, `klines_1m`...): whether it received
+   * data for this symbol in the last 24 h.
    */
   feeds_active_last_24h: CapabilitiesFeedsActiveLast24h;
   /**
@@ -1928,8 +1928,9 @@ export interface FearGreedHistoryItem {
 export interface FundingCumulative {
   /**
    * Point-in-time value over a rolling window: the END of the 24-hour window, i.e. the
-   * settlement that closes the last 8-hour period summed. The window starts at `window_start`
-   * and lasts `window_s`. Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).
+   * settlement that closes the last 8-hour period summed. The window starts at
+   * `window_start_at` and lasts `window_s`. Unit: ISO 8601 UTC, milliseconds
+   * (2026-09-28T14:00:00.000Z).
    */
   time: Date;
   /**
@@ -1964,7 +1965,7 @@ export interface FundingCumulative {
 export interface FundingCumulativeHistoryItem {
   /**
    * END of each 24-hour window (the settlement that closes its last 8-hour period). The window
-   * starts at `window_start` and lasts `window_s`. Unit: ISO 8601 UTC, milliseconds
+   * starts at `window_start_at` and lasts `window_s`. Unit: ISO 8601 UTC, milliseconds
    * (2026-09-28T14:00:00.000Z).
    */
   time: Date;
@@ -3141,7 +3142,7 @@ export interface MacroIntradaySeriesInfo {
    */
   source: string;
   /**
-   * Code of the instrument at the source (informative; use `series_id` in requests).
+   * Code of the instrument at the source (informative; use `series` in requests).
    */
   instrument_code: string;
   /**
@@ -4564,8 +4565,8 @@ export interface SpreadInterexchange {
  */
 export interface StatusFeedsItem {
   /**
-   * Public feed name, after the route that serves it (`trades_kline_futures_1h`,
-   * `cvd_source_1m`, `trades_kline_futures_seconds`, `funding_rate`...). The same names key
+   * Public feed name, after the route that serves it (`trades_kline_futures_1h`, `trades_spot`,
+   * `trades_kline_futures_seconds`, `funding_rate`...). The same names key
    * `feeds_active_last_24h` in `/v1/capabilities`.
    */
   feed: string;

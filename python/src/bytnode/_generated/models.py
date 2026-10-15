@@ -312,7 +312,7 @@ class BuySellRatioHistoryItem(BytnodeModel):
 
 
 class CapabilitiesFeedsActiveLast24h(BytnodeModel):
-    """Per source feed, under its `/v1/status` name (`trades_spot`, `trades_kline_futures_seconds`, `oi_history`, `funding_rate`, `klines_1m`...): whether it received data for this symbol in the last 24 h."""
+    """Per source feed, under its `/v1/status` name (`trades_spot`, `trades_kline_futures_seconds`, `oi`, `funding_rate`, `klines_1m`...): whether it received data for this symbol in the last 24 h."""
 
     klines_futures_1m: bool = PydField(description='`true` when the `klines_futures_1m` feed delivered data in the last 24 hours; `null` when its probe did not conclude in time.')
     trades_spot: bool = PydField(description='`true` when the `trades_spot` feed delivered data in the last 24 hours; `null` when its probe did not conclude in time.')
@@ -344,7 +344,7 @@ class Capabilities(BytnodeModel):
     """Row of `/v1/capabilities`."""
 
     asset_class: str = PydField(description='`crypto` or `stablecoin` (spot only, no futures metrics).')
-    feeds_active_last_24h: CapabilitiesFeedsActiveLast24h = PydField(description='Per source feed, under its `/v1/status` name (`trades_spot`, `trades_kline_futures_seconds`, `oi_history`, `funding_rate`, `klines_1m`...): whether it received data for this symbol in the last 24 h.')
+    feeds_active_last_24h: CapabilitiesFeedsActiveLast24h = PydField(description='Per source feed, under its `/v1/status` name (`trades_spot`, `trades_kline_futures_seconds`, `oi`, `funding_rate`, `klines_1m`...): whether it received data for this symbol in the last 24 h.')
     computed_metrics_available: list[str] = PydField(description='Derived metrics available for the symbol.')
     computed_metrics_blocked: dict[str, Any] = PydField(description='Derived metrics unavailable, with the missing feeds.')
     feeds_not_applicable: list[str] | None = PydField(None, description='Feeds that do not exist for this symbol (the futures feeds of a spot-only stablecoin), under their `/v1/status` names.')
@@ -623,7 +623,7 @@ class FearGreedHistoryItem(BytnodeModel):
 class FundingCumulative(BytnodeModel):
     """Row of `/v1/funding/cumulative`."""
 
-    time: datetime = PydField(description='Point-in-time value over a rolling window: the END of the 24-hour window, i.e. the settlement that closes the last 8-hour period summed. The window starts at `window_start` and lasts `window_s`. Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
+    time: datetime = PydField(description='Point-in-time value over a rolling window: the END of the 24-hour window, i.e. the settlement that closes the last 8-hour period summed. The window starts at `window_start_at` and lasts `window_s`. Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
     window_start_at: datetime = PydField(description='Start of the 24-hour window summed (inclusive). Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
     window_s: int | None = PydField(None, description='Length of the window, in seconds (86400 = 24 hours). Unit: seconds.')
     rolling_24h_rate_pct: float = PydField(description='Sum of the last three settled 8-hour funding rates — a ROLLING 24-hour window — in percent. A row is published every 8 hours and covers 24: consecutive rows OVERLAP by 16 hours, so never add them up (sum `rate_pct` of `/v1/funding/rate/history` instead). Unit: percent (58.5 = 58.5 %).')
@@ -634,7 +634,7 @@ class FundingCumulative(BytnodeModel):
 class FundingCumulativeHistoryItem(BytnodeModel):
     """Row of `/v1/funding/cumulative/history`."""
 
-    time: datetime = PydField(description='END of each 24-hour window (the settlement that closes its last 8-hour period). The window starts at `window_start` and lasts `window_s`. Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
+    time: datetime = PydField(description='END of each 24-hour window (the settlement that closes its last 8-hour period). The window starts at `window_start_at` and lasts `window_s`. Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
     window_start_at: datetime = PydField(description='Start of the 24-hour window summed (inclusive). Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
     window_s: int | None = PydField(None, description='Length of the window, in seconds (86400 = 24 hours). Unit: seconds.')
     rolling_24h_rate_pct: float = PydField(description='Sum of the last three settled 8-hour funding rates — a ROLLING 24-hour window — in percent. A row is published every 8 hours and covers 24: consecutive rows OVERLAP by 16 hours, so never add them up (sum `rate_pct` of `/v1/funding/rate/history` instead). Unit: percent (58.5 = 58.5 %).')
@@ -1019,7 +1019,7 @@ class MacroIntradaySeriesInfo(BytnodeModel):
 
     series: str = PydField(description='Series identifier (the value of the `series` parameter).')
     source: str = PydField(description='Upstream source.')
-    instrument_code: str = PydField(description='Code of the instrument at the source (informative; use `series_id` in requests).')
+    instrument_code: str = PydField(description='Code of the instrument at the source (informative; use `series` in requests).')
     category: str = PydField(description='Series category.')
     name: str = PydField(description='Human-readable name of the series.')
     units: str = PydField(description='Unit of `value` as published by the source.')
@@ -1512,7 +1512,7 @@ class SpreadInterexchange(BytnodeModel):
 class StatusFeedsItem(BytnodeModel):
     """Nested object (StatusFeedsItem)."""
 
-    feed: str = PydField(description='Public feed name, after the route that serves it (`trades_kline_futures_1h`, `cvd_source_1m`, `trades_kline_futures_seconds`, `funding_rate`...). The same names key `feeds_active_last_24h` in `/v1/capabilities`.')
+    feed: str = PydField(description='Public feed name, after the route that serves it (`trades_kline_futures_1h`, `trades_spot`, `trades_kline_futures_seconds`, `funding_rate`...). The same names key `feeds_active_last_24h` in `/v1/capabilities`.')
     family: str = PydField(description='Data family the feed belongs to: `price_volume`, `microstructure`, `derivatives` or `ticks`.')
     routes: list[str] = PydField(description='The public routes (contract paths) this feed supplies: watch it to know whether they are fresh.')
     age_s: float = PydField(description='Age of the latest row of the feed. Unit: seconds.')

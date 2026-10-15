@@ -2030,12 +2030,14 @@ class AsyncCvdResource(AsyncResource):
 
         Net taker delta of the latest closed bucket, with its path inside the bucket
         (`cvd_series`: one point per minute up to 1h, per 5 minutes in 4h, per 15 minutes in
-        1d), aggregated across venues. The market is in the PATH: no suffix = all markets
-        (spot + perpetual futures), `/spot`, `/futures`; the envelope says which (`market`).
-        Spot base-asset quantities are measured since 2026-09-27: before that date, spot and
-        all-market buy/sell volumes are estimated from USD amounts (`is_volume_estimated:
-        true`); `/futures` serves the full futures history. Bucketed: `is_closed` says
-        whether the value is final. Add `?live=1` for the open period.
+        1d), aggregated across venues. Its buy and sell volumes are those of
+        `/v1/trades-kline` for the same market and bucket. The market is in the PATH: no
+        suffix = all markets (spot + perpetual futures), `/spot`, `/futures`; the envelope
+        says which (`market`). Spot base-asset quantities are measured since 2026-09-27:
+        before that date, spot and all-market buy/sell volumes are estimated from USD
+        amounts (`is_volume_estimated: true`); `/futures` serves the full futures history.
+        Bucketed: `is_closed` says whether the value is final. Add `?live=1` for the open
+        period.
 
         Args:
             symbol: Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET
@@ -3529,7 +3531,7 @@ class AsyncFundingRateResource(AsyncResource):
 
         The last fully settled 8-hour funding window, normalised to 8 h and weighted by the
         open interest of each venue at that time. `?live=1` for the window in progress.
-        `time` is the START of the period; the period is `[time, period_end)` and
+        `time` is the START of the period; the period is `[time, period_end_at)` and
         `settled_at` says when its last settlement was paid — compare it with the `time` of
         `/v1/funding/next` (the next settlement), not with this `time`. `rate_pct` is in
         percent per 8 h.
@@ -3922,7 +3924,7 @@ class AsyncKlinesHistoryResource(AsyncResource):
     async def __call__(
         self,
         symbol: KnownSymbol | str,
-        timeframe: Timeframe,
+        timeframe: KlineTimeframe,
         *,
         limit: int | None = None,
         since: TimeLike | None = None,
@@ -3980,7 +3982,7 @@ class AsyncKlinesHistoryResource(AsyncResource):
     def iter(
         self,
         symbol: KnownSymbol | str,
-        timeframe: Timeframe,
+        timeframe: KlineTimeframe,
         *,
         since: TimeLike | None = None,
         until: TimeLike | None = None,
@@ -4595,9 +4597,8 @@ class AsyncMacroIntradayHistoryResource(AsyncResource):
         `series` and `timeframe` are recalled in the envelope).
 
         Args:
-            series: The `series_id` returned by `GET /v1/macro/intraday/series` (e.g.
-                `EURUSD`, `DXY_ICE`), in any case. The `instrument_code` column is NOT
-                accepted.
+            series: The `series` returned by `GET /v1/macro/intraday/series` (e.g. `EURUSD`,
+                `DXY_ICE`), in any case. The `instrument_code` column is NOT accepted.
             timeframe: Candle size, required. Each series serves only the timeframes listed
                 in its catalogue entry; others return 422 `timeframe_not_served`.
             limit: Number of rows to return, in the reading order (most recent first by
@@ -4644,9 +4645,8 @@ class AsyncMacroIntradayHistoryResource(AsyncResource):
         `order` says otherwise. Call `.to_pandas()` / `.to_list()` to collect them.
 
         Args:
-            series: The `series_id` returned by `GET /v1/macro/intraday/series` (e.g.
-                `EURUSD`, `DXY_ICE`), in any case. The `instrument_code` column is NOT
-                accepted.
+            series: The `series` returned by `GET /v1/macro/intraday/series` (e.g. `EURUSD`,
+                `DXY_ICE`), in any case. The `instrument_code` column is NOT accepted.
             timeframe: Candle size, required. Each series serves only the timeframes listed
                 in its catalogue entry; others return 422 `timeframe_not_served`.
             since: Lower time bound, inclusive. A `datetime` (naive = UTC), a `date`, an ISO
@@ -6779,8 +6779,8 @@ class AsyncSnapshotResource(AsyncResource):
         `available_multi_tf_fields`, `multi_tf_syntax`, `timeframes`, `timeframes_by_field`
         and `max_depth`. An empty field carries `unavailable` (`not_applicable`,
         `no_api_key` or `no_data`) so 'no measure' is never mistaken for 'nothing happened'.
-        Response: `symbol`, `data` (an object keyed by field name) and `partial` (true if a
-        field failed: that field is then an `error` object with `code` and `message`, with
+        Response: `symbol`, `data` (an object keyed by field name) and `is_partial` (true if
+        a field failed: that field is then an `error` object with `code` and `message`, with
         the codes of the error catalogue).
 
         Each field takes a depth: `True` for the latest value, or `N` for the N latest rows.

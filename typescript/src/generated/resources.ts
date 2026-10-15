@@ -1827,12 +1827,13 @@ export interface CvdResource {
    *
    * Net taker delta of the latest closed bucket, with its path inside the bucket (`cvd_series`:
    * one point per minute up to 1h, per 5 minutes in 4h, per 15 minutes in 1d), aggregated
-   * across venues. The market is in the PATH: no suffix = all markets (spot + perpetual
-   * futures), `/spot`, `/futures`; the envelope says which (`market`). Spot base-asset
-   * quantities are measured since 2026-09-27: before that date, spot and all-market buy/sell
-   * volumes are estimated from USD amounts (`is_volume_estimated: true`); `/futures` serves the
-   * full futures history. Bucketed: `is_closed` says whether the value is final. Add `?live=1`
-   * for the open period.
+   * across venues. Its buy and sell volumes are those of `/v1/trades-kline` for the same market
+   * and bucket. The market is in the PATH: no suffix = all markets (spot + perpetual futures),
+   * `/spot`, `/futures`; the envelope says which (`market`). Spot base-asset quantities are
+   * measured since 2026-09-27: before that date, spot and all-market buy/sell volumes are
+   * estimated from USD amounts (`is_volume_estimated: true`); `/futures` serves the full
+   * futures history. Bucketed: `is_closed` says whether the value is final. Add `?live=1` for
+   * the open period.
    */
   (params: CvdParams, options?: RequestOptions): Promise<ApiResponse<M.Cvd | null>>;
   futures: CvdFuturesResource;
@@ -3016,8 +3017,8 @@ export interface FundingRateResource {
    *
    * The last fully settled 8-hour funding window, normalised to 8 h and weighted by the open
    * interest of each venue at that time. `?live=1` for the window in progress. `time` is the
-   * START of the period; the period is `[time, period_end)` and `settled_at` says when its last
-   * settlement was paid — compare it with the `time` of `/v1/funding/next` (the next
+   * START of the period; the period is `[time, period_end_at)` and `settled_at` says when its
+   * last settlement was paid — compare it with the `time` of `/v1/funding/next` (the next
    * settlement), not with this `time`. `rate_pct` is in percent per 8 h.
    */
   (params: FundingRateParams, options?: RequestOptions): Promise<ApiResponse<M.FundingRate | null>>;
@@ -3287,7 +3288,7 @@ export interface KlinesHistoryParams {
    * start on Monday 00:00 UTC). Missing: 422 `missing_parameter`; other values: 422
    * `invalid_timeframe` with the accepted list.
    */
-  timeframe: Timeframe;
+  timeframe: KlineTimeframe;
   /**
    * Lower time bound, inclusive. A `Date`, an ISO string (`2026-01-01`) or epoch milliseconds.
    */
@@ -3331,7 +3332,7 @@ export interface KlinesHistoryIterParams {
    * start on Monday 00:00 UTC). Missing: 422 `missing_parameter`; other values: 422
    * `invalid_timeframe` with the accepted list.
    */
-  timeframe: Timeframe;
+  timeframe: KlineTimeframe;
   /**
    * Lower time bound, inclusive. A `Date`, an ISO string (`2026-01-01`) or epoch milliseconds.
    */
@@ -3858,8 +3859,8 @@ export interface MacroIntradayHistoryParams {
    */
   limit?: number;
   /**
-   * The `series_id` returned by `GET /v1/macro/intraday/series` (e.g. `EURUSD`, `DXY_ICE`), in
-   * any case. The `instrument_code` column is NOT accepted.
+   * The `series` returned by `GET /v1/macro/intraday/series` (e.g. `EURUSD`, `DXY_ICE`), in any
+   * case. The `instrument_code` column is NOT accepted.
    */
   series: string;
   /**
@@ -3894,8 +3895,8 @@ export interface MacroIntradayHistoryIterParams {
    */
   until?: TimeLike;
   /**
-   * The `series_id` returned by `GET /v1/macro/intraday/series` (e.g. `EURUSD`, `DXY_ICE`), in
-   * any case. The `instrument_code` column is NOT accepted.
+   * The `series` returned by `GET /v1/macro/intraday/series` (e.g. `EURUSD`, `DXY_ICE`), in any
+   * case. The `instrument_code` column is NOT accepted.
    */
   series: string;
   /**
@@ -7975,4 +7976,4 @@ export const ROUTES: Record<string, string> = {
   "/v1/trades/spot": "trades.spot",
 };
 /** `info.version` of the contract this SDK was generated from. */
-export const API_VERSION = "4.0.0";
+export const API_VERSION = "4.3.0";
