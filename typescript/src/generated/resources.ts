@@ -7993,4 +7993,4 @@ export const ROUTES: Record<string, string> = {
   "/v1/trades/spot": "trades.spot",
 };
 /** `info.version` of the contract this SDK was generated from. */
-export const API_VERSION = "4.4.0";
+export const API_VERSION = "2.0.0";

@@ -110,7 +110,7 @@ def parse_message(obj: dict[str, Any]) -> AnyMessage:
 
 
 def _stream_error(obj: dict[str, Any]) -> StreamError:
-    """An `op: error` frame: `{error: {code, message, param, details}}` since contract 3.0.0
+    """An `op: error` frame: `{error: {code, message, param, details}}`
     (the flat `code` / `message` of earlier versions is still read)."""
     nested = obj.get("error")
     detail: dict[str, Any] = nested if isinstance(nested, dict) else obj
@@ -147,7 +147,7 @@ def classify_close(code: int | None, reason: str) -> BytnodeError | None:
     if code == 4001:
         return StreamError(reason or "key refused", code="invalid_api_key", close_code=code)
     if code == 4005 or (code == 4003 and "slow" in reason.lower()):
-        return None  # the client fell behind (4005 since contract 3.0.0): reconnect, it starts fresh
+        return None  # the client fell behind (4005): reconnect, it starts fresh
     if code == 4003:
         return ConnectionLimitError(
             reason or "the plan's ceiling of simultaneous connections is reached",

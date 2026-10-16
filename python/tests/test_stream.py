@@ -114,7 +114,7 @@ def _sync(url: str, key: str = "cb_live_k") -> Bytnode:
 
 def test_channel_helpers() -> None:
     assert ch.trades("btcusdt") == "trades.futures.BTCUSDT"
-    assert ch.book("ETHUSDT", market="spot") == "orderbook.spot.ETHUSDT"
+    assert ch.orderbook("ETHUSDT", market="spot") == "orderbook.spot.ETHUSDT"
     assert ch.liquidations("solusdt") == "liquidations.SOLUSDT"
     with pytest.raises(ValueError):
         ch.trades("BTCUSDT", market="perp")  # type: ignore[arg-type]
@@ -127,7 +127,7 @@ def test_sync_stream_typed_messages_and_gaps(server: Any) -> None:
         conn.close(1000)
 
     url, fake = server([script])
-    with _sync(url).stream("trades.futures.btcusdt", ch.book("BTCUSDT"), depth=3, reconnect=False) as s:
+    with _sync(url).stream("trades.futures.btcusdt", ch.orderbook("BTCUSDT"), depth=3, reconnect=False) as s:
         assert s.channels == ["orderbook.futures.BTCUSDT", "trades.futures.BTCUSDT"]
         msgs = []
         with pytest.raises(StreamError, match="closed"):
@@ -211,4 +211,4 @@ async def test_async_stream(server: Any) -> None:
 
 def test_depth_is_checked() -> None:
     with pytest.raises(ValueError, match="between 1 and 5"):
-        _sync("ws://127.0.0.1:1/ws").stream(ch.book("BTCUSDT"), depth=9)
+        _sync("ws://127.0.0.1:1/ws").stream(ch.orderbook("BTCUSDT"), depth=9)

@@ -43,7 +43,7 @@ run('live', () => {
   });
 
   it('stream', async () => {
-    const stream = client.stream({ channels: [channels.trades('BTCUSDT'), channels.book('BTCUSDT')], depth: 3 });
+    const stream = client.stream({ channels: [channels.trades('BTCUSDT'), channels.orderbook('BTCUSDT')], depth: 3 });
     const kinds = new Set<string>();
     const deadline = Date.now() + 10_000;
     for await (const msg of stream) {

@@ -23,10 +23,6 @@ def orderbook(symbol: str, market: StreamMarket = "futures") -> str:
     return f"orderbook.{_market(market)}.{symbol.upper()}"
 
 
-# Kept as an alias of `orderbook` (the channel was named `book.*` before contract 3.0.0).
-book = orderbook
-
-
 def liquidations(symbol: str) -> str:
     """The liquidations of `symbol` (perpetual futures): `liquidations.<SYMBOL>`."""
     return f"liquidations.{symbol.upper()}"
@@ -38,4 +34,4 @@ def _market(market: str) -> str:
     return market
 
 
-__all__ = ["StreamMarket", "book", "liquidations", "orderbook", "trades"]
+__all__ = ["StreamMarket", "liquidations", "orderbook", "trades"]

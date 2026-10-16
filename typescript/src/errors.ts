@@ -117,9 +117,9 @@ export class StreamError extends BytnodeError {
     message: string,
     readonly code: string | null = null,
     readonly closeCode: number | null = null,
-    /** The field of your message at fault (contract 3.0.0). */
+    /** The field of your message at fault. */
     readonly param: string | null = null,
-    /** Structured complement: `suggestion`, `accepted` (contract 3.0.0). */
+    /** Structured complement: `suggestion`, `accepted`. */
     readonly details: unknown = null,
   ) {
     super(code ? `${code}: ${message}` : message);

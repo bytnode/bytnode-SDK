@@ -166,7 +166,7 @@ class StreamError(BytnodeError):
         self.message = message
         self.close_code = close_code
         # The field of your message at fault and the structured complement
-        # (`suggestion`, `accepted`), like a REST error (contract 3.0.0).
+        # (`suggestion`, `accepted`), like a REST error.
         self.param = param
         self.details = details
         super().__init__(f"{code}: {message}" if code else message)

@@ -5,10 +5,9 @@ from __future__ import annotations
 from collections.abc import Mapping
 from dataclasses import dataclass, field
 
-# The API names its two policies "rate" (rate limit) and "quota" (monthly quota) since
-# contract 3.0.0; the names of earlier versions ("debit", "mensuel") are still read.
-_RATE_NAMES = {"debit", "rate", "burst", "rate_limit"}
-_QUOTA_NAMES = {"mensuel", "monthly", "quota", "month"}
+# The API names its two policies "rate" (rate limit) and "quota" (monthly quota).
+_RATE_NAMES = {"rate", "burst", "rate_limit"}
+_QUOTA_NAMES = {"monthly", "quota", "month"}
 
 
 def parse_policies(header: str | None) -> dict[str, dict[str, int]]:

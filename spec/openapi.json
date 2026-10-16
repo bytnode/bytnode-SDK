@@ -2,9 +2,9 @@
  "openapi": "3.1.0",
  "info": {
   "title": "BytNode Crypto Market Data API",
-  "version": "4.4.0",
+  "version": "2.0.0",
   "summary": "Crypto market data aggregated across the major venues, derivatives, order flow, options, macro, ETF and on-chain — for developers and AI agents.",
-  "description": "**BytNode is a crypto market-data API built for developers and AI agents.** One key gives you market data aggregated across the major crypto venues, derivatives positioning, order flow, options, macro, ETF and on-chain fundamentals — 131 REST routes, a consolidated real-time WebSocket and a native MCP server, all behind one consistent contract.\n\n## Why BytNode\n\n- **Aggregated across the major venues, not one exchange.** Spot and perpetual futures markets are consolidated into one number per metric: volumes are summed, rates are open-interest weighted, prices volume weighted — and the method is documented for every metric.\n- **Depth on the assets that matter.** 22 pairs: BTC, ETH, SOL, XRP, DOGE, BNB, TRX, SUI, HYPE, XLM, XMR, LINK, ADA, LTC, UNI, GRAM (ex-TON), AVAX, HBAR, NEAR, TAO, plus USDC and USDT spot pairs. This is a deliberate choice: together these assets are about 93 % of the total crypto market capitalisation (measured on 2026-09-30: 2.69 of 2.88 trillion USD), and each of them gets every family of data from every venue that lists it — quality and depth on the assets people actually trade, instead of thin coverage of thousands of tickers.\n- **Twelve data families in one API.** Prices and candles, individual trades, order book, order flow (CVD, trade candles), funding, basis, open interest, liquidations and liquidation heatmap, tokenomics, sentiment, macro (FRED + intraday), spot ETF fundamentals (SEC EDGAR), options (OI, IV, max pain, greeks), Bitcoin network, Ethereum fundamentals, on-chain valuation, and 19 server-side technical indicators. Many providers sell these as separate products; here they share one key, one envelope and one set of conventions.\n- **Honest numbers.** Every bucketed or history row says whether it is final (`is_closed`); every empty answer says why (`unavailable`: `not_applicable`, `no_api_key`, `no_data`); every numeric field has a documented unit.\n- **Made for AI agents.** A native MCP server (3 tools, 60 fields), `llms.txt` and `llms-full.txt`, this OpenAPI contract with units and real examples, one-request snapshots of up to 48 fields, and stable machine-readable error codes.\n- **Priced for builders.** A free plan (10,000 requests/month), then Traders from 6.95 USD/month, Financial from 19.95 USD/month and Startup from 99.95 USD/month (billed yearly), with history depth and families growing with the plan. See https://bytnode.com/pricing. Each operation names its data family in `x-family` (the identifiers `GET /v1/limits` returns for your key); `x-metered: false` marks the routes that are never counted.\n\n## Quick start\n\n1. Create a free key at https://bytnode.com/sign-up.\n2. Send it in the `X-API-KEY` header:\n\n```\ncurl -H \"X-API-KEY: $BYTNODE_API_KEY\" \"https://api.bytnode.com/v1/funding/rate?symbol=BTCUSDT\"\n```\n\n## Conventions\n\n- **Envelope.** Every success is `{status: \"ok\", server_time, data_type, data}`, plus the effective `symbol`, `timeframe`, `asset`, `series`, `market` or filter (`expiry`, `ticker`, `dataset`, `category`) when the route has them. `status` is `ok` whenever the request succeeded (the state of the feeds is `data.state` on `/v1/status`). The shape of `data` follows the path: an OBJECT (or `null`) for the latest value of a metric — `/v1/klines` is the latest closed candle; a LIST (most recent first, or oldest first with `order=asc`) for every `/history` route and for the event series `/v1/trades/{spot,futures,large}`, `/v1/trades-kline/futures/seconds` and `/v1/liquidations/events`. A list carries `step`, the step between its rows (`1h` when you asked `timeframe=1h`; `1d` for a daily series, `8h` for funding, `1m` for the Bitcoin fee readings): a bucket row is dated at the start of its bucket, a periodic reading at its own instant; `timeframe` is only ever the parameter you sent. Collections are lists too: `/v1/symbols`, `/v1/etf/fundamentals`, `/v1/macro/series`, `/v1/macro/intraday/series`, and the options expiry, max-pain and OI distribution routes. A field that can be `null` is typed so in the schema; any other field is never `null`.\n- **Units.** `*_pct` = percent (58.5 = 58.5 %), `*_ratio` = a dimensionless quotient that names what it divides (`put_call_ratio` 1.2 = 1.2 puts per call, `big_small_ratio`; a share of a whole is a fraction, 0.585 = 58.5 %), `*_bps` = basis points, `*_usd` = USD (every USD amount ends in `_usd`), `*_s` = seconds (every duration), `*_count` = a count, `*_pp` = percentage points. Prices, and price differences such as `basis_value`, are in the quote currency (USDT for BTCUSDT). Volumes and quantities (`volume`, `buy_volume`, `sell_volume`, `net_volume`, `oi`, `holdings`...) are in BASE ASSET units (BTC for BTCUSDT), never dollars: a quantity OF AN ASSET without a unit suffix is in base asset units; any other measure (virtual bytes, difficulty, block height, index points) states its unit in `x-unit`. A name without a market suffix covers EVERY market of the route: on a candle, `volume` is spot + perpetual futures, `volume_spot` and `volume_futures` one market each; the candle's prices (`open`... `close`) are those of one reference spot market. Every response schema carries each field's unit in `x-unit`; `x-units` at the root maps a field NAME to its unit only when that unit is the same on every route. Numbers are rounded to 12 significant digits.\n- **Names.** One concept has one name on every route, in the snapshot, in the MCP and on the WebSocket: `buy_volume` / `sell_volume` / `net_volume`, `trade_count`, `sample_count`, booleans `is_*`, a qualitative reading `label` (`put_call_label` for the put/call reading), instants `*_at`, durations `*_s`, counts `*_count`, a value at the start of a window `previous_*`, a running total `*_cumulative`, a change over time `*_change*`; the perpetual market is `futures` everywhere and the order book is `orderbook` everywhere (REST, snapshot, WebSocket `orderbook.*`). A TRADE is one execution (`/v1/trades/spot`, `/v1/trades/futures`, WebSocket `trades.*`, plan family `trades`); the candles aggregated from trades are `trades_kline` (`/v1/trades-kline`). A path uses the name of its fields (`/v1/oi/change` serves `oi_change`, `/v1/options/put-call-ratio` serves `put_call_ratio`); a ratio route is `<a>-<b>-ratio`; Bitcoin lives under `/v1/btc/*` and Ethereum under `/v1/eth/*`. `data_type` is the route's own name (`/v1/trades/avg-size/history` -> `trades_avg_size_history`), and a snapshot field is named after the route that serves the same data (`liquidations_cumulative`, `trades_kline@1h`). Every retired name and its replacement is listed in `x-renamed` at the root of this contract.\n- **Market in the path.** A route that serves several markets takes the market as a path suffix: no suffix = every market (spot + perpetual futures), `/spot`, `/futures` (`/v1/cvd`, `/v1/cvd/spot`, `/v1/cvd/futures`; the same for `/v1/buy-sell-ratio`, `/v1/trades/avg-size`, `/v1/orderbook`, `/v1/trades-kline`). The envelope repeats it in `market`. A route on ONE market says it in its path or its description and repeats it in `market` too: `/v1/trades/large` (large trades are perpetual futures trades), `/v1/trades-kline/futures/seconds`.\n- **Time.** Timestamps are ISO 8601 UTC with milliseconds (`2026-09-28T14:00:00.000Z`). `time` is the canonical key: every timestamped object under `data` carries it. It follows ONE of two rules, and the description of `time` on each route says which. (1) A BUCKET (candles, trade candles, CVD, order book per bucket, funding per 8-hour period, every `/history` row, and the latest value of a bucketed route: `/v1/klines`, `/v1/cvd`, `/v1/buy-sell-ratio`, `/v1/trades/avg-size`, `/v1/liquidations/big-small-ratio`, `/v1/orderbook`, `/v1/spread/interexchange`, `/v1/trades-kline`: each one requires `timeframe` and returns the first row of its `/history`) is dated at its START and carries `is_closed`. (2) A POINT-IN-TIME value is dated at the instant it refers to: the END of a rolling window — and only a rolling window carries `window_start_at` and `window_s` (`/v1/liquidations/cumulative`, `/v1/oi/change`, `/v1/funding/cumulative`, `/v1/options/oi/change`) — the instant of the computation (`/v1/basis`), the instant the SOURCE states (options, BTC, ETH, tokenomics; `/v1/global`, which may end in `.999`), the settlement a forecast is for (`/v1/funding/next`), the EVENT (trades, large trades, liquidations), and the most recent input of a composite (`/v1/macro/correlations`, `/momentum`, `/risk`, which also give `oldest_input_date`). A daily value is dated at midnight UTC. The envelope's `server_time` is the time of the response. Time bounds (`since_ms`, `until_ms`) are epoch MILLISECONDS, inclusive; `since_ms=0` means \"from the start of the data\".\n- **Closed buckets.** Bucketed routes serve the last CLOSED bucket. `?live=1` adds the open one with `is_closed: false` on the routes that declare it: `/v1/klines`, `/v1/cvd`, `/v1/trades-kline` (and their `/spot` and `/futures` variants), `/v1/funding/rate` and `/v1/spread/interexchange`; elsewhere it is an unknown parameter (422). A bucket appears once its inputs are settled, a few seconds after its end (about 2 s for a 1m order book, 5 s for a 1m candle; 20 s at most when a venue is late). Every bucket row carries `is_closed`; a rolling-window value is always final and carries none.\n- **Pagination.** Every paged route speaks one dialect: `next` is the relative URL of the following page, ready to call (`/v1/klines/history?symbol=BTCUSDT&timeframe=1h&limit=100&before_ms=…`), or `null` once the range is read. Going back, the bound is `before_ms` (EXCLUSIVE); going forward, `order=asc` reads from `since_ms` (then required). The trades routes add `after_id`, to resume inside one millisecond. Loop `while next: GET base + next`; it never repeats a row. A read that would exceed its time budget returns the rows it has with a `next` instead of failing, so a page can be shorter than `limit` (even empty) and still have a `next`: only `next: null` means the end. A 504 `upstream_timeout` remains possible on one very heavy page: reduce `limit`.\n- **Freshness.** A response is usually up to one second old (`Cache-Control: private, max-age=1`); a cached copy can occasionally reach two seconds.\n- **Strict parameters.** An undeclared or repeated parameter is a 422 with a suggestion (`limt` -> did you mean `limit`?), and so is an unknown value of a closed set (`symbol`, `asset`, `series`, `timeframe`, `category`, `ticker`, `expiry`…), with the accepted values in `error.details.accepted`. `symbol`, `asset`, `series`, `timeframe` and `order` are case-insensitive (`1M` excepted: elsewhere a month, here refused). `?fields=a,b.c` projects `data` (not on `POST /v1/indicators`, which takes no query parameter).\n- **Aggregation only.** No route discloses which venue a number came from, except the inter-venue spread, whose purpose is to compare venues.\n- **Browsers and probes.** The REST API answers CORS (`Access-Control-Allow-Origin: *`, the `X-API-KEY` header allowed, preflight `OPTIONS` without a key) and `HEAD` on every `GET` route. A key used in a web page is readable by its visitors: use a dedicated key there.\n\n## Errors\n\nEvery error has one shape, on the REST API and on the WebSocket (`{\"op\": \"error\", \"server_time\", \"error\": {...}}`):\n\n```\n{\"status\": \"error\", \"server_time\": \"2026-10-13T08:00:00.000Z\",\n \"error\": {\"code\": \"invalid_symbol\", \"param\": \"symbol\",\n           \"message\": \"Unknown symbol 'BTCUSD'. Did you mean 'BTCUSDT'? Accepted values: ...\",\n           \"details\": {\"suggestion\": \"BTCUSDT\", \"accepted\": [\"ADAUSDT\", \"...\"]}}}\n```\n\nBranch on `error.code` (stable, listed in the `ApiError` schema), show `error.message` (English), read `error.details` (an object, present when the error carries structured data) for what to change. A missing key is `missing_api_key`, a wrong one `invalid_api_key` (401). Key and plan refusals carry the same code in an `X-Deny-Reason` header (the edge anti-flood 429 `edge_rate_limited` carries none); 429 and 503 carry `Retry-After` (the real delay: until the next request of your rate, or the 1st of the month for the quota), always equal to `error.details.retry_after_s`.\n\n## Limits\n\nEach plan has a per-minute rate, a monthly quota and a history window per timeframe; `GET /v1/limits` returns those of your key. Responses made with a metered key carry the IETF `RateLimit-Policy` and `RateLimit` headers (policies `rate` and `quota`). Going further back than your plan allows is a 403 `history_depth`, never a silently truncated answer. Details: https://bytnode.com/docs/rate-limits.\n\n## Versioning\n\nThe URL prefix `/v1` is the API generation. `info.version` is the revision of THIS contract, in semantic versioning: a MINOR increment adds (a route, a field, a parameter, an accepted value), a MAJOR increment removes, renames or changes a meaning — the names of the component schemas included. Every response carries it in the `BytNode-Contract-Version` header, and every version since 3.0.0 stays readable at `https://api.bytnode.com/openapi/<version>.json` to compare with yours (the list: `https://api.bytnode.com/openapi/index.json`). 3.0.0 (2026-10-13) is a MAJOR revision that applies the naming grammar without exception: paths named after their fields (`/v1/oi/change`, `/v1/options/put-call-ratio`, `/v1/buy-sell-ratio`, `/v1/liquidations/big-small-ratio`, `/v1/eth/price-btc`, Bitcoin on-chain under `/v1/btc/*`, `/v1/capabilities?symbol=`), every candle family as latest + `/history` (`/v1/klines`, `/v1/options/iv/klines`), instants in `_at`, durations in `_s`, counts in `_count`, `step` apart from `timeframe`, one type per snapshot field, `error.details` an object (never a string or a list), the WebSocket error in the REST `error` object and its order book channels named `orderbook.*`. Every retired name and its replacement is in `x-renamed`, its removal date in `x-removed-on`, a path that changed meaning in `x-meaning-changed`, and a retired name answers with an error that names its replacement and the date. 3.1.0 (2026-10-13, MINOR) lists every served pair in the `Symbol` schema (3.0.0 listed three) and types the rows of `/v1/symbols` as `SymbolInfo` (3.0.0 typed them, wrongly, as the pair name: the API always returned objects). 3.2.0 (2026-10-13, MINOR) corrects the schema of the indicator values (`IndicatorRow`: dated rows, most recent first, as the API returns them since 3.0.0). 4.0.0 (2026-10-14) is a MAJOR revision that gives the order-flow latest values one model: `/v1/buy-sell-ratio`, `/v1/trades/avg-size` and `/v1/liquidations/big-small-ratio` require `timeframe` and return the latest closed bucket (the first row of their `/history`), like `/v1/cvd` — their snapshot fields take `@<tf>`; the snapshot's `partial` is `is_partial`; `/v1/macro/correlations` gives `asset` in the envelope; `min_usd` is repeated in the envelope; `/v1/trades-kline/futures/seconds` serves closed seconds only; `live` accepts `true`, `false`, `1` or `0` only. A breaking change takes effect with its MAJOR version, on the day that version is published. 4.1.0 (2026-10-14, MINOR) adds the three order-flow routes to `x-meaning-changed` and the list of archived versions (`/openapi/index.json`). 4.2.0 (2026-10-14, MINOR) declares `1w` on `/v1/klines/history` (already accepted) and sets `x-update-frequency-seconds` to the measured cadence of each source (60 s for the per-minute market metrics). 4.3.0 (2026-10-15, MINOR) references the `ErrorCode` schema from `error.code` (any other string is still valid) and gives each route a 422 example listing its own parameters. 4.3.1 (2026-10-15) removes `x-update-frequency-seconds` from every operation and declares `live` on `/v1/klines` (the candle in progress). 4.3.2 (2026-10-15) names the WebSocket subscription modes in English, `frame` and `batch` (the former `trame` and `lot` are still accepted). 4.4.0 (2026-10-15, MINOR): `is_volume*_estimated` is `null` when its volume is `null`; `/v1/price-change` starts from the latest trade and `/v1/funding/rate?live=1` serves the forecast of `/v1/funding/next` for the period in progress (`settled_at: null`), both listed in `x-meaning-changed`. Any change of this contract changes its version. The guide: https://bytnode.com/docs/versioning.\n\n## Machine-readable files\n\nThis contract (`/openapi.json`, OpenAPI 3.1), the same in OpenAPI 3.0 (`/openapi-3.0.json`), a light copy without examples for AI agents (`/openapi-lite.json`), the WebSocket in AsyncAPI 3.0 (`/asyncapi.json`), and every version since 3.0.0 (`/openapi/<version>.json`, listed in `/openapi/index.json`), all on https://api.bytnode.com, without a key. `GET /` (no key) returns the index of these links in the standard envelope (`data_type: index`, `data.contract_version`); it is a pointer to this contract, not a data route, so it is not listed under `paths`.\n\n## Links\n\nDocs https://bytnode.com/docs · Pricing https://bytnode.com/pricing · Full reference for LLMs https://bytnode.com/llms-full.txt · WebSocket `wss://ws.bytnode.com/ws` · MCP `https://api.bytnode.com/mcp` · Contact contact@bytnode.com\n",
+  "description": "**BytNode is a crypto market-data API built for developers and AI agents.** One key gives you market data aggregated across the major crypto venues, derivatives positioning, order flow, options, macro, ETF and on-chain fundamentals — 131 REST routes, a consolidated real-time WebSocket and a native MCP server, all behind one consistent contract.\n\n## Why BytNode\n\n- **Aggregated across the major venues, not one exchange.** Spot and perpetual futures markets are consolidated into one number per metric: volumes are summed, rates are open-interest weighted, prices volume weighted — and the method is documented for every metric.\n- **Depth on the assets that matter.** 22 pairs: BTC, ETH, SOL, XRP, DOGE, BNB, TRX, SUI, HYPE, XLM, XMR, LINK, ADA, LTC, UNI, GRAM (ex-TON), AVAX, HBAR, NEAR, TAO, plus USDC and USDT spot pairs. This is a deliberate choice: together these assets are about 93 % of the total crypto market capitalisation (measured on 2026-09-30: 2.69 of 2.88 trillion USD), and each of them gets every family of data from every venue that lists it — quality and depth on the assets people actually trade, instead of thin coverage of thousands of tickers.\n- **Twelve data families in one API.** Prices and candles, individual trades, order book, order flow (CVD, trade candles), funding, basis, open interest, liquidations and liquidation heatmap, tokenomics, sentiment, macro (FRED + intraday), spot ETF fundamentals (SEC EDGAR), options (OI, IV, max pain, greeks), Bitcoin network, Ethereum fundamentals, on-chain valuation, and 19 server-side technical indicators. Many providers sell these as separate products; here they share one key, one envelope and one set of conventions.\n- **Honest numbers.** Every bucketed or history row says whether it is final (`is_closed`); every empty answer says why (`unavailable`: `not_applicable`, `no_api_key`, `no_data`); every numeric field has a documented unit.\n- **Made for AI agents.** A native MCP server (3 tools, 60 fields), `llms.txt` and `llms-full.txt`, this OpenAPI contract with units and real examples, one-request snapshots of up to 48 fields, and stable machine-readable error codes.\n- **Priced for builders.** A free plan (10,000 requests/month), then Traders from 6.95 USD/month, Financial from 19.95 USD/month and Startup from 99.95 USD/month (billed yearly), with history depth and families growing with the plan. See https://bytnode.com/pricing. Each operation names its data family in `x-family` (the identifiers `GET /v1/limits` returns for your key); `x-metered: false` marks the routes that are never counted.\n\n## Quick start\n\n1. Create a free key at https://bytnode.com/sign-up.\n2. Send it in the `X-API-KEY` header:\n\n```\ncurl -H \"X-API-KEY: $BYTNODE_API_KEY\" \"https://api.bytnode.com/v1/funding/rate?symbol=BTCUSDT\"\n```\n\n## Conventions\n\n- **Envelope.** Every success is `{status: \"ok\", server_time, data_type, data}`, plus the effective `symbol`, `timeframe`, `asset`, `series`, `market` or filter (`expiry`, `ticker`, `dataset`, `category`) when the route has them. `status` is `ok` whenever the request succeeded (the state of the feeds is `data.state` on `/v1/status`). The shape of `data` follows the path: an OBJECT (or `null`) for the latest value of a metric — `/v1/klines` is the latest closed candle; a LIST (most recent first, or oldest first with `order=asc`) for every `/history` route and for the event series `/v1/trades/{spot,futures,large}`, `/v1/trades-kline/futures/seconds` and `/v1/liquidations/events`. A list carries `step`, the step between its rows (`1h` when you asked `timeframe=1h`; `1d` for a daily series, `8h` for funding, `1m` for the Bitcoin fee readings): a bucket row is dated at the start of its bucket, a periodic reading at its own instant; `timeframe` is only ever the parameter you sent. Collections are lists too: `/v1/symbols`, `/v1/etf/fundamentals`, `/v1/macro/series`, `/v1/macro/intraday/series`, and the options expiry, max-pain and OI distribution routes. A field that can be `null` is typed so in the schema; any other field is never `null`.\n- **Units.** `*_pct` = percent (58.5 = 58.5 %), `*_ratio` = a dimensionless quotient that names what it divides (`put_call_ratio` 1.2 = 1.2 puts per call, `big_small_ratio`; a share of a whole is a fraction, 0.585 = 58.5 %), `*_bps` = basis points, `*_usd` = USD (every USD amount ends in `_usd`), `*_s` = seconds (every duration), `*_count` = a count, `*_pp` = percentage points. Prices, and price differences such as `basis_value`, are in the quote currency (USDT for BTCUSDT). Volumes and quantities (`volume`, `buy_volume`, `sell_volume`, `net_volume`, `oi`, `holdings`...) are in BASE ASSET units (BTC for BTCUSDT), never dollars: a quantity OF AN ASSET without a unit suffix is in base asset units; any other measure (virtual bytes, difficulty, block height, index points) states its unit in `x-unit`. A name without a market suffix covers EVERY market of the route: on a candle, `volume` is spot + perpetual futures, `volume_spot` and `volume_futures` one market each; the candle's prices (`open`... `close`) are those of one reference spot market. Every response schema carries each field's unit in `x-unit`; `x-units` at the root maps a field NAME to its unit only when that unit is the same on every route. Numbers are rounded to 12 significant digits.\n- **Names.** One concept has one name on every route, in the snapshot, in the MCP and on the WebSocket: `buy_volume` / `sell_volume` / `net_volume`, `trade_count`, `sample_count`, booleans `is_*`, a qualitative reading `label` (`put_call_label` for the put/call reading), instants `*_at`, durations `*_s`, counts `*_count`, a value at the start of a window `previous_*`, a running total `*_cumulative`, a change over time `*_change*`; the perpetual market is `futures` everywhere and the order book is `orderbook` everywhere (REST, snapshot, WebSocket `orderbook.*`). A TRADE is one execution (`/v1/trades/spot`, `/v1/trades/futures`, WebSocket `trades.*`, plan family `trades`); the candles aggregated from trades are `trades_kline` (`/v1/trades-kline`). A path uses the name of its fields (`/v1/oi/change` serves `oi_change`, `/v1/options/put-call-ratio` serves `put_call_ratio`); a ratio route is `<a>-<b>-ratio`; Bitcoin lives under `/v1/btc/*` and Ethereum under `/v1/eth/*`. `data_type` is the route's own name (`/v1/trades/avg-size/history` -> `trades_avg_size_history`), and a snapshot field is named after the route that serves the same data (`liquidations_cumulative`, `trades_kline@1h`).\n- **Market in the path.** A route that serves several markets takes the market as a path suffix: no suffix = every market (spot + perpetual futures), `/spot`, `/futures` (`/v1/cvd`, `/v1/cvd/spot`, `/v1/cvd/futures`; the same for `/v1/buy-sell-ratio`, `/v1/trades/avg-size`, `/v1/orderbook`, `/v1/trades-kline`). The envelope repeats it in `market`. A route on ONE market says it in its path or its description and repeats it in `market` too: `/v1/trades/large` (large trades are perpetual futures trades), `/v1/trades-kline/futures/seconds`.\n- **Time.** Timestamps are ISO 8601 UTC with milliseconds (`2026-09-28T14:00:00.000Z`). `time` is the canonical key: every timestamped object under `data` carries it. It follows ONE of two rules, and the description of `time` on each route says which. (1) A BUCKET (candles, trade candles, CVD, order book per bucket, funding per 8-hour period, every `/history` row, and the latest value of a bucketed route: `/v1/klines`, `/v1/cvd`, `/v1/buy-sell-ratio`, `/v1/trades/avg-size`, `/v1/liquidations/big-small-ratio`, `/v1/orderbook`, `/v1/spread/interexchange`, `/v1/trades-kline`: each one requires `timeframe` and returns the first row of its `/history`) is dated at its START and carries `is_closed`. (2) A POINT-IN-TIME value is dated at the instant it refers to: the END of a rolling window — and only a rolling window carries `window_start_at` and `window_s` (`/v1/liquidations/cumulative`, `/v1/oi/change`, `/v1/funding/cumulative`, `/v1/options/oi/change`) — the instant of the computation (`/v1/basis`), the instant the SOURCE states (options, BTC, ETH, tokenomics; `/v1/global`, which may end in `.999`), the settlement a forecast is for (`/v1/funding/next`), the EVENT (trades, large trades, liquidations), and the most recent input of a composite (`/v1/macro/correlations`, `/momentum`, `/risk`, which also give `oldest_input_date`). A daily value is dated at midnight UTC. The envelope's `server_time` is the time of the response. Time bounds (`since_ms`, `until_ms`) are epoch MILLISECONDS, inclusive; `since_ms=0` means \"from the start of the data\".\n- **Closed buckets.** Bucketed routes serve the last CLOSED bucket. `?live=1` adds the open one with `is_closed: false` on the routes that declare it: `/v1/klines`, `/v1/cvd`, `/v1/trades-kline` (and their `/spot` and `/futures` variants), `/v1/funding/rate` and `/v1/spread/interexchange`; elsewhere it is an unknown parameter (422). A bucket appears once its inputs are settled, a few seconds after its end (about 2 s for a 1m order book, 5 s for a 1m candle; 20 s at most when a venue is late). Every bucket row carries `is_closed`; a rolling-window value is always final and carries none.\n- **Pagination.** Every paged route speaks one dialect: `next` is the relative URL of the following page, ready to call (`/v1/klines/history?symbol=BTCUSDT&timeframe=1h&limit=100&before_ms=…`), or `null` once the range is read. Going back, the bound is `before_ms` (EXCLUSIVE); going forward, `order=asc` reads from `since_ms` (then required). The trades routes add `after_id`, to resume inside one millisecond. Loop `while next: GET base + next`; it never repeats a row. A read that would exceed its time budget returns the rows it has with a `next` instead of failing, so a page can be shorter than `limit` (even empty) and still have a `next`: only `next: null` means the end. A 504 `upstream_timeout` remains possible on one very heavy page: reduce `limit`.\n- **Freshness.** A response is usually up to one second old (`Cache-Control: private, max-age=1`); a cached copy can occasionally reach two seconds.\n- **Strict parameters.** An undeclared or repeated parameter is a 422 with a suggestion (`limt` -> did you mean `limit`?), and so is an unknown value of a closed set (`symbol`, `asset`, `series`, `timeframe`, `category`, `ticker`, `expiry`…), with the accepted values in `error.details.accepted`. `symbol`, `asset`, `series`, `timeframe` and `order` are case-insensitive (`1M` excepted: elsewhere a month, here refused). `?fields=a,b.c` projects `data` (not on `POST /v1/indicators`, which takes no query parameter).\n- **Aggregation only.** No route discloses which venue a number came from, except the inter-venue spread, whose purpose is to compare venues.\n- **Browsers and probes.** The REST API answers CORS (`Access-Control-Allow-Origin: *`, the `X-API-KEY` header allowed, preflight `OPTIONS` without a key) and `HEAD` on every `GET` route. A key used in a web page is readable by its visitors: use a dedicated key there.\n\n## Errors\n\nEvery error has one shape, on the REST API and on the WebSocket (`{\"op\": \"error\", \"server_time\", \"error\": {...}}`):\n\n```\n{\"status\": \"error\", \"server_time\": \"2026-10-13T08:00:00.000Z\",\n \"error\": {\"code\": \"invalid_symbol\", \"param\": \"symbol\",\n           \"message\": \"Unknown symbol 'BTCUSD'. Did you mean 'BTCUSDT'? Accepted values: ...\",\n           \"details\": {\"suggestion\": \"BTCUSDT\", \"accepted\": [\"ADAUSDT\", \"...\"]}}}\n```\n\nBranch on `error.code` (stable, listed in the `ApiError` schema), show `error.message` (English), read `error.details` (an object, present when the error carries structured data) for what to change. A missing key is `missing_api_key`, a wrong one `invalid_api_key` (401). Key and plan refusals carry the same code in an `X-Deny-Reason` header (the edge anti-flood 429 `edge_rate_limited` carries none); 429 and 503 carry `Retry-After` (the real delay: until the next request of your rate, or the 1st of the month for the quota), always equal to `error.details.retry_after_s`.\n\n## Limits\n\nEach plan has a per-minute rate, a monthly quota and a history window per timeframe; `GET /v1/limits` returns those of your key. Responses made with a metered key carry the IETF `RateLimit-Policy` and `RateLimit` headers (policies `rate` and `quota`). Going further back than your plan allows is a 403 `history_depth`, never a silently truncated answer. Details: https://bytnode.com/docs/rate-limits.\n\n## Versioning\n\nThe URL prefix `/v1` is the API generation. `info.version` is the revision of THIS contract, in semantic versioning: a PATCH corrects (a text, a value, a nullable field), a MINOR adds (a route, a field, a parameter, an accepted value), a MAJOR removes, renames or changes a meaning. Every response carries it in the `BytNode-Contract-Version` header, and each published version stays readable at `https://api.bytnode.com/openapi/<version>.json` (the list: `https://api.bytnode.com/openapi/index.json`). 2.0.0 (2026-10-16) is the reference version of this contract. The guide: https://bytnode.com/docs/versioning.\n\n## Machine-readable files\n\nThis contract (`/openapi.json`, OpenAPI 3.1), the same in OpenAPI 3.0 (`/openapi-3.0.json`), a light copy without examples for AI agents (`/openapi-lite.json`), the WebSocket in AsyncAPI 3.0 (`/asyncapi.json`), and every published version (`/openapi/<version>.json`, listed in `/openapi/index.json`), all on https://api.bytnode.com, without a key. `GET /` (no key) returns the index of these links in the standard envelope (`data_type: index`, `data.contract_version`); it is a pointer to this contract, not a data route, so it is not listed under `paths`.\n\n## Links\n\nDocs https://bytnode.com/docs · Pricing https://bytnode.com/pricing · Full reference for LLMs https://bytnode.com/llms-full.txt · WebSocket `wss://ws.bytnode.com/ws` · MCP `https://api.bytnode.com/mcp` · Contact contact@bytnode.com\n",
   "license": {
    "name": "Proprietary: BytNode terms of service",
    "url": "https://bytnode.com/terms"
@@ -138,7 +138,7 @@
         "description": "The parameter at fault, when there is one."
        },
        "details": {
-        "description": "Structured complement, for code (absent when there is none). ALWAYS an object, with, when the error carries them: `suggestion` (the closest accepted value: `Did you mean`), `accepted` (the accepted values or parameters), `replacement` and `removed_on` (a retired route, parameter or field: what replaces it — `null` when nothing does — and the date of its removal), `window_s`, `earliest_ms`, `max_limit` and `timeframe` (403 `history_depth`: your plan's window and the furthest bound it allows), `retry_after_s` (429 and 503: the seconds to wait, the same as `Retry-After`), `errors` (several validation errors: one `{param, message}` each).",
+        "description": "Structured complement, for code (absent when there is none). ALWAYS an object, with, when the error carries them: `suggestion` (the closest accepted value: `Did you mean`), `accepted` (the accepted values or parameters), `window_s`, `earliest_ms`, `max_limit` and `timeframe` (403 `history_depth`: your plan's window and the furthest bound it allows), `retry_after_s` (429 and 503: the seconds to wait, the same as `Retry-After`), `errors` (several validation errors: one `{param, message}` each).",
         "type": "object",
         "title": "ErrorDetails",
         "properties": {
@@ -152,18 +152,6 @@
            "type": "string"
           },
           "description": "The accepted values, or parameters."
-         },
-         "replacement": {
-          "type": [
-           "string",
-           "null"
-          ],
-          "description": "What replaces a retired route, parameter or field; `null` when nothing does."
-         },
-         "removed_on": {
-          "type": "string",
-          "format": "date",
-          "description": "Date the name was retired."
          },
          "max_limit": {
           "type": "integer",
@@ -16368,7 +16356,7 @@
       "schema": {
        "type": "string"
       },
-      "example": "4.4.0"
+      "example": "2.0.0"
      }
     }
    },
@@ -16428,12 +16416,12 @@
       "schema": {
        "type": "string"
       },
-      "example": "4.4.0"
+      "example": "2.0.0"
      }
     }
    },
    "NotFound": {
-    "description": "Unknown route (`not_found`). A removed or renamed route names its replacement in the message.",
+    "description": "Unknown route (`not_found`). The message suggests the closest route when there is one (`Did you mean`).",
     "content": {
      "application/json": {
       "schema": {
@@ -16443,13 +16431,12 @@
        "not_found": {
         "value": {
          "status": "error",
-         "server_time": "2026-10-14T09:07:22.074Z",
+         "server_time": "2026-10-16T09:08:12.853Z",
          "error": {
           "code": "not_found",
-          "message": "Route '/v1/raw/klines' was removed on 2026-10-11: use /v1/klines?timeframe=1m.",
+          "message": "Unknown route '/v1/fundng/rate'. Did you mean '/v1/funding/rate'? The list of routes is at https://api.bytnode.com/openapi.json and https://bytnode.com/docs/reference.",
           "details": {
-           "replacement": "/v1/klines?timeframe=1m",
-           "removed_on": "2026-10-11"
+           "suggestion": "/v1/funding/rate"
           }
          }
         }
@@ -16469,7 +16456,7 @@
       "schema": {
        "type": "string"
       },
-      "example": "4.4.0"
+      "example": "2.0.0"
      }
     }
    },
@@ -16512,7 +16499,7 @@
       "schema": {
        "type": "string"
       },
-      "example": "4.4.0"
+      "example": "2.0.0"
      }
     }
    },
@@ -16605,7 +16592,7 @@
       "schema": {
        "type": "string"
       },
-      "example": "4.4.0"
+      "example": "2.0.0"
      }
     }
    },
@@ -16684,7 +16671,7 @@
       "schema": {
        "type": "string"
       },
-      "example": "4.4.0"
+      "example": "2.0.0"
      }
     }
    },
@@ -16730,7 +16717,7 @@
       "schema": {
        "type": "string"
       },
-      "example": "4.4.0"
+      "example": "2.0.0"
      }
     }
    },
@@ -16767,7 +16754,7 @@
       "schema": {
        "type": "string"
       },
-      "example": "4.4.0"
+      "example": "2.0.0"
      }
     }
    },
@@ -16804,7 +16791,7 @@
       "schema": {
        "type": "string"
       },
-      "example": "4.4.0"
+      "example": "2.0.0"
      }
     }
    }
@@ -16886,7 +16873,7 @@
     "schema": {
      "type": "string"
     },
-    "example": "4.4.0"
+    "example": "2.0.0"
    },
    "Cache-Control": {
     "description": "`private, max-age=1` at most: a response is usually up to one second old; a cached copy can occasionally reach two seconds.",
@@ -45983,618 +45970,5 @@
   "withdrawn_cumulative": "ETH",
   "yield_curve_10y2y_pp": "percentage points"
  },
- "x-examples-captured-at": "2026-10-14T09:06:07Z",
- "x-renamed": {
-  "fields": {
-   "active_cryptocurrencies": "active_cryptocurrency_count",
-   "age_seconds": "age_s",
-   "annualized_rate_pct": "net_issuance_annualized_pct",
-   "asks_qty": "asks_quantity",
-   "available_signals": "available_signal_count",
-   "avg_30d": "active_addresses_sma_30d",
-   "avg_7d": "active_addresses_sma_7d",
-   "avg_size": "avg_trade_size",
-   "bids_qty": "bids_quantity",
-   "btc_holdings": "holdings",
-   "btc_price_usd_at_block": "btc_price_usd",
-   "burnt_fees": "burnt_fees_cumulative",
-   "call_coin": "oi_call",
-   "call_oi_usd": "oi_call_usd",
-   "congestion": "label",
-   "cumulative_rate_pct": "rolling_24h_rate_pct",
-   "delta_call_usd": "oi_change_call_usd",
-   "delta_put_usd": "oi_change_put_usd",
-   "delta_total_usd": "oi_change_total_usd",
-   "depth_start": "history_start_date",
-   "dist_down": "dist_down_ratio",
-   "dist_up": "dist_up_ratio",
-   "dte_days": "time_to_expiry_s",
-   "estimated_retarget": "estimated_retarget_at",
-   "eth_btc_ratio": "eth_price_btc",
-   "eth_holdings": "holdings",
-   "exchange_count": null,
-   "expected_interval_seconds": "expected_interval_s",
-   "expiry": "expiry_at",
-   "fdv": "fdv_usd",
-   "feeds_checked": "feed_count",
-   "feeds_in_error": "error_feed_count",
-   "feeds_stale": "stale_feed_count",
-   "filed": "filed_date",
-   "gas_ma30_gwei": "gas_sma_30d_gwei",
-   "gas_ma7_gwei": "gas_sma_7d_gwei",
-   "gold_7d_ago": "gold_7d_ago_usd",
-   "height": "block_height",
-   "holdings_estimated": "is_holdings_estimated",
-   "imbalance": "imbalance_ratio",
-   "last_candle": "last_candle_at",
-   "market_cap": "market_cap_usd",
-   "max_age_seconds": "max_age_s",
-   "max_pain_strike": "max_pain_strike_usd",
-   "momentum_30d_pct": "change_30d_pct",
-   "momentum_7d_pct": "change_7d_pct",
-   "nav_per_share": "nav_per_share_usd",
-   "net_delta": "net_volume",
-   "new_difficulty": "difficulty",
-   "next_retarget_height": "next_retarget_block_height",
-   "oi_current": "oi",
-   "oi_previous": "previous_oi",
-   "oi_total": "oi",
-   "old_difficulty": "previous_difficulty",
-   "pc_label": "put_call_label",
-   "pc_ratio": "put_call_ratio",
-   "pc_signal": "put_call_label",
-   "period_end": "period_end_at",
-   "points": "sample_count",
-   "points_count": "sample_count",
-   "precise": "<name>_precise_sat_vb",
-   "price_time": "priced_at",
-   "put_coin": "oi_put",
-   "put_oi_usd": "oi_put_usd",
-   "regime": "label",
-   "remaining_blocks": "remaining_block_count",
-   "remaining_time_ms": "remaining_s",
-   "revenue_per_difficulty_ma30_usd": "revenue_per_difficulty_sma_30d_usd",
-   "risk_on": "is_risk_on",
-   "risk_on_signals": "risk_on_signal_count",
-   "roc_pct": "change_pct",
-   "series_id": "series",
-   "sources_active": null,
-   "sp500_sma50": "sp500_sma_50d",
-   "stale_venues": "stale_venue_count",
-   "strike": "strike_usd",
-   "taker_buy": "buy_volume",
-   "taker_buy_vol": "buy_volume",
-   "taker_buy_volume": "buy_volume",
-   "taker_sell": "sell_volume",
-   "taker_sell_vol": "sell_volume",
-   "taker_sell_volume": "sell_volume",
-   "threshold_seconds": "threshold_s",
-   "tip_height": "block_height",
-   "top_call_strike": "top_call_strike_usd",
-   "top_put_strike": "top_put_strike_usd",
-   "total_market_cap_usd": "market_cap_total_usd",
-   "total_signals": "signal_count",
-   "total_volume": "volume",
-   "total_volume_usd": "volume_total_usd",
-   "trade_volume": "volume",
-   "trade_volume_buy": "buy_volume",
-   "trade_volume_sell": "sell_volume",
-   "trades_avg": "avg_trade_size",
-   "trades_count": "trade_count",
-   "trend_30d_pct": "defi_health_change_30d_pct",
-   "underlying_price": "underlying_price_usd",
-   "usd_value": "value_usd",
-   "value_classification": "label",
-   "venue_count": null,
-   "venues_expected": null,
-   "volume_combined": "volume",
-   "volume_delta": "net_volume",
-   "volume_estimated": "is_volume_estimated",
-   "volume_futures_estimated": "is_volume_futures_estimated",
-   "volume_total": "volume",
-   "vsize_delta_1h": "vsize_change_1h",
-   "vsize_delta_24h": "vsize_change_24h",
-   "vsize_delta_4h": "vsize_change_4h",
-   "window_count": "sample_count",
-   "window_start": "window_start_at",
-   "withdrawn_total": "withdrawn_cumulative",
-   "yield_curve_10y2y": "yield_curve_10y2y_pp",
-   "zone": "label",
-   "window_minutes": "window_s",
-   "ticks_window_minutes": "trades_window_s",
-   "liquidation_events": "liquidations_events_count",
-   "per_minute": "requests_per_minute",
-   "burst": "burst_count",
-   "remaining": "remaining_count",
-   "monthly": "monthly_count",
-   "high (spread)": "high_venue, high_price",
-   "low (spread)": "low_venue, low_price"
-  },
-  "fields_by_route": {
-   "/v1/btc/active-addresses": {
-    "avg_30d": "active_addresses_sma_30d",
-    "avg_7d": "active_addresses_sma_7d",
-    "momentum_pct": "sma_7d_vs_30d_pct",
-    "signal": "label"
-   },
-   "/v1/btc/fees": {
-    "ratio": "fastest_economy_ratio",
-    "signal": "label"
-   },
-   "/v1/btc/mempool": {
-    "signal": "label"
-   },
-   "/v1/btc/mining": {
-    "btc_price_usd_at_block": "btc_price_usd",
-    "height": "block_height",
-    "new_difficulty": "difficulty",
-    "old_difficulty": "previous_difficulty",
-    "signal": "label"
-   },
-   "/v1/btc/network": {
-    "next_retarget_height": "next_retarget_block_height",
-    "signal": "label",
-    "tip_height": "block_height"
-   },
-   "/v1/eth/defi": {
-    "signal": "label"
-   },
-   "/v1/eth/gas-momentum": {
-    "momentum_pct": "sma_7d_vs_30d_pct"
-   },
-   "/v1/eth/price-btc": {
-    "signal": "label"
-   },
-   "/v1/eth/squeeze": {
-    "level": "label"
-   },
-   "/v1/eth/supply": {
-    "eth_supply": "execution_issuance_cumulative",
-    "signal": "label"
-   },
-   "/v1/global": {
-    "total_market_cap_usd": "market_cap_total_usd",
-    "total_volume_usd": "volume_total_usd"
-   },
-   "/v1/klines": {
-    "buy_combined": "buy_volume",
-    "sell_combined": "sell_volume",
-    "taker_buy": "buy_volume_spot",
-    "taker_buy_futures": "buy_volume_futures",
-    "taker_sell": "sell_volume_spot",
-    "taker_sell_futures": "sell_volume_futures",
-    "volume_combined": "volume",
-    "volume_combined_estimated": "is_volume_estimated",
-    "volume_estimated": "is_volume_spot_estimated"
-   },
-   "/v1/liquidations/big-small-ratio": {
-    "ratio": "big_small_ratio"
-   },
-   "/v1/macro": {
-    "label": "name"
-   },
-   "/v1/macro/correlations": {
-    "n": "sample_count"
-   },
-   "/v1/macro/intraday/series": {
-    "label": "name"
-   },
-   "/v1/macro/series": {
-    "label": "name"
-   },
-   "/v1/oi/change": {
-    "delta": "oi_change",
-    "delta_pct": "oi_change_pct"
-   },
-   "/v1/options/iv/klines": {
-    "close": "close_pct",
-    "high": "high_pct",
-    "low": "low_pct",
-    "open": "open_pct"
-   },
-   "/v1/options/oi": {
-    "call_coin": "oi_call",
-    "call_usd": "oi_call_usd",
-    "put_coin": "oi_put",
-    "put_usd": "oi_put_usd",
-    "total_usd": "oi_total_usd"
-   },
-   "/v1/options/oi/change": {
-    "delta_call_usd": "oi_change_call_usd",
-    "delta_put_usd": "oi_change_put_usd",
-    "delta_total_usd": "oi_change_total_usd"
-   },
-   "/v1/options/oi/distribution": {
-    "call_oi_usd": "oi_call_usd",
-    "put_oi_usd": "oi_put_usd"
-   },
-   "/v1/options/put-call-ratio": {
-    "signal": "put_call_label"
-   },
-   "/v1/options/volume": {
-    "call_usd": "volume_call_usd",
-    "put_usd": "volume_put_usd",
-    "total_usd": "volume_total_usd"
-   },
-   "/v1/spread/interexchange": {
-    "exchange": "venue"
-   },
-   "/v1/tokenomics": {
-    "price": "price_usd"
-   }
-  },
-  "snapshot_fields": {
-   "buysell_ratio": "buy_sell_ratio",
-   "eth_ratio": "eth_price_btc",
-   "funding_rate_8h": "funding_rate",
-   "futures_ticks": "trades_futures",
-   "global_market": "global",
-   "heatmap": "heatmap_clusters",
-   "klines_15m": "klines@15m",
-   "klines_1d": "klines@1d",
-   "klines_1h": "klines@1h",
-   "klines_1m": "klines@1m",
-   "klines_1w": "klines@1w",
-   "klines_30m": "klines@30m",
-   "klines_4h": "klines@4h",
-   "klines_5m": "klines@5m",
-   "liq_cumulative": "liquidations_cumulative",
-   "liq_ratio": "liquidations_big_small_ratio",
-   "liquidations": "liquidations_events",
-   "liquidations_ratio": "liquidations_big_small_ratio",
-   "macro": "macro_series",
-   "net_liquidity": "macro_net_liquidity",
-   "oi_delta": "oi_change",
-   "oi_history": "oi",
-   "oi_snapshots": "oi@1m",
-   "onchain_active_addresses": "btc_active_addresses",
-   "onchain_miner_stress": "btc_revenue_per_difficulty",
-   "onchain_mvrv": "btc_mvrv",
-   "onchain_nvt": "btc_nvt",
-   "options": "options_summary",
-   "orderbook_aggregated": "orderbook",
-   "raw_trades": "trades_kline_futures_seconds",
-   "spot_ticks": "trades_spot",
-   "taker_futures": "cvd@<tf>",
-   "ticks_futures": "trades_futures",
-   "ticks_spot": "trades_spot",
-   "trade": "trades_kline",
-   "trade_futures": "trades_kline_futures",
-   "trade_size": "trades_avg_size",
-   "trade_spot": "trades_kline_spot",
-   "trades": "trades_kline",
-   "trades_futures_seconds": "trades_kline_futures_seconds",
-   "trades_raw": "trades_kline_futures_seconds",
-   "vwap": null,
-   "vwap_window": null
-  },
-  "websocket_channels": {
-   "book.perp.<SYMBOL>": "orderbook.futures.<SYMBOL>",
-   "book.futures.<SYMBOL>": "orderbook.futures.<SYMBOL>",
-   "book.spot.<SYMBOL>": "orderbook.spot.<SYMBOL>"
-  },
-  "websocket_fields": {
-   "time (frame root)": "server_time",
-   "usd_value": "value_usd",
-   "spread_bps_avg": "avg_spread_bps",
-   "mid_avg": "avg_mid_price",
-   "is_crossed": null,
-   "crossed_bps": null,
-   "code (error frame)": "error.code",
-   "message (error frame)": "error.message",
-   "param (error frame)": "error.param",
-   "op: auth (reply)": "op: authenticated",
-   "status (auth reply)": null,
-   "mode: trame": "mode: frame",
-   "mode: lot": "mode: batch",
-   "op: lot (batched message)": "op: batch"
-  },
-  "body_fields": {
-   "results": "limit",
-   "parameters (nested object)": null
-  },
-  "indicator_fields": {
-   "times": "values[].time"
-  },
-  "error_codes": {
-   "missing_expiry": "missing_parameter"
-  },
-  "ratelimit_policies": {
-   "debit": "rate",
-   "mensuel": "quota"
-  },
-  "status_feeds": {
-   "oi_history": "oi",
-   "oi_delta": "oi_change",
-   "buysell_ratio": "buy_sell_ratio",
-   "liquidations_ratio": null,
-   "spread_interexchange_live": null
-  },
-  "plan_families": {
-   "ticks": "trades"
-  },
-  "envelope": {
-   "timestamp": "server_time",
-   "detail": "error.message",
-   "timeframe (row step, on a route without a timeframe parameter)": "step",
-   "retry_after (error body root)": "error.details.retry_after_s",
-   "database (root of /v1/health)": "data.database",
-   "status: degraded (/v1/status)": "data.state",
-   "available_fields... (root of the /v1/snapshot discovery)": "data.available_fields...",
-   "partial (/v1/snapshot)": "is_partial",
-   "asset (data of /v1/macro/correlations)": "asset (envelope)"
-  },
-  "row_time_keys": {
-   "bucket": "time",
-   "timestamp": "time"
-  },
-  "parameters": {
-   "market": "moved to the path on 2026-10-12: /v1/cvd/spot, /v1/cvd/futures, and /v1/cvd (no suffix) for all markets combined; the same for /v1/buy-sell-ratio, /v1/trades/avg-size and /v1/orderbook",
-   "timePeriod": "was removed on 2026-10-11: bound the history with since_ms / until_ms (epoch milliseconds) and limit, like every other history"
-  },
-  "routes": {
-   "/v1/buysell/ratio": "/v1/buy-sell-ratio",
-   "/v1/buysell/ratio/futures": "/v1/buy-sell-ratio/futures",
-   "/v1/buysell/ratio/futures/history": "/v1/buy-sell-ratio/futures/history",
-   "/v1/buysell/ratio/history": "/v1/buy-sell-ratio/history",
-   "/v1/buysell/ratio/spot": "/v1/buy-sell-ratio/spot",
-   "/v1/buysell/ratio/spot/history": "/v1/buy-sell-ratio/spot/history",
-   "/v1/eth/ratio": "/v1/eth/price-btc",
-   "/v1/eth/ratio/history": "/v1/eth/price-btc/history",
-   "/v1/liquidations/ratio": "/v1/liquidations/big-small-ratio",
-   "/v1/liquidations/ratio/history": "/v1/liquidations/big-small-ratio/history",
-   "/v1/ls-ratio": null,
-   "/v1/ls-ratio/history": null,
-   "/v1/oi/delta": "/v1/oi/change",
-   "/v1/oi/delta/history": "/v1/oi/change/history",
-   "/v1/onchain/active-addresses": "/v1/btc/active-addresses",
-   "/v1/onchain/active-addresses/history": "/v1/btc/active-addresses/history",
-   "/v1/onchain/miner-stress": "/v1/btc/revenue-per-difficulty",
-   "/v1/onchain/miner-stress/history": "/v1/btc/revenue-per-difficulty/history",
-   "/v1/onchain/mvrv": "/v1/btc/mvrv",
-   "/v1/onchain/mvrv/history": "/v1/btc/mvrv/history",
-   "/v1/onchain/nvt": "/v1/btc/nvt",
-   "/v1/onchain/nvt/history": "/v1/btc/nvt/history",
-   "/v1/options/iv/history": "/v1/options/iv/klines",
-   "/v1/options/oi/delta": "/v1/options/oi/change",
-   "/v1/options/oi/delta/history": "/v1/options/oi/change/history",
-   "/v1/options/pc-ratio": "/v1/options/put-call-ratio",
-   "/v1/options/pc-ratio/history": "/v1/options/put-call-ratio/history",
-   "/v1/orderbook/aggregated": "/v1/orderbook",
-   "/v1/orderbook/aggregated/history": "/v1/orderbook/history",
-   "/v1/raw/futures-ticks": "/v1/trades/futures",
-   "/v1/raw/klines": "/v1/klines?timeframe=1m",
-   "/v1/raw/klines/15m": "/v1/klines?timeframe=15m",
-   "/v1/raw/klines/1d": "/v1/klines?timeframe=1d",
-   "/v1/raw/klines/1h": "/v1/klines?timeframe=1h",
-   "/v1/raw/klines/1m": "/v1/klines?timeframe=1m",
-   "/v1/raw/klines/1w": "/v1/klines?timeframe=1w",
-   "/v1/raw/klines/30m": "/v1/klines?timeframe=30m",
-   "/v1/raw/klines/4h": "/v1/klines?timeframe=4h",
-   "/v1/raw/klines/5m": "/v1/klines?timeframe=5m",
-   "/v1/raw/liquidations": "/v1/liquidations/events",
-   "/v1/raw/oi": "/v1/oi/history?timeframe=1m",
-   "/v1/raw/orderbook": "/v1/orderbook/futures?timeframe=1m",
-   "/v1/raw/spot-ticks": "/v1/trades/spot",
-   "/v1/raw/taker-combined": "/v1/cvd/futures/history",
-   "/v1/raw/taker-futures": "/v1/cvd/futures/history",
-   "/v1/raw/trades": "/v1/trades-kline/futures/seconds",
-   "/v1/raw/trades/large": "/v1/trades/large",
-   "/v1/symbols/{symbol}/capabilities": "/v1/capabilities?symbol=<SYMBOL>",
-   "/v1/ticks/futures": "/v1/trades/futures",
-   "/v1/ticks/large": "/v1/trades/large",
-   "/v1/ticks/spot": "/v1/trades/spot",
-   "/v1/trades": "/v1/trades-kline",
-   "/v1/trades/future": "/v1/trades-kline/futures",
-   "/v1/trades/future/history": "/v1/trades-kline/futures/history",
-   "/v1/trades/futures/history": "/v1/trades-kline/futures/history",
-   "/v1/trades/futures/seconds": "/v1/trades-kline/futures/seconds",
-   "/v1/trades/history": "/v1/trades-kline/history",
-   "/v1/trades/spot/history": "/v1/trades-kline/spot/history",
-   "/v1/vwap": null,
-   "/v1/vwap/history": null,
-   "/v1/vwap/window": null,
-   "/v1/vwap/window/history": null
-  }
- },
- "x-removed-on": {
-  "routes": {
-   "/v1/buysell/ratio": "2026-10-13",
-   "/v1/buysell/ratio/futures": "2026-10-13",
-   "/v1/buysell/ratio/futures/history": "2026-10-13",
-   "/v1/buysell/ratio/history": "2026-10-13",
-   "/v1/buysell/ratio/spot": "2026-10-13",
-   "/v1/buysell/ratio/spot/history": "2026-10-13",
-   "/v1/eth/ratio": "2026-10-13",
-   "/v1/eth/ratio/history": "2026-10-13",
-   "/v1/liquidations/ratio": "2026-10-13",
-   "/v1/liquidations/ratio/history": "2026-10-13",
-   "/v1/ls-ratio": "2026-10-01",
-   "/v1/ls-ratio/history": "2026-10-01",
-   "/v1/oi/delta": "2026-10-13",
-   "/v1/oi/delta/history": "2026-10-13",
-   "/v1/onchain/active-addresses": "2026-10-13",
-   "/v1/onchain/active-addresses/history": "2026-10-13",
-   "/v1/onchain/miner-stress": "2026-10-13",
-   "/v1/onchain/miner-stress/history": "2026-10-13",
-   "/v1/onchain/mvrv": "2026-10-13",
-   "/v1/onchain/mvrv/history": "2026-10-13",
-   "/v1/onchain/nvt": "2026-10-13",
-   "/v1/onchain/nvt/history": "2026-10-13",
-   "/v1/options/iv/history": "2026-10-11",
-   "/v1/options/oi/delta": "2026-10-13",
-   "/v1/options/oi/delta/history": "2026-10-13",
-   "/v1/options/pc-ratio": "2026-10-13",
-   "/v1/options/pc-ratio/history": "2026-10-13",
-   "/v1/orderbook/aggregated": "2026-10-12",
-   "/v1/orderbook/aggregated/history": "2026-10-12",
-   "/v1/raw/futures-ticks": "2026-10-11",
-   "/v1/raw/klines": "2026-10-11",
-   "/v1/raw/klines/15m": "2026-10-11",
-   "/v1/raw/klines/1d": "2026-10-11",
-   "/v1/raw/klines/1h": "2026-10-11",
-   "/v1/raw/klines/1m": "2026-10-11",
-   "/v1/raw/klines/1w": "2026-10-11",
-   "/v1/raw/klines/30m": "2026-10-11",
-   "/v1/raw/klines/4h": "2026-10-11",
-   "/v1/raw/klines/5m": "2026-10-11",
-   "/v1/raw/liquidations": "2026-10-11",
-   "/v1/raw/oi": "2026-10-11",
-   "/v1/raw/orderbook": "2026-10-10",
-   "/v1/raw/spot-ticks": "2026-10-11",
-   "/v1/raw/taker-combined": "2026-10-10",
-   "/v1/raw/taker-futures": "2026-10-11",
-   "/v1/raw/trades": "2026-10-11",
-   "/v1/raw/trades/large": "2026-10-11",
-   "/v1/symbols/{symbol}/capabilities": "2026-10-13",
-   "/v1/ticks/futures": "2026-10-12",
-   "/v1/ticks/large": "2026-10-12",
-   "/v1/ticks/spot": "2026-10-12",
-   "/v1/trades": "2026-10-12",
-   "/v1/trades/future": "2026-10-09",
-   "/v1/trades/future/history": "2026-10-09",
-   "/v1/trades/futures/history": "2026-10-12",
-   "/v1/trades/futures/seconds": "2026-10-12",
-   "/v1/trades/history": "2026-10-12",
-   "/v1/trades/spot/history": "2026-10-12",
-   "/v1/vwap": "2026-10-11",
-   "/v1/vwap/history": "2026-10-11",
-   "/v1/vwap/window": "2026-10-11",
-   "/v1/vwap/window/history": "2026-10-11"
-  },
-  "parameters": {
-   "market": "2026-10-12",
-   "timePeriod": "2026-10-11"
-  },
-  "envelope": {
-   "timestamp": "2026-10-11",
-   "detail": "2026-10-11",
-   "timeframe (row step, on a route without a timeframe parameter)": "2026-10-13",
-   "retry_after (error body root)": "2026-10-13",
-   "database (root of /v1/health)": "2026-10-13",
-   "status: degraded (/v1/status)": "2026-10-13",
-   "available_fields... (root of the /v1/snapshot discovery)": "2026-10-13",
-   "partial (/v1/snapshot)": "2026-10-14",
-   "asset (data of /v1/macro/correlations)": "2026-10-14"
-  },
-  "row_time_keys": {
-   "bucket": "2026-10-09",
-   "timestamp": "2026-10-09"
-  },
-  "snapshot_fields": {
-   "buysell_ratio": "2026-10-13",
-   "eth_ratio": "2026-10-13",
-   "funding_rate_8h": "2026-10-09",
-   "futures_ticks": "2026-10-11",
-   "global_market": "2026-10-12",
-   "heatmap": "2026-10-09",
-   "klines_15m": "2026-10-11",
-   "klines_1d": "2026-10-11",
-   "klines_1h": "2026-10-11",
-   "klines_1m": "2026-10-11",
-   "klines_1w": "2026-10-11",
-   "klines_30m": "2026-10-11",
-   "klines_4h": "2026-10-11",
-   "klines_5m": "2026-10-11",
-   "liq_cumulative": "2026-10-09",
-   "liq_ratio": "2026-10-09",
-   "liquidations": "2026-10-11",
-   "liquidations_ratio": "2026-10-13",
-   "macro": "2026-10-13",
-   "net_liquidity": "2026-10-09",
-   "oi_delta": "2026-10-13",
-   "oi_history": "2026-10-13",
-   "oi_snapshots": "2026-10-11",
-   "onchain_active_addresses": "2026-10-13",
-   "onchain_miner_stress": "2026-10-13",
-   "onchain_mvrv": "2026-10-13",
-   "onchain_nvt": "2026-10-13",
-   "options": "2026-10-09",
-   "orderbook_aggregated": "2026-10-12",
-   "raw_trades": "2026-10-11",
-   "spot_ticks": "2026-10-11",
-   "taker_futures": "2026-10-11",
-   "ticks_futures": "2026-10-12",
-   "ticks_spot": "2026-10-12",
-   "trade": "2026-10-09",
-   "trade_futures": "2026-10-09",
-   "trade_size": "2026-10-09",
-   "trade_spot": "2026-10-09",
-   "trades": "2026-10-12",
-   "trades_futures_seconds": "2026-10-12",
-   "trades_raw": "2026-10-09",
-   "vwap": "2026-10-11",
-   "vwap_window": "2026-10-11"
-  },
-  "fields": {
-   "window_minutes": "2026-10-13",
-   "ticks_window_minutes": "2026-10-13",
-   "liquidation_events": "2026-10-13",
-   "per_minute": "2026-10-13",
-   "burst": "2026-10-13",
-   "remaining": "2026-10-13",
-   "monthly": "2026-10-13"
-  },
-  "websocket": {
-   "book.spot.<SYMBOL>": "2026-10-13",
-   "book.futures.<SYMBOL>": "2026-10-13",
-   "mid_avg": "2026-10-13",
-   "is_crossed": "2026-10-13",
-   "crossed_bps": "2026-10-13"
-  },
-  "error_codes": {
-   "missing_expiry": "2026-10-13"
-  }
- },
- "x-meaning-changed": {
-  "/v1/trades/spot": {
-   "changed_on": "2026-10-12",
-   "before": "spot trade candles aggregated per bucket",
-   "now": "individual spot trades (executions)",
-   "before_moved_to": "/v1/trades-kline/spot"
-  },
-  "/v1/trades/futures": {
-   "changed_on": "2026-10-12",
-   "before": "futures trade candles aggregated per bucket",
-   "now": "individual futures trades (executions)",
-   "before_moved_to": "/v1/trades-kline/futures"
-  },
-  "/v1/klines": {
-   "changed_on": "2026-10-13",
-   "before": "the list of candles (paginated)",
-   "now": "the latest closed candle (one object)",
-   "before_moved_to": "/v1/klines/history"
-  },
-  "/v1/options/iv/klines": {
-   "changed_on": "2026-10-13",
-   "before": "the list of candles (paginated)",
-   "now": "the latest closed candle (one object)",
-   "before_moved_to": "/v1/options/iv/klines/history"
-  },
-  "/v1/buy-sell-ratio": {
-   "changed_on": "2026-10-14",
-   "before": "the buy/sell volumes of the last 5-minute rolling window (no timeframe)",
-   "now": "the latest closed bucket of `timeframe` (required), the first row of /history"
-  },
-  "/v1/trades/avg-size": {
-   "changed_on": "2026-10-14",
-   "before": "the average trade size of the last closed minute (no timeframe)",
-   "now": "the latest closed bucket of `timeframe` (required), the first row of /history"
-  },
-  "/v1/liquidations/big-small-ratio": {
-   "changed_on": "2026-10-14",
-   "before": "the last closed minute that had liquidations (no timeframe)",
-   "now": "the latest closed bucket of `timeframe` (required) that had liquidations"
-  },
-  "/v1/price-change": {
-   "changed_on": "2026-10-15",
-   "before": "`price` = close of the latest closed one-minute candle (up to 2 minutes old)",
-   "now": "`price` = the latest trade of the reference spot market (the close of /v1/klines?live=1)"
-  },
-  "/v1/funding/rate": {
-   "changed_on": "2026-10-15",
-   "before": "with `?live=1`, the period in progress = sum of the settlements already paid in it",
-   "now": "with `?live=1`, the period in progress = the venues' forecast, the value of /v1/funding/next"
-  }
- }
+ "x-examples-captured-at": "2026-10-14T09:06:07Z"
 }

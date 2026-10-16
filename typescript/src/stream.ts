@@ -116,7 +116,7 @@ export function normalizeChannel(channel: string): string {
 
 export function classifyClose(code: number, reason: string): StreamError | null {
   if (code === 4001) return new StreamError(reason || 'key refused', 'invalid_api_key', code);
-  // 4005 = the client fell behind (contract 3.0.0): reconnect, it starts fresh.
+  // 4005 = the client fell behind: reconnect, it starts fresh.
   if (code === 4005 || (code === 4003 && /slow/i.test(reason))) return null;
   if (code === 4003) {
     return new ConnectionLimitError(reason || "the plan's ceiling of simultaneous connections is reached", 'connection_limit', code);
@@ -317,7 +317,7 @@ export class Stream implements AsyncIterable<StreamMessage> {
     const op = obj.op as string | undefined;
     if (op) {
       if (op === 'error') {
-        // `{error: {code, message, param, details}}` since contract 3.0.0 (the flat
+        // `{error: {code, message, param, details}}` (the flat
         // `code` / `message` of earlier versions is still read).
         const e = (typeof obj.error === 'object' && obj.error !== null ? obj.error : obj) as Record<string, unknown>;
         const err = new StreamError(
@@ -388,8 +388,6 @@ export const channels = {
   trades: (symbol: string, market: 'futures' | 'spot' = 'futures') => `trades.${checkMarket(market)}.${symbol.toUpperCase()}`,
   /** The consolidated order book of `symbol`, every 100 ms: `orderbook.<market>.<SYMBOL>`. */
   orderbook: (symbol: string, market: 'futures' | 'spot' = 'futures') => `orderbook.${checkMarket(market)}.${symbol.toUpperCase()}`,
-  /** Alias of `orderbook` (the channel was named `book.*` before contract 3.0.0). */
-  book: (symbol: string, market: 'futures' | 'spot' = 'futures') => `orderbook.${checkMarket(market)}.${symbol.toUpperCase()}`,
   /** The liquidations of `symbol` (perpetual futures). */
   liquidations: (symbol: string) => `liquidations.${symbol.toUpperCase()}`,
 };

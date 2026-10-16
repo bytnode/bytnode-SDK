@@ -185,8 +185,8 @@ def test_rate_limit_headers(respx_mock: respx.MockRouter, client: Bytnode) -> No
             200,
             json=OK,
             headers={
-                "RateLimit-Policy": '"debit";q=600;w=60, "mensuel";q=100000;w=2592000',
-                "RateLimit": '"debit";r=599;t=1, "mensuel";r=87342;t=1234567',
+                "RateLimit-Policy": '"rate";q=600;w=60, "quota";q=100000;w=2592000',
+                "RateLimit": '"rate";r=599;t=1, "quota";r=87342;t=1234567',
             },
         )
     )

@@ -1,10 +1,9 @@
 /** Read the IETF `RateLimit` / `RateLimit-Policy` headers of a response. */
 
-// The API names its two policies "rate" (rate limit) and "quota" (monthly quota) since
-// contract 3.0.0; the names of earlier versions ("debit", "mensuel") are still read.
+// The API names its two policies "rate" (rate limit) and "quota" (monthly quota).
 // English aliases are accepted so a future rename does not break the SDK.
-const RATE_NAMES = new Set(['debit', 'rate', 'burst', 'rate_limit']);
-const QUOTA_NAMES = new Set(['mensuel', 'monthly', 'quota', 'month']);
+const RATE_NAMES = new Set(['rate', 'burst', 'rate_limit']);
+const QUOTA_NAMES = new Set(['monthly', 'quota', 'month']);
 
 export interface RateLimit {
   /** Requests allowed per window by the rate limit. */

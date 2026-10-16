@@ -1,6 +1,6 @@
 {
   "name": "bytnode",
-  "version": "0.6.0",
+  "version": "2.0.0",
   "description": "Official TypeScript SDK of the BytNode crypto market-data API: typed REST client, pagination and real-time WebSocket.",
   "keywords": [
     "bytnode",

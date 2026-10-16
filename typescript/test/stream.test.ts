@@ -65,7 +65,7 @@ async function collect(stream: ReturnType<Bytnode['stream']>): Promise<{ got: St
 describe('stream', () => {
   it('builds channel names', () => {
     expect(channels.trades('btcusdt')).toBe('trades.futures.BTCUSDT');
-    expect(channels.book('ETHUSDT', 'spot')).toBe('orderbook.spot.ETHUSDT');
+    expect(channels.orderbook('ETHUSDT', 'spot')).toBe('orderbook.spot.ETHUSDT');
     expect(channels.liquidations('solusdt')).toBe('liquidations.SOLUSDT');
   });
 
@@ -77,7 +77,7 @@ describe('stream', () => {
       },
     ]);
     const gaps: Array<[string, number]> = [];
-    const s = client(url).stream({ channels: ['trades.futures.btcusdt', channels.book('BTCUSDT')], depth: 3, reconnect: false, onGap: (c, n) => gaps.push([c, n]) });
+    const s = client(url).stream({ channels: ['trades.futures.btcusdt', channels.orderbook('BTCUSDT')], depth: 3, reconnect: false, onGap: (c, n) => gaps.push([c, n]) });
     const { got, error } = await collect(s);
     expect(error).toBeInstanceOf(StreamError);
     expect(state.keys).toEqual(['cb_live_k']);
