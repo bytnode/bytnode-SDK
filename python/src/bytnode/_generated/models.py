@@ -1512,21 +1512,21 @@ class SpreadInterexchange(BytnodeModel):
 class StatusFeedsItem(BytnodeModel):
     """Nested object (StatusFeedsItem)."""
 
-    feed: str = PydField(description='Public feed name, after the route that serves it (`trades_kline_futures_1h`, `trades_spot`, `trades_kline_futures_seconds`, `funding_rate`...). The same names key `feeds_active_last_24h` in `/v1/capabilities`.')
-    family: str = PydField(description='Data family the feed belongs to: `price_volume`, `microstructure`, `derivatives` or `ticks`.')
-    routes: list[str] = PydField(description='The public routes (contract paths) this feed supplies: watch it to know whether they are fresh.')
-    age_s: float = PydField(description='Age of the latest row of the feed. Unit: seconds.')
+    feed: Literal['basis', 'btc_block_rewards', 'btc_blocks', 'btc_difficulty_adjustments', 'btc_fee_rates', 'btc_fees', 'btc_mempool', 'btc_mining_pools', 'btc_mvrv', 'btc_network', 'btc_onchain_metrics', 'buy_sell_ratio', 'etf_filings', 'eth_beacon', 'eth_defi', 'eth_gas', 'eth_market', 'eth_staking_yield', 'eth_supply', 'fear_greed', 'funding_next', 'funding_rate', 'global_market', 'heatmap_clusters', 'klines_1m', 'klines_futures_1m', 'klines_futures_multi', 'klines_multi', 'liquidations_cumulative', 'liquidations_events', 'macro_daily_weekly', 'macro_gold', 'macro_intraday_15m', 'macro_intraday_15m_continuous', 'macro_intraday_1d', 'macro_intraday_1d_continuous', 'macro_intraday_1h', 'macro_intraday_1h_continuous', 'macro_intraday_1m', 'macro_intraday_1m_continuous', 'macro_intraday_4h', 'macro_intraday_4h_continuous', 'macro_intraday_5m', 'macro_intraday_5m_continuous', 'macro_monthly', 'oi', 'oi_change', 'options_aggregates', 'options_chain', 'options_expiries', 'orderbook_15m', 'orderbook_1d', 'orderbook_1h', 'orderbook_1m', 'orderbook_30m', 'orderbook_4h', 'orderbook_5m', 'spread_interexchange_15m', 'spread_interexchange_1d', 'spread_interexchange_1h', 'spread_interexchange_1m', 'spread_interexchange_30m', 'spread_interexchange_4h', 'spread_interexchange_5m', 'tokenomics_supply', 'trades_avg_size', 'trades_futures', 'trades_kline_futures_15m', 'trades_kline_futures_1d', 'trades_kline_futures_1h', 'trades_kline_futures_1m', 'trades_kline_futures_30m', 'trades_kline_futures_4h', 'trades_kline_futures_5m', 'trades_kline_futures_seconds', 'trades_kline_spot_15m', 'trades_kline_spot_1d', 'trades_kline_spot_1h', 'trades_kline_spot_1m', 'trades_kline_spot_30m', 'trades_kline_spot_4h', 'trades_kline_spot_5m', 'trades_spot'] = PydField(description='Public feed name. The closed list of this contract version; `routes` gives the routes each one supplies.')
+    family: str = PydField(description='Data family the feed belongs to, as in `/v1/limits` and the `x-family` of each route: `price_volume`, `derivatives`, `microstructure`, `trades`, `options`, `onchain`, `macro`, `etf`, `tokenomics` or `sentiment`.')
+    routes: list[str] = PydField(description='The public routes (contract paths) this feed supplies: watch this feed to know whether they are fresh. A per-timeframe feed (`cvd_1h`) supplies them at that timeframe.')
+    age_s: float | None = PydField(None, description='Age of the latest row of the feed. For a feed made of several series (one per asset, per macro series, per ETF), the age of its OLDEST series. For the market-hours intraday series (`macro_intraday_<tf>`, not `_continuous`), counted on weekdays only, like their threshold. `null` if the feed is empty or could not be checked. Unit: seconds.')
     expected_interval_s: int = PydField(description='Maximum legitimate age of the feed. Unit: seconds.')
     threshold_s: int = PydField(description='Age above which the feed is stale (1.5 × expected_interval_s). Unit: seconds.')
-    is_stale: bool = PydField(description='Whether the feed is stale.')
-    stale_venue_count: int | None = PydField(None, description='Venues lagging on this feed. Unit: count.')
+    is_stale: bool | None = PydField(None, description='Whether the feed is stale: older than `threshold_s`, or (series feed) at least one of its series is. `null` when the feed could not be checked (counted in `error_feed_count`).')
+    stale_venue_count: int | None = PydField(None, description='Venues lagging on this feed; `null` when the feed is not split by venue (every non-market feed). Unit: count.')
 
 
 class Status(BytnodeModel):
     """Row of `/v1/status`."""
 
-    computed_at: datetime = PydField(description='When the status was computed. It is cached for up to 5 minutes: every `age_s` is measured at this instant, not at `server_time`. Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
-    state: str = PydField(description="`ok`, or `degraded` when at least one feed is stale or could not be checked (the envelope's `status` stays `ok`).")
+    computed_at: datetime = PydField(description='When the status was measured: the OLDEST of its measurements (each data family is measured on its own, cached up to 5 minutes for market feeds and 30 seconds for the others). Every `age_s` is measured at or after this instant, not at `server_time`. Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
+    state: Literal['ok', 'degraded'] = PydField(description="`ok`, or `degraded` when at least one feed is stale or failed its check. The envelope's `status` stays `ok` (the request succeeded).")
     feed_count: int = PydField(description='Public feeds checked. Unit: count.')
     stale_feed_count: int = PydField(description='Feeds older than their threshold. Unit: count.')
     error_feed_count: int = PydField(description='Feeds that could not be checked. Unit: count.')

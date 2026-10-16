@@ -39,9 +39,14 @@ class AsyncBasisHistoryResource(AsyncResource):
     ) -> Response[list[m.BasisHistoryItem]]:
         """GET /v1/basis/history — Basis history
 
-        One row per closed bucket of `timeframe` (required). Most recent first, or oldest
-        first with `order=asc`. Follow `next` to read the following page (it never repeats a
-        row).
+        One row per closed bucket of `timeframe` (required). Each `timeframe` starts where
+        readings are at least that fine, so `step` is always the real spacing: `1d` covers
+        the whole history, `4h` starts on 2025-10-07, `1h` on 2026-04-04, and `1m` to `30m`
+        on 2026-05-28 (older readings were taken once a day, then every 4 hours, then
+        hourly). Read older periods at a coarser `timeframe`; a `since_ms` before the start
+        is raised to it, and a window entirely before it returns no rows. Most recent first,
+        or oldest first with `order=asc`. Follow `next` to read the following page (it never
+        repeats a row).
 
         Args:
             symbol: Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET
@@ -4977,9 +4982,14 @@ class AsyncOiChangeHistoryResource(AsyncResource):
     ) -> Response[list[m.OiChangeHistoryItem]]:
         """GET /v1/oi/change/history — Open interest change history
 
-        One row per closed bucket of `timeframe` (required). Most recent first, or oldest
-        first with `order=asc`. Follow `next` to read the following page (it never repeats a
-        row).
+        One row per closed bucket of `timeframe` (required). Each `timeframe` starts where
+        readings are at least that fine, so `step` is always the real spacing: `1d` covers
+        the whole history, `4h` starts on 2025-10-07, `1h` on 2026-04-04, and `1m` to `30m`
+        on 2026-05-28 (older readings were taken once a day, then every 4 hours, then
+        hourly). Read older periods at a coarser `timeframe`; a `since_ms` before the start
+        is raised to it, and a window entirely before it returns no rows. Most recent first,
+        or oldest first with `order=asc`. Follow `next` to read the following page (it never
+        repeats a row).
 
         Args:
             symbol: Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET
@@ -5126,12 +5136,13 @@ class AsyncOiHistoryResource(AsyncResource):
         Open interest summed across futures venues, per closed bucket of `timeframe`
         (required): for each venue, its last open interest in the bucket — `oi` is the value
         at the END of the bucket, like a close. The same quantity, under the same name, as
-        `oi` on `/v1/oi/change`. Older history is coarser: its source has one reading every
-        4 hours, then one a day further back (BTCUSDT: hourly readings from 2026-06-24,
-        4-hourly from 2025-10-06). On a finer `timeframe` such a period has one row per
-        reading; the buckets in between are absent, never filled. Most recent first, or
-        oldest first with `order=asc`. Follow `next` to read the following page (it never
-        repeats a row).
+        `oi` on `/v1/oi/change`. Each `timeframe` starts where readings are at least that
+        fine, so `step` is always the real spacing: `1d` covers the whole history, `4h`
+        starts on 2025-10-07, `1h` on 2026-04-04, and `1m` to `30m` on 2026-05-28 (older
+        readings were taken once a day, then every 4 hours, then hourly). Read older periods
+        at a coarser `timeframe`; a `since_ms` before the start is raised to it, and a
+        window entirely before it returns no rows. Most recent first, or oldest first with
+        `order=asc`. Follow `next` to read the following page (it never repeats a row).
 
         Args:
             symbol: Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET
@@ -7048,11 +7059,14 @@ class AsyncStatusResource(AsyncResource):
     ) -> Response[m.Status | None]:
         """GET /v1/status — Freshness of every feed
 
-        One row per public feed: its name, its family, the public `routes` it supplies, its
-        age and staleness threshold (1.5 × the feed's expected interval). `data.state` =
-        `ok`, or `degraded` when a feed is stale or could not be checked (the envelope's
-        `status` is `ok` whenever the request succeeded). Use it to tell 'no event' from
-        'feed down'. Counted as one request of the price & volume family.
+        One row per public feed, for EVERY data family (market, derivatives, options,
+        on-chain, macro, ETF, tokenomics, sentiment): its name, its family, the public
+        `routes` it supplies, its age and staleness threshold (1.5 × the feed's expected
+        interval; a monthly macro series or a quarterly ETF filing legitimately has an age
+        of weeks). `data.state` = `ok`, or `degraded` when a feed is stale or could not be
+        checked (the envelope's `status` is `ok` whenever the request succeeded). Use it to
+        tell 'no event' from 'feed down'. Counted as one request of the price & volume
+        family.
 
         Args:
             request_options: Per-request `timeout`, `max_retries` or extra `headers`.

@@ -4,6 +4,20 @@ All notable changes to the BytNode SDKs. Both packages share one version number.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow
 [Semantic Versioning](https://semver.org/).
 
+## [2.0.2] — 2026-10-16
+
+Generated from contract `2.0.2`.
+
+- `client.status()` (`/v1/status`) now covers every data family: options, on-chain (BTC, ETH),
+  macro, ETF, tokenomics and sentiment feeds join the market feeds. `StatusFeedsItem.feed` is the
+  closed list of the 83 public feed names; `family` uses the names of `/v1/limits` (`trades`, no
+  longer `ticks`).
+- `age_s` and `is_stale` are typed optional (`None` / `null` when a feed could not be checked), as
+  the API always answered.
+- `/v1/oi/history`, `/v1/oi/change/history`, `/v1/basis/history`: each `timeframe` starts where the
+  readings are at least that fine (`1h` from 2026-04-04, `4h` from 2025-10-07, `1m`–`30m` from
+  2026-05-28), so `step` is always the real spacing; documented on the methods.
+
 ## [2.0.1] — 2026-10-16
 
 Generated from contract `2.0.1`.
