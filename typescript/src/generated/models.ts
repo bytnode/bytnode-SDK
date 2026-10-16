@@ -911,6 +911,14 @@ export interface BuySellRatio {
    */
   sample_count: number | null;
   /**
+   * Share of the volume (in USD) whose buy/sell split is known. 1 = every trade is split. Below
+   * 1 on part of the history, where some sources did not report the aggressor side:
+   * `buy_volume` and `sell_volume` then cover that share only, so `buy_volume + sell_volume` <
+   * `volume`; `buy_ratio` and the CVD describe the covered share. `null` when the bucket has no
+   * volume. Unit: fraction (0.585 = 58.5 %).
+   */
+  buy_sell_coverage_ratio: number | null;
+  /**
    * `true` when base-asset quantities of this row were ESTIMATED from USD amounts ÷ the
    * candle's typical price (high + low + close) / 3 (data written before quantities were
    * recorded; mean error 0.04 % in 1m, 0.37 % in 1d); `false` = measured. `null` when the
@@ -959,6 +967,14 @@ export interface BuySellRatioHistoryItem {
    * `/v1/cvd/history` for the same bucket. Unit: count.
    */
   sample_count: number;
+  /**
+   * Share of the volume (in USD) whose buy/sell split is known. 1 = every trade is split. Below
+   * 1 on part of the history, where some sources did not report the aggressor side:
+   * `buy_volume` and `sell_volume` then cover that share only, so `buy_volume + sell_volume` <
+   * `volume`; `buy_ratio` and the CVD describe the covered share. `null` when the bucket has no
+   * volume. Unit: fraction (0.585 = 58.5 %).
+   */
+  buy_sell_coverage_ratio: number | null;
   /**
    * `true` when base-asset quantities of this row were ESTIMATED from USD amounts ÷ the
    * candle's typical price (high + low + close) / 3 (data written before quantities were
@@ -1118,8 +1134,8 @@ export interface Capabilities {
 }
 
 /**
- * Row of `/v1/cvd`, `/v1/cvd/futures`, `/v1/cvd/futures/history`, `/v1/cvd/spot`,
- * `/v1/cvd/spot/history`.
+ * Row of `/v1/cvd`, `/v1/cvd/futures`, `/v1/cvd/futures/history`, `/v1/cvd/history`,
+ * `/v1/cvd/spot`, `/v1/cvd/spot/history`.
  */
 export interface Cvd {
   /**
@@ -1128,60 +1144,12 @@ export interface Cvd {
    */
   time: Date;
   /**
-   * Cumulative volume delta inside the bucket, one point per minute, starting from 0 at the
-   * bucket start. Unit: base asset quantity (BTC for BTCUSDT).
-   */
-  cvd_series: Array<number>;
-  /**
-   * buy_volume - sell_volume over the row, base asset units. Positive = net buying. Unit: base
-   * asset quantity (BTC for BTCUSDT).
-   */
-  net_volume: number | null;
-  /**
-   * Aggressive (taker) buy volume, base asset units, aggregated across venues. Unit: base asset
-   * quantity (BTC for BTCUSDT).
-   */
-  buy_volume: number | null;
-  /**
-   * Aggressive (taker) sell volume, base asset units, aggregated across venues. Unit: base
-   * asset quantity (BTC for BTCUSDT).
-   */
-  sell_volume: number | null;
-  /**
-   * Number of one-minute points in `cvd_series`. Unit: count.
-   */
-  sample_count: number;
-  /**
-   * `true` when base-asset quantities of this row were ESTIMATED from USD amounts ÷ the
-   * candle's typical price (high + low + close) / 3 (data written before quantities were
-   * recorded; mean error 0.04 % in 1m, 0.37 % in 1d); `false` = measured. `null` when the
-   * volume itself is `null` (not available).
-   */
-  is_volume_estimated: boolean | null;
-  /**
-   * `true` = the row is final; `false` = provisional: the latest bucket while it still settles
-   * (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period
-   * in progress with `?live=1` on the routes that take it. Exception, rare: when a venue
-   * delivers trades LATE (seconds to minutes, e.g. during a burst), a closed row built from
-   * trades (trade candles, candle volumes, CVD, buy/sell ratio, trades per second) is corrected
-   * afterwards to include them, usually within minutes and at most one hour later; the
-   * correction only adds the late trades.
-   */
-  is_closed: boolean;
-}
-
-/**
- * Row of `/v1/cvd/history`.
- */
-export interface CvdHistoryItem {
-  /**
-   * Start of the bucket the row covers: a 1h bucket at 14:00 covers 14:00:00 to 14:59:59.999.
-   * Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).
-   */
-  time: Date;
-  /**
-   * Cumulative volume delta inside the bucket, one point per minute, starting from 0 at the
-   * bucket start. Unit: base asset quantity (BTC for BTCUSDT).
+   * Cumulative volume delta inside the bucket, one point per step of finer candles (1 minute up
+   * to `1h`, 5 minutes in `4h`, 15 minutes in `1d`), starting from 0 at the bucket start.
+   * `null` when those finer candles do not cover the bucket (before 2026-06-05, or a collection
+   * gap): `buy_volume`, `sell_volume` and `net_volume` then come from the bucket's own candle,
+   * as on `/v1/trades-kline`, and `sample_count` is 1. Unit: base asset quantity (BTC for
+   * BTCUSDT).
    */
   cvd_series: Array<number> | null;
   /**
@@ -1200,9 +1168,18 @@ export interface CvdHistoryItem {
    */
   sell_volume: number | null;
   /**
-   * Number of one-minute points in `cvd_series`. Unit: count.
+   * Number of points in `cvd_series`; 1 when `cvd_series` is `null` (the bucket's candle
+   * alone). Unit: count.
    */
-  sample_count: number;
+  sample_count: number | null;
+  /**
+   * Share of the volume (in USD) whose buy/sell split is known. 1 = every trade is split. Below
+   * 1 on part of the history, where some sources did not report the aggressor side:
+   * `buy_volume` and `sell_volume` then cover that share only, so `buy_volume + sell_volume` <
+   * `volume`; `buy_ratio` and the CVD describe the covered share. `null` when the bucket has no
+   * volume. Unit: fraction (0.585 = 58.5 %).
+   */
+  buy_sell_coverage_ratio: number | null;
   /**
    * `true` when base-asset quantities of this row were ESTIMATED from USD amounts ÷ the
    * candle's typical price (high + low + close) / 3 (data written before quantities were
@@ -5009,6 +4986,14 @@ export interface TradesKline {
    */
   net_volume: number | null;
   /**
+   * Share of the volume (in USD) whose buy/sell split is known. 1 = every trade is split. Below
+   * 1 on part of the history, where some sources did not report the aggressor side:
+   * `buy_volume` and `sell_volume` then cover that share only, so `buy_volume + sell_volume` <
+   * `volume`; `buy_ratio` and the CVD describe the covered share. `null` when the bucket has no
+   * volume. Unit: fraction (0.585 = 58.5 %).
+   */
+  buy_sell_coverage_ratio: number | null;
+  /**
    * Average number of trades per second over the bucket. Unit: trades per second.
    */
   trade_rate: number;
@@ -5296,7 +5281,6 @@ export const MODEL_SHAPES: Record<string, { dates: string[]; nested: Record<stri
   CapabilitiesComputedMetricsNotApplicable: { dates: [], nested: {} },
   Capabilities: { dates: [], nested: {"feeds_active_last_24h": "CapabilitiesFeedsActiveLast24h", "computed_metrics_not_applicable": "CapabilitiesComputedMetricsNotApplicable"} },
   Cvd: { dates: ["time"], nested: {} },
-  CvdHistoryItem: { dates: ["time"], nested: {} },
   EtfFundamentals: { dates: ["time"], nested: {} },
   EtfFundamentalsHistoryItem: { dates: ["time"], nested: {} },
   EthDefi: { dates: ["time"], nested: {} },

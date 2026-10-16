@@ -37,7 +37,7 @@ const R_CAPABILITIES: RouteSpec = {"path": "/v1/capabilities", "method": "GET", 
 const R_CVD: RouteSpec = {"path": "/v1/cvd", "method": "GET", "shape": "object", "model": "Cvd", "paginated": false, "pathParams": [], "maxLimit": null, "rangeMode": false, "wire": {}};
 const R_CVD_FUTURES: RouteSpec = {"path": "/v1/cvd/futures", "method": "GET", "shape": "object", "model": "Cvd", "paginated": false, "pathParams": [], "maxLimit": null, "rangeMode": false, "wire": {}};
 const R_CVD_FUTURES_HISTORY: RouteSpec = {"path": "/v1/cvd/futures/history", "method": "GET", "shape": "list", "model": "Cvd", "paginated": true, "pathParams": [], "maxLimit": 1000, "rangeMode": false, "wire": {"since": "since_ms", "until": "until_ms", "before": "before_ms"}};
-const R_CVD_HISTORY: RouteSpec = {"path": "/v1/cvd/history", "method": "GET", "shape": "list", "model": "CvdHistoryItem", "paginated": true, "pathParams": [], "maxLimit": 1000, "rangeMode": false, "wire": {"since": "since_ms", "until": "until_ms", "before": "before_ms"}};
+const R_CVD_HISTORY: RouteSpec = {"path": "/v1/cvd/history", "method": "GET", "shape": "list", "model": "Cvd", "paginated": true, "pathParams": [], "maxLimit": 1000, "rangeMode": false, "wire": {"since": "since_ms", "until": "until_ms", "before": "before_ms"}};
 const R_CVD_SPOT: RouteSpec = {"path": "/v1/cvd/spot", "method": "GET", "shape": "object", "model": "Cvd", "paginated": false, "pathParams": [], "maxLimit": null, "rangeMode": false, "wire": {}};
 const R_CVD_SPOT_HISTORY: RouteSpec = {"path": "/v1/cvd/spot/history", "method": "GET", "shape": "list", "model": "Cvd", "paginated": true, "pathParams": [], "maxLimit": 1000, "rangeMode": false, "wire": {"since": "since_ms", "until": "until_ms", "before": "before_ms"}};
 const R_ETF_FUNDAMENTALS: RouteSpec = {"path": "/v1/etf/fundamentals", "method": "GET", "shape": "list", "model": "EtfFundamentals", "paginated": false, "pathParams": [], "maxLimit": null, "rangeMode": false, "wire": {}};
@@ -232,11 +232,12 @@ export interface BasisHistoryResource {
    *
    * One row per closed bucket of `timeframe` (required). Each `timeframe` starts where readings
    * are at least that fine, so `step` is always the real spacing: `1d` covers the whole
-   * history, `4h` starts on 2025-10-07, `1h` on 2026-04-04, and `1m` to `30m` on 2026-05-28
-   * (older readings were taken once a day, then every 4 hours, then hourly). Read older periods
-   * at a coarser `timeframe`; a `since_ms` before the start is raised to it, and a window
-   * entirely before it returns no rows. Most recent first, or oldest first with `order=asc`.
-   * Follow `next` to read the following page (it never repeats a row).
+   * history, `4h` starts on 2025-10-07, `1h` on 2026-04-04 17:00 UTC, and `1m` to `30m` on
+   * 2026-05-28 19:10 UTC (2026-09-12 14:40 UTC for AVAX, HBAR, LINK, NEAR, TAO, UNI, XMR, ADA,
+   * GRAM and LTC; older readings were taken once a day, then every 4 hours, then hourly). Read
+   * older periods at a coarser `timeframe`; a `since_ms` before the start is raised to it, and
+   * a window entirely before it returns no rows. Most recent first, or oldest first with
+   * `order=asc`. Follow `next` to read the following page (it never repeats a row).
    */
   (params: BasisHistoryParams, options?: RequestOptions): Promise<ApiResponse<Array<M.BasisHistoryItem>>>;
   /**
@@ -1654,19 +1655,22 @@ export interface CvdHistoryResource {
   /**
    * GET /v1/cvd/history — Cumulative volume delta history
    *
-   * Same as `/v1/cvd`, one row per closed bucket. The market is in the PATH: no suffix = all
-   * markets (spot + perpetual futures), `/spot`, `/futures`; the envelope says which
-   * (`market`). Spot base-asset quantities are measured since 2026-09-27: before that date,
-   * spot and all-market buy/sell volumes are estimated from USD amounts (`is_volume_estimated:
-   * true`); `/futures` serves the full futures history. Most recent first, or oldest first with
-   * `order=asc`. Follow `next` to read the following page (it never repeats a row).
+   * Same as `/v1/cvd`, one row per closed bucket. Older buckets (before 2026-06-05, when the
+   * finer candles start) carry the buy and sell volumes of their own candle with `cvd_series:
+   * null`; where some sources did not report the aggressor side, `buy_sell_coverage_ratio` < 1
+   * says which share of the volume is split. The market is in the PATH: no suffix = all markets
+   * (spot + perpetual futures), `/spot`, `/futures`; the envelope says which (`market`). Spot
+   * base-asset quantities are measured since 2026-09-27: before that date, spot and all-market
+   * buy/sell volumes are estimated from USD amounts (`is_volume_estimated: true`); `/futures`
+   * serves the full futures history. Most recent first, or oldest first with `order=asc`.
+   * Follow `next` to read the following page (it never repeats a row).
    */
-  (params: CvdHistoryParams, options?: RequestOptions): Promise<ApiResponse<Array<M.CvdHistoryItem>>>;
+  (params: CvdHistoryParams, options?: RequestOptions): Promise<ApiResponse<Array<M.Cvd>>>;
   /**
    * Every row of `/v1/cvd/history` over a period, following `next` page after page (`for
    * await`).
    */
-  iter(params: CvdHistoryIterOptions, options?: RequestOptions): RowIterator<M.CvdHistoryItem>;
+  iter(params: CvdHistoryIterOptions, options?: RequestOptions): RowIterator<M.Cvd>;
 }
 
 export interface CvdSpotHistoryParams {
@@ -4244,11 +4248,12 @@ export interface OiChangeHistoryResource {
    *
    * One row per closed bucket of `timeframe` (required). Each `timeframe` starts where readings
    * are at least that fine, so `step` is always the real spacing: `1d` covers the whole
-   * history, `4h` starts on 2025-10-07, `1h` on 2026-04-04, and `1m` to `30m` on 2026-05-28
-   * (older readings were taken once a day, then every 4 hours, then hourly). Read older periods
-   * at a coarser `timeframe`; a `since_ms` before the start is raised to it, and a window
-   * entirely before it returns no rows. Most recent first, or oldest first with `order=asc`.
-   * Follow `next` to read the following page (it never repeats a row).
+   * history, `4h` starts on 2025-10-07, `1h` on 2026-04-04 17:00 UTC, and `1m` to `30m` on
+   * 2026-05-28 19:10 UTC (2026-09-12 14:40 UTC for AVAX, HBAR, LINK, NEAR, TAO, UNI, XMR, ADA,
+   * GRAM and LTC; older readings were taken once a day, then every 4 hours, then hourly). Read
+   * older periods at a coarser `timeframe`; a `since_ms` before the start is raised to it, and
+   * a window entirely before it returns no rows. Most recent first, or oldest first with
+   * `order=asc`. Follow `next` to read the following page (it never repeats a row).
    */
   (params: OiChangeHistoryParams, options?: RequestOptions): Promise<ApiResponse<Array<M.OiChangeHistoryItem>>>;
   /**
@@ -4376,11 +4381,13 @@ export interface OiHistoryResource {
    * for each venue, its last open interest in the bucket — `oi` is the value at the END of the
    * bucket, like a close. The same quantity, under the same name, as `oi` on `/v1/oi/change`.
    * Each `timeframe` starts where readings are at least that fine, so `step` is always the real
-   * spacing: `1d` covers the whole history, `4h` starts on 2025-10-07, `1h` on 2026-04-04, and
-   * `1m` to `30m` on 2026-05-28 (older readings were taken once a day, then every 4 hours, then
-   * hourly). Read older periods at a coarser `timeframe`; a `since_ms` before the start is
-   * raised to it, and a window entirely before it returns no rows. Most recent first, or oldest
-   * first with `order=asc`. Follow `next` to read the following page (it never repeats a row).
+   * spacing: `1d` covers the whole history, `4h` starts on 2025-10-07, `1h` on 2026-04-04 17:00
+   * UTC, and `1m` to `30m` on 2026-05-28 19:10 UTC (2026-09-12 14:40 UTC for AVAX, HBAR, LINK,
+   * NEAR, TAO, UNI, XMR, ADA, GRAM and LTC; older readings were taken once a day, then every 4
+   * hours, then hourly). Read older periods at a coarser `timeframe`; a `since_ms` before the
+   * start is raised to it, and a window entirely before it returns no rows. Most recent first,
+   * or oldest first with `order=asc`. Follow `next` to read the following page (it never
+   * repeats a row).
    */
   (params: OiHistoryParams, options?: RequestOptions): Promise<ApiResponse<Array<M.OiHistoryItem>>>;
   /**
@@ -5931,13 +5938,13 @@ export interface SnapshotData {
   "buy_sell_ratio@1h"?: Array<M.BuySellRatioHistoryItem> | null;
   "buy_sell_ratio@4h"?: Array<M.BuySellRatioHistoryItem> | null;
   "buy_sell_ratio@1d"?: Array<M.BuySellRatioHistoryItem> | null;
-  "cvd@1m"?: Array<M.CvdHistoryItem> | null;
-  "cvd@5m"?: Array<M.CvdHistoryItem> | null;
-  "cvd@15m"?: Array<M.CvdHistoryItem> | null;
-  "cvd@30m"?: Array<M.CvdHistoryItem> | null;
-  "cvd@1h"?: Array<M.CvdHistoryItem> | null;
-  "cvd@4h"?: Array<M.CvdHistoryItem> | null;
-  "cvd@1d"?: Array<M.CvdHistoryItem> | null;
+  "cvd@1m"?: Array<M.Cvd> | null;
+  "cvd@5m"?: Array<M.Cvd> | null;
+  "cvd@15m"?: Array<M.Cvd> | null;
+  "cvd@30m"?: Array<M.Cvd> | null;
+  "cvd@1h"?: Array<M.Cvd> | null;
+  "cvd@4h"?: Array<M.Cvd> | null;
+  "cvd@1d"?: Array<M.Cvd> | null;
   "klines@1m"?: Array<M.KlineHistoryItem> | null;
   "klines@5m"?: Array<M.KlineHistoryItem> | null;
   "klines@15m"?: Array<M.KlineHistoryItem> | null;
@@ -6050,13 +6057,13 @@ export const SNAPSHOT_FIELDS: Record<string, { base: string; timeframe: string |
   "buy_sell_ratio@1h": { base: "buy_sell_ratio", timeframe: "1h", model: "BuySellRatioHistoryItem" },
   "buy_sell_ratio@4h": { base: "buy_sell_ratio", timeframe: "4h", model: "BuySellRatioHistoryItem" },
   "buy_sell_ratio@1d": { base: "buy_sell_ratio", timeframe: "1d", model: "BuySellRatioHistoryItem" },
-  "cvd@1m": { base: "cvd", timeframe: "1m", model: "CvdHistoryItem" },
-  "cvd@5m": { base: "cvd", timeframe: "5m", model: "CvdHistoryItem" },
-  "cvd@15m": { base: "cvd", timeframe: "15m", model: "CvdHistoryItem" },
-  "cvd@30m": { base: "cvd", timeframe: "30m", model: "CvdHistoryItem" },
-  "cvd@1h": { base: "cvd", timeframe: "1h", model: "CvdHistoryItem" },
-  "cvd@4h": { base: "cvd", timeframe: "4h", model: "CvdHistoryItem" },
-  "cvd@1d": { base: "cvd", timeframe: "1d", model: "CvdHistoryItem" },
+  "cvd@1m": { base: "cvd", timeframe: "1m", model: "Cvd" },
+  "cvd@5m": { base: "cvd", timeframe: "5m", model: "Cvd" },
+  "cvd@15m": { base: "cvd", timeframe: "15m", model: "Cvd" },
+  "cvd@30m": { base: "cvd", timeframe: "30m", model: "Cvd" },
+  "cvd@1h": { base: "cvd", timeframe: "1h", model: "Cvd" },
+  "cvd@4h": { base: "cvd", timeframe: "4h", model: "Cvd" },
+  "cvd@1d": { base: "cvd", timeframe: "1d", model: "Cvd" },
   "klines@1m": { base: "klines", timeframe: "1m", model: "KlineHistoryItem" },
   "klines@5m": { base: "klines", timeframe: "5m", model: "KlineHistoryItem" },
   "klines@15m": { base: "klines", timeframe: "15m", model: "KlineHistoryItem" },
@@ -8041,4 +8048,4 @@ export const ROUTES: Record<string, string> = {
   "/v1/ws/token": "ws.token",
 };
 /** `info.version` of the contract this SDK was generated from. */
-export const API_VERSION = "2.0.2";
+export const API_VERSION = "2.0.3";

@@ -4,6 +4,17 @@ All notable changes to the BytNode SDKs. Both packages share one version number.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow
 [Semantic Versioning](https://semver.org/).
 
+## [2.0.3] — 2026-10-16
+
+Generated from contract `2.0.3`.
+
+- CVD and buy/sell-ratio history no longer return zeros on older buckets: they carry the real
+  buy and sell volumes of the bucket's own candle (the same as `trades_kline`), with
+  `cvd_series` set to `None` / `null` where finer candles do not cover the bucket.
+- New `buy_sell_coverage_ratio` on `Cvd`, `BuySellRatio` and `TradesKline`: the share of the
+  volume whose buy/sell split is known (below 1 on part of the history).
+- `CvdHistoryItem` is now the same type as `Cvd`; the old name remains as an alias.
+
 ## [2.0.2] — 2026-10-16
 
 Generated from contract `2.0.2`.

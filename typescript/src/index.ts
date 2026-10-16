@@ -31,6 +31,8 @@ export { IndicatorSpec, type IndicatorValue, type IndicatorsParams, type Indicat
 export * as ind from './generated/indicators.js';
 export * from './generated/literals.js';
 export type * from './generated/models.js';
+/** Contract 2.0.3 merged the CVD history row into `Cvd`; the old name stays available. */
+export type { Cvd as CvdHistoryItem } from './generated/models.js';
 export { API_VERSION, ROUTES, type Resources, type SnapshotData, type SnapshotParams, type Depth } from './generated/resources.js';
 export { toMs } from './time.js';
 export { VERSION } from './version.js';

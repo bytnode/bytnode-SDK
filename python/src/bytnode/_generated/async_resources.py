@@ -41,12 +41,13 @@ class AsyncBasisHistoryResource(AsyncResource):
 
         One row per closed bucket of `timeframe` (required). Each `timeframe` starts where
         readings are at least that fine, so `step` is always the real spacing: `1d` covers
-        the whole history, `4h` starts on 2025-10-07, `1h` on 2026-04-04, and `1m` to `30m`
-        on 2026-05-28 (older readings were taken once a day, then every 4 hours, then
-        hourly). Read older periods at a coarser `timeframe`; a `since_ms` before the start
-        is raised to it, and a window entirely before it returns no rows. Most recent first,
-        or oldest first with `order=asc`. Follow `next` to read the following page (it never
-        repeats a row).
+        the whole history, `4h` starts on 2025-10-07, `1h` on 2026-04-04 17:00 UTC, and `1m`
+        to `30m` on 2026-05-28 19:10 UTC (2026-09-12 14:40 UTC for AVAX, HBAR, LINK, NEAR,
+        TAO, UNI, XMR, ADA, GRAM and LTC; older readings were taken once a day, then every 4
+        hours, then hourly). Read older periods at a coarser `timeframe`; a `since_ms`
+        before the start is raised to it, and a window entirely before it returns no rows.
+        Most recent first, or oldest first with `order=asc`. Follow `next` to read the
+        following page (it never repeats a row).
 
         Args:
             symbol: Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET
@@ -1755,7 +1756,7 @@ class AsyncCvdFuturesResource(AsyncResource):
 class AsyncCvdHistoryResource(AsyncResource):
     """`/v1/cvd/history`."""
 
-    _route = RouteSpec(path='/v1/cvd/history', method='GET', shape='list', model=m.CvdHistoryItem, paginated=True, path_params=(), max_limit=1000, range_mode=False)
+    _route = RouteSpec(path='/v1/cvd/history', method='GET', shape='list', model=m.Cvd, paginated=True, path_params=(), max_limit=1000, range_mode=False)
 
     async def __call__(
         self,
@@ -1769,16 +1770,19 @@ class AsyncCvdHistoryResource(AsyncResource):
         order: Order | None = None,
         fields: Fields | None = None,
         request_options: RequestOptions | None = None,
-    ) -> Response[list[m.CvdHistoryItem]]:
+    ) -> Response[list[m.Cvd]]:
         """GET /v1/cvd/history — Cumulative volume delta history
 
-        Same as `/v1/cvd`, one row per closed bucket. The market is in the PATH: no suffix =
-        all markets (spot + perpetual futures), `/spot`, `/futures`; the envelope says which
-        (`market`). Spot base-asset quantities are measured since 2026-09-27: before that
-        date, spot and all-market buy/sell volumes are estimated from USD amounts
-        (`is_volume_estimated: true`); `/futures` serves the full futures history. Most
-        recent first, or oldest first with `order=asc`. Follow `next` to read the following
-        page (it never repeats a row).
+        Same as `/v1/cvd`, one row per closed bucket. Older buckets (before 2026-06-05, when
+        the finer candles start) carry the buy and sell volumes of their own candle with
+        `cvd_series: null`; where some sources did not report the aggressor side,
+        `buy_sell_coverage_ratio` < 1 says which share of the volume is split. The market is
+        in the PATH: no suffix = all markets (spot + perpetual futures), `/spot`,
+        `/futures`; the envelope says which (`market`). Spot base-asset quantities are
+        measured since 2026-09-27: before that date, spot and all-market buy/sell volumes
+        are estimated from USD amounts (`is_volume_estimated: true`); `/futures` serves the
+        full futures history. Most recent first, or oldest first with `order=asc`. Follow
+        `next` to read the following page (it never repeats a row).
 
         Args:
             symbol: Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET
@@ -1824,7 +1828,7 @@ class AsyncCvdHistoryResource(AsyncResource):
         max_items: int | None = None,
         limit: int | None = None,
         request_options: RequestOptions | None = None,
-    ) -> AsyncRowIterator[m.CvdHistoryItem]:
+    ) -> AsyncRowIterator[m.Cvd]:
         """Every row of `/v1/cvd/history` over a period, following `next` page after page.
 
         Pages are fetched lazily, `page_size` rows at a time (default with `since`: the
@@ -4984,12 +4988,13 @@ class AsyncOiChangeHistoryResource(AsyncResource):
 
         One row per closed bucket of `timeframe` (required). Each `timeframe` starts where
         readings are at least that fine, so `step` is always the real spacing: `1d` covers
-        the whole history, `4h` starts on 2025-10-07, `1h` on 2026-04-04, and `1m` to `30m`
-        on 2026-05-28 (older readings were taken once a day, then every 4 hours, then
-        hourly). Read older periods at a coarser `timeframe`; a `since_ms` before the start
-        is raised to it, and a window entirely before it returns no rows. Most recent first,
-        or oldest first with `order=asc`. Follow `next` to read the following page (it never
-        repeats a row).
+        the whole history, `4h` starts on 2025-10-07, `1h` on 2026-04-04 17:00 UTC, and `1m`
+        to `30m` on 2026-05-28 19:10 UTC (2026-09-12 14:40 UTC for AVAX, HBAR, LINK, NEAR,
+        TAO, UNI, XMR, ADA, GRAM and LTC; older readings were taken once a day, then every 4
+        hours, then hourly). Read older periods at a coarser `timeframe`; a `since_ms`
+        before the start is raised to it, and a window entirely before it returns no rows.
+        Most recent first, or oldest first with `order=asc`. Follow `next` to read the
+        following page (it never repeats a row).
 
         Args:
             symbol: Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET
@@ -5138,11 +5143,13 @@ class AsyncOiHistoryResource(AsyncResource):
         at the END of the bucket, like a close. The same quantity, under the same name, as
         `oi` on `/v1/oi/change`. Each `timeframe` starts where readings are at least that
         fine, so `step` is always the real spacing: `1d` covers the whole history, `4h`
-        starts on 2025-10-07, `1h` on 2026-04-04, and `1m` to `30m` on 2026-05-28 (older
-        readings were taken once a day, then every 4 hours, then hourly). Read older periods
-        at a coarser `timeframe`; a `since_ms` before the start is raised to it, and a
-        window entirely before it returns no rows. Most recent first, or oldest first with
-        `order=asc`. Follow `next` to read the following page (it never repeats a row).
+        starts on 2025-10-07, `1h` on 2026-04-04 17:00 UTC, and `1m` to `30m` on 2026-05-28
+        19:10 UTC (2026-09-12 14:40 UTC for AVAX, HBAR, LINK, NEAR, TAO, UNI, XMR, ADA, GRAM
+        and LTC; older readings were taken once a day, then every 4 hours, then hourly).
+        Read older periods at a coarser `timeframe`; a `since_ms` before the start is raised
+        to it, and a window entirely before it returns no rows. Most recent first, or oldest
+        first with `order=asc`. Follow `next` to read the following page (it never repeats a
+        row).
 
         Args:
             symbol: Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET
