@@ -13,12 +13,13 @@ type Script = (ws: WebSocket) => void;
 const servers: WebSocketServer[] = [];
 
 async function start(scripts: Script[]) {
-  const state = { connections: 0, frames: [] as any[], keys: [] as Array<string | undefined> };
+  const state = { connections: 0, frames: [] as any[], keys: [] as Array<string | undefined>, urls: [] as string[] };
   const wss = new WebSocketServer({
     port: 0,
     verifyClient: (info, cb) => {
       const key = info.req.headers['x-api-key'] as string | undefined;
       state.keys.push(key);
+      state.urls.push(String(info.req.url));
       if (key === 'bad') cb(false, 401, 'Unauthorized', { 'X-Deny-Reason': 'key', 'Content-Type': 'application/json' });
       else cb(true);
     },
@@ -94,6 +95,27 @@ describe('stream', () => {
     if (b.kind !== 'orderbook') throw new Error('expected orderbook');
     expect(b.data.bids[0]).toEqual([82999, 1.5]);
     expect(s.channels).toEqual(['orderbook.futures.BTCUSDT', 'trades.futures.BTCUSDT']);
+  });
+
+  it('with a token, sends ?token= and never the key, and asks a fresh token per connection', async () => {
+    const { url, state } = await start([
+      (ws) => {
+        ws.send(trades(1));
+        setTimeout(() => ws.close(1011, 'restart'), 30);
+      },
+      (ws) => {
+        ws.send(trades(2));
+        setTimeout(() => ws.close(4003, 'connection ceiling reached (3)'), 30);
+      },
+    ]);
+    let issued = 0;
+    const s = client(url).stream({ channels: [channels.trades('BTCUSDT')], token: async () => `wst_${++issued}` });
+    s.backoff = () => 1;
+    const { got } = await collect(s);
+    expect(got.length).toBe(2);
+    expect(issued).toBe(2);
+    expect(state.urls).toEqual(['/ws?token=wst_1', '/ws?token=wst_2']);
+    expect(state.keys).toEqual([undefined, undefined]);
   });
 
   it('reconnects, subscribes again, stops on the connection ceiling', async () => {

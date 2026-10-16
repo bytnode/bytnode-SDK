@@ -8577,6 +8577,49 @@ class TradesResource(SyncResource):
 
 
 
+class WsTokenResource(SyncResource):
+    """`/v1/ws/token`."""
+
+    _route = RouteSpec(path='/v1/ws/token', method='POST', shape='object', model=m.WsToken, paginated=False, path_params=(), max_limit=None, range_mode=False)
+
+    def __call__(
+        self,
+        *,
+        request_options: RequestOptions | None = None,
+    ) -> Response[m.WsToken | None]:
+        """POST /v1/ws/token — Issue a short-lived WebSocket token
+
+        For a BROWSER (or any client you do not trust with your API key): your server calls
+        this route with its key in the `X-API-KEY` header and hands the browser only the
+        token, which opens the stream at `wss://ws.bytnode.com/ws?token=…`. The key never
+        reaches the page, and nothing long-lived ends up in a URL (browser history, proxy
+        logs). A token lasts 60 seconds and opens ONE connection: once used, or expired, it
+        is refused (401 `invalid_api_key`, with a message saying so); request a new one for
+        each connection or reconnection. It opens the WebSocket only, never a REST route.
+        Same right as the stream itself: a plan without the WebSocket gets 403
+        `plan_websocket`. Not counted in your monthly quota (your per-minute rate applies).
+        The rights are those of your key at the moment of the handshake: a key revoked in
+        between no longer connects. Server-side code can keep sending the key in the
+        `X-API-KEY` header of the handshake (or `?api_key=`); the token is the form meant
+        for web pages.
+
+        Args:
+            request_options: Per-request `timeout`, `max_retries` or extra `headers`.
+        """
+        return self._call(self._route, {}, request_options)
+
+
+class WsResource(SyncResource):
+    """`/v1/ws` and its sub-routes."""
+
+    token: WsTokenResource
+
+    def __init__(self, client: Any) -> None:
+        super().__init__(client)
+        self.token = WsTokenResource(client)
+
+
+
 class Resources:
     """Every route of the API, as attributes of the client (`client.basis`, ...)."""
 
@@ -8608,6 +8651,7 @@ class Resources:
     tokenomics: TokenomicsResource
     trades_kline: TradesKlineResource
     trades: TradesResource
+    ws: WsResource
 
     def _init_resources(self) -> None:
         self.basis = BasisResource(self)
@@ -8638,4 +8682,5 @@ class Resources:
         self.tokenomics = TokenomicsResource(self)
         self.trades_kline = TradesKlineResource(self)
         self.trades = TradesResource(self)
+        self.ws = WsResource(self)
 

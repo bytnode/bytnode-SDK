@@ -22,7 +22,7 @@ function method(client: any, dotted: string): any {
 
 describe('contract', () => {
   it('maps every route to a method', () => {
-    expect(OPS).toHaveLength(131);
+    expect(OPS).toHaveLength(132);
     expect(Object.keys(ROUTES).sort()).toEqual(OPS.map((o) => o.path).sort());
   });
 

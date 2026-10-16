@@ -87,6 +87,20 @@ export interface StreamOptions {
   onGap?: (channel: string, lost: number) => void;
   /** Called after each successful reconnection. */
   onReconnect?: (attempt: number) => void;
+  /**
+   * A short-lived WebSocket token instead of the API key: a function that returns a FRESH
+   * token (`wst_…`), typically from your own backend, which calls `POST /v1/ws/token` with
+   * the key. Called before every connection and reconnection (a token opens ONE connection);
+   * the key is then never sent. The way to open the stream from a web page:
+   *
+   * ```ts
+   * new Stream('wss://ws.bytnode.com/ws', '', {
+   *   channels: ['trades.futures.BTCUSDT'],
+   *   token: async () => (await (await fetch('/api/bytnode-ws-token', { method: 'POST' })).json()).data.token,
+   * });
+   * ```
+   */
+  token?: () => string | Promise<string>;
 }
 
 interface Socket {
@@ -174,6 +188,8 @@ export class Stream implements AsyncIterable<StreamMessage> {
     private readonly url: string,
     private readonly apiKey: string,
     private readonly options: StreamOptions = {},
+    /** @internal `client.ws.token()`: a token when no `ws` package can carry the key in a header. */
+    private readonly issueToken?: () => Promise<string>,
   ) {
     if (options.depth != null && !(options.depth >= 1 && options.depth <= 5)) throw new RangeError(`depth must be between 1 and 5, got ${options.depth}`);
     this.wanted = new Set((options.channels ?? []).map(normalizeChannel));
@@ -259,19 +275,37 @@ export class Stream implements AsyncIterable<StreamMessage> {
     socket.onclose = (ev) => void this.onClose(ev.code, ev.reason);
   }
 
+  /** The stream URL with a token in it: the key itself never goes into a URL. */
+  private async tokenUrl(): Promise<string> {
+    const provider = this.options.token ?? this.issueToken;
+    if (!provider) throw new StreamError('no way to authenticate: pass the `token` option, or install the `ws` package');
+    const token = await provider();
+    if (typeof token !== 'string' || !token) throw new StreamError('the `token` option returned no token', 'invalid_api_key');
+    return `${this.url}${this.url.includes('?') ? '&' : '?'}token=${encodeURIComponent(token)}`;
+  }
+
   private async createSocket(): Promise<Socket> {
+    let WS: unknown = null;
     if (isNode) {
-      let WS: unknown;
       try {
         WS = (await import('ws')).default;
       } catch {
         WS = null;
       }
-      if (WS) return this.openWithWs(WS as new (url: string, opts: object) => unknown);
     }
+    // With a token, or without `ws` (a browser cannot set a header on a WebSocket): `?token=`,
+    // asked again for each connection — a token opens one connection, then is refused.
+    if (this.options.token || !WS) {
+      const url = await this.tokenUrl();
+      if (WS) return this.openWithWs(WS as new (url: string, opts: object) => unknown, url, false);
+      return this.openWithGlobal(url);
+    }
+    return this.openWithWs(WS as new (url: string, opts: object) => unknown, this.url, true);
+  }
+
+  private openWithGlobal(url: string): Promise<Socket> {
     const Global = (globalThis as { WebSocket?: new (url: string) => Socket }).WebSocket;
     if (!Global) throw new StreamError('no WebSocket implementation: install the `ws` package');
-    const url = `${this.url}${this.url.includes('?') ? '&' : '?'}api_key=${encodeURIComponent(this.apiKey)}`;
     return new Promise((resolve, reject) => {
       const s = new Global(url);
       s.onopen = () => resolve(s);
@@ -279,9 +313,11 @@ export class Stream implements AsyncIterable<StreamMessage> {
     });
   }
 
-  private openWithWs(WS: new (url: string, opts: object) => unknown): Promise<Socket> {
+  private openWithWs(WS: new (url: string, opts: object) => unknown, url: string, withKey: boolean): Promise<Socket> {
+    const headers: Record<string, string> = { 'User-Agent': `bytnode-node/${VERSION}` };
+    if (withKey) headers['X-API-KEY'] = this.apiKey;
     return new Promise((resolve, reject) => {
-      const s = new WS(this.url, { headers: { 'X-API-KEY': this.apiKey, 'User-Agent': `bytnode-node/${VERSION}` }, maxPayload: 0 }) as {
+      const s = new WS(url, { headers, maxPayload: 0 }) as {
         on(ev: string, fn: (...a: unknown[]) => void): void;
         send(d: string): void;
         close(c?: number, r?: string): void;

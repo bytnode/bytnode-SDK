@@ -114,6 +114,14 @@ export class Bytnode {
    * Reconnects by itself and subscribes again; `msg.gap` counts the messages lost before `msg`.
    */
   stream(options: StreamOptions = {}): Stream {
-    return new Stream(this.streamUrl, this.apiKey, options);
+    // Without the `ws` package (browser, Deno, Bun), the stream asks `POST /v1/ws/token` for
+    // a short-lived token instead of putting the key in the URL.
+    const issueToken = async (): Promise<string> => {
+      const resp = await this.ws.token();
+      const token = resp.data?.token;
+      if (!token) throw new BytnodeError('POST /v1/ws/token returned no token');
+      return token;
+    };
+    return new Stream(this.streamUrl, this.apiKey, options, issueToken);
   }
 }

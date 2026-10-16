@@ -140,6 +140,7 @@ const R_TRADES_AVG_SIZE_SPOT_HISTORY: RouteSpec = {"path": "/v1/trades/avg-size/
 const R_TRADES_FUTURES: RouteSpec = {"path": "/v1/trades/futures", "method": "GET", "shape": "list", "model": "Trade", "paginated": true, "pathParams": [], "maxLimit": 10000, "rangeMode": true, "wire": {"since": "since_ms", "until": "until_ms", "before": "before_ms"}};
 const R_TRADES_LARGE: RouteSpec = {"path": "/v1/trades/large", "method": "GET", "shape": "list", "model": "Trade", "paginated": true, "pathParams": [], "maxLimit": 10000, "rangeMode": true, "wire": {"since": "since_ms", "until": "until_ms", "before": "before_ms"}};
 const R_TRADES_SPOT: RouteSpec = {"path": "/v1/trades/spot", "method": "GET", "shape": "list", "model": "Trade", "paginated": true, "pathParams": [], "maxLimit": 10000, "rangeMode": true, "wire": {"since": "since_ms", "until": "until_ms", "before": "before_ms"}};
+const R_WS_TOKEN: RouteSpec = {"path": "/v1/ws/token", "method": "POST", "shape": "object", "model": "WsToken", "paginated": false, "pathParams": [], "maxLimit": null, "rangeMode": false, "wire": {}};
 
 export interface BasisHistoryParams {
   /**
@@ -7616,6 +7617,35 @@ export interface TradesResource {
   spot: TradesSpotResource;
 }
 
+export interface WsTokenParams {
+}
+
+/** `/v1/ws/token`. */
+export interface WsTokenResource {
+  /**
+   * POST /v1/ws/token — Issue a short-lived WebSocket token
+   *
+   * For a BROWSER (or any client you do not trust with your API key): your server calls this
+   * route with its key in the `X-API-KEY` header and hands the browser only the token, which
+   * opens the stream at `wss://ws.bytnode.com/ws?token=…`. The key never reaches the page, and
+   * nothing long-lived ends up in a URL (browser history, proxy logs). A token lasts 60 seconds
+   * and opens ONE connection: once used, or expired, it is refused (401 `invalid_api_key`, with
+   * a message saying so); request a new one for each connection or reconnection. It opens the
+   * WebSocket only, never a REST route. Same right as the stream itself: a plan without the
+   * WebSocket gets 403 `plan_websocket`. Not counted in your monthly quota (your per-minute
+   * rate applies). The rights are those of your key at the moment of the handshake: a key
+   * revoked in between no longer connects. Server-side code can keep sending the key in the
+   * `X-API-KEY` header of the handshake (or `?api_key=`); the token is the form meant for web
+   * pages.
+   */
+  (params?: WsTokenParams, options?: RequestOptions): Promise<ApiResponse<M.WsToken | null>>;
+}
+
+/** `/v1/ws` and its sub-routes. */
+export interface WsResource {
+  token: WsTokenResource;
+}
+
 export interface Resources {
   basis: BasisResource;
   btc: BtcResource;
@@ -7645,6 +7675,7 @@ export interface Resources {
   tokenomics: TokenomicsResource;
   tradesKline: TradesKlineResource;
   trades: TradesResource;
+  ws: WsResource;
 }
 
 /** @internal */
@@ -7855,6 +7886,9 @@ export function createResources(core: Core): Resources {
       large: core.resource(R_TRADES_LARGE),
       spot: core.resource(R_TRADES_SPOT)
     } as TradesResource,
+    ws: {
+      token: core.resource(R_WS_TOKEN)
+    } as WsResource,
   };
 }
 
@@ -7991,6 +8025,7 @@ export const ROUTES: Record<string, string> = {
   "/v1/trades/futures": "trades.futures",
   "/v1/trades/large": "trades.large",
   "/v1/trades/spot": "trades.spot",
+  "/v1/ws/token": "ws.token",
 };
 /** `info.version` of the contract this SDK was generated from. */
-export const API_VERSION = "2.0.0";
+export const API_VERSION = "2.0.1";

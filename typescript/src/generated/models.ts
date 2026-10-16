@@ -5232,6 +5232,31 @@ export interface Trade {
   value_usd: number;
 }
 
+/**
+ * Row of `/v1/ws/token`.
+ */
+export interface WsToken {
+  /**
+   * The WebSocket token (`wst_…`): pass it as `?token=` when opening `wss://ws.bytnode.com/ws`
+   * (or `wss://api.bytnode.com/ws`). It opens ONE connection, within `expires_in_s` seconds; a
+   * reconnection needs a new token.
+   */
+  token: string | null;
+  /**
+   * Instant after which the token no longer opens a connection. Unit: ISO 8601 UTC,
+   * milliseconds (2026-09-28T14:00:00.000Z).
+   */
+  expires_at: Date | null;
+  /**
+   * Lifetime of the token from its issue, in seconds (60). Unit: seconds.
+   */
+  expires_in_s: number | null;
+  /**
+   * The stream URL with the token already in it, ready to open.
+   */
+  url: string | null;
+}
+
 /** @internal Which fields of each model are ISO date-times, and which hold nested models. */
 export const MODEL_SHAPES: Record<string, { dates: string[]; nested: Record<string, string> }> = {
   Basis: { dates: ["time"], nested: {} },
@@ -5383,4 +5408,5 @@ export const MODEL_SHAPES: Record<string, { dates: string[]; nested: Record<stri
   TradesAvgSize: { dates: ["time"], nested: {} },
   TradesAvgSizeHistoryItem: { dates: ["time"], nested: {} },
   Trade: { dates: ["time"], nested: {} },
+  WsToken: { dates: ["expires_at"], nested: {} },
 };
