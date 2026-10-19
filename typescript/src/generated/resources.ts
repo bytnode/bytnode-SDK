@@ -167,7 +167,7 @@ export interface BasisHistoryParams {
    */
   timeframe: Timeframe;
   /**
-   * Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET /v1/symbols`.
+   * Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET /v1/symbols`.
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
@@ -207,7 +207,7 @@ export interface BasisHistoryIterParams {
    */
   timeframe: Timeframe;
   /**
-   * Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET /v1/symbols`.
+   * Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET /v1/symbols`.
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
@@ -234,10 +234,12 @@ export interface BasisHistoryResource {
    * are at least that fine, so `step` is always the real spacing: `1d` covers the whole
    * history, `4h` starts on 2025-10-07, `1h` on 2026-04-04 17:00 UTC, and `1m` to `30m` on
    * 2026-05-28 19:10 UTC (2026-09-12 14:40 UTC for AVAX, HBAR, LINK, NEAR, TAO, UNI, XMR, ADA,
-   * GRAM and LTC; older readings were taken once a day, then every 4 hours, then hourly). Read
-   * older periods at a coarser `timeframe`; a `since_ms` before the start is raised to it, and
-   * a window entirely before it returns no rows. Most recent first, or oldest first with
-   * `order=asc`. Follow `next` to read the following page (it never repeats a row).
+   * GRAM and LTC; older readings were taken once a day, then every 4 hours, then hourly). The
+   * 55 pairs added on 2026-10-19 have no imported history: their readings start that day, and
+   * `1m` to `30m` start on 2026-10-19 09:31 UTC. Read older periods at a coarser `timeframe`; a
+   * `since_ms` before the start is raised to it, and a window entirely before it returns no
+   * rows. Most recent first, or oldest first with `order=asc`. Follow `next` to read the
+   * following page (it never repeats a row).
    */
   (params: BasisHistoryParams, options?: RequestOptions): Promise<ApiResponse<Array<M.BasisHistoryItem>>>;
   /**
@@ -249,7 +251,7 @@ export interface BasisHistoryResource {
 
 export interface BasisParams {
   /**
-   * Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET /v1/symbols`.
+   * Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET /v1/symbols`.
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
@@ -1048,7 +1050,7 @@ export interface BuySellRatioFuturesHistoryParams {
    */
   timeframe: Timeframe;
   /**
-   * Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET /v1/symbols`.
+   * Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET /v1/symbols`.
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
@@ -1085,7 +1087,7 @@ export interface BuySellRatioFuturesHistoryIterParams {
    */
   timeframe: Timeframe;
   /**
-   * Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET /v1/symbols`.
+   * Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET /v1/symbols`.
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
@@ -1128,7 +1130,7 @@ export interface BuySellRatioFuturesParams {
    */
   timeframe: Timeframe;
   /**
-   * Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET /v1/symbols`.
+   * Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET /v1/symbols`.
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
@@ -1172,7 +1174,7 @@ export interface BuySellRatioHistoryParams {
    */
   timeframe: Timeframe;
   /**
-   * Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET /v1/symbols`.
+   * Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET /v1/symbols`.
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
@@ -1209,7 +1211,7 @@ export interface BuySellRatioHistoryIterParams {
    */
   timeframe: Timeframe;
   /**
-   * Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET /v1/symbols`.
+   * Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET /v1/symbols`.
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
@@ -1271,7 +1273,7 @@ export interface BuySellRatioSpotHistoryParams {
    */
   timeframe: Timeframe;
   /**
-   * Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET /v1/symbols`.
+   * Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET /v1/symbols`.
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
@@ -1308,7 +1310,7 @@ export interface BuySellRatioSpotHistoryIterParams {
    */
   timeframe: Timeframe;
   /**
-   * Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET /v1/symbols`.
+   * Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET /v1/symbols`.
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
@@ -1350,7 +1352,7 @@ export interface BuySellRatioSpotParams {
    */
   timeframe: Timeframe;
   /**
-   * Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET /v1/symbols`.
+   * Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET /v1/symbols`.
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
@@ -1381,7 +1383,7 @@ export interface BuySellRatioParams {
    */
   timeframe: Timeframe;
   /**
-   * Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET /v1/symbols`.
+   * Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET /v1/symbols`.
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
@@ -1414,7 +1416,7 @@ export interface BuySellRatioResource {
 
 export interface CapabilitiesParams {
   /**
-   * Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET /v1/symbols`.
+   * Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET /v1/symbols`.
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
@@ -1461,7 +1463,7 @@ export interface CvdFuturesHistoryParams {
    */
   limit?: number;
   /**
-   * Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET /v1/symbols`.
+   * Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET /v1/symbols`.
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
@@ -1500,7 +1502,7 @@ export interface CvdFuturesHistoryIterParams {
    */
   until?: TimeLike;
   /**
-   * Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET /v1/symbols`.
+   * Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET /v1/symbols`.
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
@@ -1547,7 +1549,7 @@ export interface CvdFuturesParams {
    */
   live?: boolean;
   /**
-   * Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET /v1/symbols`.
+   * Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET /v1/symbols`.
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
@@ -1593,7 +1595,7 @@ export interface CvdHistoryParams {
    */
   limit?: number;
   /**
-   * Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET /v1/symbols`.
+   * Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET /v1/symbols`.
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
@@ -1632,7 +1634,7 @@ export interface CvdHistoryIterParams {
    */
   until?: TimeLike;
   /**
-   * Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET /v1/symbols`.
+   * Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET /v1/symbols`.
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
@@ -1697,7 +1699,7 @@ export interface CvdSpotHistoryParams {
    */
   limit?: number;
   /**
-   * Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET /v1/symbols`.
+   * Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET /v1/symbols`.
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
@@ -1736,7 +1738,7 @@ export interface CvdSpotHistoryIterParams {
    */
   until?: TimeLike;
   /**
-   * Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET /v1/symbols`.
+   * Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET /v1/symbols`.
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
@@ -1783,7 +1785,7 @@ export interface CvdSpotParams {
    */
   live?: boolean;
   /**
-   * Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET /v1/symbols`.
+   * Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET /v1/symbols`.
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
@@ -1819,7 +1821,7 @@ export interface CvdParams {
    */
   live?: boolean;
   /**
-   * Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET /v1/symbols`.
+   * Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET /v1/symbols`.
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
@@ -2801,7 +2803,7 @@ export interface FundingCumulativeHistoryParams {
    */
   limit?: number;
   /**
-   * Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET /v1/symbols`.
+   * Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET /v1/symbols`.
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
@@ -2833,7 +2835,7 @@ export interface FundingCumulativeHistoryIterParams {
    */
   until?: TimeLike;
   /**
-   * Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET /v1/symbols`.
+   * Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET /v1/symbols`.
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
@@ -2871,7 +2873,7 @@ export interface FundingCumulativeHistoryResource {
 
 export interface FundingCumulativeParams {
   /**
-   * Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET /v1/symbols`.
+   * Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET /v1/symbols`.
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
@@ -2897,7 +2899,7 @@ export interface FundingCumulativeResource {
 
 export interface FundingNextParams {
   /**
-   * Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET /v1/symbols`.
+   * Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET /v1/symbols`.
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
@@ -2936,7 +2938,7 @@ export interface FundingRateHistoryParams {
    */
   limit?: number;
   /**
-   * Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET /v1/symbols`.
+   * Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET /v1/symbols`.
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
@@ -2968,7 +2970,7 @@ export interface FundingRateHistoryIterParams {
    */
   until?: TimeLike;
   /**
-   * Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET /v1/symbols`.
+   * Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET /v1/symbols`.
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
@@ -3010,7 +3012,7 @@ export interface FundingRateParams {
    */
   live?: boolean;
   /**
-   * Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET /v1/symbols`.
+   * Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET /v1/symbols`.
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
@@ -3184,7 +3186,7 @@ export interface HeatmapClustersHistoryParams {
    */
   timeframe: Timeframe;
   /**
-   * Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET /v1/symbols`.
+   * Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET /v1/symbols`.
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
@@ -3224,7 +3226,7 @@ export interface HeatmapClustersHistoryIterParams {
    */
   timeframe: Timeframe;
   /**
-   * Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET /v1/symbols`.
+   * Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET /v1/symbols`.
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
@@ -3260,7 +3262,7 @@ export interface HeatmapClustersHistoryResource {
 
 export interface HeatmapClustersParams {
   /**
-   * Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET /v1/symbols`.
+   * Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET /v1/symbols`.
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
@@ -3318,7 +3320,7 @@ export interface KlinesHistoryParams {
    */
   limit?: number;
   /**
-   * Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET /v1/symbols`.
+   * Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET /v1/symbols`.
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
@@ -3356,7 +3358,7 @@ export interface KlinesHistoryIterParams {
    */
   until?: TimeLike;
   /**
-   * Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET /v1/symbols`.
+   * Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET /v1/symbols`.
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
@@ -3412,7 +3414,7 @@ export interface KlinesParams {
    */
   live?: boolean;
   /**
-   * Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET /v1/symbols`.
+   * Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET /v1/symbols`.
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
@@ -3489,7 +3491,7 @@ export interface LiquidationsBigSmallRatioHistoryParams {
    */
   timeframe: Timeframe;
   /**
-   * Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET /v1/symbols`.
+   * Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET /v1/symbols`.
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
@@ -3529,7 +3531,7 @@ export interface LiquidationsBigSmallRatioHistoryIterParams {
    */
   timeframe: Timeframe;
   /**
-   * Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET /v1/symbols`.
+   * Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET /v1/symbols`.
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
@@ -3575,7 +3577,7 @@ export interface LiquidationsBigSmallRatioParams {
    */
   timeframe: Timeframe;
   /**
-   * Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET /v1/symbols`.
+   * Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET /v1/symbols`.
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
@@ -3623,7 +3625,7 @@ export interface LiquidationsCumulativeHistoryParams {
    */
   timeframe: Timeframe;
   /**
-   * Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET /v1/symbols`.
+   * Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET /v1/symbols`.
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
@@ -3660,7 +3662,7 @@ export interface LiquidationsCumulativeHistoryIterParams {
    */
   timeframe: Timeframe;
   /**
-   * Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET /v1/symbols`.
+   * Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET /v1/symbols`.
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
@@ -3698,7 +3700,7 @@ export interface LiquidationsCumulativeHistoryResource {
 
 export interface LiquidationsCumulativeParams {
   /**
-   * Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET /v1/symbols`.
+   * Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET /v1/symbols`.
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
@@ -3735,7 +3737,7 @@ export interface LiquidationsEventsParams {
    */
   min_usd?: number;
   /**
-   * Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET /v1/symbols`.
+   * Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET /v1/symbols`.
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
@@ -4183,7 +4185,7 @@ export interface OiChangeHistoryParams {
    */
   timeframe: Timeframe;
   /**
-   * Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET /v1/symbols`.
+   * Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET /v1/symbols`.
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
@@ -4223,7 +4225,7 @@ export interface OiChangeHistoryIterParams {
    */
   timeframe: Timeframe;
   /**
-   * Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET /v1/symbols`.
+   * Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET /v1/symbols`.
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
@@ -4246,14 +4248,18 @@ export interface OiChangeHistoryResource {
   /**
    * GET /v1/oi/change/history — Open interest change history
    *
-   * One row per closed bucket of `timeframe` (required). Each `timeframe` starts where readings
-   * are at least that fine, so `step` is always the real spacing: `1d` covers the whole
-   * history, `4h` starts on 2025-10-07, `1h` on 2026-04-04 17:00 UTC, and `1m` to `30m` on
-   * 2026-05-28 19:10 UTC (2026-09-12 14:40 UTC for AVAX, HBAR, LINK, NEAR, TAO, UNI, XMR, ADA,
-   * GRAM and LTC; older readings were taken once a day, then every 4 hours, then hourly). Read
-   * older periods at a coarser `timeframe`; a `since_ms` before the start is raised to it, and
-   * a window entirely before it returns no rows. Most recent first, or oldest first with
-   * `order=asc`. Follow `next` to read the following page (it never repeats a row).
+   * One row per closed bucket of `timeframe` (required), on the same totals as
+   * `/v1/oi/history`: same buckets, same `oi`. A venue carried over from a previous reading
+   * counts with no change. Each `timeframe` starts where readings are at least that fine, so
+   * `step` is always the real spacing: `1d` covers the whole history, `4h` starts on
+   * 2025-10-07, `1h` on 2026-04-04 17:00 UTC, and `1m` to `30m` on 2026-05-28 19:10 UTC
+   * (2026-09-12 14:40 UTC for AVAX, HBAR, LINK, NEAR, TAO, UNI, XMR, ADA, GRAM and LTC; older
+   * readings were taken once a day, then every 4 hours, then hourly). The 55 pairs added on
+   * 2026-10-19 have no imported history: their readings start that day, and `1m` to `30m` start
+   * on 2026-10-19 09:31 UTC. Read older periods at a coarser `timeframe`; a `since_ms` before
+   * the start is raised to it, and a window entirely before it returns no rows. Most recent
+   * first, or oldest first with `order=asc`. Follow `next` to read the following page (it never
+   * repeats a row).
    */
   (params: OiChangeHistoryParams, options?: RequestOptions): Promise<ApiResponse<Array<M.OiChangeHistoryItem>>>;
   /**
@@ -4265,7 +4271,7 @@ export interface OiChangeHistoryResource {
 
 export interface OiChangeParams {
   /**
-   * Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET /v1/symbols`.
+   * Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET /v1/symbols`.
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
@@ -4314,7 +4320,7 @@ export interface OiHistoryParams {
    */
   timeframe: Timeframe;
   /**
-   * Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET /v1/symbols`.
+   * Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET /v1/symbols`.
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
@@ -4354,7 +4360,7 @@ export interface OiHistoryIterParams {
    */
   timeframe: Timeframe;
   /**
-   * Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET /v1/symbols`.
+   * Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET /v1/symbols`.
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
@@ -4378,16 +4384,20 @@ export interface OiHistoryResource {
    * GET /v1/oi/history — Total open interest history
    *
    * Open interest summed across futures venues, per closed bucket of `timeframe` (required):
-   * for each venue, its last open interest in the bucket — `oi` is the value at the END of the
-   * bucket, like a close. The same quantity, under the same name, as `oi` on `/v1/oi/change`.
-   * Each `timeframe` starts where readings are at least that fine, so `step` is always the real
-   * spacing: `1d` covers the whole history, `4h` starts on 2025-10-07, `1h` on 2026-04-04 17:00
-   * UTC, and `1m` to `30m` on 2026-05-28 19:10 UTC (2026-09-12 14:40 UTC for AVAX, HBAR, LINK,
-   * NEAR, TAO, UNI, XMR, ADA, GRAM and LTC; older readings were taken once a day, then every 4
-   * hours, then hourly). Read older periods at a coarser `timeframe`; a `since_ms` before the
-   * start is raised to it, and a window entirely before it returns no rows. Most recent first,
-   * or oldest first with `order=asc`. Follow `next` to read the following page (it never
-   * repeats a row).
+   * for each venue, its latest reading at the END of the bucket — `oi` is the value at the end,
+   * like a close. A venue that missed a reading keeps its previous one for up to 10 minutes (or
+   * the bucket length, if longer); a bucket where a venue read in the previous hour has nothing
+   * that recent is left out rather than served with a partial total. The same quantity, under
+   * the same name, as `oi` on `/v1/oi/change`. Each `timeframe` starts where readings are at
+   * least that fine, so `step` is always the real spacing: `1d` covers the whole history, `4h`
+   * starts on 2025-10-07, `1h` on 2026-04-04 17:00 UTC, and `1m` to `30m` on 2026-05-28 19:10
+   * UTC (2026-09-12 14:40 UTC for AVAX, HBAR, LINK, NEAR, TAO, UNI, XMR, ADA, GRAM and LTC;
+   * older readings were taken once a day, then every 4 hours, then hourly). The 55 pairs added
+   * on 2026-10-19 have no imported history: their readings start that day, and `1m` to `30m`
+   * start on 2026-10-19 09:31 UTC. Read older periods at a coarser `timeframe`; a `since_ms`
+   * before the start is raised to it, and a window entirely before it returns no rows. Most
+   * recent first, or oldest first with `order=asc`. Follow `next` to read the following page
+   * (it never repeats a row).
    */
   (params: OiHistoryParams, options?: RequestOptions): Promise<ApiResponse<Array<M.OiHistoryItem>>>;
   /**
@@ -4399,7 +4409,7 @@ export interface OiHistoryResource {
 
 export interface OiParams {
   /**
-   * Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET /v1/symbols`.
+   * Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET /v1/symbols`.
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
@@ -5286,7 +5296,7 @@ export interface OrderbookFuturesHistoryParams {
    */
   limit?: number;
   /**
-   * Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET /v1/symbols`.
+   * Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET /v1/symbols`.
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
@@ -5325,7 +5335,7 @@ export interface OrderbookFuturesHistoryIterParams {
    */
   until?: TimeLike;
   /**
-   * Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET /v1/symbols`.
+   * Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET /v1/symbols`.
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
@@ -5368,7 +5378,7 @@ export interface OrderbookFuturesParams {
    */
   timeframe: Timeframe;
   /**
-   * Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET /v1/symbols`.
+   * Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET /v1/symbols`.
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
@@ -5415,7 +5425,7 @@ export interface OrderbookHistoryParams {
    */
   limit?: number;
   /**
-   * Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET /v1/symbols`.
+   * Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET /v1/symbols`.
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
@@ -5454,7 +5464,7 @@ export interface OrderbookHistoryIterParams {
    */
   until?: TimeLike;
   /**
-   * Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET /v1/symbols`.
+   * Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET /v1/symbols`.
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
@@ -5513,7 +5523,7 @@ export interface OrderbookSpotHistoryParams {
    */
   limit?: number;
   /**
-   * Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET /v1/symbols`.
+   * Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET /v1/symbols`.
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
@@ -5552,7 +5562,7 @@ export interface OrderbookSpotHistoryIterParams {
    */
   until?: TimeLike;
   /**
-   * Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET /v1/symbols`.
+   * Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET /v1/symbols`.
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
@@ -5594,7 +5604,7 @@ export interface OrderbookSpotParams {
    */
   timeframe: Timeframe;
   /**
-   * Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET /v1/symbols`.
+   * Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET /v1/symbols`.
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
@@ -5625,7 +5635,7 @@ export interface OrderbookParams {
    */
   timeframe: Timeframe;
   /**
-   * Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET /v1/symbols`.
+   * Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET /v1/symbols`.
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
@@ -5657,7 +5667,7 @@ export interface OrderbookResource {
 
 export interface PriceChangeParams {
   /**
-   * Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET /v1/symbols`.
+   * Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET /v1/symbols`.
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
@@ -6166,7 +6176,7 @@ export interface SpreadInterexchangeHistoryParams {
    */
   limit?: number;
   /**
-   * Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET /v1/symbols`.
+   * Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET /v1/symbols`.
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
@@ -6205,7 +6215,7 @@ export interface SpreadInterexchangeHistoryIterParams {
    */
   until?: TimeLike;
   /**
-   * Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET /v1/symbols`.
+   * Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET /v1/symbols`.
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
@@ -6253,7 +6263,7 @@ export interface SpreadInterexchangeParams {
    */
   live?: boolean;
   /**
-   * Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET /v1/symbols`.
+   * Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET /v1/symbols`.
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
@@ -6313,9 +6323,10 @@ export interface SymbolsResource {
   /**
    * GET /v1/symbols — List the served trading pairs
    *
-   * The 22 served pairs: 20 USDT-margined perpetual markets (BTC, ETH, SOL, XRP, DOGE, BNB,
-   * TRX, SUI, HYPE, XLM, XMR, LINK, ADA, LTC, UNI, GRAM, AVAX, HBAR, NEAR, TAO) plus two
-   * spot-only stablecoin pairs (USDCUSDT, USDTUSDC).
+   * The 77 served pairs: 75 USDT-margined perpetual markets (the largest crypto assets by
+   * market capitalisation that the venues list as perpetuals) plus two spot-only stablecoin
+   * pairs (USDCUSDT, USDTUSDC). The response is the full list, with the name and base asset of
+   * each pair; `GET /v1/capabilities` says what each one supports.
    */
   (params?: SymbolsParams, options?: RequestOptions): Promise<ApiResponse<Array<M.SymbolInfo>>>;
 }
@@ -6337,7 +6348,7 @@ export interface TokenomicsHistoryParams {
    */
   limit?: number;
   /**
-   * Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET /v1/symbols`.
+   * Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET /v1/symbols`.
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
@@ -6369,7 +6380,7 @@ export interface TokenomicsHistoryIterParams {
    */
   until?: TimeLike;
   /**
-   * Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET /v1/symbols`.
+   * Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET /v1/symbols`.
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
@@ -6405,7 +6416,7 @@ export interface TokenomicsHistoryResource {
 
 export interface TokenomicsParams {
   /**
-   * Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET /v1/symbols`.
+   * Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET /v1/symbols`.
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
@@ -6430,7 +6441,7 @@ export interface TokenomicsResource {
 
 export interface TradesKlineFuturesHistoryParams {
   /**
-   * Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET /v1/symbols`.
+   * Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET /v1/symbols`.
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
@@ -6475,7 +6486,7 @@ export interface TradesKlineFuturesHistoryParams {
 
 export interface TradesKlineFuturesHistoryIterParams {
   /**
-   * Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET /v1/symbols`.
+   * Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET /v1/symbols`.
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
@@ -6547,7 +6558,7 @@ export interface TradesKlineFuturesSecondsParams {
    */
   order?: Order;
   /**
-   * Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET /v1/symbols`.
+   * Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET /v1/symbols`.
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
@@ -6580,7 +6591,7 @@ export interface TradesKlineFuturesSecondsIterParams {
    */
   order?: Order;
   /**
-   * Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET /v1/symbols`.
+   * Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET /v1/symbols`.
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
@@ -6618,7 +6629,7 @@ export interface TradesKlineFuturesSecondsResource {
 
 export interface TradesKlineFuturesParams {
   /**
-   * Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET /v1/symbols`.
+   * Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET /v1/symbols`.
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
@@ -6657,7 +6668,7 @@ export interface TradesKlineFuturesResource {
 
 export interface TradesKlineHistoryParams {
   /**
-   * Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET /v1/symbols`.
+   * Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET /v1/symbols`.
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
@@ -6702,7 +6713,7 @@ export interface TradesKlineHistoryParams {
 
 export interface TradesKlineHistoryIterParams {
   /**
-   * Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET /v1/symbols`.
+   * Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET /v1/symbols`.
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
@@ -6754,7 +6765,7 @@ export interface TradesKlineHistoryResource {
 
 export interface TradesKlineSpotHistoryParams {
   /**
-   * Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET /v1/symbols`.
+   * Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET /v1/symbols`.
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
@@ -6799,7 +6810,7 @@ export interface TradesKlineSpotHistoryParams {
 
 export interface TradesKlineSpotHistoryIterParams {
   /**
-   * Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET /v1/symbols`.
+   * Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET /v1/symbols`.
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
@@ -6851,7 +6862,7 @@ export interface TradesKlineSpotHistoryResource {
 
 export interface TradesKlineSpotParams {
   /**
-   * Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET /v1/symbols`.
+   * Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET /v1/symbols`.
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
@@ -6888,7 +6899,7 @@ export interface TradesKlineSpotResource {
 
 export interface TradesKlineParams {
   /**
-   * Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET /v1/symbols`.
+   * Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET /v1/symbols`.
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
@@ -6953,7 +6964,7 @@ export interface TradesAvgSizeFuturesHistoryParams {
    */
   timeframe: Timeframe;
   /**
-   * Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET /v1/symbols`.
+   * Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET /v1/symbols`.
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
@@ -6993,7 +7004,7 @@ export interface TradesAvgSizeFuturesHistoryIterParams {
    */
   timeframe: Timeframe;
   /**
-   * Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET /v1/symbols`.
+   * Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET /v1/symbols`.
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
@@ -7037,7 +7048,7 @@ export interface TradesAvgSizeFuturesParams {
    */
   timeframe: Timeframe;
   /**
-   * Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET /v1/symbols`.
+   * Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET /v1/symbols`.
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
@@ -7084,7 +7095,7 @@ export interface TradesAvgSizeHistoryParams {
    */
   timeframe: Timeframe;
   /**
-   * Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET /v1/symbols`.
+   * Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET /v1/symbols`.
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
@@ -7124,7 +7135,7 @@ export interface TradesAvgSizeHistoryIterParams {
    */
   timeframe: Timeframe;
   /**
-   * Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET /v1/symbols`.
+   * Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET /v1/symbols`.
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
@@ -7190,7 +7201,7 @@ export interface TradesAvgSizeSpotHistoryParams {
    */
   timeframe: Timeframe;
   /**
-   * Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET /v1/symbols`.
+   * Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET /v1/symbols`.
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
@@ -7230,7 +7241,7 @@ export interface TradesAvgSizeSpotHistoryIterParams {
    */
   timeframe: Timeframe;
   /**
-   * Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET /v1/symbols`.
+   * Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET /v1/symbols`.
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
@@ -7272,7 +7283,7 @@ export interface TradesAvgSizeSpotParams {
    */
   timeframe: Timeframe;
   /**
-   * Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET /v1/symbols`.
+   * Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET /v1/symbols`.
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
@@ -7303,7 +7314,7 @@ export interface TradesAvgSizeParams {
    */
   timeframe: Timeframe;
   /**
-   * Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET /v1/symbols`.
+   * Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET /v1/symbols`.
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
@@ -7367,7 +7378,7 @@ export interface TradesFuturesParams {
    */
   order?: Order;
   /**
-   * Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET /v1/symbols`.
+   * Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET /v1/symbols`.
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
@@ -7395,7 +7406,7 @@ export interface TradesFuturesIterParams {
    */
   order?: Order;
   /**
-   * Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET /v1/symbols`.
+   * Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET /v1/symbols`.
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
@@ -7468,7 +7479,7 @@ export interface TradesLargeParams {
    */
   order?: Order;
   /**
-   * Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET /v1/symbols`.
+   * Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET /v1/symbols`.
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
@@ -7500,7 +7511,7 @@ export interface TradesLargeIterParams {
    */
   order?: Order;
   /**
-   * Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET /v1/symbols`.
+   * Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET /v1/symbols`.
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
@@ -7566,7 +7577,7 @@ export interface TradesSpotParams {
    */
   order?: Order;
   /**
-   * Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET /v1/symbols`.
+   * Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET /v1/symbols`.
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
@@ -7594,7 +7605,7 @@ export interface TradesSpotIterParams {
    */
   order?: Order;
   /**
-   * Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET /v1/symbols`.
+   * Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET /v1/symbols`.
    * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
    * pair returns 422 `invalid_symbol` with the accepted list.
    */
@@ -8048,4 +8059,4 @@ export const ROUTES: Record<string, string> = {
   "/v1/ws/token": "ws.token",
 };
 /** `info.version` of the contract this SDK was generated from. */
-export const API_VERSION = "2.0.3";
+export const API_VERSION = "2.0.4";

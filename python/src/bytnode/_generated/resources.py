@@ -44,13 +44,15 @@ class BasisHistoryResource(SyncResource):
         the whole history, `4h` starts on 2025-10-07, `1h` on 2026-04-04 17:00 UTC, and `1m`
         to `30m` on 2026-05-28 19:10 UTC (2026-09-12 14:40 UTC for AVAX, HBAR, LINK, NEAR,
         TAO, UNI, XMR, ADA, GRAM and LTC; older readings were taken once a day, then every 4
-        hours, then hourly). Read older periods at a coarser `timeframe`; a `since_ms`
-        before the start is raised to it, and a window entirely before it returns no rows.
-        Most recent first, or oldest first with `order=asc`. Follow `next` to read the
-        following page (it never repeats a row).
+        hours, then hourly). The 55 pairs added on 2026-10-19 have no imported history:
+        their readings start that day, and `1m` to `30m` start on 2026-10-19 09:31 UTC. Read
+        older periods at a coarser `timeframe`; a `since_ms` before the start is raised to
+        it, and a window entirely before it returns no rows. Most recent first, or oldest
+        first with `order=asc`. Follow `next` to read the following page (it never repeats a
+        row).
 
         Args:
-            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET
+            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET
                 /v1/symbols`. Case-insensitive (`btcusdt` works; the envelope gives the
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
@@ -104,7 +106,7 @@ class BasisHistoryResource(SyncResource):
         `order` says otherwise. Call `.to_pandas()` / `.to_list()` to collect them.
 
         Args:
-            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET
+            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET
                 /v1/symbols`. Case-insensitive (`btcusdt` works; the envelope gives the
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
@@ -159,7 +161,7 @@ class BasisResource(SyncResource):
         venue's last futures and spot trade prices (at most 2 minutes old) at `time`.
 
         Args:
-            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET
+            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET
                 /v1/symbols`. Case-insensitive (`btcusdt` works; the envelope gives the
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
@@ -1156,7 +1158,7 @@ class BuySellRatioFuturesHistoryResource(SyncResource):
         every market.
 
         Args:
-            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET
+            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET
                 /v1/symbols`. Case-insensitive (`btcusdt` works; the envelope gives the
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
@@ -1207,7 +1209,7 @@ class BuySellRatioFuturesHistoryResource(SyncResource):
         `order` says otherwise. Call `.to_pandas()` / `.to_list()` to collect them.
 
         Args:
-            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET
+            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET
                 /v1/symbols`. Case-insensitive (`btcusdt` works; the envelope gives the
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
@@ -1259,7 +1261,7 @@ class BuySellRatioFuturesResource(SyncResource):
         market.
 
         Args:
-            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET
+            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET
                 /v1/symbols`. Case-insensitive (`btcusdt` works; the envelope gives the
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
@@ -1306,7 +1308,7 @@ class BuySellRatioHistoryResource(SyncResource):
         page (it never repeats a row).
 
         Args:
-            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET
+            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET
                 /v1/symbols`. Case-insensitive (`btcusdt` works; the envelope gives the
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
@@ -1357,7 +1359,7 @@ class BuySellRatioHistoryResource(SyncResource):
         `order` says otherwise. Call `.to_pandas()` / `.to_list()` to collect them.
 
         Args:
-            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET
+            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET
                 /v1/symbols`. Case-insensitive (`btcusdt` works; the envelope gives the
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
@@ -1407,7 +1409,7 @@ class BuySellRatioSpotHistoryResource(SyncResource):
         Spot market only. Same as `/v1/buy-sell-ratio/history`, which serves every market.
 
         Args:
-            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET
+            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET
                 /v1/symbols`. Case-insensitive (`btcusdt` works; the envelope gives the
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
@@ -1458,7 +1460,7 @@ class BuySellRatioSpotHistoryResource(SyncResource):
         `order` says otherwise. Call `.to_pandas()` / `.to_list()` to collect them.
 
         Args:
-            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET
+            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET
                 /v1/symbols`. Case-insensitive (`btcusdt` works; the envelope gives the
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
@@ -1509,7 +1511,7 @@ class BuySellRatioSpotResource(SyncResource):
         Spot market only. Same as `/v1/buy-sell-ratio`, which serves every market.
 
         Args:
-            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET
+            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET
                 /v1/symbols`. Case-insensitive (`btcusdt` works; the envelope gives the
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
@@ -1560,7 +1562,7 @@ class BuySellRatioResource(SyncResource):
         (`is_volume_estimated: true`); `/futures` serves the full futures history.
 
         Args:
-            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET
+            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET
                 /v1/symbols`. Case-insensitive (`btcusdt` works; the envelope gives the
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
@@ -1595,7 +1597,7 @@ class CapabilitiesResource(SyncResource):
         (stablecoins have no futures). Feed names are those of `/v1/status`.
 
         Args:
-            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET
+            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET
                 /v1/symbols`. Case-insensitive (`btcusdt` works; the envelope gives the
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
@@ -1630,7 +1632,7 @@ class CvdFuturesHistoryResource(SyncResource):
         Perpetual futures market only. Same as `/v1/cvd/history`, which serves every market.
 
         Args:
-            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET
+            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET
                 /v1/symbols`. Case-insensitive (`btcusdt` works; the envelope gives the
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
@@ -1682,7 +1684,7 @@ class CvdFuturesHistoryResource(SyncResource):
         `order` says otherwise. Call `.to_pandas()` / `.to_list()` to collect them.
 
         Args:
-            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET
+            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET
                 /v1/symbols`. Case-insensitive (`btcusdt` works; the envelope gives the
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
@@ -1735,7 +1737,7 @@ class CvdFuturesResource(SyncResource):
         Perpetual futures market only. Same as `/v1/cvd`, which serves every market.
 
         Args:
-            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET
+            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET
                 /v1/symbols`. Case-insensitive (`btcusdt` works; the envelope gives the
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
@@ -1785,7 +1787,7 @@ class CvdHistoryResource(SyncResource):
         `next` to read the following page (it never repeats a row).
 
         Args:
-            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET
+            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET
                 /v1/symbols`. Case-insensitive (`btcusdt` works; the envelope gives the
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
@@ -1837,7 +1839,7 @@ class CvdHistoryResource(SyncResource):
         `order` says otherwise. Call `.to_pandas()` / `.to_list()` to collect them.
 
         Args:
-            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET
+            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET
                 /v1/symbols`. Case-insensitive (`btcusdt` works; the envelope gives the
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
@@ -1888,7 +1890,7 @@ class CvdSpotHistoryResource(SyncResource):
         Spot market only. Same as `/v1/cvd/history`, which serves every market.
 
         Args:
-            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET
+            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET
                 /v1/symbols`. Case-insensitive (`btcusdt` works; the envelope gives the
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
@@ -1940,7 +1942,7 @@ class CvdSpotHistoryResource(SyncResource):
         `order` says otherwise. Call `.to_pandas()` / `.to_list()` to collect them.
 
         Args:
-            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET
+            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET
                 /v1/symbols`. Case-insensitive (`btcusdt` works; the envelope gives the
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
@@ -1993,7 +1995,7 @@ class CvdSpotResource(SyncResource):
         Spot market only. Same as `/v1/cvd`, which serves every market.
 
         Args:
-            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET
+            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET
                 /v1/symbols`. Case-insensitive (`btcusdt` works; the envelope gives the
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
@@ -2049,7 +2051,7 @@ class CvdResource(SyncResource):
         period.
 
         Args:
-            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET
+            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET
                 /v1/symbols`. Case-insensitive (`btcusdt` works; the envelope gives the
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
@@ -3285,7 +3287,7 @@ class FundingCumulativeHistoryResource(SyncResource):
         row).
 
         Args:
-            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET
+            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET
                 /v1/symbols`. Case-insensitive (`btcusdt` works; the envelope gives the
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
@@ -3332,7 +3334,7 @@ class FundingCumulativeHistoryResource(SyncResource):
         `order` says otherwise. Call `.to_pandas()` / `.to_list()` to collect them.
 
         Args:
-            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET
+            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET
                 /v1/symbols`. Case-insensitive (`btcusdt` works; the envelope gives the
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
@@ -3381,7 +3383,7 @@ class FundingCumulativeResource(SyncResource):
         value every 8 hours.
 
         Args:
-            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET
+            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET
                 /v1/symbols`. Case-insensitive (`btcusdt` works; the envelope gives the
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
@@ -3411,7 +3413,7 @@ class FundingNextResource(SyncResource):
         same value is the rate of the period in progress on `/v1/funding/rate?live=1`.
 
         Args:
-            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET
+            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET
                 /v1/symbols`. Case-insensitive (`btcusdt` works; the envelope gives the
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
@@ -3447,7 +3449,7 @@ class FundingRateHistoryResource(SyncResource):
         `order=asc`. Follow `next` to read the following page (it never repeats a row).
 
         Args:
-            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET
+            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET
                 /v1/symbols`. Case-insensitive (`btcusdt` works; the envelope gives the
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
@@ -3494,7 +3496,7 @@ class FundingRateHistoryResource(SyncResource):
         `order` says otherwise. Call `.to_pandas()` / `.to_list()` to collect them.
 
         Args:
-            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET
+            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET
                 /v1/symbols`. Case-insensitive (`btcusdt` works; the envelope gives the
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
@@ -3548,7 +3550,7 @@ class FundingRateResource(SyncResource):
         (the next settlement), not with this `time`. `rate_pct` is in percent per 8 h.
 
         Args:
-            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET
+            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET
                 /v1/symbols`. Case-insensitive (`btcusdt` works; the envelope gives the
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
@@ -3747,7 +3749,7 @@ class HeatmapClustersHistoryResource(SyncResource):
         row).
 
         Args:
-            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET
+            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET
                 /v1/symbols`. Case-insensitive (`btcusdt` works; the envelope gives the
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
@@ -3801,7 +3803,7 @@ class HeatmapClustersHistoryResource(SyncResource):
         `order` says otherwise. Call `.to_pandas()` / `.to_list()` to collect them.
 
         Args:
-            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET
+            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET
                 /v1/symbols`. Case-insensitive (`btcusdt` works; the envelope gives the
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
@@ -3857,7 +3859,7 @@ class HeatmapClustersResource(SyncResource):
         price has a mechanical reason to go. Not a prediction.
 
         Args:
-            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET
+            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET
                 /v1/symbols`. Case-insensitive (`btcusdt` works; the envelope gives the
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
@@ -3961,7 +3963,7 @@ class KlinesHistoryResource(SyncResource):
         `next` to read the following page (it never repeats a row).
 
         Args:
-            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET
+            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET
                 /v1/symbols`. Case-insensitive (`btcusdt` works; the envelope gives the
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
@@ -4013,7 +4015,7 @@ class KlinesHistoryResource(SyncResource):
         `order` says otherwise. Call `.to_pandas()` / `.to_list()` to collect them.
 
         Args:
-            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET
+            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET
                 /v1/symbols`. Case-insensitive (`btcusdt` works; the envelope gives the
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
@@ -4072,7 +4074,7 @@ class KlinesResource(SyncResource):
         yet in the period, the latest closed candle is returned.
 
         Args:
-            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET
+            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET
                 /v1/symbols`. Case-insensitive (`btcusdt` works; the envelope gives the
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
@@ -4150,7 +4152,7 @@ class LiquidationsBigSmallRatioHistoryResource(SyncResource):
         (it never repeats a row).
 
         Args:
-            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET
+            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET
                 /v1/symbols`. Case-insensitive (`btcusdt` works; the envelope gives the
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
@@ -4204,7 +4206,7 @@ class LiquidationsBigSmallRatioHistoryResource(SyncResource):
         `order` says otherwise. Call `.to_pandas()` / `.to_list()` to collect them.
 
         Args:
-            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET
+            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET
                 /v1/symbols`. Case-insensitive (`btcusdt` works; the envelope gives the
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
@@ -4262,7 +4264,7 @@ class LiquidationsBigSmallRatioResource(SyncResource):
         positions are being flushed.
 
         Args:
-            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET
+            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET
                 /v1/symbols`. Case-insensitive (`btcusdt` works; the envelope gives the
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
@@ -4304,7 +4306,7 @@ class LiquidationsCumulativeHistoryResource(SyncResource):
         `order=asc`. Follow `next` to read the following page (it never repeats a row).
 
         Args:
-            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET
+            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET
                 /v1/symbols`. Case-insensitive (`btcusdt` works; the envelope gives the
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
@@ -4355,7 +4357,7 @@ class LiquidationsCumulativeHistoryResource(SyncResource):
         `order` says otherwise. Call `.to_pandas()` / `.to_list()` to collect them.
 
         Args:
-            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET
+            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET
                 /v1/symbols`. Case-insensitive (`btcusdt` works; the envelope gives the
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
@@ -4407,7 +4409,7 @@ class LiquidationsCumulativeResource(SyncResource):
         `window_s` its length.
 
         Args:
-            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET
+            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET
                 /v1/symbols`. Case-insensitive (`btcusdt` works; the envelope gives the
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
@@ -4444,7 +4446,7 @@ class LiquidationsEventsResource(SyncResource):
         them live.
 
         Args:
-            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET
+            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET
                 /v1/symbols`. Case-insensitive (`btcusdt` works; the envelope gives the
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
@@ -4986,18 +4988,21 @@ class OiChangeHistoryResource(SyncResource):
     ) -> Response[list[m.OiChangeHistoryItem]]:
         """GET /v1/oi/change/history — Open interest change history
 
-        One row per closed bucket of `timeframe` (required). Each `timeframe` starts where
-        readings are at least that fine, so `step` is always the real spacing: `1d` covers
-        the whole history, `4h` starts on 2025-10-07, `1h` on 2026-04-04 17:00 UTC, and `1m`
-        to `30m` on 2026-05-28 19:10 UTC (2026-09-12 14:40 UTC for AVAX, HBAR, LINK, NEAR,
-        TAO, UNI, XMR, ADA, GRAM and LTC; older readings were taken once a day, then every 4
-        hours, then hourly). Read older periods at a coarser `timeframe`; a `since_ms`
-        before the start is raised to it, and a window entirely before it returns no rows.
-        Most recent first, or oldest first with `order=asc`. Follow `next` to read the
-        following page (it never repeats a row).
+        One row per closed bucket of `timeframe` (required), on the same totals as
+        `/v1/oi/history`: same buckets, same `oi`. A venue carried over from a previous
+        reading counts with no change. Each `timeframe` starts where readings are at least
+        that fine, so `step` is always the real spacing: `1d` covers the whole history, `4h`
+        starts on 2025-10-07, `1h` on 2026-04-04 17:00 UTC, and `1m` to `30m` on 2026-05-28
+        19:10 UTC (2026-09-12 14:40 UTC for AVAX, HBAR, LINK, NEAR, TAO, UNI, XMR, ADA, GRAM
+        and LTC; older readings were taken once a day, then every 4 hours, then hourly). The
+        55 pairs added on 2026-10-19 have no imported history: their readings start that
+        day, and `1m` to `30m` start on 2026-10-19 09:31 UTC. Read older periods at a
+        coarser `timeframe`; a `since_ms` before the start is raised to it, and a window
+        entirely before it returns no rows. Most recent first, or oldest first with
+        `order=asc`. Follow `next` to read the following page (it never repeats a row).
 
         Args:
-            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET
+            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET
                 /v1/symbols`. Case-insensitive (`btcusdt` works; the envelope gives the
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
@@ -5051,7 +5056,7 @@ class OiChangeHistoryResource(SyncResource):
         `order` says otherwise. Call `.to_pandas()` / `.to_list()` to collect them.
 
         Args:
-            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET
+            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET
                 /v1/symbols`. Case-insensitive (`btcusdt` works; the envelope gives the
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
@@ -5106,7 +5111,7 @@ class OiChangeResource(SyncResource):
         reading, `window_start_at` the one before.
 
         Args:
-            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET
+            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET
                 /v1/symbols`. Case-insensitive (`btcusdt` works; the envelope gives the
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
@@ -5139,20 +5144,24 @@ class OiHistoryResource(SyncResource):
         """GET /v1/oi/history — Total open interest history
 
         Open interest summed across futures venues, per closed bucket of `timeframe`
-        (required): for each venue, its last open interest in the bucket — `oi` is the value
-        at the END of the bucket, like a close. The same quantity, under the same name, as
-        `oi` on `/v1/oi/change`. Each `timeframe` starts where readings are at least that
-        fine, so `step` is always the real spacing: `1d` covers the whole history, `4h`
-        starts on 2025-10-07, `1h` on 2026-04-04 17:00 UTC, and `1m` to `30m` on 2026-05-28
-        19:10 UTC (2026-09-12 14:40 UTC for AVAX, HBAR, LINK, NEAR, TAO, UNI, XMR, ADA, GRAM
-        and LTC; older readings were taken once a day, then every 4 hours, then hourly).
-        Read older periods at a coarser `timeframe`; a `since_ms` before the start is raised
-        to it, and a window entirely before it returns no rows. Most recent first, or oldest
-        first with `order=asc`. Follow `next` to read the following page (it never repeats a
-        row).
+        (required): for each venue, its latest reading at the END of the bucket — `oi` is
+        the value at the end, like a close. A venue that missed a reading keeps its previous
+        one for up to 10 minutes (or the bucket length, if longer); a bucket where a venue
+        read in the previous hour has nothing that recent is left out rather than served
+        with a partial total. The same quantity, under the same name, as `oi` on
+        `/v1/oi/change`. Each `timeframe` starts where readings are at least that fine, so
+        `step` is always the real spacing: `1d` covers the whole history, `4h` starts on
+        2025-10-07, `1h` on 2026-04-04 17:00 UTC, and `1m` to `30m` on 2026-05-28 19:10 UTC
+        (2026-09-12 14:40 UTC for AVAX, HBAR, LINK, NEAR, TAO, UNI, XMR, ADA, GRAM and LTC;
+        older readings were taken once a day, then every 4 hours, then hourly). The 55 pairs
+        added on 2026-10-19 have no imported history: their readings start that day, and
+        `1m` to `30m` start on 2026-10-19 09:31 UTC. Read older periods at a coarser
+        `timeframe`; a `since_ms` before the start is raised to it, and a window entirely
+        before it returns no rows. Most recent first, or oldest first with `order=asc`.
+        Follow `next` to read the following page (it never repeats a row).
 
         Args:
-            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET
+            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET
                 /v1/symbols`. Case-insensitive (`btcusdt` works; the envelope gives the
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
@@ -5206,7 +5215,7 @@ class OiHistoryResource(SyncResource):
         `order` says otherwise. Call `.to_pandas()` / `.to_list()` to collect them.
 
         Args:
-            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET
+            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET
                 /v1/symbols`. Case-insensitive (`btcusdt` works; the envelope gives the
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
@@ -5263,7 +5272,7 @@ class OiResource(SyncResource):
         same instant, as `/v1/oi/change`; its history is `/v1/oi/history`.
 
         Args:
-            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET
+            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET
                 /v1/symbols`. Case-insensitive (`btcusdt` works; the envelope gives the
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
@@ -6280,7 +6289,7 @@ class OrderbookFuturesHistoryResource(SyncResource):
         market.
 
         Args:
-            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET
+            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET
                 /v1/symbols`. Case-insensitive (`btcusdt` works; the envelope gives the
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
@@ -6332,7 +6341,7 @@ class OrderbookFuturesHistoryResource(SyncResource):
         `order` says otherwise. Call `.to_pandas()` / `.to_list()` to collect them.
 
         Args:
-            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET
+            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET
                 /v1/symbols`. Case-insensitive (`btcusdt` works; the envelope gives the
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
@@ -6384,7 +6393,7 @@ class OrderbookFuturesResource(SyncResource):
         Perpetual futures market only. Same as `/v1/orderbook`, which serves every market.
 
         Args:
-            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET
+            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET
                 /v1/symbols`. Case-insensitive (`btcusdt` works; the envelope gives the
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
@@ -6426,7 +6435,7 @@ class OrderbookHistoryResource(SyncResource):
         repeats a row).
 
         Args:
-            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET
+            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET
                 /v1/symbols`. Case-insensitive (`btcusdt` works; the envelope gives the
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
@@ -6478,7 +6487,7 @@ class OrderbookHistoryResource(SyncResource):
         `order` says otherwise. Call `.to_pandas()` / `.to_list()` to collect them.
 
         Args:
-            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET
+            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET
                 /v1/symbols`. Case-insensitive (`btcusdt` works; the envelope gives the
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
@@ -6529,7 +6538,7 @@ class OrderbookSpotHistoryResource(SyncResource):
         Spot market only. Same as `/v1/orderbook/history`, which serves every market.
 
         Args:
-            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET
+            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET
                 /v1/symbols`. Case-insensitive (`btcusdt` works; the envelope gives the
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
@@ -6581,7 +6590,7 @@ class OrderbookSpotHistoryResource(SyncResource):
         `order` says otherwise. Call `.to_pandas()` / `.to_list()` to collect them.
 
         Args:
-            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET
+            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET
                 /v1/symbols`. Case-insensitive (`btcusdt` works; the envelope gives the
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
@@ -6633,7 +6642,7 @@ class OrderbookSpotResource(SyncResource):
         Spot market only. Same as `/v1/orderbook`, which serves every market.
 
         Args:
-            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET
+            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET
                 /v1/symbols`. Case-insensitive (`btcusdt` works; the envelope gives the
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
@@ -6683,7 +6692,7 @@ class OrderbookResource(SyncResource):
         (`is_closed: true`): there is no open period to return, so `live` is not accepted.
 
         Args:
-            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET
+            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET
                 /v1/symbols`. Case-insensitive (`btcusdt` works; the envelope gives the
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
@@ -6719,7 +6728,7 @@ class PriceChangeResource(SyncResource):
         close at or before that instant minus the window. Spot-based for stablecoins.
 
         Args:
-            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET
+            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET
                 /v1/symbols`. Case-insensitive (`btcusdt` works; the envelope gives the
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
@@ -6918,7 +6927,7 @@ class SpreadInterexchangeHistoryResource(SyncResource):
         repeats a row).
 
         Args:
-            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET
+            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET
                 /v1/symbols`. Case-insensitive (`btcusdt` works; the envelope gives the
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
@@ -6970,7 +6979,7 @@ class SpreadInterexchangeHistoryResource(SyncResource):
         `order` says otherwise. Call `.to_pandas()` / `.to_list()` to collect them.
 
         Args:
-            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET
+            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET
                 /v1/symbols`. Case-insensitive (`btcusdt` works; the envelope gives the
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
@@ -7025,7 +7034,7 @@ class SpreadInterexchangeResource(SyncResource):
         `is_closed` says whether the value is final. Add `?live=1` for the open period.
 
         Args:
-            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET
+            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET
                 /v1/symbols`. Case-insensitive (`btcusdt` works; the envelope gives the
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
@@ -7094,9 +7103,10 @@ class SymbolsResource(SyncResource):
     ) -> Response[list[m.SymbolInfo]]:
         """GET /v1/symbols — List the served trading pairs
 
-        The 22 served pairs: 20 USDT-margined perpetual markets (BTC, ETH, SOL, XRP, DOGE,
-        BNB, TRX, SUI, HYPE, XLM, XMR, LINK, ADA, LTC, UNI, GRAM, AVAX, HBAR, NEAR, TAO)
-        plus two spot-only stablecoin pairs (USDCUSDT, USDTUSDC).
+        The 77 served pairs: 75 USDT-margined perpetual markets (the largest crypto assets
+        by market capitalisation that the venues list as perpetuals) plus two spot-only
+        stablecoin pairs (USDCUSDT, USDTUSDC). The response is the full list, with the name
+        and base asset of each pair; `GET /v1/capabilities` says what each one supports.
 
         Args:
             fields: Only return these fields of each row (a list or a comma-separated
@@ -7130,7 +7140,7 @@ class TokenomicsHistoryResource(SyncResource):
         to read the following page (it never repeats a row).
 
         Args:
-            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET
+            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET
                 /v1/symbols`. Case-insensitive (`btcusdt` works; the envelope gives the
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
@@ -7177,7 +7187,7 @@ class TokenomicsHistoryResource(SyncResource):
         `order` says otherwise. Call `.to_pandas()` / `.to_list()` to collect them.
 
         Args:
-            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET
+            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET
                 /v1/symbols`. Case-insensitive (`btcusdt` works; the envelope gives the
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
@@ -7225,7 +7235,7 @@ class TokenomicsResource(SyncResource):
         price at request time (pegged at 1 for stablecoins, FDV null).
 
         Args:
-            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET
+            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET
                 /v1/symbols`. Case-insensitive (`btcusdt` works; the envelope gives the
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
@@ -7262,7 +7272,7 @@ class TradesKlineFuturesHistoryResource(SyncResource):
         repeats a row).
 
         Args:
-            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET
+            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET
                 /v1/symbols`. Case-insensitive (`btcusdt` works; the envelope gives the
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
@@ -7314,7 +7324,7 @@ class TradesKlineFuturesHistoryResource(SyncResource):
         `order` says otherwise. Call `.to_pandas()` / `.to_list()` to collect them.
 
         Args:
-            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET
+            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET
                 /v1/symbols`. Case-insensitive (`btcusdt` works; the envelope gives the
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
@@ -7372,7 +7382,7 @@ class TradesKlineFuturesSecondsResource(SyncResource):
         read the following page (it never repeats a row).
 
         Args:
-            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET
+            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET
                 /v1/symbols`. Case-insensitive (`btcusdt` works; the envelope gives the
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
@@ -7418,7 +7428,7 @@ class TradesKlineFuturesSecondsResource(SyncResource):
         `order` says otherwise. Call `.to_pandas()` / `.to_list()` to collect them.
 
         Args:
-            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET
+            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET
                 /v1/symbols`. Case-insensitive (`btcusdt` works; the envelope gives the
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
@@ -7472,7 +7482,7 @@ class TradesKlineFuturesResource(SyncResource):
         final. Add `?live=1` for the open period.
 
         Args:
-            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET
+            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET
                 /v1/symbols`. Case-insensitive (`btcusdt` works; the envelope gives the
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
@@ -7515,7 +7525,7 @@ class TradesKlineHistoryResource(SyncResource):
         row).
 
         Args:
-            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET
+            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET
                 /v1/symbols`. Case-insensitive (`btcusdt` works; the envelope gives the
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
@@ -7567,7 +7577,7 @@ class TradesKlineHistoryResource(SyncResource):
         `order` says otherwise. Call `.to_pandas()` / `.to_list()` to collect them.
 
         Args:
-            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET
+            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET
                 /v1/symbols`. Case-insensitive (`btcusdt` works; the envelope gives the
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
@@ -7620,7 +7630,7 @@ class TradesKlineSpotHistoryResource(SyncResource):
         repeats a row).
 
         Args:
-            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET
+            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET
                 /v1/symbols`. Case-insensitive (`btcusdt` works; the envelope gives the
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
@@ -7672,7 +7682,7 @@ class TradesKlineSpotHistoryResource(SyncResource):
         `order` says otherwise. Call `.to_pandas()` / `.to_list()` to collect them.
 
         Args:
-            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET
+            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET
                 /v1/symbols`. Case-insensitive (`btcusdt` works; the envelope gives the
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
@@ -7726,7 +7736,7 @@ class TradesKlineSpotResource(SyncResource):
         value is final. Add `?live=1` for the open period.
 
         Args:
-            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET
+            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET
                 /v1/symbols`. Case-insensitive (`btcusdt` works; the envelope gives the
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
@@ -7777,7 +7787,7 @@ class TradesKlineResource(SyncResource):
         whether the value is final. Add `?live=1` for the open period.
 
         Args:
-            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET
+            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET
                 /v1/symbols`. Case-insensitive (`btcusdt` works; the envelope gives the
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
@@ -7819,7 +7829,7 @@ class TradesAvgSizeFuturesHistoryResource(SyncResource):
         every market.
 
         Args:
-            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET
+            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET
                 /v1/symbols`. Case-insensitive (`btcusdt` works; the envelope gives the
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
@@ -7873,7 +7883,7 @@ class TradesAvgSizeFuturesHistoryResource(SyncResource):
         `order` says otherwise. Call `.to_pandas()` / `.to_list()` to collect them.
 
         Args:
-            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET
+            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET
                 /v1/symbols`. Case-insensitive (`btcusdt` works; the envelope gives the
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
@@ -7928,7 +7938,7 @@ class TradesAvgSizeFuturesResource(SyncResource):
         market.
 
         Args:
-            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET
+            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET
                 /v1/symbols`. Case-insensitive (`btcusdt` works; the envelope gives the
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
@@ -7976,7 +7986,7 @@ class TradesAvgSizeHistoryResource(SyncResource):
         page (it never repeats a row).
 
         Args:
-            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET
+            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET
                 /v1/symbols`. Case-insensitive (`btcusdt` works; the envelope gives the
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
@@ -8030,7 +8040,7 @@ class TradesAvgSizeHistoryResource(SyncResource):
         `order` says otherwise. Call `.to_pandas()` / `.to_list()` to collect them.
 
         Args:
-            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET
+            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET
                 /v1/symbols`. Case-insensitive (`btcusdt` works; the envelope gives the
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
@@ -8083,7 +8093,7 @@ class TradesAvgSizeSpotHistoryResource(SyncResource):
         Spot market only. Same as `/v1/trades/avg-size/history`, which serves every market.
 
         Args:
-            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET
+            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET
                 /v1/symbols`. Case-insensitive (`btcusdt` works; the envelope gives the
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
@@ -8137,7 +8147,7 @@ class TradesAvgSizeSpotHistoryResource(SyncResource):
         `order` says otherwise. Call `.to_pandas()` / `.to_list()` to collect them.
 
         Args:
-            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET
+            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET
                 /v1/symbols`. Case-insensitive (`btcusdt` works; the envelope gives the
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
@@ -8191,7 +8201,7 @@ class TradesAvgSizeSpotResource(SyncResource):
         Spot market only. Same as `/v1/trades/avg-size`, which serves every market.
 
         Args:
-            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET
+            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET
                 /v1/symbols`. Case-insensitive (`btcusdt` works; the envelope gives the
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
@@ -8242,7 +8252,7 @@ class TradesAvgSizeResource(SyncResource):
         history.
 
         Args:
-            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET
+            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET
                 /v1/symbols`. Case-insensitive (`btcusdt` works; the envelope gives the
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
@@ -8289,7 +8299,7 @@ class TradesFuturesResource(SyncResource):
         WebSocket.
 
         Args:
-            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET
+            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET
                 /v1/symbols`. Case-insensitive (`btcusdt` works; the envelope gives the
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
@@ -8341,7 +8351,7 @@ class TradesFuturesResource(SyncResource):
         `order` says otherwise. Call `.to_pandas()` / `.to_list()` to collect them.
 
         Args:
-            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET
+            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET
                 /v1/symbols`. Case-insensitive (`btcusdt` works; the envelope gives the
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
@@ -8394,7 +8404,7 @@ class TradesLargeResource(SyncResource):
         the following page (it never repeats a row).
 
         Args:
-            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET
+            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET
                 /v1/symbols`. Case-insensitive (`btcusdt` works; the envelope gives the
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
@@ -8448,7 +8458,7 @@ class TradesLargeResource(SyncResource):
         `order` says otherwise. Call `.to_pandas()` / `.to_list()` to collect them.
 
         Args:
-            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET
+            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET
                 /v1/symbols`. Case-insensitive (`btcusdt` works; the envelope gives the
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
@@ -8504,7 +8514,7 @@ class TradesSpotResource(SyncResource):
         once, in order. Each trade has a stable `id`, the same as on the WebSocket.
 
         Args:
-            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET
+            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET
                 /v1/symbols`. Case-insensitive (`btcusdt` works; the envelope gives the
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
@@ -8556,7 +8566,7 @@ class TradesSpotResource(SyncResource):
         `order` says otherwise. Call `.to_pandas()` / `.to_list()` to collect them.
 
         Args:
-            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 22 served pairs: `GET
+            symbol: Trading pair, e.g. `BTCUSDT`. Required. The 77 served pairs: `GET
                 /v1/symbols`. Case-insensitive (`btcusdt` works; the envelope gives the
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.

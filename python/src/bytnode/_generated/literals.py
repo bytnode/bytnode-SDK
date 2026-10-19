@@ -31,7 +31,7 @@ Order = Literal['asc', 'desc']
 MiningDataset = Literal['concentration', 'rewards', 'difficulty', 'fee_rates']
 """Mining series: pool shares, block rewards, difficulty or fee rates."""
 
-KnownSymbol = Literal['ADAUSDT', 'AVAXUSDT', 'BNBUSDT', 'BTCUSDT', 'DOGEUSDT', 'ETHUSDT', 'GRAMUSDT', 'HBARUSDT', 'HYPEUSDT', 'LINKUSDT', 'LTCUSDT', 'NEARUSDT', 'SOLUSDT', 'SUIUSDT', 'TAOUSDT', 'TRXUSDT', 'UNIUSDT', 'USDCUSDT', 'USDTUSDC', 'XLMUSDT', 'XMRUSDT', 'XRPUSDT']
+KnownSymbol = Literal['AAVEUSDT', 'ADAUSDT', 'AEROUSDT', 'AKEUSDT', 'ALGOUSDT', 'APTUSDT', 'ARBUSDT', 'ASTERUSDT', 'ATOMUSDT', 'AVAXUSDT', 'BCHUSDT', 'BNBUSDT', 'BSVUSDT', 'BTCUSDT', 'CAKEUSDT', 'CCUSDT', 'CRVUSDT', 'DASHUSDT', 'DOGEUSDT', 'DOTUSDT', 'ENAUSDT', 'ETCUSDT', 'ETHUSDT', 'FETUSDT', 'FFUSDT', 'FILUSDT', 'GRAMUSDT', 'GRASSUSDT', 'HBARUSDT', 'HYPEUSDT', 'ICPUSDT', 'INJUSDT', 'JSTUSDT', 'JUPUSDT', 'KASUSDT', 'LDOUSDT', 'LINKUSDT', 'LITUSDT', 'LTCUSDT', 'MORPHOUSDT', 'NEARUSDT', 'NIGHTUSDT', 'ONDOUSDT', 'PENDLEUSDT', 'PENGUUSDT', 'POLUSDT', 'PUMPUSDT', 'PYTHUSDT', 'QNTUSDT', 'RENDERUSDT', 'SEIUSDT', 'SKYUSDT', 'SOLUSDT', 'SPXUSDT', 'STABLEUSDT', 'STRKUSDT', 'STXUSDT', 'SUIUSDT', 'TAOUSDT', 'TIAUSDT', 'TRUMPUSDT', 'TRXUSDT', 'UNIUSDT', 'USDCUSDT', 'USDTUSDC', 'VETUSDT', 'VIRTUALUSDT', 'VVVUSDT', 'WLDUSDT', 'WLFIUSDT', 'XLMUSDT', 'XMRUSDT', 'XPLUSDT', 'XRPUSDT', 'XTZUSDT', 'ZECUSDT', 'ZROUSDT']
 """The pairs served by this contract version (`GET /v1/symbols` gives the live list). The `symbol` parameter is an OPEN string: a pair added later is not a breaking change."""
 
 IndicatorType = Literal['ad', 'adosc', 'adx', 'atr', 'bb', 'cci', 'donchian', 'ema', 'ichimoku', 'keltner', 'macd', 'mfi', 'obv', 'roc', 'rsi', 'sar', 'sma', 'stoch', 'willr']

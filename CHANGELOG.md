@@ -4,6 +4,15 @@ All notable changes to the BytNode SDKs. Both packages share one version number.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow
 [Semantic Versioning](https://semver.org/).
 
+## [2.0.4] — 2026-10-19
+
+Generated from contract `2.0.4`.
+
+- 77 served pairs instead of 22: 75 USDT-margined perpetual markets plus the two stablecoin
+  pairs. `KnownSymbol` now lists all 77 (`GET /v1/symbols` remains the source of truth).
+- The 55 new pairs have no imported open-interest or basis history: `1m`–`30m` start on
+  2026-10-19 09:31 UTC.
+
 ## [2.0.3] — 2026-10-16
 
 Generated from contract `2.0.3`.

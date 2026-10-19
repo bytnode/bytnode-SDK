@@ -919,10 +919,11 @@ export interface BuySellRatio {
    */
   buy_sell_coverage_ratio: number | null;
   /**
-   * `true` when base-asset quantities of this row were ESTIMATED from USD amounts ÷ the
-   * candle's typical price (high + low + close) / 3 (data written before quantities were
-   * recorded; mean error 0.04 % in 1m, 0.37 % in 1d); `false` = measured. `null` when the
-   * volume itself is `null` (not available).
+   * `true` when some base-asset quantities of this row were ESTIMATED from USD amounts (history
+   * where a source reported amounts but not quantities): a buy or sell amount is converted at
+   * that source's own average price when its total quantity is known, otherwise at the candle's
+   * typical price (high + low + close) / 3. Every quantity a source measured is kept as is.
+   * `false` = all measured. `null` when the volume itself is `null` (not available).
    */
   is_volume_estimated: boolean | null;
   /**
@@ -976,10 +977,11 @@ export interface BuySellRatioHistoryItem {
    */
   buy_sell_coverage_ratio: number | null;
   /**
-   * `true` when base-asset quantities of this row were ESTIMATED from USD amounts ÷ the
-   * candle's typical price (high + low + close) / 3 (data written before quantities were
-   * recorded; mean error 0.04 % in 1m, 0.37 % in 1d); `false` = measured. `null` when the
-   * volume itself is `null` (not available).
+   * `true` when some base-asset quantities of this row were ESTIMATED from USD amounts (history
+   * where a source reported amounts but not quantities): a buy or sell amount is converted at
+   * that source's own average price when its total quantity is known, otherwise at the candle's
+   * typical price (high + low + close) / 3. Every quantity a source measured is kept as is.
+   * `false` = all measured. `null` when the volume itself is `null` (not available).
    */
   is_volume_estimated: boolean | null;
   /**
@@ -1181,10 +1183,11 @@ export interface Cvd {
    */
   buy_sell_coverage_ratio: number | null;
   /**
-   * `true` when base-asset quantities of this row were ESTIMATED from USD amounts ÷ the
-   * candle's typical price (high + low + close) / 3 (data written before quantities were
-   * recorded; mean error 0.04 % in 1m, 0.37 % in 1d); `false` = measured. `null` when the
-   * volume itself is `null` (not available).
+   * `true` when some base-asset quantities of this row were ESTIMATED from USD amounts (history
+   * where a source reported amounts but not quantities): a buy or sell amount is converted at
+   * that source's own average price when its total quantity is known, otherwise at the candle's
+   * typical price (high + low + close) / 3. Every quantity a source measured is kept as is.
+   * `false` = all measured. `null` when the volume itself is `null` (not available).
    */
   is_volume_estimated: boolean | null;
   /**
@@ -2386,10 +2389,11 @@ export interface Kline {
    */
   sell_volume: number | null;
   /**
-   * `true` when base-asset quantities of this row were ESTIMATED from USD amounts ÷ the
-   * candle's typical price (high + low + close) / 3 (data written before quantities were
-   * recorded; mean error 0.04 % in 1m, 0.37 % in 1d); `false` = measured. `null` when the
-   * volume itself is `null` (not available).
+   * `true` when some base-asset quantities of this row were ESTIMATED from USD amounts (history
+   * where a source reported amounts but not quantities): a buy or sell amount is converted at
+   * that source's own average price when its total quantity is known, otherwise at the candle's
+   * typical price (high + low + close) / 3. Every quantity a source measured is kept as is.
+   * `false` = all measured. `null` when the volume itself is `null` (not available).
    */
   is_volume_estimated: boolean | null;
   /**
@@ -2492,10 +2496,11 @@ export interface KlineHistoryItem {
    */
   sell_volume: number | null;
   /**
-   * `true` when base-asset quantities of this row were ESTIMATED from USD amounts ÷ the
-   * candle's typical price (high + low + close) / 3 (data written before quantities were
-   * recorded; mean error 0.04 % in 1m, 0.37 % in 1d); `false` = measured. `null` when the
-   * volume itself is `null` (not available).
+   * `true` when some base-asset quantities of this row were ESTIMATED from USD amounts (history
+   * where a source reported amounts but not quantities): a buy or sell amount is converted at
+   * that source's own average price when its total quantity is known, otherwise at the candle's
+   * typical price (high + low + close) / 3. Every quantity a source measured is kept as is.
+   * `false` = all measured. `null` when the volume itself is `null` (not available).
    */
   is_volume_estimated: boolean | null;
   /**
@@ -4998,10 +5003,11 @@ export interface TradesKline {
    */
   trade_rate: number;
   /**
-   * `true` when base-asset quantities of this row were ESTIMATED from USD amounts ÷ the
-   * candle's typical price (high + low + close) / 3 (data written before quantities were
-   * recorded; mean error 0.04 % in 1m, 0.37 % in 1d); `false` = measured. `null` when the
-   * volume itself is `null` (not available).
+   * `true` when some base-asset quantities of this row were ESTIMATED from USD amounts (history
+   * where a source reported amounts but not quantities): a buy or sell amount is converted at
+   * that source's own average price when its total quantity is known, otherwise at the candle's
+   * typical price (high + low + close) / 3. Every quantity a source measured is kept as is.
+   * `false` = all measured. `null` when the volume itself is `null` (not available).
    */
   is_volume_estimated: boolean | null;
   /**
@@ -5073,10 +5079,11 @@ export interface TradesKlineSecond {
    */
   trade_rate: number;
   /**
-   * `true` when base-asset quantities of this row were ESTIMATED from USD amounts ÷ the
-   * candle's typical price (high + low + close) / 3 (data written before quantities were
-   * recorded; mean error 0.04 % in 1m, 0.37 % in 1d); `false` = measured. `null` when the
-   * volume itself is `null` (not available).
+   * `true` when some base-asset quantities of this row were ESTIMATED from USD amounts (history
+   * where a source reported amounts but not quantities): a buy or sell amount is converted at
+   * that source's own average price when its total quantity is known, otherwise at the candle's
+   * typical price (high + low + close) / 3. Every quantity a source measured is kept as is.
+   * `false` = all measured. `null` when the volume itself is `null` (not available).
    */
   is_volume_estimated: boolean | null;
 }
@@ -5110,10 +5117,11 @@ export interface TradesAvgSize {
    */
   trade_count: number;
   /**
-   * `true` when base-asset quantities of this row were ESTIMATED from USD amounts ÷ the
-   * candle's typical price (high + low + close) / 3 (data written before quantities were
-   * recorded; mean error 0.04 % in 1m, 0.37 % in 1d); `false` = measured. `null` when the
-   * volume itself is `null` (not available).
+   * `true` when some base-asset quantities of this row were ESTIMATED from USD amounts (history
+   * where a source reported amounts but not quantities): a buy or sell amount is converted at
+   * that source's own average price when its total quantity is known, otherwise at the candle's
+   * typical price (high + low + close) / 3. Every quantity a source measured is kept as is.
+   * `false` = all measured. `null` when the volume itself is `null` (not available).
    */
   is_volume_estimated: boolean | null;
   /**
@@ -5164,10 +5172,11 @@ export interface TradesAvgSizeHistoryItem {
    */
   trade_count: number;
   /**
-   * `true` when base-asset quantities of this row were ESTIMATED from USD amounts ÷ the
-   * candle's typical price (high + low + close) / 3 (data written before quantities were
-   * recorded; mean error 0.04 % in 1m, 0.37 % in 1d); `false` = measured. `null` when the
-   * volume itself is `null` (not available).
+   * `true` when some base-asset quantities of this row were ESTIMATED from USD amounts (history
+   * where a source reported amounts but not quantities): a buy or sell amount is converted at
+   * that source's own average price when its total quantity is known, otherwise at the candle's
+   * typical price (high + low + close) / 3. Every quantity a source measured is kept as is.
+   * `false` = all measured. `null` when the volume itself is `null` (not available).
    */
   is_volume_estimated: boolean | null;
   /**
