@@ -19,6 +19,121 @@ from .literals import Asset, CoarseTimeframe, IntradayTimeframe, KlineTimeframe,
 from .snapshot import SnapshotData
 
 
+class AsyncAltcoinSeasonHistoryResource(AsyncResource):
+    """`/v1/altcoin-season/history`."""
+
+    _route = RouteSpec(path='/v1/altcoin-season/history', method='GET', shape='list', model=m.AltcoinSeasonHistoryItem, paginated=True, path_params=(), max_limit=1000, range_mode=False)
+
+    async def __call__(
+        self,
+        *,
+        limit: int | None = None,
+        since: TimeLike | None = None,
+        until: TimeLike | None = None,
+        before: TimeLike | None = None,
+        order: Order | None = None,
+        fields: Fields | None = None,
+        request_options: RequestOptions | None = None,
+    ) -> Response[list[m.AltcoinSeasonHistoryItem]]:
+        """GET /v1/altcoin-season/history — Altcoin Season history
+
+        One point per day, at midnight UTC. Most recent first, or oldest first with
+        `order=asc`. Follow `next` to read the following page (it never repeats a row).
+
+        Args:
+            limit: Number of rows to return, in the reading order (most recent first by
+                default). Bounded by your plan's history window: an explicit `limit` (or
+                `since_ms`) reaching beyond it returns 403 `history_depth`; without them the
+                page simply stops at the window.
+            since: Lower time bound, inclusive. A `datetime` (naive = UTC), a `date`, an ISO
+                string (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
+            until: Upper time bound, inclusive to the millisecond. A `datetime` (naive =
+                UTC), a `date`, an ISO string (`2026-01-01`, `2026-01-01T12:00:00Z`) or
+                epoch milliseconds.
+            before: Upper time bound, exclusive (rows strictly before it). Not combinable
+                with `until`. A `datetime` (naive = UTC), a `date`, an ISO string
+                (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
+            order: Reading order: `desc` (most recent first, the default) or `asc` (oldest
+                first, reading forward from `since_ms`, which is then required). Follow
+                `next` to read the following page.
+            fields: Only return these fields of each row (a list or a comma-separated
+                string; dotted paths reach nested keys). Rows are then partial and not
+                validated.
+            request_options: Per-request `timeout`, `max_retries` or extra `headers`.
+        """
+        return await self._call(self._route, {'limit': limit, 'since_ms': since, 'until_ms': until, 'before_ms': before, 'order': order, 'fields': fields}, request_options)
+
+    def iter(
+        self,
+        *,
+        since: TimeLike | None = None,
+        until: TimeLike | None = None,
+        order: Order | None = None,
+        fields: Fields | None = None,
+        page_size: int | None = None,
+        max_items: int | None = None,
+        limit: int | None = None,
+        request_options: RequestOptions | None = None,
+    ) -> AsyncRowIterator[m.AltcoinSeasonHistoryItem]:
+        """Every row of `/v1/altcoin-season/history` over a period, following `next` page after page.
+
+        Pages are fetched lazily, `page_size` rows at a time (default with `since`: the
+        route's maximum; without it, the route's default page, which stops at your plan's
+        history window). With `since`, rows come oldest first unless
+        `order` says otherwise. Call `.to_pandas()` / `.to_list()` to collect them.
+
+        Args:
+            since: Lower time bound, inclusive. A `datetime` (naive = UTC), a `date`, an ISO
+                string (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
+            until: Upper time bound, inclusive to the millisecond. A `datetime` (naive =
+                UTC), a `date`, an ISO string (`2026-01-01`, `2026-01-01T12:00:00Z`) or
+                epoch milliseconds.
+            order: Reading order: `desc` (most recent first, the default) or `asc` (oldest
+                first, reading forward from `since_ms`, which is then required). Follow
+                `next` to read the following page.
+            fields: Only return these fields of each row (a list or a comma-separated
+                string; dotted paths reach nested keys). Rows are then partial and not
+                validated.
+            page_size: Rows per request (`limit`), up to the route's maximum.
+            max_items: Stop after this many rows.
+            limit: The same as `max_items` (the name the other methods use for a number of
+                rows).
+            request_options: Per-request `timeout`, `max_retries` or extra `headers`.
+        """
+        return self._iter(self._route, {'since_ms': since, 'until_ms': until, 'order': order, 'fields': fields}, page_size=page_size, max_items=max_items if max_items is not None else limit, request_options=request_options)
+
+
+class AsyncAltcoinSeasonResource(AsyncResource):
+    """`/v1/altcoin-season` and its sub-routes."""
+
+    history: AsyncAltcoinSeasonHistoryResource
+
+    def __init__(self, client: Any) -> None:
+        super().__init__(client)
+        self.history = AsyncAltcoinSeasonHistoryResource(client)
+
+    _route = RouteSpec(path='/v1/altcoin-season', method='GET', shape='object', model=m.AltcoinSeason, paginated=False, path_params=(), max_limit=None, range_mode=False)
+
+    async def __call__(
+        self,
+        *,
+        fields: Fields | None = None,
+        request_options: RequestOptions | None = None,
+    ) -> Response[m.AltcoinSeason | None]:
+        """GET /v1/altcoin-season — Altcoin Season Index
+
+        CoinMarketCap's Altcoin Season Index, from 0 (bitcoin season) to 100 (altcoin
+        season), with the altcoin market capitalisation and the 1-year high and low.
+
+        Args:
+            fields: Only return these fields of each row (a list or a comma-separated
+                string; dotted paths reach nested keys). Rows are then partial and not
+                validated.
+            request_options: Per-request `timeout`, `max_retries` or extra `headers`.
+        """
+        return await self._call(self._route, {'fields': fields}, request_options)
+
+
 class AsyncBasisHistoryResource(AsyncResource):
     """`/v1/basis/history`."""
 
@@ -3147,6 +3262,121 @@ class AsyncEthResource(AsyncResource):
 
 
 
+class AsyncFearGreedCmcHistoryResource(AsyncResource):
+    """`/v1/fear-greed/cmc/history`."""
+
+    _route = RouteSpec(path='/v1/fear-greed/cmc/history', method='GET', shape='list', model=m.FearGreedCmcHistoryItem, paginated=True, path_params=(), max_limit=1000, range_mode=False)
+
+    async def __call__(
+        self,
+        *,
+        limit: int | None = None,
+        since: TimeLike | None = None,
+        until: TimeLike | None = None,
+        before: TimeLike | None = None,
+        order: Order | None = None,
+        fields: Fields | None = None,
+        request_options: RequestOptions | None = None,
+    ) -> Response[list[m.FearGreedCmcHistoryItem]]:
+        """GET /v1/fear-greed/cmc/history — CMC Fear & Greed history
+
+        One point per day, at midnight UTC. Most recent first, or oldest first with
+        `order=asc`. Follow `next` to read the following page (it never repeats a row).
+
+        Args:
+            limit: Number of rows to return, in the reading order (most recent first by
+                default). Bounded by your plan's history window: an explicit `limit` (or
+                `since_ms`) reaching beyond it returns 403 `history_depth`; without them the
+                page simply stops at the window.
+            since: Lower time bound, inclusive. A `datetime` (naive = UTC), a `date`, an ISO
+                string (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
+            until: Upper time bound, inclusive to the millisecond. A `datetime` (naive =
+                UTC), a `date`, an ISO string (`2026-01-01`, `2026-01-01T12:00:00Z`) or
+                epoch milliseconds.
+            before: Upper time bound, exclusive (rows strictly before it). Not combinable
+                with `until`. A `datetime` (naive = UTC), a `date`, an ISO string
+                (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
+            order: Reading order: `desc` (most recent first, the default) or `asc` (oldest
+                first, reading forward from `since_ms`, which is then required). Follow
+                `next` to read the following page.
+            fields: Only return these fields of each row (a list or a comma-separated
+                string; dotted paths reach nested keys). Rows are then partial and not
+                validated.
+            request_options: Per-request `timeout`, `max_retries` or extra `headers`.
+        """
+        return await self._call(self._route, {'limit': limit, 'since_ms': since, 'until_ms': until, 'before_ms': before, 'order': order, 'fields': fields}, request_options)
+
+    def iter(
+        self,
+        *,
+        since: TimeLike | None = None,
+        until: TimeLike | None = None,
+        order: Order | None = None,
+        fields: Fields | None = None,
+        page_size: int | None = None,
+        max_items: int | None = None,
+        limit: int | None = None,
+        request_options: RequestOptions | None = None,
+    ) -> AsyncRowIterator[m.FearGreedCmcHistoryItem]:
+        """Every row of `/v1/fear-greed/cmc/history` over a period, following `next` page after page.
+
+        Pages are fetched lazily, `page_size` rows at a time (default with `since`: the
+        route's maximum; without it, the route's default page, which stops at your plan's
+        history window). With `since`, rows come oldest first unless
+        `order` says otherwise. Call `.to_pandas()` / `.to_list()` to collect them.
+
+        Args:
+            since: Lower time bound, inclusive. A `datetime` (naive = UTC), a `date`, an ISO
+                string (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
+            until: Upper time bound, inclusive to the millisecond. A `datetime` (naive =
+                UTC), a `date`, an ISO string (`2026-01-01`, `2026-01-01T12:00:00Z`) or
+                epoch milliseconds.
+            order: Reading order: `desc` (most recent first, the default) or `asc` (oldest
+                first, reading forward from `since_ms`, which is then required). Follow
+                `next` to read the following page.
+            fields: Only return these fields of each row (a list or a comma-separated
+                string; dotted paths reach nested keys). Rows are then partial and not
+                validated.
+            page_size: Rows per request (`limit`), up to the route's maximum.
+            max_items: Stop after this many rows.
+            limit: The same as `max_items` (the name the other methods use for a number of
+                rows).
+            request_options: Per-request `timeout`, `max_retries` or extra `headers`.
+        """
+        return self._iter(self._route, {'since_ms': since, 'until_ms': until, 'order': order, 'fields': fields}, page_size=page_size, max_items=max_items if max_items is not None else limit, request_options=request_options)
+
+
+class AsyncFearGreedCmcResource(AsyncResource):
+    """`/v1/fear-greed/cmc` and its sub-routes."""
+
+    history: AsyncFearGreedCmcHistoryResource
+
+    def __init__(self, client: Any) -> None:
+        super().__init__(client)
+        self.history = AsyncFearGreedCmcHistoryResource(client)
+
+    _route = RouteSpec(path='/v1/fear-greed/cmc', method='GET', shape='object', model=m.FearGreedCmc, paginated=False, path_params=(), max_limit=None, range_mode=False)
+
+    async def __call__(
+        self,
+        *,
+        fields: Fields | None = None,
+        request_options: RequestOptions | None = None,
+    ) -> Response[m.FearGreedCmc | None]:
+        """GET /v1/fear-greed/cmc — CMC Fear & Greed Index
+
+        CoinMarketCap's Crypto Fear & Greed Index, from 0 (extreme fear) to 100 (extreme
+        greed): a different index from `/v1/fear-greed`, refreshed during the day.
+
+        Args:
+            fields: Only return these fields of each row (a list or a comma-separated
+                string; dotted paths reach nested keys). Rows are then partial and not
+                validated.
+            request_options: Per-request `timeout`, `max_retries` or extra `headers`.
+        """
+        return await self._call(self._route, {'fields': fields}, request_options)
+
+
 class AsyncFearGreedHistoryResource(AsyncResource):
     """`/v1/fear-greed/history`."""
 
@@ -3234,10 +3464,12 @@ class AsyncFearGreedHistoryResource(AsyncResource):
 class AsyncFearGreedResource(AsyncResource):
     """`/v1/fear-greed` and its sub-routes."""
 
+    cmc: AsyncFearGreedCmcResource
     history: AsyncFearGreedHistoryResource
 
     def __init__(self, client: Any) -> None:
         super().__init__(client)
+        self.cmc = AsyncFearGreedCmcResource(client)
         self.history = AsyncFearGreedHistoryResource(client)
 
     _route = RouteSpec(path='/v1/fear-greed', method='GET', shape='object', model=m.FearGreed, paginated=False, path_params=(), max_limit=None, range_mode=False)
@@ -3927,6 +4159,249 @@ class AsyncIndicatorsResource(AsyncResource):
             request_options: Per-request `timeout`, `max_retries` or extra `headers`.
         """
         return await self._indicators(self._route, symbol, timeframe, indicators, limit, request_options)
+
+
+class AsyncIndicesCmc100HistoryResource(AsyncResource):
+    """`/v1/indices/cmc100/history`."""
+
+    _route = RouteSpec(path='/v1/indices/cmc100/history', method='GET', shape='list', model=m.IndicesCmc100HistoryItem, paginated=True, path_params=(), max_limit=1000, range_mode=False)
+
+    async def __call__(
+        self,
+        *,
+        limit: int | None = None,
+        since: TimeLike | None = None,
+        until: TimeLike | None = None,
+        before: TimeLike | None = None,
+        order: Order | None = None,
+        fields: Fields | None = None,
+        request_options: RequestOptions | None = None,
+    ) -> Response[list[m.IndicesCmc100HistoryItem]]:
+        """GET /v1/indices/cmc100/history — CoinMarketCap 100 Index history
+
+        One value per day, at midnight UTC. Most recent first, or oldest first with
+        `order=asc`. Follow `next` to read the following page (it never repeats a row).
+
+        Args:
+            limit: Number of rows to return, in the reading order (most recent first by
+                default). Bounded by your plan's history window: an explicit `limit` (or
+                `since_ms`) reaching beyond it returns 403 `history_depth`; without them the
+                page simply stops at the window.
+            since: Lower time bound, inclusive. A `datetime` (naive = UTC), a `date`, an ISO
+                string (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
+            until: Upper time bound, inclusive to the millisecond. A `datetime` (naive =
+                UTC), a `date`, an ISO string (`2026-01-01`, `2026-01-01T12:00:00Z`) or
+                epoch milliseconds.
+            before: Upper time bound, exclusive (rows strictly before it). Not combinable
+                with `until`. A `datetime` (naive = UTC), a `date`, an ISO string
+                (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
+            order: Reading order: `desc` (most recent first, the default) or `asc` (oldest
+                first, reading forward from `since_ms`, which is then required). Follow
+                `next` to read the following page.
+            fields: Only return these fields of each row (a list or a comma-separated
+                string; dotted paths reach nested keys). Rows are then partial and not
+                validated.
+            request_options: Per-request `timeout`, `max_retries` or extra `headers`.
+        """
+        return await self._call(self._route, {'limit': limit, 'since_ms': since, 'until_ms': until, 'before_ms': before, 'order': order, 'fields': fields}, request_options)
+
+    def iter(
+        self,
+        *,
+        since: TimeLike | None = None,
+        until: TimeLike | None = None,
+        order: Order | None = None,
+        fields: Fields | None = None,
+        page_size: int | None = None,
+        max_items: int | None = None,
+        limit: int | None = None,
+        request_options: RequestOptions | None = None,
+    ) -> AsyncRowIterator[m.IndicesCmc100HistoryItem]:
+        """Every row of `/v1/indices/cmc100/history` over a period, following `next` page after page.
+
+        Pages are fetched lazily, `page_size` rows at a time (default with `since`: the
+        route's maximum; without it, the route's default page, which stops at your plan's
+        history window). With `since`, rows come oldest first unless
+        `order` says otherwise. Call `.to_pandas()` / `.to_list()` to collect them.
+
+        Args:
+            since: Lower time bound, inclusive. A `datetime` (naive = UTC), a `date`, an ISO
+                string (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
+            until: Upper time bound, inclusive to the millisecond. A `datetime` (naive =
+                UTC), a `date`, an ISO string (`2026-01-01`, `2026-01-01T12:00:00Z`) or
+                epoch milliseconds.
+            order: Reading order: `desc` (most recent first, the default) or `asc` (oldest
+                first, reading forward from `since_ms`, which is then required). Follow
+                `next` to read the following page.
+            fields: Only return these fields of each row (a list or a comma-separated
+                string; dotted paths reach nested keys). Rows are then partial and not
+                validated.
+            page_size: Rows per request (`limit`), up to the route's maximum.
+            max_items: Stop after this many rows.
+            limit: The same as `max_items` (the name the other methods use for a number of
+                rows).
+            request_options: Per-request `timeout`, `max_retries` or extra `headers`.
+        """
+        return self._iter(self._route, {'since_ms': since, 'until_ms': until, 'order': order, 'fields': fields}, page_size=page_size, max_items=max_items if max_items is not None else limit, request_options=request_options)
+
+
+class AsyncIndicesCmc100Resource(AsyncResource):
+    """`/v1/indices/cmc100` and its sub-routes."""
+
+    history: AsyncIndicesCmc100HistoryResource
+
+    def __init__(self, client: Any) -> None:
+        super().__init__(client)
+        self.history = AsyncIndicesCmc100HistoryResource(client)
+
+    _route = RouteSpec(path='/v1/indices/cmc100', method='GET', shape='object', model=m.IndicesCmc100, paginated=False, path_params=(), max_limit=None, range_mode=False)
+
+    async def __call__(
+        self,
+        *,
+        fields: Fields | None = None,
+        request_options: RequestOptions | None = None,
+    ) -> Response[m.IndicesCmc100 | None]:
+        """GET /v1/indices/cmc100 — CoinMarketCap 100 Index
+
+        Value of the CMC100 index (the 100 largest crypto assets), its 24 h change and its
+        constituents with their weight.
+
+        Args:
+            fields: Only return these fields of each row (a list or a comma-separated
+                string; dotted paths reach nested keys). Rows are then partial and not
+                validated.
+            request_options: Per-request `timeout`, `max_retries` or extra `headers`.
+        """
+        return await self._call(self._route, {'fields': fields}, request_options)
+
+
+class AsyncIndicesCmc20HistoryResource(AsyncResource):
+    """`/v1/indices/cmc20/history`."""
+
+    _route = RouteSpec(path='/v1/indices/cmc20/history', method='GET', shape='list', model=m.IndicesCmc20HistoryItem, paginated=True, path_params=(), max_limit=1000, range_mode=False)
+
+    async def __call__(
+        self,
+        *,
+        limit: int | None = None,
+        since: TimeLike | None = None,
+        until: TimeLike | None = None,
+        before: TimeLike | None = None,
+        order: Order | None = None,
+        fields: Fields | None = None,
+        request_options: RequestOptions | None = None,
+    ) -> Response[list[m.IndicesCmc20HistoryItem]]:
+        """GET /v1/indices/cmc20/history — CoinMarketCap 20 Index history
+
+        One value per day, at midnight UTC. Most recent first, or oldest first with
+        `order=asc`. Follow `next` to read the following page (it never repeats a row).
+
+        Args:
+            limit: Number of rows to return, in the reading order (most recent first by
+                default). Bounded by your plan's history window: an explicit `limit` (or
+                `since_ms`) reaching beyond it returns 403 `history_depth`; without them the
+                page simply stops at the window.
+            since: Lower time bound, inclusive. A `datetime` (naive = UTC), a `date`, an ISO
+                string (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
+            until: Upper time bound, inclusive to the millisecond. A `datetime` (naive =
+                UTC), a `date`, an ISO string (`2026-01-01`, `2026-01-01T12:00:00Z`) or
+                epoch milliseconds.
+            before: Upper time bound, exclusive (rows strictly before it). Not combinable
+                with `until`. A `datetime` (naive = UTC), a `date`, an ISO string
+                (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
+            order: Reading order: `desc` (most recent first, the default) or `asc` (oldest
+                first, reading forward from `since_ms`, which is then required). Follow
+                `next` to read the following page.
+            fields: Only return these fields of each row (a list or a comma-separated
+                string; dotted paths reach nested keys). Rows are then partial and not
+                validated.
+            request_options: Per-request `timeout`, `max_retries` or extra `headers`.
+        """
+        return await self._call(self._route, {'limit': limit, 'since_ms': since, 'until_ms': until, 'before_ms': before, 'order': order, 'fields': fields}, request_options)
+
+    def iter(
+        self,
+        *,
+        since: TimeLike | None = None,
+        until: TimeLike | None = None,
+        order: Order | None = None,
+        fields: Fields | None = None,
+        page_size: int | None = None,
+        max_items: int | None = None,
+        limit: int | None = None,
+        request_options: RequestOptions | None = None,
+    ) -> AsyncRowIterator[m.IndicesCmc20HistoryItem]:
+        """Every row of `/v1/indices/cmc20/history` over a period, following `next` page after page.
+
+        Pages are fetched lazily, `page_size` rows at a time (default with `since`: the
+        route's maximum; without it, the route's default page, which stops at your plan's
+        history window). With `since`, rows come oldest first unless
+        `order` says otherwise. Call `.to_pandas()` / `.to_list()` to collect them.
+
+        Args:
+            since: Lower time bound, inclusive. A `datetime` (naive = UTC), a `date`, an ISO
+                string (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
+            until: Upper time bound, inclusive to the millisecond. A `datetime` (naive =
+                UTC), a `date`, an ISO string (`2026-01-01`, `2026-01-01T12:00:00Z`) or
+                epoch milliseconds.
+            order: Reading order: `desc` (most recent first, the default) or `asc` (oldest
+                first, reading forward from `since_ms`, which is then required). Follow
+                `next` to read the following page.
+            fields: Only return these fields of each row (a list or a comma-separated
+                string; dotted paths reach nested keys). Rows are then partial and not
+                validated.
+            page_size: Rows per request (`limit`), up to the route's maximum.
+            max_items: Stop after this many rows.
+            limit: The same as `max_items` (the name the other methods use for a number of
+                rows).
+            request_options: Per-request `timeout`, `max_retries` or extra `headers`.
+        """
+        return self._iter(self._route, {'since_ms': since, 'until_ms': until, 'order': order, 'fields': fields}, page_size=page_size, max_items=max_items if max_items is not None else limit, request_options=request_options)
+
+
+class AsyncIndicesCmc20Resource(AsyncResource):
+    """`/v1/indices/cmc20` and its sub-routes."""
+
+    history: AsyncIndicesCmc20HistoryResource
+
+    def __init__(self, client: Any) -> None:
+        super().__init__(client)
+        self.history = AsyncIndicesCmc20HistoryResource(client)
+
+    _route = RouteSpec(path='/v1/indices/cmc20', method='GET', shape='object', model=m.IndicesCmc20, paginated=False, path_params=(), max_limit=None, range_mode=False)
+
+    async def __call__(
+        self,
+        *,
+        fields: Fields | None = None,
+        request_options: RequestOptions | None = None,
+    ) -> Response[m.IndicesCmc20 | None]:
+        """GET /v1/indices/cmc20 — CoinMarketCap 20 Index
+
+        Value of the CMC20 index (the 20 largest crypto assets), its 24 h change and its
+        constituents with their weight.
+
+        Args:
+            fields: Only return these fields of each row (a list or a comma-separated
+                string; dotted paths reach nested keys). Rows are then partial and not
+                validated.
+            request_options: Per-request `timeout`, `max_retries` or extra `headers`.
+        """
+        return await self._call(self._route, {'fields': fields}, request_options)
+
+
+class AsyncIndicesResource(AsyncResource):
+    """`/v1/indices` and its sub-routes."""
+
+    cmc100: AsyncIndicesCmc100Resource
+    cmc20: AsyncIndicesCmc20Resource
+
+    def __init__(self, client: Any) -> None:
+        super().__init__(client)
+        self.cmc100 = AsyncIndicesCmc100Resource(client)
+        self.cmc20 = AsyncIndicesCmc20Resource(client)
+
 
 
 class AsyncKlinesHistoryResource(AsyncResource):
@@ -6749,6 +7224,7 @@ class AsyncSnapshotResource(AsyncResource):
         self,
         symbol: str,
         *,
+        altcoin_season: Literal[True, 1] | None = None,
         basis: Literal[True, 1] | None = None,
         btc_active_addresses: Literal[True, 1] | None = None,
         btc_fees: Literal[True, 1] | None = None,
@@ -6758,6 +7234,8 @@ class AsyncSnapshotResource(AsyncResource):
         btc_network: Literal[True, 1] | None = None,
         btc_nvt: Literal[True, 1] | None = None,
         btc_revenue_per_difficulty: Literal[True, 1] | None = None,
+        cmc100: Literal[True, 1] | None = None,
+        cmc20: Literal[True, 1] | None = None,
         eth_defi: Literal[True, 1] | None = None,
         eth_deflation: Literal[True, 1] | None = None,
         eth_gas: Literal[True, 1] | None = None,
@@ -6767,6 +7245,7 @@ class AsyncSnapshotResource(AsyncResource):
         eth_staking: Literal[True, 1] | None = None,
         eth_supply: Literal[True, 1] | None = None,
         fear_greed: Literal[True, 1] | None = None,
+        fear_greed_cmc: Literal[True, 1] | None = None,
         funding_cumulative: Literal[True, 1] | None = None,
         funding_next: Literal[True, 1] | None = None,
         funding_rate: Literal[True, 1] | None = None,
@@ -6831,6 +7310,7 @@ class AsyncSnapshotResource(AsyncResource):
             snap.data.klines_1h[0].close
         """
         fields: dict[str, Depth | None] = {
+            'altcoin_season': altcoin_season,
             'basis': basis,
             'btc_active_addresses': btc_active_addresses,
             'btc_fees': btc_fees,
@@ -6840,6 +7320,8 @@ class AsyncSnapshotResource(AsyncResource):
             'btc_network': btc_network,
             'btc_nvt': btc_nvt,
             'btc_revenue_per_difficulty': btc_revenue_per_difficulty,
+            'cmc100': cmc100,
+            'cmc20': cmc20,
             'eth_defi': eth_defi,
             'eth_deflation': eth_deflation,
             'eth_gas': eth_gas,
@@ -6849,6 +7331,7 @@ class AsyncSnapshotResource(AsyncResource):
             'eth_staking': eth_staking,
             'eth_supply': eth_supply,
             'fear_greed': fear_greed,
+            'fear_greed_cmc': fear_greed_cmc,
             'funding_cumulative': funding_cumulative,
             'funding_next': funding_next,
             'funding_rate': funding_rate,
@@ -8652,8 +9135,9 @@ class AsyncWsResource(AsyncResource):
 
 
 class AsyncResources:
-    """Every route of the API, as attributes of the client (`client.basis`, ...)."""
+    """Every route of the API, as attributes of the client (`client.altcoin_season`, ...)."""
 
+    altcoin_season: AsyncAltcoinSeasonResource
     basis: AsyncBasisResource
     btc: AsyncBtcResource
     buy_sell_ratio: AsyncBuySellRatioResource
@@ -8667,6 +9151,7 @@ class AsyncResources:
     health: AsyncHealthResource
     heatmap: AsyncHeatmapResource
     indicators: AsyncIndicatorsResource
+    indices: AsyncIndicesResource
     klines: AsyncKlinesResource
     limits: AsyncLimitsResource
     liquidations: AsyncLiquidationsResource
@@ -8685,6 +9170,7 @@ class AsyncResources:
     ws: AsyncWsResource
 
     def _init_resources(self) -> None:
+        self.altcoin_season = AsyncAltcoinSeasonResource(self)
         self.basis = AsyncBasisResource(self)
         self.btc = AsyncBtcResource(self)
         self.buy_sell_ratio = AsyncBuySellRatioResource(self)
@@ -8698,6 +9184,7 @@ class AsyncResources:
         self.health = AsyncHealthResource(self)
         self.heatmap = AsyncHeatmapResource(self)
         self.indicators = AsyncIndicatorsResource(self)
+        self.indices = AsyncIndicesResource(self)
         self.klines = AsyncKlinesResource(self)
         self.limits = AsyncLimitsResource(self)
         self.liquidations = AsyncLiquidationsResource(self)

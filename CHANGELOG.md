@@ -4,6 +4,16 @@ All notable changes to the BytNode SDKs. Both packages share one version number.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow
 [Semantic Versioning](https://semver.org/).
 
+## [2.0.5] — 2026-10-19
+
+Generated from contract `2.0.5`.
+
+- New sentiment routes from CoinMarketCap: `fear_greed.cmc` (CMC Fear & Greed, a different
+  index from `fear_greed`), `altcoin_season`, and the `indices.cmc20` / `indices.cmc100`
+  market indices with their constituents (`asset`, `name`, `weight_pct`), each with a daily
+  `history`.
+- New snapshot fields `fear_greed_cmc`, `altcoin_season`, `cmc20` and `cmc100`.
+
 ## [2.0.4] — 2026-10-19
 
 Generated from contract `2.0.4`.

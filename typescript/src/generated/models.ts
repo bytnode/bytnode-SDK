@@ -5,6 +5,74 @@
 /** Typed rows returned by the API. Field names are the API's, so the docs read the same. */
 
 /**
+ * Row of `/v1/altcoin-season`.
+ */
+export interface AltcoinSeason {
+  /**
+   * Point-in-time value: the instant of the measurement (when the source was read). Unit: ISO
+   * 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).
+   */
+  time: Date | null;
+  /**
+   * Altcoin Season Index (CoinMarketCap): how many of the top altcoins outperformed BTC over
+   * the last 90 days. High = altcoin season, low = bitcoin season. Unit: score from 0 to 100.
+   */
+  value: number | null;
+  /**
+   * Lowest value of the index over the last year. Unit: score from 0 to 100.
+   */
+  year_low: number | null;
+  /**
+   * Highest value of the index over the last year. Unit: score from 0 to 100.
+   */
+  year_high: number | null;
+  /**
+   * Day of that lowest value, at midnight UTC. Unit: ISO 8601 UTC, milliseconds
+   * (2026-09-28T14:00:00.000Z).
+   */
+  year_low_at: Date | null;
+  /**
+   * Day of that highest value, at midnight UTC. Unit: ISO 8601 UTC, milliseconds
+   * (2026-09-28T14:00:00.000Z).
+   */
+  year_high_at: Date | null;
+  /**
+   * Total market capitalisation of the altcoins (excluding BTC). Unit: USD.
+   */
+  altcoin_market_cap_usd: number | null;
+}
+
+/**
+ * Row of `/v1/altcoin-season/history`.
+ */
+export interface AltcoinSeasonHistoryItem {
+  /**
+   * The day the value refers to, at midnight UTC. Unit: ISO 8601 UTC, milliseconds
+   * (2026-09-28T14:00:00.000Z).
+   */
+  time: Date | null;
+  /**
+   * Altcoin Season Index (CoinMarketCap): how many of the top altcoins outperformed BTC over
+   * the last 90 days. High = altcoin season, low = bitcoin season. Unit: score from 0 to 100.
+   */
+  value: number | null;
+  /**
+   * Total market capitalisation of the altcoins (excluding BTC). Unit: USD.
+   */
+  altcoin_market_cap_usd: number | null;
+  /**
+   * `true` = the row is final; `false` = provisional: the latest bucket while it still settles
+   * (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period
+   * in progress with `?live=1` on the routes that take it. Exception, rare: when a venue
+   * delivers trades LATE (seconds to minutes, e.g. during a burst), a closed row built from
+   * trades (trade candles, candle volumes, CVD, buy/sell ratio, trades per second) is corrected
+   * afterwards to include them, usually within minutes and at most one hour later; the
+   * correction only adds the late trades.
+   */
+  is_closed: boolean | null;
+}
+
+/**
  * Row of `/v1/basis`.
  */
 export interface Basis {
@@ -1972,6 +2040,58 @@ export interface FearGreed {
 }
 
 /**
+ * Row of `/v1/fear-greed/cmc`.
+ */
+export interface FearGreedCmc {
+  /**
+   * Point-in-time value: the instant of the measurement (when the source was read). Unit: ISO
+   * 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).
+   */
+  time: Date | null;
+  /**
+   * CMC Crypto Fear & Greed Index (CoinMarketCap), a different index from `/v1/fear-greed`
+   * (alternative.me). 0 = extreme fear, 100 = extreme greed. Unit: score from 0 to 100.
+   */
+  value: number | null;
+  /**
+   * Label of the value, from CoinMarketCap's scale: `extreme_fear`, `fear`, `neutral`, `greed`
+   * or `extreme_greed` (snake_case, like every label of the API).
+   */
+  label: string | null;
+}
+
+/**
+ * Row of `/v1/fear-greed/cmc/history`.
+ */
+export interface FearGreedCmcHistoryItem {
+  /**
+   * The day the value refers to, at midnight UTC. Unit: ISO 8601 UTC, milliseconds
+   * (2026-09-28T14:00:00.000Z).
+   */
+  time: Date | null;
+  /**
+   * CMC Crypto Fear & Greed Index (CoinMarketCap), a different index from `/v1/fear-greed`
+   * (alternative.me). 0 = extreme fear, 100 = extreme greed. Unit: score from 0 to 100.
+   */
+  value: number | null;
+  /**
+   * Label of the value, from CoinMarketCap's scale: `extreme_fear`, `fear`, `neutral`, `greed`
+   * or `extreme_greed` (snake_case, like every label of the API).
+   */
+  label: string | null;
+  /**
+   * `true` = the row is final; `false` = provisional: the latest bucket while it still settles
+   * (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period
+   * in progress with `?live=1` on the routes that take it. Exception, rare: when a venue
+   * delivers trades LATE (seconds to minutes, e.g. during a burst), a closed row built from
+   * trades (trade candles, candle volumes, CVD, buy/sell ratio, trades per second) is corrected
+   * afterwards to include them, usually within minutes and at most one hour later; the
+   * correction only adds the late trades.
+   */
+  is_closed: boolean | null;
+}
+
+/**
  * Row of `/v1/fear-greed/history`.
  */
 export interface FearGreedHistoryItem {
@@ -2340,6 +2460,142 @@ export interface HeatmapClustersHistoryItem {
    * correction only adds the late trades.
    */
   is_closed: boolean;
+}
+
+/**
+ * Nested object (IndicesCmc100ConstituentsItem).
+ */
+export interface IndicesCmc100ConstituentsItem {
+  /**
+   * Asset name (`Bitcoin`).
+   */
+  name: string | null;
+  /**
+   * Asset symbol (`BTC`).
+   */
+  asset: string | null;
+  /**
+   * Weight of the asset in the index (67.9 = 67.9 %). Unit: percent (58.5 = 58.5 %).
+   */
+  weight_pct: number | null;
+}
+
+/**
+ * Row of `/v1/indices/cmc100`.
+ */
+export interface IndicesCmc100 {
+  /**
+   * Point-in-time value: the instant of the measurement (when the source was read). Unit: ISO
+   * 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).
+   */
+  time: Date | null;
+  /**
+   * CoinMarketCap 100 Index: the 100 largest crypto assets, weighted by market capitalisation.
+   * Unit: index points.
+   */
+  value: number | null;
+  /**
+   * The assets of the index, with their weight.
+   */
+  constituents: Array<IndicesCmc100ConstituentsItem>;
+  /**
+   * Change of the index over the last 24 hours. Unit: percent (58.5 = 58.5 %).
+   */
+  change_24h_pct: number | null;
+}
+
+/**
+ * Row of `/v1/indices/cmc100/history`.
+ */
+export interface IndicesCmc100HistoryItem {
+  /**
+   * The day the value refers to, at midnight UTC. Unit: ISO 8601 UTC, milliseconds
+   * (2026-09-28T14:00:00.000Z).
+   */
+  time: Date | null;
+  /**
+   * CoinMarketCap 100 Index: the 100 largest crypto assets, weighted by market capitalisation.
+   * Unit: index points.
+   */
+  value: number | null;
+  /**
+   * `true` = the row is final; `false` = provisional: the latest bucket while it still settles
+   * (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period
+   * in progress with `?live=1` on the routes that take it. Exception, rare: when a venue
+   * delivers trades LATE (seconds to minutes, e.g. during a burst), a closed row built from
+   * trades (trade candles, candle volumes, CVD, buy/sell ratio, trades per second) is corrected
+   * afterwards to include them, usually within minutes and at most one hour later; the
+   * correction only adds the late trades.
+   */
+  is_closed: boolean | null;
+}
+
+/**
+ * Nested object (IndicesCmc20ConstituentsItem).
+ */
+export interface IndicesCmc20ConstituentsItem {
+  /**
+   * Asset name (`Bitcoin`).
+   */
+  name: string | null;
+  /**
+   * Asset symbol (`BTC`).
+   */
+  asset: string | null;
+  /**
+   * Weight of the asset in the index (70.9 = 70.9 %). Unit: percent (58.5 = 58.5 %).
+   */
+  weight_pct: number | null;
+}
+
+/**
+ * Row of `/v1/indices/cmc20`.
+ */
+export interface IndicesCmc20 {
+  /**
+   * Point-in-time value: the instant of the measurement (when the source was read). Unit: ISO
+   * 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).
+   */
+  time: Date | null;
+  /**
+   * CoinMarketCap 20 Index: the 20 largest crypto assets, weighted by market capitalisation.
+   * Unit: index points.
+   */
+  value: number | null;
+  /**
+   * The assets of the index, with their weight.
+   */
+  constituents: Array<IndicesCmc20ConstituentsItem>;
+  /**
+   * Change of the index over the last 24 hours. Unit: percent (58.5 = 58.5 %).
+   */
+  change_24h_pct: number | null;
+}
+
+/**
+ * Row of `/v1/indices/cmc20/history`.
+ */
+export interface IndicesCmc20HistoryItem {
+  /**
+   * The day the value refers to, at midnight UTC. Unit: ISO 8601 UTC, milliseconds
+   * (2026-09-28T14:00:00.000Z).
+   */
+  time: Date | null;
+  /**
+   * CoinMarketCap 20 Index: the 20 largest crypto assets, weighted by market capitalisation.
+   * Unit: index points.
+   */
+  value: number | null;
+  /**
+   * `true` = the row is final; `false` = provisional: the latest bucket while it still settles
+   * (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period
+   * in progress with `?live=1` on the routes that take it. Exception, rare: when a venue
+   * delivers trades LATE (seconds to minutes, e.g. during a burst), a closed row built from
+   * trades (trade candles, candle volumes, CVD, buy/sell ratio, trades per second) is corrected
+   * afterwards to include them, usually within minutes and at most one hour later; the
+   * correction only adds the late trades.
+   */
+  is_closed: boolean | null;
 }
 
 /**
@@ -4750,7 +5006,7 @@ export interface StatusFeedsItem {
    * Public feed name. The closed list of this contract version; `routes` gives the routes each
    * one supplies.
    */
-  feed: "basis" | "btc_block_rewards" | "btc_blocks" | "btc_difficulty_adjustments" | "btc_fee_rates" | "btc_fees" | "btc_mempool" | "btc_mining_pools" | "btc_mvrv" | "btc_network" | "btc_onchain_metrics" | "buy_sell_ratio" | "etf_filings" | "eth_beacon" | "eth_defi" | "eth_gas" | "eth_market" | "eth_staking_yield" | "eth_supply" | "fear_greed" | "funding_next" | "funding_rate" | "global_market" | "heatmap_clusters" | "klines_1m" | "klines_futures_1m" | "klines_futures_multi" | "klines_multi" | "liquidations_cumulative" | "liquidations_events" | "macro_daily_weekly" | "macro_gold" | "macro_intraday_15m" | "macro_intraday_15m_continuous" | "macro_intraday_1d" | "macro_intraday_1d_continuous" | "macro_intraday_1h" | "macro_intraday_1h_continuous" | "macro_intraday_1m" | "macro_intraday_1m_continuous" | "macro_intraday_4h" | "macro_intraday_4h_continuous" | "macro_intraday_5m" | "macro_intraday_5m_continuous" | "macro_monthly" | "oi" | "oi_change" | "options_aggregates" | "options_chain" | "options_expiries" | "orderbook_15m" | "orderbook_1d" | "orderbook_1h" | "orderbook_1m" | "orderbook_30m" | "orderbook_4h" | "orderbook_5m" | "spread_interexchange_15m" | "spread_interexchange_1d" | "spread_interexchange_1h" | "spread_interexchange_1m" | "spread_interexchange_30m" | "spread_interexchange_4h" | "spread_interexchange_5m" | "tokenomics_supply" | "trades_avg_size" | "trades_futures" | "trades_kline_futures_15m" | "trades_kline_futures_1d" | "trades_kline_futures_1h" | "trades_kline_futures_1m" | "trades_kline_futures_30m" | "trades_kline_futures_4h" | "trades_kline_futures_5m" | "trades_kline_futures_seconds" | "trades_kline_spot_15m" | "trades_kline_spot_1d" | "trades_kline_spot_1h" | "trades_kline_spot_1m" | "trades_kline_spot_30m" | "trades_kline_spot_4h" | "trades_kline_spot_5m" | "trades_spot";
+  feed: "altcoin_season" | "basis" | "btc_block_rewards" | "btc_blocks" | "btc_difficulty_adjustments" | "btc_fee_rates" | "btc_fees" | "btc_mempool" | "btc_mining_pools" | "btc_mvrv" | "btc_network" | "btc_onchain_metrics" | "buy_sell_ratio" | "cmc_indices" | "etf_filings" | "eth_beacon" | "eth_defi" | "eth_gas" | "eth_market" | "eth_staking_yield" | "eth_supply" | "fear_greed" | "fear_greed_cmc" | "funding_next" | "funding_rate" | "global_market" | "heatmap_clusters" | "klines_1m" | "klines_futures_1m" | "klines_futures_multi" | "klines_multi" | "liquidations_cumulative" | "liquidations_events" | "macro_daily_weekly" | "macro_gold" | "macro_intraday_15m" | "macro_intraday_15m_continuous" | "macro_intraday_1d" | "macro_intraday_1d_continuous" | "macro_intraday_1h" | "macro_intraday_1h_continuous" | "macro_intraday_1m" | "macro_intraday_1m_continuous" | "macro_intraday_4h" | "macro_intraday_4h_continuous" | "macro_intraday_5m" | "macro_intraday_5m_continuous" | "macro_monthly" | "oi" | "oi_change" | "options_aggregates" | "options_chain" | "options_expiries" | "orderbook_15m" | "orderbook_1d" | "orderbook_1h" | "orderbook_1m" | "orderbook_30m" | "orderbook_4h" | "orderbook_5m" | "sentiment_cmc_current" | "spread_interexchange_15m" | "spread_interexchange_1d" | "spread_interexchange_1h" | "spread_interexchange_1m" | "spread_interexchange_30m" | "spread_interexchange_4h" | "spread_interexchange_5m" | "tokenomics_supply" | "trades_avg_size" | "trades_futures" | "trades_kline_futures_15m" | "trades_kline_futures_1d" | "trades_kline_futures_1h" | "trades_kline_futures_1m" | "trades_kline_futures_30m" | "trades_kline_futures_4h" | "trades_kline_futures_5m" | "trades_kline_futures_seconds" | "trades_kline_spot_15m" | "trades_kline_spot_1d" | "trades_kline_spot_1h" | "trades_kline_spot_1m" | "trades_kline_spot_30m" | "trades_kline_spot_4h" | "trades_kline_spot_5m" | "trades_spot";
   /**
    * Data family the feed belongs to, as in `/v1/limits` and the `x-family` of each route:
    * `price_volume`, `derivatives`, `microstructure`, `trades`, `options`, `onchain`, `macro`,
@@ -5259,6 +5515,8 @@ export interface WsToken {
 
 /** @internal Which fields of each model are ISO date-times, and which hold nested models. */
 export const MODEL_SHAPES: Record<string, { dates: string[]; nested: Record<string, string> }> = {
+  AltcoinSeason: { dates: ["time", "year_low_at", "year_high_at"], nested: {} },
+  AltcoinSeasonHistoryItem: { dates: ["time"], nested: {} },
   Basis: { dates: ["time"], nested: {} },
   BasisHistoryItem: { dates: ["time"], nested: {} },
   BtcActiveAddresses: { dates: ["time"], nested: {} },
@@ -5309,6 +5567,8 @@ export const MODEL_SHAPES: Record<string, { dates: string[]; nested: Record<stri
   EthSupply: { dates: ["time"], nested: {} },
   EthSupplyHistoryItem: { dates: ["time"], nested: {} },
   FearGreed: { dates: ["time"], nested: {} },
+  FearGreedCmc: { dates: ["time"], nested: {} },
+  FearGreedCmcHistoryItem: { dates: ["time"], nested: {} },
   FearGreedHistoryItem: { dates: ["time"], nested: {} },
   FundingCumulative: { dates: ["time", "window_start_at"], nested: {} },
   FundingCumulativeHistoryItem: { dates: ["time", "window_start_at"], nested: {} },
@@ -5319,6 +5579,12 @@ export const MODEL_SHAPES: Record<string, { dates: string[]; nested: Record<stri
   Health: { dates: [], nested: {} },
   HeatmapClusters: { dates: ["time"], nested: {} },
   HeatmapClustersHistoryItem: { dates: ["time"], nested: {} },
+  IndicesCmc100ConstituentsItem: { dates: [], nested: {} },
+  IndicesCmc100: { dates: ["time"], nested: {"constituents": "IndicesCmc100ConstituentsItem"} },
+  IndicesCmc100HistoryItem: { dates: ["time"], nested: {} },
+  IndicesCmc20ConstituentsItem: { dates: [], nested: {} },
+  IndicesCmc20: { dates: ["time"], nested: {"constituents": "IndicesCmc20ConstituentsItem"} },
+  IndicesCmc20HistoryItem: { dates: ["time"], nested: {} },
   Kline: { dates: ["time"], nested: {} },
   KlineHistoryItem: { dates: ["time"], nested: {} },
   LimitsHistoryItem: { dates: [], nested: {} },

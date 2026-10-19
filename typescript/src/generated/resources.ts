@@ -9,6 +9,8 @@ import type { IndicatorsParams, IndicatorsResult } from '../indicatorSpec.js';
 import type * as M from './models.js';
 import type { Asset, CoarseTimeframe, IntradayTimeframe, KlineTimeframe, KnownSymbol, MiningDataset, OptionsTimeframe, Order, Timeframe } from './literals.js';
 
+const R_ALTCOIN_SEASON: RouteSpec = {"path": "/v1/altcoin-season", "method": "GET", "shape": "object", "model": "AltcoinSeason", "paginated": false, "pathParams": [], "maxLimit": null, "rangeMode": false, "wire": {}};
+const R_ALTCOIN_SEASON_HISTORY: RouteSpec = {"path": "/v1/altcoin-season/history", "method": "GET", "shape": "list", "model": "AltcoinSeasonHistoryItem", "paginated": true, "pathParams": [], "maxLimit": 1000, "rangeMode": false, "wire": {"since": "since_ms", "until": "until_ms", "before": "before_ms"}};
 const R_BASIS: RouteSpec = {"path": "/v1/basis", "method": "GET", "shape": "object", "model": "Basis", "paginated": false, "pathParams": [], "maxLimit": null, "rangeMode": false, "wire": {}};
 const R_BASIS_HISTORY: RouteSpec = {"path": "/v1/basis/history", "method": "GET", "shape": "list", "model": "BasisHistoryItem", "paginated": true, "pathParams": [], "maxLimit": 1000, "rangeMode": false, "wire": {"since": "since_ms", "until": "until_ms", "before": "before_ms"}};
 const R_BTC_ACTIVE_ADDRESSES: RouteSpec = {"path": "/v1/btc/active-addresses", "method": "GET", "shape": "object", "model": "BtcActiveAddresses", "paginated": false, "pathParams": [], "maxLimit": null, "rangeMode": false, "wire": {}};
@@ -59,6 +61,8 @@ const R_ETH_STAKING_HISTORY: RouteSpec = {"path": "/v1/eth/staking/history", "me
 const R_ETH_SUPPLY: RouteSpec = {"path": "/v1/eth/supply", "method": "GET", "shape": "object", "model": "EthSupply", "paginated": false, "pathParams": [], "maxLimit": null, "rangeMode": false, "wire": {}};
 const R_ETH_SUPPLY_HISTORY: RouteSpec = {"path": "/v1/eth/supply/history", "method": "GET", "shape": "list", "model": "EthSupplyHistoryItem", "paginated": true, "pathParams": [], "maxLimit": 1000, "rangeMode": false, "wire": {"since": "since_ms", "until": "until_ms", "before": "before_ms"}};
 const R_FEAR_GREED: RouteSpec = {"path": "/v1/fear-greed", "method": "GET", "shape": "object", "model": "FearGreed", "paginated": false, "pathParams": [], "maxLimit": null, "rangeMode": false, "wire": {}};
+const R_FEAR_GREED_CMC: RouteSpec = {"path": "/v1/fear-greed/cmc", "method": "GET", "shape": "object", "model": "FearGreedCmc", "paginated": false, "pathParams": [], "maxLimit": null, "rangeMode": false, "wire": {}};
+const R_FEAR_GREED_CMC_HISTORY: RouteSpec = {"path": "/v1/fear-greed/cmc/history", "method": "GET", "shape": "list", "model": "FearGreedCmcHistoryItem", "paginated": true, "pathParams": [], "maxLimit": 1000, "rangeMode": false, "wire": {"since": "since_ms", "until": "until_ms", "before": "before_ms"}};
 const R_FEAR_GREED_HISTORY: RouteSpec = {"path": "/v1/fear-greed/history", "method": "GET", "shape": "list", "model": "FearGreedHistoryItem", "paginated": true, "pathParams": [], "maxLimit": 1000, "rangeMode": false, "wire": {"since": "since_ms", "until": "until_ms", "before": "before_ms"}};
 const R_FUNDING_CUMULATIVE: RouteSpec = {"path": "/v1/funding/cumulative", "method": "GET", "shape": "object", "model": "FundingCumulative", "paginated": false, "pathParams": [], "maxLimit": null, "rangeMode": false, "wire": {}};
 const R_FUNDING_CUMULATIVE_HISTORY: RouteSpec = {"path": "/v1/funding/cumulative/history", "method": "GET", "shape": "list", "model": "FundingCumulativeHistoryItem", "paginated": true, "pathParams": [], "maxLimit": 1000, "rangeMode": false, "wire": {"since": "since_ms", "until": "until_ms", "before": "before_ms"}};
@@ -71,6 +75,10 @@ const R_HEALTH: RouteSpec = {"path": "/v1/health", "method": "GET", "shape": "ob
 const R_HEATMAP_CLUSTERS: RouteSpec = {"path": "/v1/heatmap/clusters", "method": "GET", "shape": "object", "model": "HeatmapClusters", "paginated": false, "pathParams": [], "maxLimit": null, "rangeMode": false, "wire": {}};
 const R_HEATMAP_CLUSTERS_HISTORY: RouteSpec = {"path": "/v1/heatmap/clusters/history", "method": "GET", "shape": "list", "model": "HeatmapClustersHistoryItem", "paginated": true, "pathParams": [], "maxLimit": 1000, "rangeMode": false, "wire": {"since": "since_ms", "until": "until_ms", "before": "before_ms"}};
 const R_INDICATORS: RouteSpec = {"path": "/v1/indicators", "method": "POST", "shape": "indicators", "model": null, "paginated": false, "pathParams": [], "maxLimit": null, "rangeMode": false, "wire": {}};
+const R_INDICES_CMC100: RouteSpec = {"path": "/v1/indices/cmc100", "method": "GET", "shape": "object", "model": "IndicesCmc100", "paginated": false, "pathParams": [], "maxLimit": null, "rangeMode": false, "wire": {}};
+const R_INDICES_CMC100_HISTORY: RouteSpec = {"path": "/v1/indices/cmc100/history", "method": "GET", "shape": "list", "model": "IndicesCmc100HistoryItem", "paginated": true, "pathParams": [], "maxLimit": 1000, "rangeMode": false, "wire": {"since": "since_ms", "until": "until_ms", "before": "before_ms"}};
+const R_INDICES_CMC20: RouteSpec = {"path": "/v1/indices/cmc20", "method": "GET", "shape": "object", "model": "IndicesCmc20", "paginated": false, "pathParams": [], "maxLimit": null, "rangeMode": false, "wire": {}};
+const R_INDICES_CMC20_HISTORY: RouteSpec = {"path": "/v1/indices/cmc20/history", "method": "GET", "shape": "list", "model": "IndicesCmc20HistoryItem", "paginated": true, "pathParams": [], "maxLimit": 1000, "rangeMode": false, "wire": {"since": "since_ms", "until": "until_ms", "before": "before_ms"}};
 const R_KLINES: RouteSpec = {"path": "/v1/klines", "method": "GET", "shape": "object", "model": "Kline", "paginated": false, "pathParams": [], "maxLimit": null, "rangeMode": false, "wire": {}};
 const R_KLINES_HISTORY: RouteSpec = {"path": "/v1/klines/history", "method": "GET", "shape": "list", "model": "KlineHistoryItem", "paginated": true, "pathParams": [], "maxLimit": 1000, "rangeMode": false, "wire": {"since": "since_ms", "until": "until_ms", "before": "before_ms"}};
 const R_LIMITS: RouteSpec = {"path": "/v1/limits", "method": "GET", "shape": "object", "model": "Limits", "paginated": false, "pathParams": [], "maxLimit": null, "rangeMode": false, "wire": {}};
@@ -141,6 +149,96 @@ const R_TRADES_FUTURES: RouteSpec = {"path": "/v1/trades/futures", "method": "GE
 const R_TRADES_LARGE: RouteSpec = {"path": "/v1/trades/large", "method": "GET", "shape": "list", "model": "Trade", "paginated": true, "pathParams": [], "maxLimit": 10000, "rangeMode": true, "wire": {"since": "since_ms", "until": "until_ms", "before": "before_ms"}};
 const R_TRADES_SPOT: RouteSpec = {"path": "/v1/trades/spot", "method": "GET", "shape": "list", "model": "Trade", "paginated": true, "pathParams": [], "maxLimit": 10000, "rangeMode": true, "wire": {"since": "since_ms", "until": "until_ms", "before": "before_ms"}};
 const R_WS_TOKEN: RouteSpec = {"path": "/v1/ws/token", "method": "POST", "shape": "object", "model": "WsToken", "paginated": false, "pathParams": [], "maxLimit": null, "rangeMode": false, "wire": {}};
+
+export interface AltcoinSeasonHistoryParams {
+  /**
+   * Lower time bound, inclusive. A `Date`, an ISO string (`2026-01-01`) or epoch milliseconds.
+   */
+  since?: TimeLike;
+  /**
+   * Upper time bound, inclusive to the millisecond. A `Date`, an ISO string (`2026-01-01`) or
+   * epoch milliseconds.
+   */
+  until?: TimeLike;
+  /**
+   * Number of rows to return, in the reading order (most recent first by default). Bounded by
+   * your plan's history window: an explicit `limit` (or `since_ms`) reaching beyond it returns
+   * 403 `history_depth`; without them the page simply stops at the window.
+   */
+  limit?: number;
+  /**
+   * Only return these fields of each row (array or comma-separated). Rows are then partial.
+   */
+  fields?: Fields;
+  /**
+   * Upper time bound, exclusive (rows strictly before it). Not combinable with `until`. A
+   * `Date`, an ISO string (`2026-01-01`) or epoch milliseconds.
+   */
+  before?: TimeLike;
+  /**
+   * Reading order: `desc` (most recent first, the default) or `asc` (oldest first, reading
+   * forward from `since_ms`, which is then required). Follow `next` to read the following page.
+   */
+  order?: Order;
+}
+
+export interface AltcoinSeasonHistoryIterParams {
+  /**
+   * Lower time bound, inclusive. A `Date`, an ISO string (`2026-01-01`) or epoch milliseconds.
+   */
+  since?: TimeLike;
+  /**
+   * Upper time bound, inclusive to the millisecond. A `Date`, an ISO string (`2026-01-01`) or
+   * epoch milliseconds.
+   */
+  until?: TimeLike;
+  /**
+   * Only return these fields of each row (array or comma-separated). Rows are then partial.
+   */
+  fields?: Fields;
+  /**
+   * Reading order: `desc` (most recent first, the default) or `asc` (oldest first, reading
+   * forward from `since_ms`, which is then required). Follow `next` to read the following page.
+   */
+  order?: Order;
+}
+
+export type AltcoinSeasonHistoryIterOptions = AltcoinSeasonHistoryIterParams & IterOptions;
+
+/** `/v1/altcoin-season/history`. */
+export interface AltcoinSeasonHistoryResource {
+  /**
+   * GET /v1/altcoin-season/history — Altcoin Season history
+   *
+   * One point per day, at midnight UTC. Most recent first, or oldest first with `order=asc`.
+   * Follow `next` to read the following page (it never repeats a row).
+   */
+  (params?: AltcoinSeasonHistoryParams, options?: RequestOptions): Promise<ApiResponse<Array<M.AltcoinSeasonHistoryItem>>>;
+  /**
+   * Every row of `/v1/altcoin-season/history` over a period, following `next` page after page
+   * (`for await`).
+   */
+  iter(params?: AltcoinSeasonHistoryIterOptions, options?: RequestOptions): RowIterator<M.AltcoinSeasonHistoryItem>;
+}
+
+export interface AltcoinSeasonParams {
+  /**
+   * Only return these fields of each row (array or comma-separated). Rows are then partial.
+   */
+  fields?: Fields;
+}
+
+/** `/v1/altcoin-season` and its sub-routes. */
+export interface AltcoinSeasonResource {
+  /**
+   * GET /v1/altcoin-season — Altcoin Season Index
+   *
+   * CoinMarketCap's Altcoin Season Index, from 0 (bitcoin season) to 100 (altcoin season), with
+   * the altcoin market capitalisation and the 1-year high and low.
+   */
+  (params?: AltcoinSeasonParams, options?: RequestOptions): Promise<ApiResponse<M.AltcoinSeason | null>>;
+  history: AltcoinSeasonHistoryResource;
+}
 
 export interface BasisHistoryParams {
   /**
@@ -2697,6 +2795,96 @@ export interface EthResource {
   supply: EthSupplyResource;
 }
 
+export interface FearGreedCmcHistoryParams {
+  /**
+   * Lower time bound, inclusive. A `Date`, an ISO string (`2026-01-01`) or epoch milliseconds.
+   */
+  since?: TimeLike;
+  /**
+   * Upper time bound, inclusive to the millisecond. A `Date`, an ISO string (`2026-01-01`) or
+   * epoch milliseconds.
+   */
+  until?: TimeLike;
+  /**
+   * Number of rows to return, in the reading order (most recent first by default). Bounded by
+   * your plan's history window: an explicit `limit` (or `since_ms`) reaching beyond it returns
+   * 403 `history_depth`; without them the page simply stops at the window.
+   */
+  limit?: number;
+  /**
+   * Only return these fields of each row (array or comma-separated). Rows are then partial.
+   */
+  fields?: Fields;
+  /**
+   * Upper time bound, exclusive (rows strictly before it). Not combinable with `until`. A
+   * `Date`, an ISO string (`2026-01-01`) or epoch milliseconds.
+   */
+  before?: TimeLike;
+  /**
+   * Reading order: `desc` (most recent first, the default) or `asc` (oldest first, reading
+   * forward from `since_ms`, which is then required). Follow `next` to read the following page.
+   */
+  order?: Order;
+}
+
+export interface FearGreedCmcHistoryIterParams {
+  /**
+   * Lower time bound, inclusive. A `Date`, an ISO string (`2026-01-01`) or epoch milliseconds.
+   */
+  since?: TimeLike;
+  /**
+   * Upper time bound, inclusive to the millisecond. A `Date`, an ISO string (`2026-01-01`) or
+   * epoch milliseconds.
+   */
+  until?: TimeLike;
+  /**
+   * Only return these fields of each row (array or comma-separated). Rows are then partial.
+   */
+  fields?: Fields;
+  /**
+   * Reading order: `desc` (most recent first, the default) or `asc` (oldest first, reading
+   * forward from `since_ms`, which is then required). Follow `next` to read the following page.
+   */
+  order?: Order;
+}
+
+export type FearGreedCmcHistoryIterOptions = FearGreedCmcHistoryIterParams & IterOptions;
+
+/** `/v1/fear-greed/cmc/history`. */
+export interface FearGreedCmcHistoryResource {
+  /**
+   * GET /v1/fear-greed/cmc/history — CMC Fear & Greed history
+   *
+   * One point per day, at midnight UTC. Most recent first, or oldest first with `order=asc`.
+   * Follow `next` to read the following page (it never repeats a row).
+   */
+  (params?: FearGreedCmcHistoryParams, options?: RequestOptions): Promise<ApiResponse<Array<M.FearGreedCmcHistoryItem>>>;
+  /**
+   * Every row of `/v1/fear-greed/cmc/history` over a period, following `next` page after page
+   * (`for await`).
+   */
+  iter(params?: FearGreedCmcHistoryIterOptions, options?: RequestOptions): RowIterator<M.FearGreedCmcHistoryItem>;
+}
+
+export interface FearGreedCmcParams {
+  /**
+   * Only return these fields of each row (array or comma-separated). Rows are then partial.
+   */
+  fields?: Fields;
+}
+
+/** `/v1/fear-greed/cmc` and its sub-routes. */
+export interface FearGreedCmcResource {
+  /**
+   * GET /v1/fear-greed/cmc — CMC Fear & Greed Index
+   *
+   * CoinMarketCap's Crypto Fear & Greed Index, from 0 (extreme fear) to 100 (extreme greed): a
+   * different index from `/v1/fear-greed`, refreshed during the day.
+   */
+  (params?: FearGreedCmcParams, options?: RequestOptions): Promise<ApiResponse<M.FearGreedCmc | null>>;
+  history: FearGreedCmcHistoryResource;
+}
+
 export interface FearGreedHistoryParams {
   /**
    * Lower time bound, inclusive. A `Date`, an ISO string (`2026-01-01`) or epoch milliseconds.
@@ -2783,6 +2971,7 @@ export interface FearGreedResource {
    * Daily index from 0 (extreme fear) to 100 (extreme greed).
    */
   (params?: FearGreedParams, options?: RequestOptions): Promise<ApiResponse<M.FearGreed | null>>;
+  cmc: FearGreedCmcResource;
   history: FearGreedHistoryResource;
 }
 
@@ -3295,6 +3484,192 @@ export interface HeatmapResource {
 /** `/v1/indicators`. */
 export interface IndicatorsResource {
   (params: IndicatorsParams, options?: RequestOptions): Promise<ApiResponse<IndicatorsResult | null>>;
+}
+
+export interface IndicesCmc100HistoryParams {
+  /**
+   * Lower time bound, inclusive. A `Date`, an ISO string (`2026-01-01`) or epoch milliseconds.
+   */
+  since?: TimeLike;
+  /**
+   * Upper time bound, inclusive to the millisecond. A `Date`, an ISO string (`2026-01-01`) or
+   * epoch milliseconds.
+   */
+  until?: TimeLike;
+  /**
+   * Number of rows to return, in the reading order (most recent first by default). Bounded by
+   * your plan's history window: an explicit `limit` (or `since_ms`) reaching beyond it returns
+   * 403 `history_depth`; without them the page simply stops at the window.
+   */
+  limit?: number;
+  /**
+   * Only return these fields of each row (array or comma-separated). Rows are then partial.
+   */
+  fields?: Fields;
+  /**
+   * Upper time bound, exclusive (rows strictly before it). Not combinable with `until`. A
+   * `Date`, an ISO string (`2026-01-01`) or epoch milliseconds.
+   */
+  before?: TimeLike;
+  /**
+   * Reading order: `desc` (most recent first, the default) or `asc` (oldest first, reading
+   * forward from `since_ms`, which is then required). Follow `next` to read the following page.
+   */
+  order?: Order;
+}
+
+export interface IndicesCmc100HistoryIterParams {
+  /**
+   * Lower time bound, inclusive. A `Date`, an ISO string (`2026-01-01`) or epoch milliseconds.
+   */
+  since?: TimeLike;
+  /**
+   * Upper time bound, inclusive to the millisecond. A `Date`, an ISO string (`2026-01-01`) or
+   * epoch milliseconds.
+   */
+  until?: TimeLike;
+  /**
+   * Only return these fields of each row (array or comma-separated). Rows are then partial.
+   */
+  fields?: Fields;
+  /**
+   * Reading order: `desc` (most recent first, the default) or `asc` (oldest first, reading
+   * forward from `since_ms`, which is then required). Follow `next` to read the following page.
+   */
+  order?: Order;
+}
+
+export type IndicesCmc100HistoryIterOptions = IndicesCmc100HistoryIterParams & IterOptions;
+
+/** `/v1/indices/cmc100/history`. */
+export interface IndicesCmc100HistoryResource {
+  /**
+   * GET /v1/indices/cmc100/history — CoinMarketCap 100 Index history
+   *
+   * One value per day, at midnight UTC. Most recent first, or oldest first with `order=asc`.
+   * Follow `next` to read the following page (it never repeats a row).
+   */
+  (params?: IndicesCmc100HistoryParams, options?: RequestOptions): Promise<ApiResponse<Array<M.IndicesCmc100HistoryItem>>>;
+  /**
+   * Every row of `/v1/indices/cmc100/history` over a period, following `next` page after page
+   * (`for await`).
+   */
+  iter(params?: IndicesCmc100HistoryIterOptions, options?: RequestOptions): RowIterator<M.IndicesCmc100HistoryItem>;
+}
+
+export interface IndicesCmc100Params {
+  /**
+   * Only return these fields of each row (array or comma-separated). Rows are then partial.
+   */
+  fields?: Fields;
+}
+
+/** `/v1/indices/cmc100` and its sub-routes. */
+export interface IndicesCmc100Resource {
+  /**
+   * GET /v1/indices/cmc100 — CoinMarketCap 100 Index
+   *
+   * Value of the CMC100 index (the 100 largest crypto assets), its 24 h change and its
+   * constituents with their weight.
+   */
+  (params?: IndicesCmc100Params, options?: RequestOptions): Promise<ApiResponse<M.IndicesCmc100 | null>>;
+  history: IndicesCmc100HistoryResource;
+}
+
+export interface IndicesCmc20HistoryParams {
+  /**
+   * Lower time bound, inclusive. A `Date`, an ISO string (`2026-01-01`) or epoch milliseconds.
+   */
+  since?: TimeLike;
+  /**
+   * Upper time bound, inclusive to the millisecond. A `Date`, an ISO string (`2026-01-01`) or
+   * epoch milliseconds.
+   */
+  until?: TimeLike;
+  /**
+   * Number of rows to return, in the reading order (most recent first by default). Bounded by
+   * your plan's history window: an explicit `limit` (or `since_ms`) reaching beyond it returns
+   * 403 `history_depth`; without them the page simply stops at the window.
+   */
+  limit?: number;
+  /**
+   * Only return these fields of each row (array or comma-separated). Rows are then partial.
+   */
+  fields?: Fields;
+  /**
+   * Upper time bound, exclusive (rows strictly before it). Not combinable with `until`. A
+   * `Date`, an ISO string (`2026-01-01`) or epoch milliseconds.
+   */
+  before?: TimeLike;
+  /**
+   * Reading order: `desc` (most recent first, the default) or `asc` (oldest first, reading
+   * forward from `since_ms`, which is then required). Follow `next` to read the following page.
+   */
+  order?: Order;
+}
+
+export interface IndicesCmc20HistoryIterParams {
+  /**
+   * Lower time bound, inclusive. A `Date`, an ISO string (`2026-01-01`) or epoch milliseconds.
+   */
+  since?: TimeLike;
+  /**
+   * Upper time bound, inclusive to the millisecond. A `Date`, an ISO string (`2026-01-01`) or
+   * epoch milliseconds.
+   */
+  until?: TimeLike;
+  /**
+   * Only return these fields of each row (array or comma-separated). Rows are then partial.
+   */
+  fields?: Fields;
+  /**
+   * Reading order: `desc` (most recent first, the default) or `asc` (oldest first, reading
+   * forward from `since_ms`, which is then required). Follow `next` to read the following page.
+   */
+  order?: Order;
+}
+
+export type IndicesCmc20HistoryIterOptions = IndicesCmc20HistoryIterParams & IterOptions;
+
+/** `/v1/indices/cmc20/history`. */
+export interface IndicesCmc20HistoryResource {
+  /**
+   * GET /v1/indices/cmc20/history — CoinMarketCap 20 Index history
+   *
+   * One value per day, at midnight UTC. Most recent first, or oldest first with `order=asc`.
+   * Follow `next` to read the following page (it never repeats a row).
+   */
+  (params?: IndicesCmc20HistoryParams, options?: RequestOptions): Promise<ApiResponse<Array<M.IndicesCmc20HistoryItem>>>;
+  /**
+   * Every row of `/v1/indices/cmc20/history` over a period, following `next` page after page
+   * (`for await`).
+   */
+  iter(params?: IndicesCmc20HistoryIterOptions, options?: RequestOptions): RowIterator<M.IndicesCmc20HistoryItem>;
+}
+
+export interface IndicesCmc20Params {
+  /**
+   * Only return these fields of each row (array or comma-separated). Rows are then partial.
+   */
+  fields?: Fields;
+}
+
+/** `/v1/indices/cmc20` and its sub-routes. */
+export interface IndicesCmc20Resource {
+  /**
+   * GET /v1/indices/cmc20 — CoinMarketCap 20 Index
+   *
+   * Value of the CMC20 index (the 20 largest crypto assets), its 24 h change and its
+   * constituents with their weight.
+   */
+  (params?: IndicesCmc20Params, options?: RequestOptions): Promise<ApiResponse<M.IndicesCmc20 | null>>;
+  history: IndicesCmc20HistoryResource;
+}
+
+/** `/v1/indices` and its sub-routes. */
+export interface IndicesResource {
+  cmc100: IndicesCmc100Resource;
+  cmc20: IndicesCmc20Resource;
 }
 
 export interface KlinesHistoryParams {
@@ -5698,6 +6073,11 @@ export interface SnapshotParams {
   /** Trading pair, e.g. `BTCUSDT`. */
   symbol: string;
   /**
+   * Altcoin Season Index. Same content as `/v1/altcoin-season`. Value: `true` (or 1): the
+   * latest value only.
+   */
+  altcoin_season?: true | 1;
+  /**
    * Futures-spot basis (latest value). Same content as `/v1/basis`. Value: `true` (or 1): the
    * latest value only.
    */
@@ -5741,6 +6121,16 @@ export interface SnapshotParams {
    */
   btc_revenue_per_difficulty?: true | 1;
   /**
+   * CoinMarketCap 100 Index and its constituents. Same content as `/v1/indices/cmc100`. Value:
+   * `true` (or 1): the latest value only.
+   */
+  cmc100?: true | 1;
+  /**
+   * CoinMarketCap 20 Index and its constituents. Same content as `/v1/indices/cmc20`. Value:
+   * `true` (or 1): the latest value only.
+   */
+  cmc20?: true | 1;
+  /**
    * Ethereum DeFi. Same content as `/v1/eth/defi`. Value: `true` (or 1): the latest value only.
    */
   eth_defi?: true | 1;
@@ -5783,6 +6173,11 @@ export interface SnapshotParams {
    * latest value only.
    */
   fear_greed?: true | 1;
+  /**
+   * CMC Crypto Fear & Greed Index. Same content as `/v1/fear-greed/cmc`. Value: `true` (or 1):
+   * the latest value only.
+   */
+  fear_greed_cmc?: true | 1;
   /**
    * Funding summed over 24 h. Same content as `/v1/funding/cumulative`. Value: `true` (or 1):
    * the latest value only.
@@ -5904,6 +6299,7 @@ export interface SnapshotParams {
 
 /** The payload of `GET /v1/snapshot`: the requested fields, typed like their routes. */
 export interface SnapshotData {
+  altcoin_season?: M.AltcoinSeason | null;
   basis?: M.Basis | null;
   btc_active_addresses?: M.BtcActiveAddresses | null;
   btc_fees?: M.BtcFees | null;
@@ -5913,6 +6309,8 @@ export interface SnapshotData {
   btc_network?: M.BtcNetwork | null;
   btc_nvt?: M.BtcNvt | null;
   btc_revenue_per_difficulty?: M.BtcRevenuePerDifficulty | null;
+  cmc100?: M.IndicesCmc100 | null;
+  cmc20?: M.IndicesCmc20 | null;
   eth_defi?: M.EthDefi | null;
   eth_deflation?: M.EthDeflation | null;
   eth_gas?: M.EthGas | null;
@@ -5922,6 +6320,7 @@ export interface SnapshotData {
   eth_staking?: M.EthStaking | null;
   eth_supply?: M.EthSupply | null;
   fear_greed?: M.FearGreed | null;
+  fear_greed_cmc?: M.FearGreedCmc | null;
   funding_cumulative?: M.FundingCumulative | null;
   funding_next?: M.FundingNext | null;
   funding_rate?: M.FundingRate | null;
@@ -6023,6 +6422,7 @@ export interface SnapshotData {
 }
 
 export const SNAPSHOT_FIELDS: Record<string, { base: string; timeframe: string | null; model: string | null }> = {
+  "altcoin_season": { base: "altcoin_season", timeframe: null, model: "AltcoinSeason" },
   "basis": { base: "basis", timeframe: null, model: "Basis" },
   "btc_active_addresses": { base: "btc_active_addresses", timeframe: null, model: "BtcActiveAddresses" },
   "btc_fees": { base: "btc_fees", timeframe: null, model: "BtcFees" },
@@ -6032,6 +6432,8 @@ export const SNAPSHOT_FIELDS: Record<string, { base: string; timeframe: string |
   "btc_network": { base: "btc_network", timeframe: null, model: "BtcNetwork" },
   "btc_nvt": { base: "btc_nvt", timeframe: null, model: "BtcNvt" },
   "btc_revenue_per_difficulty": { base: "btc_revenue_per_difficulty", timeframe: null, model: "BtcRevenuePerDifficulty" },
+  "cmc100": { base: "cmc100", timeframe: null, model: "IndicesCmc100" },
+  "cmc20": { base: "cmc20", timeframe: null, model: "IndicesCmc20" },
   "eth_defi": { base: "eth_defi", timeframe: null, model: "EthDefi" },
   "eth_deflation": { base: "eth_deflation", timeframe: null, model: "EthDeflation" },
   "eth_gas": { base: "eth_gas", timeframe: null, model: "EthGas" },
@@ -6041,6 +6443,7 @@ export const SNAPSHOT_FIELDS: Record<string, { base: string; timeframe: string |
   "eth_staking": { base: "eth_staking", timeframe: null, model: "EthStaking" },
   "eth_supply": { base: "eth_supply", timeframe: null, model: "EthSupply" },
   "fear_greed": { base: "fear_greed", timeframe: null, model: "FearGreed" },
+  "fear_greed_cmc": { base: "fear_greed_cmc", timeframe: null, model: "FearGreedCmc" },
   "funding_cumulative": { base: "funding_cumulative", timeframe: null, model: "FundingCumulative" },
   "funding_next": { base: "funding_next", timeframe: null, model: "FundingNext" },
   "funding_rate": { base: "funding_rate", timeframe: null, model: "FundingRate" },
@@ -6139,7 +6542,7 @@ export const SNAPSHOT_FIELDS: Record<string, { base: string; timeframe: string |
   "trades_kline_spot@4h": { base: "trades_kline_spot", timeframe: "4h", model: "TradesKline" },
   "trades_kline_spot@1d": { base: "trades_kline_spot", timeframe: "1d", model: "TradesKline" },
 };
-export const SNAPSHOT_SINGLE_FIELDS = ["basis", "btc_active_addresses", "btc_fees", "btc_mempool", "btc_mining", "btc_mvrv", "btc_network", "btc_nvt", "btc_revenue_per_difficulty", "eth_defi", "eth_deflation", "eth_gas", "eth_gas_momentum", "eth_price_btc", "eth_squeeze", "eth_staking", "eth_supply", "fear_greed", "funding_cumulative", "funding_next", "funding_rate", "global", "heatmap_clusters", "liquidations_cumulative", "liquidations_events", "macro_correlations", "macro_momentum", "macro_net_liquidity", "macro_risk", "macro_series", "oi_change", "options_summary", "price_change", "tokenomics", "trades_futures", "trades_kline_futures_seconds", "trades_spot"] as const;
+export const SNAPSHOT_SINGLE_FIELDS = ["altcoin_season", "basis", "btc_active_addresses", "btc_fees", "btc_mempool", "btc_mining", "btc_mvrv", "btc_network", "btc_nvt", "btc_revenue_per_difficulty", "cmc100", "cmc20", "eth_defi", "eth_deflation", "eth_gas", "eth_gas_momentum", "eth_price_btc", "eth_squeeze", "eth_staking", "eth_supply", "fear_greed", "fear_greed_cmc", "funding_cumulative", "funding_next", "funding_rate", "global", "heatmap_clusters", "liquidations_cumulative", "liquidations_events", "macro_correlations", "macro_momentum", "macro_net_liquidity", "macro_risk", "macro_series", "oi_change", "options_summary", "price_change", "tokenomics", "trades_futures", "trades_kline_futures_seconds", "trades_spot"] as const;
 export const SNAPSHOT_MULTI_FIELDS = ["buy_sell_ratio", "cvd", "klines", "liquidations_big_small_ratio", "oi", "orderbook", "spread_interexchange", "trades_avg_size", "trades_kline", "trades_kline_futures", "trades_kline_spot"] as const;
 
 /** `/v1/snapshot`. */
@@ -7678,6 +8081,7 @@ export interface WsResource {
 }
 
 export interface Resources {
+  altcoinSeason: AltcoinSeasonResource;
   basis: BasisResource;
   btc: BtcResource;
   buySellRatio: BuySellRatioResource;
@@ -7691,6 +8095,7 @@ export interface Resources {
   health: HealthResource;
   heatmap: HeatmapResource;
   indicators: IndicatorsResource;
+  indices: IndicesResource;
   klines: KlinesResource;
   limits: LimitsResource;
   liquidations: LiquidationsResource;
@@ -7712,6 +8117,9 @@ export interface Resources {
 /** @internal */
 export function createResources(core: Core): Resources {
   return {
+    altcoinSeason: Object.assign(core.resource(R_ALTCOIN_SEASON), {
+      history: core.resource(R_ALTCOIN_SEASON_HISTORY)
+    }) as AltcoinSeasonResource,
     basis: Object.assign(core.resource(R_BASIS), {
       history: core.resource(R_BASIS_HISTORY)
     }) as BasisResource,
@@ -7792,6 +8200,9 @@ export function createResources(core: Core): Resources {
       })
     } as EthResource,
     fearGreed: Object.assign(core.resource(R_FEAR_GREED), {
+      cmc: Object.assign(core.resource(R_FEAR_GREED_CMC), {
+        history: core.resource(R_FEAR_GREED_CMC_HISTORY)
+      }),
       history: core.resource(R_FEAR_GREED_HISTORY)
     }) as FearGreedResource,
     funding: {
@@ -7813,6 +8224,14 @@ export function createResources(core: Core): Resources {
       })
     } as HeatmapResource,
     indicators: core.indicatorsResource(R_INDICATORS) as IndicatorsResource,
+    indices: {
+      cmc100: Object.assign(core.resource(R_INDICES_CMC100), {
+        history: core.resource(R_INDICES_CMC100_HISTORY)
+      }),
+      cmc20: Object.assign(core.resource(R_INDICES_CMC20), {
+        history: core.resource(R_INDICES_CMC20_HISTORY)
+      })
+    } as IndicesResource,
     klines: Object.assign(core.resource(R_KLINES), {
       history: core.resource(R_KLINES_HISTORY)
     }) as KlinesResource,
@@ -7925,6 +8344,8 @@ export function createResources(core: Core): Resources {
 
 /** Every route and the SDK method that serves it. */
 export const ROUTES: Record<string, string> = {
+  "/v1/altcoin-season": "altcoinSeason",
+  "/v1/altcoin-season/history": "altcoinSeason.history",
   "/v1/basis": "basis",
   "/v1/basis/history": "basis.history",
   "/v1/btc/active-addresses": "btc.activeAddresses",
@@ -7975,6 +8396,8 @@ export const ROUTES: Record<string, string> = {
   "/v1/eth/supply": "eth.supply",
   "/v1/eth/supply/history": "eth.supply.history",
   "/v1/fear-greed": "fearGreed",
+  "/v1/fear-greed/cmc": "fearGreed.cmc",
+  "/v1/fear-greed/cmc/history": "fearGreed.cmc.history",
   "/v1/fear-greed/history": "fearGreed.history",
   "/v1/funding/cumulative": "funding.cumulative",
   "/v1/funding/cumulative/history": "funding.cumulative.history",
@@ -7987,6 +8410,10 @@ export const ROUTES: Record<string, string> = {
   "/v1/heatmap/clusters": "heatmap.clusters",
   "/v1/heatmap/clusters/history": "heatmap.clusters.history",
   "/v1/indicators": "indicators",
+  "/v1/indices/cmc100": "indices.cmc100",
+  "/v1/indices/cmc100/history": "indices.cmc100.history",
+  "/v1/indices/cmc20": "indices.cmc20",
+  "/v1/indices/cmc20/history": "indices.cmc20.history",
   "/v1/klines": "klines",
   "/v1/klines/history": "klines.history",
   "/v1/limits": "limits",
@@ -8059,4 +8486,4 @@ export const ROUTES: Record<string, string> = {
   "/v1/ws/token": "ws.token",
 };
 /** `info.version` of the contract this SDK was generated from. */
-export const API_VERSION = "2.0.4";
+export const API_VERSION = "2.0.5";

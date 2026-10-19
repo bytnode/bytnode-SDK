@@ -6,6 +6,8 @@
 from __future__ import annotations
 
 ROUTES: dict[str, str] = {
+    '/v1/altcoin-season': 'altcoin_season',
+    '/v1/altcoin-season/history': 'altcoin_season.history',
     '/v1/basis': 'basis',
     '/v1/basis/history': 'basis.history',
     '/v1/btc/active-addresses': 'btc.active_addresses',
@@ -56,6 +58,8 @@ ROUTES: dict[str, str] = {
     '/v1/eth/supply': 'eth.supply',
     '/v1/eth/supply/history': 'eth.supply.history',
     '/v1/fear-greed': 'fear_greed',
+    '/v1/fear-greed/cmc': 'fear_greed.cmc',
+    '/v1/fear-greed/cmc/history': 'fear_greed.cmc.history',
     '/v1/fear-greed/history': 'fear_greed.history',
     '/v1/funding/cumulative': 'funding.cumulative',
     '/v1/funding/cumulative/history': 'funding.cumulative.history',
@@ -68,6 +72,10 @@ ROUTES: dict[str, str] = {
     '/v1/heatmap/clusters': 'heatmap.clusters',
     '/v1/heatmap/clusters/history': 'heatmap.clusters.history',
     '/v1/indicators': 'indicators',
+    '/v1/indices/cmc100': 'indices.cmc100',
+    '/v1/indices/cmc100/history': 'indices.cmc100.history',
+    '/v1/indices/cmc20': 'indices.cmc20',
+    '/v1/indices/cmc20/history': 'indices.cmc20.history',
     '/v1/klines': 'klines',
     '/v1/klines/history': 'klines.history',
     '/v1/limits': 'limits',
@@ -139,5 +147,5 @@ ROUTES: dict[str, str] = {
     '/v1/trades/spot': 'trades.spot',
     '/v1/ws/token': 'ws.token',
 }
-API_VERSION = '2.0.4'
+API_VERSION = '2.0.5'
 """`info.version` of the contract this SDK was generated from."""

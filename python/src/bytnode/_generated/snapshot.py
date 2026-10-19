@@ -19,6 +19,7 @@ class SnapshotData(BytnodeModel):
     response's `unavailable` / `out_of_plan_fields` say which.
     """
 
+    altcoin_season: m.AltcoinSeason | None = PydField(None, alias='altcoin_season', description='Altcoin Season Index. Same content as `/v1/altcoin-season`. Value: `true` (or 1): the latest value only.')
     basis: m.Basis | None = PydField(None, alias='basis', description='Futures-spot basis (latest value). Same content as `/v1/basis`. Value: `true` (or 1): the latest value only.')
     btc_active_addresses: m.BtcActiveAddresses | None = PydField(None, alias='btc_active_addresses', description='Bitcoin active addresses. Same content as `/v1/btc/active-addresses`. Value: `true` (or 1): the latest value only.')
     btc_fees: m.BtcFees | None = PydField(None, alias='btc_fees', description='Recommended Bitcoin fees. Same content as `/v1/btc/fees`. Value: `true` (or 1): the latest value only.')
@@ -28,6 +29,8 @@ class SnapshotData(BytnodeModel):
     btc_network: m.BtcNetwork | None = PydField(None, alias='btc_network', description='Bitcoin network state. Same content as `/v1/btc/network`. Value: `true` (or 1): the latest value only.')
     btc_nvt: m.BtcNvt | None = PydField(None, alias='btc_nvt', description='Bitcoin NVT. Same content as `/v1/btc/nvt`. Value: `true` (or 1): the latest value only.')
     btc_revenue_per_difficulty: m.BtcRevenuePerDifficulty | None = PydField(None, alias='btc_revenue_per_difficulty', description='Bitcoin revenue per difficulty. Same content as `/v1/btc/revenue-per-difficulty`. Value: `true` (or 1): the latest value only.')
+    cmc100: m.IndicesCmc100 | None = PydField(None, alias='cmc100', description='CoinMarketCap 100 Index and its constituents. Same content as `/v1/indices/cmc100`. Value: `true` (or 1): the latest value only.')
+    cmc20: m.IndicesCmc20 | None = PydField(None, alias='cmc20', description='CoinMarketCap 20 Index and its constituents. Same content as `/v1/indices/cmc20`. Value: `true` (or 1): the latest value only.')
     eth_defi: m.EthDefi | None = PydField(None, alias='eth_defi', description='Ethereum DeFi. Same content as `/v1/eth/defi`. Value: `true` (or 1): the latest value only.')
     eth_deflation: m.EthDeflation | None = PydField(None, alias='eth_deflation', description='ETH deflation. Same content as `/v1/eth/deflation`. Value: `true` (or 1): the latest value only.')
     eth_gas: m.EthGas | None = PydField(None, alias='eth_gas', description='Ethereum gas. Same content as `/v1/eth/gas`. Value: `true` (or 1): the latest value only.')
@@ -37,6 +40,7 @@ class SnapshotData(BytnodeModel):
     eth_staking: m.EthStaking | None = PydField(None, alias='eth_staking', description='ETH staking. Same content as `/v1/eth/staking`. Value: `true` (or 1): the latest value only.')
     eth_supply: m.EthSupply | None = PydField(None, alias='eth_supply', description='ETH supply and burn. Same content as `/v1/eth/supply`. Value: `true` (or 1): the latest value only.')
     fear_greed: m.FearGreed | None = PydField(None, alias='fear_greed', description='Crypto Fear & Greed Index. Same content as `/v1/fear-greed`. Value: `true` (or 1): the latest value only.')
+    fear_greed_cmc: m.FearGreedCmc | None = PydField(None, alias='fear_greed_cmc', description='CMC Crypto Fear & Greed Index. Same content as `/v1/fear-greed/cmc`. Value: `true` (or 1): the latest value only.')
     funding_cumulative: m.FundingCumulative | None = PydField(None, alias='funding_cumulative', description='Funding summed over 24 h. Same content as `/v1/funding/cumulative`. Value: `true` (or 1): the latest value only.')
     funding_next: m.FundingNext | None = PydField(None, alias='funding_next', description='Next funding forecast. Same content as `/v1/funding/next`. Value: `true` (or 1): the latest value only.')
     funding_rate: m.FundingRate | None = PydField(None, alias='funding_rate', description='Latest settled funding window. Same content as `/v1/funding/rate`. Value: `true` (or 1): the latest value only.')
@@ -137,6 +141,7 @@ class SnapshotData(BytnodeModel):
 
 
 SNAPSHOT_FIELDS: dict[str, tuple[str, str | None]] = {
+    'altcoin_season': ('altcoin_season', None),
     'basis': ('basis', None),
     'btc_active_addresses': ('btc_active_addresses', None),
     'btc_fees': ('btc_fees', None),
@@ -146,6 +151,8 @@ SNAPSHOT_FIELDS: dict[str, tuple[str, str | None]] = {
     'btc_network': ('btc_network', None),
     'btc_nvt': ('btc_nvt', None),
     'btc_revenue_per_difficulty': ('btc_revenue_per_difficulty', None),
+    'cmc100': ('cmc100', None),
+    'cmc20': ('cmc20', None),
     'eth_defi': ('eth_defi', None),
     'eth_deflation': ('eth_deflation', None),
     'eth_gas': ('eth_gas', None),
@@ -155,6 +162,7 @@ SNAPSHOT_FIELDS: dict[str, tuple[str, str | None]] = {
     'eth_staking': ('eth_staking', None),
     'eth_supply': ('eth_supply', None),
     'fear_greed': ('fear_greed', None),
+    'fear_greed_cmc': ('fear_greed_cmc', None),
     'funding_cumulative': ('funding_cumulative', None),
     'funding_next': ('funding_next', None),
     'funding_rate': ('funding_rate', None),

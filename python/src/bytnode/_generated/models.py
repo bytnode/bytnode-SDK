@@ -13,6 +13,27 @@ from pydantic import Field as PydField
 from .._models_base import BytnodeModel
 
 
+class AltcoinSeason(BytnodeModel):
+    """Row of `/v1/altcoin-season`."""
+
+    time: datetime | None = PydField(None, description='Point-in-time value: the instant of the measurement (when the source was read). Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
+    value: int | None = PydField(None, description='Altcoin Season Index (CoinMarketCap): how many of the top altcoins outperformed BTC over the last 90 days. High = altcoin season, low = bitcoin season. Unit: score from 0 to 100.')
+    year_low: int | None = PydField(None, description='Lowest value of the index over the last year. Unit: score from 0 to 100.')
+    year_high: int | None = PydField(None, description='Highest value of the index over the last year. Unit: score from 0 to 100.')
+    year_low_at: datetime | None = PydField(None, description='Day of that lowest value, at midnight UTC. Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
+    year_high_at: datetime | None = PydField(None, description='Day of that highest value, at midnight UTC. Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
+    altcoin_market_cap_usd: float | None = PydField(None, description='Total market capitalisation of the altcoins (excluding BTC). Unit: USD.')
+
+
+class AltcoinSeasonHistoryItem(BytnodeModel):
+    """Row of `/v1/altcoin-season/history`."""
+
+    time: datetime | None = PydField(None, description='The day the value refers to, at midnight UTC. Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
+    value: int | None = PydField(None, description='Altcoin Season Index (CoinMarketCap): how many of the top altcoins outperformed BTC over the last 90 days. High = altcoin season, low = bitcoin season. Unit: score from 0 to 100.')
+    altcoin_market_cap_usd: float | None = PydField(None, description='Total market capitalisation of the altcoins (excluding BTC). Unit: USD.')
+    is_closed: bool | None = PydField(None, description='`true` = the row is final; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it. Exception, rare: when a venue delivers trades LATE (seconds to minutes, e.g. during a burst), a closed row built from trades (trade candles, candle volumes, CVD, buy/sell ratio, trades per second) is corrected afterwards to include them, usually within minutes and at most one hour later; the correction only adds the late trades.')
+
+
 class Basis(BytnodeModel):
     """Row of `/v1/basis`."""
 
@@ -601,6 +622,23 @@ class FearGreed(BytnodeModel):
     label: str = PydField(description="Label of the value, from alternative.me's scale: `extreme_fear`, `fear`, `neutral`, `greed` or `extreme_greed` (snake_case, like every label of the API).")
 
 
+class FearGreedCmc(BytnodeModel):
+    """Row of `/v1/fear-greed/cmc`."""
+
+    time: datetime | None = PydField(None, description='Point-in-time value: the instant of the measurement (when the source was read). Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
+    value: int | None = PydField(None, description='CMC Crypto Fear & Greed Index (CoinMarketCap), a different index from `/v1/fear-greed` (alternative.me). 0 = extreme fear, 100 = extreme greed. Unit: score from 0 to 100.')
+    label: str | None = PydField(None, description="Label of the value, from CoinMarketCap's scale: `extreme_fear`, `fear`, `neutral`, `greed` or `extreme_greed` (snake_case, like every label of the API).")
+
+
+class FearGreedCmcHistoryItem(BytnodeModel):
+    """Row of `/v1/fear-greed/cmc/history`."""
+
+    time: datetime | None = PydField(None, description='The day the value refers to, at midnight UTC. Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
+    value: int | None = PydField(None, description='CMC Crypto Fear & Greed Index (CoinMarketCap), a different index from `/v1/fear-greed` (alternative.me). 0 = extreme fear, 100 = extreme greed. Unit: score from 0 to 100.')
+    label: str | None = PydField(None, description="Label of the value, from CoinMarketCap's scale: `extreme_fear`, `fear`, `neutral`, `greed` or `extreme_greed` (snake_case, like every label of the API).")
+    is_closed: bool | None = PydField(None, description='`true` = the row is final; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it. Exception, rare: when a venue delivers trades LATE (seconds to minutes, e.g. during a burst), a closed row built from trades (trade candles, candle volumes, CVD, buy/sell ratio, trades per second) is corrected afterwards to include them, usually within minutes and at most one hour later; the correction only adds the late trades.')
+
+
 class FearGreedHistoryItem(BytnodeModel):
     """Row of `/v1/fear-greed/history`."""
 
@@ -708,6 +746,56 @@ class HeatmapClustersHistoryItem(BytnodeModel):
     attraction_down: float = PydField(description='density_down / dist_down_ratio²: how strongly the cluster below pulls the price. Compare with attraction_up. Unit: dimensionless score.')
     sample_count: int = PydField(description="Number of source points in the bucket (one-minute points with data). For a state (basis, open interest) the value is the LAST of them — the bucket's close —; for a flow it is their total. Unit: count.")
     is_closed: bool = PydField(description='`true` = the row is final; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it. Exception, rare: when a venue delivers trades LATE (seconds to minutes, e.g. during a burst), a closed row built from trades (trade candles, candle volumes, CVD, buy/sell ratio, trades per second) is corrected afterwards to include them, usually within minutes and at most one hour later; the correction only adds the late trades.')
+
+
+class IndicesCmc100ConstituentsItem(BytnodeModel):
+    """Nested object (IndicesCmc100ConstituentsItem)."""
+
+    name: str | None = PydField(None, description='Asset name (`Bitcoin`).')
+    asset: str | None = PydField(None, description='Asset symbol (`BTC`).')
+    weight_pct: float | None = PydField(None, description='Weight of the asset in the index (67.9 = 67.9 %). Unit: percent (58.5 = 58.5 %).')
+
+
+class IndicesCmc100(BytnodeModel):
+    """Row of `/v1/indices/cmc100`."""
+
+    time: datetime | None = PydField(None, description='Point-in-time value: the instant of the measurement (when the source was read). Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
+    value: float | None = PydField(None, description='CoinMarketCap 100 Index: the 100 largest crypto assets, weighted by market capitalisation. Unit: index points.')
+    constituents: list[IndicesCmc100ConstituentsItem] = PydField(description='The assets of the index, with their weight.')
+    change_24h_pct: float | None = PydField(None, description='Change of the index over the last 24 hours. Unit: percent (58.5 = 58.5 %).')
+
+
+class IndicesCmc100HistoryItem(BytnodeModel):
+    """Row of `/v1/indices/cmc100/history`."""
+
+    time: datetime | None = PydField(None, description='The day the value refers to, at midnight UTC. Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
+    value: float | None = PydField(None, description='CoinMarketCap 100 Index: the 100 largest crypto assets, weighted by market capitalisation. Unit: index points.')
+    is_closed: bool | None = PydField(None, description='`true` = the row is final; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it. Exception, rare: when a venue delivers trades LATE (seconds to minutes, e.g. during a burst), a closed row built from trades (trade candles, candle volumes, CVD, buy/sell ratio, trades per second) is corrected afterwards to include them, usually within minutes and at most one hour later; the correction only adds the late trades.')
+
+
+class IndicesCmc20ConstituentsItem(BytnodeModel):
+    """Nested object (IndicesCmc20ConstituentsItem)."""
+
+    name: str | None = PydField(None, description='Asset name (`Bitcoin`).')
+    asset: str | None = PydField(None, description='Asset symbol (`BTC`).')
+    weight_pct: float | None = PydField(None, description='Weight of the asset in the index (70.9 = 70.9 %). Unit: percent (58.5 = 58.5 %).')
+
+
+class IndicesCmc20(BytnodeModel):
+    """Row of `/v1/indices/cmc20`."""
+
+    time: datetime | None = PydField(None, description='Point-in-time value: the instant of the measurement (when the source was read). Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
+    value: float | None = PydField(None, description='CoinMarketCap 20 Index: the 20 largest crypto assets, weighted by market capitalisation. Unit: index points.')
+    constituents: list[IndicesCmc20ConstituentsItem] = PydField(description='The assets of the index, with their weight.')
+    change_24h_pct: float | None = PydField(None, description='Change of the index over the last 24 hours. Unit: percent (58.5 = 58.5 %).')
+
+
+class IndicesCmc20HistoryItem(BytnodeModel):
+    """Row of `/v1/indices/cmc20/history`."""
+
+    time: datetime | None = PydField(None, description='The day the value refers to, at midnight UTC. Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
+    value: float | None = PydField(None, description='CoinMarketCap 20 Index: the 20 largest crypto assets, weighted by market capitalisation. Unit: index points.')
+    is_closed: bool | None = PydField(None, description='`true` = the row is final; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it. Exception, rare: when a venue delivers trades LATE (seconds to minutes, e.g. during a burst), a closed row built from trades (trade candles, candle volumes, CVD, buy/sell ratio, trades per second) is corrected afterwards to include them, usually within minutes and at most one hour later; the correction only adds the late trades.')
 
 
 class Kline(BytnodeModel):
@@ -1502,7 +1590,7 @@ class SpreadInterexchange(BytnodeModel):
 class StatusFeedsItem(BytnodeModel):
     """Nested object (StatusFeedsItem)."""
 
-    feed: Literal['basis', 'btc_block_rewards', 'btc_blocks', 'btc_difficulty_adjustments', 'btc_fee_rates', 'btc_fees', 'btc_mempool', 'btc_mining_pools', 'btc_mvrv', 'btc_network', 'btc_onchain_metrics', 'buy_sell_ratio', 'etf_filings', 'eth_beacon', 'eth_defi', 'eth_gas', 'eth_market', 'eth_staking_yield', 'eth_supply', 'fear_greed', 'funding_next', 'funding_rate', 'global_market', 'heatmap_clusters', 'klines_1m', 'klines_futures_1m', 'klines_futures_multi', 'klines_multi', 'liquidations_cumulative', 'liquidations_events', 'macro_daily_weekly', 'macro_gold', 'macro_intraday_15m', 'macro_intraday_15m_continuous', 'macro_intraday_1d', 'macro_intraday_1d_continuous', 'macro_intraday_1h', 'macro_intraday_1h_continuous', 'macro_intraday_1m', 'macro_intraday_1m_continuous', 'macro_intraday_4h', 'macro_intraday_4h_continuous', 'macro_intraday_5m', 'macro_intraday_5m_continuous', 'macro_monthly', 'oi', 'oi_change', 'options_aggregates', 'options_chain', 'options_expiries', 'orderbook_15m', 'orderbook_1d', 'orderbook_1h', 'orderbook_1m', 'orderbook_30m', 'orderbook_4h', 'orderbook_5m', 'spread_interexchange_15m', 'spread_interexchange_1d', 'spread_interexchange_1h', 'spread_interexchange_1m', 'spread_interexchange_30m', 'spread_interexchange_4h', 'spread_interexchange_5m', 'tokenomics_supply', 'trades_avg_size', 'trades_futures', 'trades_kline_futures_15m', 'trades_kline_futures_1d', 'trades_kline_futures_1h', 'trades_kline_futures_1m', 'trades_kline_futures_30m', 'trades_kline_futures_4h', 'trades_kline_futures_5m', 'trades_kline_futures_seconds', 'trades_kline_spot_15m', 'trades_kline_spot_1d', 'trades_kline_spot_1h', 'trades_kline_spot_1m', 'trades_kline_spot_30m', 'trades_kline_spot_4h', 'trades_kline_spot_5m', 'trades_spot'] = PydField(description='Public feed name. The closed list of this contract version; `routes` gives the routes each one supplies.')
+    feed: Literal['altcoin_season', 'basis', 'btc_block_rewards', 'btc_blocks', 'btc_difficulty_adjustments', 'btc_fee_rates', 'btc_fees', 'btc_mempool', 'btc_mining_pools', 'btc_mvrv', 'btc_network', 'btc_onchain_metrics', 'buy_sell_ratio', 'cmc_indices', 'etf_filings', 'eth_beacon', 'eth_defi', 'eth_gas', 'eth_market', 'eth_staking_yield', 'eth_supply', 'fear_greed', 'fear_greed_cmc', 'funding_next', 'funding_rate', 'global_market', 'heatmap_clusters', 'klines_1m', 'klines_futures_1m', 'klines_futures_multi', 'klines_multi', 'liquidations_cumulative', 'liquidations_events', 'macro_daily_weekly', 'macro_gold', 'macro_intraday_15m', 'macro_intraday_15m_continuous', 'macro_intraday_1d', 'macro_intraday_1d_continuous', 'macro_intraday_1h', 'macro_intraday_1h_continuous', 'macro_intraday_1m', 'macro_intraday_1m_continuous', 'macro_intraday_4h', 'macro_intraday_4h_continuous', 'macro_intraday_5m', 'macro_intraday_5m_continuous', 'macro_monthly', 'oi', 'oi_change', 'options_aggregates', 'options_chain', 'options_expiries', 'orderbook_15m', 'orderbook_1d', 'orderbook_1h', 'orderbook_1m', 'orderbook_30m', 'orderbook_4h', 'orderbook_5m', 'sentiment_cmc_current', 'spread_interexchange_15m', 'spread_interexchange_1d', 'spread_interexchange_1h', 'spread_interexchange_1m', 'spread_interexchange_30m', 'spread_interexchange_4h', 'spread_interexchange_5m', 'tokenomics_supply', 'trades_avg_size', 'trades_futures', 'trades_kline_futures_15m', 'trades_kline_futures_1d', 'trades_kline_futures_1h', 'trades_kline_futures_1m', 'trades_kline_futures_30m', 'trades_kline_futures_4h', 'trades_kline_futures_5m', 'trades_kline_futures_seconds', 'trades_kline_spot_15m', 'trades_kline_spot_1d', 'trades_kline_spot_1h', 'trades_kline_spot_1m', 'trades_kline_spot_30m', 'trades_kline_spot_4h', 'trades_kline_spot_5m', 'trades_spot'] = PydField(description='Public feed name. The closed list of this contract version; `routes` gives the routes each one supplies.')
     family: str = PydField(description='Data family the feed belongs to, as in `/v1/limits` and the `x-family` of each route: `price_volume`, `derivatives`, `microstructure`, `trades`, `options`, `onchain`, `macro`, `etf`, `tokenomics` or `sentiment`.')
     routes: list[str] = PydField(description='The public routes (contract paths) this feed supplies: watch this feed to know whether they are fresh. A per-timeframe feed (`cvd_1h`) supplies them at that timeframe.')
     age_s: float | None = PydField(None, description='Age of the latest row of the feed. For a feed made of several series (one per asset, per macro series, per ETF), the age of its OLDEST series. For the market-hours intraday series (`macro_intraday_<tf>`, not `_continuous`), counted on weekdays only, like their threshold. `null` if the feed is empty or could not be checked. Unit: seconds.')
@@ -1635,4 +1723,4 @@ class WsToken(BytnodeModel):
     url: str | None = PydField(None, description='The stream URL with the token already in it, ready to open.')
 
 
-__all__ = ['Basis', 'BasisHistoryItem', 'BtcActiveAddresses', 'BtcActiveAddressesHistoryItem', 'BtcFeesFeePressure', 'BtcFees', 'BtcFeesHistoryItem', 'BtcMempoolTrend', 'BtcMempool', 'BtcMempoolHistoryItem', 'BtcMiningConcentration', 'BtcMiningLatestReward', 'BtcMiningPoolsItem', 'BtcMining', 'BtcMiningHistoryItem', 'BtcMvrv', 'BtcMvrvHistoryItem', 'BtcNetworkBlockTime', 'BtcNetworkNextAdjustment', 'BtcNetwork', 'BtcNetworkHistoryItem', 'BtcNvt', 'BtcNvtHistoryItem', 'BtcRevenuePerDifficulty', 'BtcRevenuePerDifficultyHistoryItem', 'BuySellRatio', 'BuySellRatioHistoryItem', 'CapabilitiesFeedsActiveLast24h', 'CapabilitiesComputedMetricsNotApplicable', 'Capabilities', 'Cvd', 'EtfFundamentals', 'EtfFundamentalsHistoryItem', 'EthDefi', 'EthDefiHistoryItem', 'EthDeflation', 'EthDeflationHistoryItem', 'EthGas', 'EthGasMomentum', 'EthGasMomentumHistoryItem', 'EthGasHistoryItem', 'EthPriceBtc', 'EthPriceBtcHistoryItem', 'EthSqueeze', 'EthSqueezeHistoryItem', 'EthStaking', 'EthStakingHistoryItem', 'EthSupply', 'EthSupplyHistoryItem', 'FearGreed', 'FearGreedHistoryItem', 'FundingCumulative', 'FundingCumulativeHistoryItem', 'FundingNext', 'FundingRate', 'GlobalMarket', 'GlobalMarketHistoryItem', 'Health', 'HeatmapClusters', 'HeatmapClustersHistoryItem', 'Kline', 'KlineHistoryItem', 'LimitsHistoryItem', 'LimitsRate', 'LimitsQuota', 'Limits', 'LiquidationsBigSmallRatio', 'LiquidationsBigSmallRatioHistoryItem', 'LiquidationsCumulative', 'LiquidationsCumulativeHistoryItem', 'LiquidationEvent', 'Macro', 'MacroCorrelationsCorrelationsDxy30d', 'MacroCorrelationsCorrelationsDxy90d', 'MacroCorrelationsCorrelationsDxy', 'MacroCorrelationsCorrelationsSp50030d', 'MacroCorrelationsCorrelationsSp50090d', 'MacroCorrelationsCorrelationsSp500', 'MacroCorrelationsCorrelationsGold30d', 'MacroCorrelationsCorrelationsGold90d', 'MacroCorrelationsCorrelationsGold', 'MacroCorrelationsCorrelationsVix30d', 'MacroCorrelationsCorrelationsVix90d', 'MacroCorrelationsCorrelationsVix', 'MacroCorrelationsCorrelations', 'MacroCorrelations', 'MacroHistoryItem', 'MacroIntraday', 'MacroIntradaySeriesInfoLastCandleAt', 'MacroIntradaySeriesInfo', 'MacroMomentum30dComponentsItem', 'MacroMomentum30d', 'MacroMomentum90dComponentsItem', 'MacroMomentum90d', 'MacroMomentum', 'MacroNetLiquidity', 'MacroNetLiquidityHistoryItem', 'MacroRiskSignalsVix', 'MacroRiskSignalsDxy', 'MacroRiskSignalsYieldCurve', 'MacroRiskSignalsSp500', 'MacroRiskSignalsGold', 'MacroRiskSignals', 'MacroRiskContext', 'MacroRisk', 'MacroSeriesInfo', 'Oi', 'OiChange', 'OiChangeHistoryItem', 'OiHistoryItem', 'OptionsExpiry', 'OptionsGreeksCoverage', 'OptionsGreeks', 'OptionsIv', 'OptionsIvKline', 'OptionsIvKlineHistoryItem', 'OptionsMaxPain', 'OptionsMaxPainHistoryItem', 'OptionsOiCoverage', 'OptionsOi', 'OptionsOiChange', 'OptionsOiChangeHistoryItem', 'OptionsOiDistribution', 'OptionsOiHistoryItem', 'OptionsPutCallRatio', 'OptionsPutCallRatioHistoryItem', 'OptionsSummaryNearestExpiry', 'OptionsSummaryCoverage', 'OptionsSummary', 'OptionsVolumeCoverage', 'OptionsVolume', 'OptionsVolumeHistoryItem', 'OrderbookRangesItem', 'Orderbook', 'PriceChangeChangesPct', 'PriceChange', 'SpreadInterexchangeVenuesItem', 'SpreadInterexchange', 'StatusFeedsItem', 'Status', 'SymbolInfo', 'Tokenomics', 'TokenomicsHistoryItem', 'TradesKline', 'TradesKlineSecond', 'TradesAvgSize', 'TradesAvgSizeHistoryItem', 'Trade', 'WsToken']
+__all__ = ['AltcoinSeason', 'AltcoinSeasonHistoryItem', 'Basis', 'BasisHistoryItem', 'BtcActiveAddresses', 'BtcActiveAddressesHistoryItem', 'BtcFeesFeePressure', 'BtcFees', 'BtcFeesHistoryItem', 'BtcMempoolTrend', 'BtcMempool', 'BtcMempoolHistoryItem', 'BtcMiningConcentration', 'BtcMiningLatestReward', 'BtcMiningPoolsItem', 'BtcMining', 'BtcMiningHistoryItem', 'BtcMvrv', 'BtcMvrvHistoryItem', 'BtcNetworkBlockTime', 'BtcNetworkNextAdjustment', 'BtcNetwork', 'BtcNetworkHistoryItem', 'BtcNvt', 'BtcNvtHistoryItem', 'BtcRevenuePerDifficulty', 'BtcRevenuePerDifficultyHistoryItem', 'BuySellRatio', 'BuySellRatioHistoryItem', 'CapabilitiesFeedsActiveLast24h', 'CapabilitiesComputedMetricsNotApplicable', 'Capabilities', 'Cvd', 'EtfFundamentals', 'EtfFundamentalsHistoryItem', 'EthDefi', 'EthDefiHistoryItem', 'EthDeflation', 'EthDeflationHistoryItem', 'EthGas', 'EthGasMomentum', 'EthGasMomentumHistoryItem', 'EthGasHistoryItem', 'EthPriceBtc', 'EthPriceBtcHistoryItem', 'EthSqueeze', 'EthSqueezeHistoryItem', 'EthStaking', 'EthStakingHistoryItem', 'EthSupply', 'EthSupplyHistoryItem', 'FearGreed', 'FearGreedCmc', 'FearGreedCmcHistoryItem', 'FearGreedHistoryItem', 'FundingCumulative', 'FundingCumulativeHistoryItem', 'FundingNext', 'FundingRate', 'GlobalMarket', 'GlobalMarketHistoryItem', 'Health', 'HeatmapClusters', 'HeatmapClustersHistoryItem', 'IndicesCmc100ConstituentsItem', 'IndicesCmc100', 'IndicesCmc100HistoryItem', 'IndicesCmc20ConstituentsItem', 'IndicesCmc20', 'IndicesCmc20HistoryItem', 'Kline', 'KlineHistoryItem', 'LimitsHistoryItem', 'LimitsRate', 'LimitsQuota', 'Limits', 'LiquidationsBigSmallRatio', 'LiquidationsBigSmallRatioHistoryItem', 'LiquidationsCumulative', 'LiquidationsCumulativeHistoryItem', 'LiquidationEvent', 'Macro', 'MacroCorrelationsCorrelationsDxy30d', 'MacroCorrelationsCorrelationsDxy90d', 'MacroCorrelationsCorrelationsDxy', 'MacroCorrelationsCorrelationsSp50030d', 'MacroCorrelationsCorrelationsSp50090d', 'MacroCorrelationsCorrelationsSp500', 'MacroCorrelationsCorrelationsGold30d', 'MacroCorrelationsCorrelationsGold90d', 'MacroCorrelationsCorrelationsGold', 'MacroCorrelationsCorrelationsVix30d', 'MacroCorrelationsCorrelationsVix90d', 'MacroCorrelationsCorrelationsVix', 'MacroCorrelationsCorrelations', 'MacroCorrelations', 'MacroHistoryItem', 'MacroIntraday', 'MacroIntradaySeriesInfoLastCandleAt', 'MacroIntradaySeriesInfo', 'MacroMomentum30dComponentsItem', 'MacroMomentum30d', 'MacroMomentum90dComponentsItem', 'MacroMomentum90d', 'MacroMomentum', 'MacroNetLiquidity', 'MacroNetLiquidityHistoryItem', 'MacroRiskSignalsVix', 'MacroRiskSignalsDxy', 'MacroRiskSignalsYieldCurve', 'MacroRiskSignalsSp500', 'MacroRiskSignalsGold', 'MacroRiskSignals', 'MacroRiskContext', 'MacroRisk', 'MacroSeriesInfo', 'Oi', 'OiChange', 'OiChangeHistoryItem', 'OiHistoryItem', 'OptionsExpiry', 'OptionsGreeksCoverage', 'OptionsGreeks', 'OptionsIv', 'OptionsIvKline', 'OptionsIvKlineHistoryItem', 'OptionsMaxPain', 'OptionsMaxPainHistoryItem', 'OptionsOiCoverage', 'OptionsOi', 'OptionsOiChange', 'OptionsOiChangeHistoryItem', 'OptionsOiDistribution', 'OptionsOiHistoryItem', 'OptionsPutCallRatio', 'OptionsPutCallRatioHistoryItem', 'OptionsSummaryNearestExpiry', 'OptionsSummaryCoverage', 'OptionsSummary', 'OptionsVolumeCoverage', 'OptionsVolume', 'OptionsVolumeHistoryItem', 'OrderbookRangesItem', 'Orderbook', 'PriceChangeChangesPct', 'PriceChange', 'SpreadInterexchangeVenuesItem', 'SpreadInterexchange', 'StatusFeedsItem', 'Status', 'SymbolInfo', 'Tokenomics', 'TokenomicsHistoryItem', 'TradesKline', 'TradesKlineSecond', 'TradesAvgSize', 'TradesAvgSizeHistoryItem', 'Trade', 'WsToken']
