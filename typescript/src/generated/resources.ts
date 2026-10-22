@@ -8486,4 +8486,4 @@ export const ROUTES: Record<string, string> = {
   "/v1/ws/token": "ws.token",
 };
 /** `info.version` of the contract this SDK was generated from. */
-export const API_VERSION = "2.0.5";
+export const API_VERSION = "2.0.6";

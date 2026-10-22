@@ -4,6 +4,15 @@ All notable changes to the BytNode SDKs. Both packages share one version number.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow
 [Semantic Versioning](https://semver.org/).
 
+## [2.0.6] — 2026-10-22
+
+Generated from contract `2.0.6`. No change to the generated methods or models.
+
+- The API now also accepts the key as `Authorization: Bearer <key>` (the SDKs keep sending
+  `X-API-KEY`, which wins when both are present). The contract declares both forms.
+- MCP connectors that sign in with OAuth (claude.ai, ChatGPT, Claude Code) need no key:
+  they connect to `https://api.bytnode.com/mcp` and approve access on bytnode.com.
+
 ## [2.0.5] — 2026-10-19
 
 Generated from contract `2.0.5`.

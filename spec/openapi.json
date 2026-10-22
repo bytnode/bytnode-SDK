@@ -2,9 +2,9 @@
   "openapi": "3.1.0",
   "info": {
     "title": "BytNode Crypto Market Data API",
-    "version": "2.0.5",
+    "version": "2.0.6",
     "summary": "Crypto market data aggregated across the major venues, derivatives, order flow, options, macro, ETF and on-chain — for developers and AI agents.",
-    "description": "**BytNode is a crypto market-data API built for developers and AI agents.** One key gives you market data aggregated across the major crypto venues, derivatives positioning, order flow, options, macro, ETF and on-chain fundamentals — 140 REST routes, a consolidated real-time WebSocket and a native MCP server, all behind one consistent contract.\n\n## Why BytNode\n\n- **Aggregated across the major venues, not one exchange.** Spot and perpetual futures markets are consolidated into one number per metric: volumes are summed, rates are open-interest weighted, prices volume weighted — and the method is documented for every metric.\n- **Depth on the assets that matter.** 77 pairs: 75 USDT-margined perpetual markets — the largest crypto assets by market capitalisation that the venues list as perpetuals, from BTC, ETH and SOL to ZEC, AAVE or SUI — plus USDC and USDT spot pairs (the full list: `GET /v1/symbols`). This is a deliberate choice: together these assets are about 97 % of the total crypto market capitalisation (measured on 2026-10-19: 2.68 of 2.76 trillion USD), and each of them gets every family of data from every venue that lists it — quality and depth on the assets people actually trade, instead of thin coverage of thousands of tickers.\n- **Ten data families in one API.** Market (prices and candles, individual trades, large trades), derivatives (funding, basis, open interest, liquidations), order flow (CVD, order book, trade candles, liquidation heatmap), options (OI, IV, max pain, greeks), 19 server-side technical indicators, on-chain (Bitcoin network, Ethereum fundamentals, on-chain valuation), spot ETF fundamentals (SEC EDGAR), macro (FRED + intraday), tokenomics and sentiment (two Fear & Greed indices, Altcoin Season, CMC20 and CMC100). Many providers sell these as separate products; here they share one key, one envelope and one set of conventions.\n- **Honest numbers.** Every bucketed or history row says whether it is final (`is_closed`); every empty answer says why (`unavailable`: `not_applicable`, `no_api_key`, `no_data`); every numeric field has a documented unit.\n- **Made for AI agents.** A native MCP server (3 tools, 60 fields), `llms.txt` and `llms-full.txt`, this OpenAPI contract with units and real examples, one-request snapshots of up to 52 fields, and stable machine-readable error codes.\n- **Priced for builders.** A free plan (10,000 requests/month), then Traders from 6.95 USD/month, Financial from 19.95 USD/month and Startup from 99.95 USD/month (billed yearly), with history depth and families growing with the plan. See https://bytnode.com/pricing. Each operation names its data family in `x-family` (the identifiers `GET /v1/limits` returns for your key); `x-metered: false` marks the routes that are never counted.\n\n## Quick start\n\n1. Create a free key at https://bytnode.com/sign-up.\n2. Send it in the `X-API-KEY` header:\n\n```\ncurl -H \"X-API-KEY: $BYTNODE_API_KEY\" \"https://api.bytnode.com/v1/funding/rate?symbol=BTCUSDT\"\n```\n\n## Conventions\n\n- **Envelope.** Every success is `{status: \"ok\", server_time, data_type, data}`, plus the effective `symbol`, `timeframe`, `asset`, `series`, `market` or filter (`expiry`, `ticker`, `dataset`, `category`) when the route has them. `status` is `ok` whenever the request succeeded (the state of the feeds is `data.state` on `/v1/status`). The shape of `data` follows the path: an OBJECT (or `null`) for the latest value of a metric — `/v1/klines` is the latest closed candle; a LIST (most recent first, or oldest first with `order=asc`) for every `/history` route and for the event series `/v1/trades/{spot,futures,large}`, `/v1/trades-kline/futures/seconds` and `/v1/liquidations/events`. A list carries `step`, the step between its rows (`1h` when you asked `timeframe=1h`; `1d` for a daily series, `8h` for funding, `1m` for the Bitcoin fee readings): a bucket row is dated at the start of its bucket, a periodic reading at its own instant; `timeframe` is only ever the parameter you sent. Collections are lists too: `/v1/symbols`, `/v1/etf/fundamentals`, `/v1/macro/series`, `/v1/macro/intraday/series`, and the options expiry, max-pain and OI distribution routes. A field that can be `null` is typed so in the schema; any other field is never `null`.\n- **Units.** `*_pct` = percent (58.5 = 58.5 %), `*_ratio` = a dimensionless quotient that names what it divides (`put_call_ratio` 1.2 = 1.2 puts per call, `big_small_ratio`; a share of a whole is a fraction, 0.585 = 58.5 %), `*_bps` = basis points, `*_usd` = USD (every USD amount ends in `_usd`), `*_s` = seconds (every duration), `*_count` = a count, `*_pp` = percentage points. Prices, and price differences such as `basis_value`, are in the quote currency (USDT for BTCUSDT). Volumes and quantities (`volume`, `buy_volume`, `sell_volume`, `net_volume`, `oi`, `holdings`...) are in BASE ASSET units (BTC for BTCUSDT), never dollars: a quantity OF AN ASSET without a unit suffix is in base asset units; any other measure (virtual bytes, difficulty, block height, index points) states its unit in `x-unit`. A name without a market suffix covers EVERY market of the route: on a candle, `volume` is spot + perpetual futures, `volume_spot` and `volume_futures` one market each; the candle's prices (`open`... `close`) are those of one reference spot market. Every response schema carries each field's unit in `x-unit`; `x-units` at the root maps a field NAME to its unit only when that unit is the same on every route. Numbers are rounded to 12 significant digits.\n- **Names.** One concept has one name on every route, in the snapshot, in the MCP and on the WebSocket: `buy_volume` / `sell_volume` / `net_volume`, `trade_count`, `sample_count`, booleans `is_*`, a qualitative reading `label` (`put_call_label` for the put/call reading), instants `*_at`, durations `*_s`, counts `*_count`, a value at the start of a window `previous_*`, a running total `*_cumulative`, a change over time `*_change*`; the perpetual market is `futures` everywhere and the order book is `orderbook` everywhere (REST, snapshot, WebSocket `orderbook.*`). A TRADE is one execution (`/v1/trades/spot`, `/v1/trades/futures`, WebSocket `trades.*`, plan family `trades`); the candles aggregated from trades are `trades_kline` (`/v1/trades-kline`). A path uses the name of its fields (`/v1/oi/change` serves `oi_change`, `/v1/options/put-call-ratio` serves `put_call_ratio`); a ratio route is `<a>-<b>-ratio`; Bitcoin lives under `/v1/btc/*` and Ethereum under `/v1/eth/*`. `data_type` is the route's own name (`/v1/trades/avg-size/history` -> `trades_avg_size_history`), and a snapshot field is named after the route that serves the same data (`liquidations_cumulative`, `trades_kline@1h`).\n- **Market in the path.** A route that serves several markets takes the market as a path suffix: no suffix = every market (spot + perpetual futures), `/spot`, `/futures` (`/v1/cvd`, `/v1/cvd/spot`, `/v1/cvd/futures`; the same for `/v1/buy-sell-ratio`, `/v1/trades/avg-size`, `/v1/orderbook`, `/v1/trades-kline`). The envelope repeats it in `market`. A route on ONE market says it in its path or its description and repeats it in `market` too: `/v1/trades/large` (large trades are perpetual futures trades), `/v1/trades-kline/futures/seconds`.\n- **Time.** Timestamps are ISO 8601 UTC with milliseconds (`2026-09-28T14:00:00.000Z`). `time` is the canonical key: every timestamped object under `data` carries it. It follows ONE of two rules, and the description of `time` on each route says which. (1) A BUCKET (candles, trade candles, CVD, order book per bucket, funding per 8-hour period, every `/history` row, and the latest value of a bucketed route: `/v1/klines`, `/v1/cvd`, `/v1/buy-sell-ratio`, `/v1/trades/avg-size`, `/v1/liquidations/big-small-ratio`, `/v1/orderbook`, `/v1/spread/interexchange`, `/v1/trades-kline`: each one requires `timeframe` and returns the first row of its `/history`) is dated at its START and carries `is_closed`. (2) A POINT-IN-TIME value is dated at the instant it refers to: the END of a rolling window — and only a rolling window carries `window_start_at` and `window_s` (`/v1/liquidations/cumulative`, `/v1/oi/change`, `/v1/funding/cumulative`, `/v1/options/oi/change`) — the instant of the computation (`/v1/basis`), the instant the SOURCE states (options, BTC, ETH, tokenomics; `/v1/global`, which may end in `.999`), the settlement a forecast is for (`/v1/funding/next`), the EVENT (trades, large trades, liquidations), and the most recent input of a composite (`/v1/macro/correlations`, `/momentum`, `/risk`, which also give `oldest_input_date`). A daily value is dated at midnight UTC. The envelope's `server_time` is the time of the response. Time bounds (`since_ms`, `until_ms`) are epoch MILLISECONDS, inclusive; `since_ms=0` means \"from the start of the data\".\n- **Closed buckets.** Bucketed routes serve the last CLOSED bucket. `?live=1` adds the open one with `is_closed: false` on the routes that declare it: `/v1/klines`, `/v1/cvd`, `/v1/trades-kline` (and their `/spot` and `/futures` variants), `/v1/funding/rate` and `/v1/spread/interexchange`; elsewhere it is an unknown parameter (422). A bucket appears once its inputs are settled, a few seconds after its end (about 2 s for a 1m order book, 5 s for a 1m candle; 20 s at most when a venue is late). Every bucket row carries `is_closed`; a rolling-window value is always final and carries none.\n- **Pagination.** Every paged route speaks one dialect: `next` is the relative URL of the following page, ready to call (`/v1/klines/history?symbol=BTCUSDT&timeframe=1h&limit=100&before_ms=…`), or `null` once the range is read. Going back, the bound is `before_ms` (EXCLUSIVE); going forward, `order=asc` reads from `since_ms` (then required). The trades routes add `after_id`, to resume inside one millisecond. Loop `while next: GET base + next`; it never repeats a row. A read that would exceed its time budget returns the rows it has with a `next` instead of failing, so a page can be shorter than `limit` (even empty) and still have a `next`: only `next: null` means the end. A 504 `upstream_timeout` remains possible on one very heavy page: reduce `limit`.\n- **Freshness.** A response is usually up to one second old (`Cache-Control: private, max-age=1`); a cached copy can occasionally reach two seconds.\n- **Strict parameters.** An undeclared or repeated parameter is a 422 with a suggestion (`limt` -> did you mean `limit`?), and so is an unknown value of a closed set (`symbol`, `asset`, `series`, `timeframe`, `category`, `ticker`, `expiry`…), with the accepted values in `error.details.accepted`. `symbol`, `asset`, `series`, `timeframe` and `order` are case-insensitive (`1M` excepted: elsewhere a month, here refused). `?fields=a,b.c` projects `data` (not on `POST /v1/indicators`, which takes no query parameter).\n- **Aggregation only.** No route discloses which venue a number came from, except the inter-venue spread, whose purpose is to compare venues.\n- **Browsers and probes.** The REST API answers CORS (`Access-Control-Allow-Origin: *`, the `X-API-KEY` header allowed, preflight `OPTIONS` without a key) and `HEAD` on every `GET` route. A key used in a web page is readable by its visitors: use a dedicated key there.\n\n## Errors\n\nEvery error has one shape, on the REST API and on the WebSocket (`{\"op\": \"error\", \"server_time\", \"error\": {...}}`):\n\n```\n{\"status\": \"error\", \"server_time\": \"2026-10-13T08:00:00.000Z\",\n \"error\": {\"code\": \"invalid_symbol\", \"param\": \"symbol\",\n           \"message\": \"Unknown symbol 'BTCUSD'. Did you mean 'BTCUSDT'? Accepted values: ...\",\n           \"details\": {\"suggestion\": \"BTCUSDT\", \"accepted\": [\"ADAUSDT\", \"...\"]}}}\n```\n\nBranch on `error.code` (stable, listed in the `ApiError` schema), show `error.message` (English), read `error.details` (an object, present when the error carries structured data) for what to change. A missing key is `missing_api_key`, a wrong one `invalid_api_key` (401). Key and plan refusals carry the same code in an `X-Deny-Reason` header (the edge anti-flood 429 `edge_rate_limited` carries none); 429 and 503 carry `Retry-After` (the real delay: until the next request of your rate, or the 1st of the month for the quota), always equal to `error.details.retry_after_s`.\n\n## Limits\n\nEach plan has a per-minute rate, a monthly quota and a history window per timeframe; `GET /v1/limits` returns those of your key. Responses made with a metered key carry the IETF `RateLimit-Policy` and `RateLimit` headers (policies `rate` and `quota`). Going further back than your plan allows is a 403 `history_depth`, never a silently truncated answer. Details: https://bytnode.com/docs/rate-limits.\n\n## Versioning\n\nThe URL prefix `/v1` is the API generation. `info.version` is the revision of THIS contract, in semantic versioning: a PATCH corrects (a text, a value, a nullable field), a MINOR adds (a route, a field, a parameter, an accepted value), a MAJOR removes, renames or changes a meaning. Every response carries it in the `BytNode-Contract-Version` header, and each published version stays readable at `https://api.bytnode.com/openapi/<version>.json` (the list: `https://api.bytnode.com/openapi/index.json`). 2.0.0 (2026-10-16) is the reference version of this contract. The guide: https://bytnode.com/docs/versioning.\n\n## Machine-readable files\n\nThis contract (`/openapi.json`, OpenAPI 3.1), the same in OpenAPI 3.0 (`/openapi-3.0.json`), a light copy without examples for AI agents (`/openapi-lite.json`), the WebSocket in AsyncAPI 3.0 (`/asyncapi.json`), and every published version (`/openapi/<version>.json`, listed in `/openapi/index.json`), all on https://api.bytnode.com, without a key. `GET /` (no key) returns the index of these links in the standard envelope (`data_type: index`, `data.contract_version`); it is a pointer to this contract, not a data route, so it is not listed under `paths`.\n\n## Links\n\nDocs https://bytnode.com/docs · Pricing https://bytnode.com/pricing · Full reference for LLMs https://bytnode.com/llms-full.txt · WebSocket `wss://ws.bytnode.com/ws` · MCP `https://api.bytnode.com/mcp` · Contact contact@bytnode.com\n",
+    "description": "**BytNode is a crypto market-data API built for developers and AI agents.** One key gives you market data aggregated across the major crypto venues, derivatives positioning, order flow, options, macro, ETF and on-chain fundamentals — 140 REST routes, a consolidated real-time WebSocket and a native MCP server, all behind one consistent contract.\n\n## Why BytNode\n\n- **Aggregated across the major venues, not one exchange.** Spot and perpetual futures markets are consolidated into one number per metric: volumes are summed, rates are open-interest weighted, prices volume weighted — and the method is documented for every metric.\n- **Depth on the assets that matter.** 77 pairs: 75 USDT-margined perpetual markets — the largest crypto assets by market capitalisation that the venues list as perpetuals, from BTC, ETH and SOL to ZEC, AAVE or SUI — plus USDC and USDT spot pairs (the full list: `GET /v1/symbols`). This is a deliberate choice: together these assets are about 97 % of the total crypto market capitalisation (measured on 2026-10-19: 2.68 of 2.76 trillion USD), and each of them gets every family of data from every venue that lists it — quality and depth on the assets people actually trade, instead of thin coverage of thousands of tickers.\n- **Ten data families in one API.** Market (prices and candles, individual trades, large trades), derivatives (funding, basis, open interest, liquidations), order flow (CVD, order book, trade candles, liquidation heatmap), options (OI, IV, max pain, greeks), 19 server-side technical indicators, on-chain (Bitcoin network, Ethereum fundamentals, on-chain valuation), spot ETF fundamentals (SEC EDGAR), macro (FRED + intraday), tokenomics and sentiment (two Fear & Greed indices, Altcoin Season, CMC20 and CMC100). Many providers sell these as separate products; here they share one key, one envelope and one set of conventions.\n- **Honest numbers.** Every bucketed or history row says whether it is final (`is_closed`); every empty answer says why (`unavailable`: `not_applicable`, `no_api_key`, `no_data`); every numeric field has a documented unit.\n- **Made for AI agents.** A native MCP server (4 tools, 64 fields), `llms.txt` and `llms-full.txt`, this OpenAPI contract with units and real examples, one-request snapshots of up to 52 fields, and stable machine-readable error codes.\n- **Priced for builders.** A free plan (10,000 requests/month), then Traders from 6.95 USD/month, Financial from 19.95 USD/month and Startup from 99.95 USD/month (billed yearly), with history depth and families growing with the plan. See https://bytnode.com/pricing. Each operation names its data family in `x-family` (the identifiers `GET /v1/limits` returns for your key); `x-metered: false` marks the routes that are never counted.\n\n## Quick start\n\n1. Create a free key at https://bytnode.com/sign-up.\n2. Send it in the `X-API-KEY` header (or as `Authorization: Bearer <key>`):\n\n```\ncurl -H \"X-API-KEY: $BYTNODE_API_KEY\" \"https://api.bytnode.com/v1/funding/rate?symbol=BTCUSDT\"\n```\n\nMCP connectors (claude.ai, ChatGPT, Claude Code) need no key at all: they sign in with OAuth on https://bytnode.com, where you approve the connection, and send the token they receive as `Authorization: Bearer`. It carries the rights and the quota of your plan.\n\n## Conventions\n\n- **Envelope.** Every success is `{status: \"ok\", server_time, data_type, data}`, plus the effective `symbol`, `timeframe`, `asset`, `series`, `market` or filter (`expiry`, `ticker`, `dataset`, `category`) when the route has them. `status` is `ok` whenever the request succeeded (the state of the feeds is `data.state` on `/v1/status`). The shape of `data` follows the path: an OBJECT (or `null`) for the latest value of a metric — `/v1/klines` is the latest closed candle; a LIST (most recent first, or oldest first with `order=asc`) for every `/history` route and for the event series `/v1/trades/{spot,futures,large}`, `/v1/trades-kline/futures/seconds` and `/v1/liquidations/events`. A list carries `step`, the step between its rows (`1h` when you asked `timeframe=1h`; `1d` for a daily series, `8h` for funding, `1m` for the Bitcoin fee readings): a bucket row is dated at the start of its bucket, a periodic reading at its own instant; `timeframe` is only ever the parameter you sent. Collections are lists too: `/v1/symbols`, `/v1/etf/fundamentals`, `/v1/macro/series`, `/v1/macro/intraday/series`, and the options expiry, max-pain and OI distribution routes. A field that can be `null` is typed so in the schema; any other field is never `null`.\n- **Units.** `*_pct` = percent (58.5 = 58.5 %), `*_ratio` = a dimensionless quotient that names what it divides (`put_call_ratio` 1.2 = 1.2 puts per call, `big_small_ratio`; a share of a whole is a fraction, 0.585 = 58.5 %), `*_bps` = basis points, `*_usd` = USD (every USD amount ends in `_usd`), `*_s` = seconds (every duration), `*_count` = a count, `*_pp` = percentage points. Prices, and price differences such as `basis_value`, are in the quote currency (USDT for BTCUSDT). Volumes and quantities (`volume`, `buy_volume`, `sell_volume`, `net_volume`, `oi`, `holdings`...) are in BASE ASSET units (BTC for BTCUSDT), never dollars: a quantity OF AN ASSET without a unit suffix is in base asset units; any other measure (virtual bytes, difficulty, block height, index points) states its unit in `x-unit`. A name without a market suffix covers EVERY market of the route: on a candle, `volume` is spot + perpetual futures, `volume_spot` and `volume_futures` one market each; the candle's prices (`open`... `close`) are those of one reference spot market. Every response schema carries each field's unit in `x-unit`; `x-units` at the root maps a field NAME to its unit only when that unit is the same on every route. Numbers are rounded to 12 significant digits.\n- **Names.** One concept has one name on every route, in the snapshot, in the MCP and on the WebSocket: `buy_volume` / `sell_volume` / `net_volume`, `trade_count`, `sample_count`, booleans `is_*`, a qualitative reading `label` (`put_call_label` for the put/call reading), instants `*_at`, durations `*_s`, counts `*_count`, a value at the start of a window `previous_*`, a running total `*_cumulative`, a change over time `*_change*`; the perpetual market is `futures` everywhere and the order book is `orderbook` everywhere (REST, snapshot, WebSocket `orderbook.*`). A TRADE is one execution (`/v1/trades/spot`, `/v1/trades/futures`, WebSocket `trades.*`, plan family `trades`); the candles aggregated from trades are `trades_kline` (`/v1/trades-kline`). A path uses the name of its fields (`/v1/oi/change` serves `oi_change`, `/v1/options/put-call-ratio` serves `put_call_ratio`); a ratio route is `<a>-<b>-ratio`; Bitcoin lives under `/v1/btc/*` and Ethereum under `/v1/eth/*`. `data_type` is the route's own name (`/v1/trades/avg-size/history` -> `trades_avg_size_history`), and a snapshot field is named after the route that serves the same data (`liquidations_cumulative`, `trades_kline@1h`).\n- **Market in the path.** A route that serves several markets takes the market as a path suffix: no suffix = every market (spot + perpetual futures), `/spot`, `/futures` (`/v1/cvd`, `/v1/cvd/spot`, `/v1/cvd/futures`; the same for `/v1/buy-sell-ratio`, `/v1/trades/avg-size`, `/v1/orderbook`, `/v1/trades-kline`). The envelope repeats it in `market`. A route on ONE market says it in its path or its description and repeats it in `market` too: `/v1/trades/large` (large trades are perpetual futures trades), `/v1/trades-kline/futures/seconds`.\n- **Time.** Timestamps are ISO 8601 UTC with milliseconds (`2026-09-28T14:00:00.000Z`). `time` is the canonical key: every timestamped object under `data` carries it. It follows ONE of two rules, and the description of `time` on each route says which. (1) A BUCKET (candles, trade candles, CVD, order book per bucket, funding per 8-hour period, every `/history` row, and the latest value of a bucketed route: `/v1/klines`, `/v1/cvd`, `/v1/buy-sell-ratio`, `/v1/trades/avg-size`, `/v1/liquidations/big-small-ratio`, `/v1/orderbook`, `/v1/spread/interexchange`, `/v1/trades-kline`: each one requires `timeframe` and returns the first row of its `/history`) is dated at its START and carries `is_closed`. (2) A POINT-IN-TIME value is dated at the instant it refers to: the END of a rolling window — and only a rolling window carries `window_start_at` and `window_s` (`/v1/liquidations/cumulative`, `/v1/oi/change`, `/v1/funding/cumulative`, `/v1/options/oi/change`) — the instant of the computation (`/v1/basis`), the instant the SOURCE states (options, BTC, ETH, tokenomics; `/v1/global`, which may end in `.999`), the settlement a forecast is for (`/v1/funding/next`), the EVENT (trades, large trades, liquidations), and the most recent input of a composite (`/v1/macro/correlations`, `/momentum`, `/risk`, which also give `oldest_input_date`). A daily value is dated at midnight UTC. The envelope's `server_time` is the time of the response. Time bounds (`since_ms`, `until_ms`) are epoch MILLISECONDS, inclusive; `since_ms=0` means \"from the start of the data\".\n- **Closed buckets.** Bucketed routes serve the last CLOSED bucket. `?live=1` adds the open one with `is_closed: false` on the routes that declare it: `/v1/klines`, `/v1/cvd`, `/v1/trades-kline` (and their `/spot` and `/futures` variants), `/v1/funding/rate` and `/v1/spread/interexchange`; elsewhere it is an unknown parameter (422). A bucket appears once its inputs are settled, a few seconds after its end (about 2 s for a 1m order book, 5 s for a 1m candle; 20 s at most when a venue is late). Every bucket row carries `is_closed`; a rolling-window value is always final and carries none.\n- **Pagination.** Every paged route speaks one dialect: `next` is the relative URL of the following page, ready to call (`/v1/klines/history?symbol=BTCUSDT&timeframe=1h&limit=100&before_ms=…`), or `null` once the range is read. Going back, the bound is `before_ms` (EXCLUSIVE); going forward, `order=asc` reads from `since_ms` (then required). The trades routes add `after_id`, to resume inside one millisecond. Loop `while next: GET base + next`; it never repeats a row. A read that would exceed its time budget returns the rows it has with a `next` instead of failing, so a page can be shorter than `limit` (even empty) and still have a `next`: only `next: null` means the end. A 504 `upstream_timeout` remains possible on one very heavy page: reduce `limit`.\n- **Freshness.** A response is usually up to one second old (`Cache-Control: private, max-age=1`); a cached copy can occasionally reach two seconds.\n- **Strict parameters.** An undeclared or repeated parameter is a 422 with a suggestion (`limt` -> did you mean `limit`?), and so is an unknown value of a closed set (`symbol`, `asset`, `series`, `timeframe`, `category`, `ticker`, `expiry`…), with the accepted values in `error.details.accepted`. `symbol`, `asset`, `series`, `timeframe` and `order` are case-insensitive (`1M` excepted: elsewhere a month, here refused). `?fields=a,b.c` projects `data` (not on `POST /v1/indicators`, which takes no query parameter).\n- **Aggregation only.** No route discloses which venue a number came from, except the inter-venue spread, whose purpose is to compare venues.\n- **Browsers and probes.** The REST API answers CORS (`Access-Control-Allow-Origin: *`, the `X-API-KEY` and `Authorization` headers allowed, preflight `OPTIONS` without a key) and `HEAD` on every `GET` route. A key used in a web page is readable by its visitors: use a dedicated key there.\n\n## Errors\n\nEvery error has one shape, on the REST API and on the WebSocket (`{\"op\": \"error\", \"server_time\", \"error\": {...}}`):\n\n```\n{\"status\": \"error\", \"server_time\": \"2026-10-13T08:00:00.000Z\",\n \"error\": {\"code\": \"invalid_symbol\", \"param\": \"symbol\",\n           \"message\": \"Unknown symbol 'BTCUSD'. Did you mean 'BTCUSDT'? Accepted values: ...\",\n           \"details\": {\"suggestion\": \"BTCUSDT\", \"accepted\": [\"ADAUSDT\", \"...\"]}}}\n```\n\nBranch on `error.code` (stable, listed in the `ApiError` schema), show `error.message` (English), read `error.details` (an object, present when the error carries structured data) for what to change. A missing key is `missing_api_key`, a wrong one `invalid_api_key` (401). Key and plan refusals carry the same code in an `X-Deny-Reason` header (the edge anti-flood 429 `edge_rate_limited` carries none); 429 and 503 carry `Retry-After` (the real delay: until the next request of your rate, or the 1st of the month for the quota), always equal to `error.details.retry_after_s`.\n\n## Limits\n\nEach plan has a per-minute rate, a monthly quota and a history window per timeframe; `GET /v1/limits` returns those of your key. Responses made with a metered key carry the IETF `RateLimit-Policy` and `RateLimit` headers (policies `rate` and `quota`). Going further back than your plan allows is a 403 `history_depth`, never a silently truncated answer. Details: https://bytnode.com/docs/rate-limits.\n\n## Versioning\n\nThe URL prefix `/v1` is the API generation. `info.version` is the revision of THIS contract, in semantic versioning: a PATCH corrects (a text, a value, a nullable field), a MINOR adds (a route, a field, a parameter, an accepted value), a MAJOR removes, renames or changes a meaning. Every response carries it in the `BytNode-Contract-Version` header, and each published version stays readable at `https://api.bytnode.com/openapi/<version>.json` (the list: `https://api.bytnode.com/openapi/index.json`). 2.0.0 (2026-10-16) is the reference version of this contract. The guide: https://bytnode.com/docs/versioning.\n\n## Machine-readable files\n\nThis contract (`/openapi.json`, OpenAPI 3.1), the same in OpenAPI 3.0 (`/openapi-3.0.json`), a light copy without examples for AI agents (`/openapi-lite.json`), the WebSocket in AsyncAPI 3.0 (`/asyncapi.json`), and every published version (`/openapi/<version>.json`, listed in `/openapi/index.json`), all on https://api.bytnode.com, without a key. `GET /` (no key) returns the index of these links in the standard envelope (`data_type: index`, `data.contract_version`); it is a pointer to this contract, not a data route, so it is not listed under `paths`.\n\n## Links\n\nDocs https://bytnode.com/docs · Pricing https://bytnode.com/pricing · Full reference for LLMs https://bytnode.com/llms-full.txt · WebSocket `wss://ws.bytnode.com/ws` · MCP `https://api.bytnode.com/mcp` · Contact contact@bytnode.com\n",
     "license": {
       "name": "Proprietary: BytNode terms of service",
       "url": "https://bytnode.com/terms"
@@ -17355,7 +17355,7 @@
             "schema": {
               "type": "string"
             },
-            "example": "2.0.5"
+            "example": "2.0.6"
           }
         }
       },
@@ -17415,7 +17415,7 @@
             "schema": {
               "type": "string"
             },
-            "example": "2.0.5"
+            "example": "2.0.6"
           }
         }
       },
@@ -17455,7 +17455,7 @@
             "schema": {
               "type": "string"
             },
-            "example": "2.0.5"
+            "example": "2.0.6"
           }
         }
       },
@@ -17498,7 +17498,7 @@
             "schema": {
               "type": "string"
             },
-            "example": "2.0.5"
+            "example": "2.0.6"
           }
         }
       },
@@ -17646,7 +17646,7 @@
             "schema": {
               "type": "string"
             },
-            "example": "2.0.5"
+            "example": "2.0.6"
           }
         }
       },
@@ -17725,7 +17725,7 @@
             "schema": {
               "type": "string"
             },
-            "example": "2.0.5"
+            "example": "2.0.6"
           }
         }
       },
@@ -17771,7 +17771,7 @@
             "schema": {
               "type": "string"
             },
-            "example": "2.0.5"
+            "example": "2.0.6"
           }
         }
       },
@@ -17808,7 +17808,7 @@
             "schema": {
               "type": "string"
             },
-            "example": "2.0.5"
+            "example": "2.0.6"
           }
         }
       },
@@ -17845,7 +17845,7 @@
             "schema": {
               "type": "string"
             },
-            "example": "2.0.5"
+            "example": "2.0.6"
           }
         }
       }
@@ -17982,7 +17982,7 @@
         "schema": {
           "type": "string"
         },
-        "example": "2.0.5"
+        "example": "2.0.6"
       },
       "Cache-Control": {
         "description": "`private, max-age=1` at most: a response is usually up to one second old; a cached copy can occasionally reach two seconds.",
@@ -17998,12 +17998,20 @@
         "in": "header",
         "name": "X-API-KEY",
         "description": "Your API key (`cb_live_...`). Get a free one at https://bytnode.com/sign-up."
+      },
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "The same API key as `Authorization: Bearer cb_live_...`, for clients that can only set a bearer token. MCP connectors that sign in with OAuth (claude.ai, ChatGPT, Claude Code) send the short-lived `bno_...` token they obtained from https://bytnode.com here (discovery: `/.well-known/oauth-protected-resource/mcp`). When both headers are sent, `X-API-KEY` wins."
       }
     }
   },
   "security": [
     {
       "APIKeyHeader": []
+    },
+    {
+      "BearerAuth": []
     }
   ],
   "paths": {
@@ -18118,6 +18126,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "tags": [
@@ -18163,6 +18174,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -18386,6 +18400,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -18554,6 +18571,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -18922,6 +18942,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "tags": [
@@ -18967,6 +18990,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -19310,6 +19336,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "tags": [
@@ -19355,6 +19384,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -19717,6 +19749,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "tags": [
@@ -19762,6 +19797,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -20122,6 +20160,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "tags": [
@@ -20167,6 +20208,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -20512,6 +20556,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "tags": [
@@ -20557,6 +20604,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -20895,6 +20945,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "tags": [
@@ -20940,6 +20993,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -21269,6 +21325,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "tags": [
@@ -21314,6 +21373,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -21640,6 +21702,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "tags": [
@@ -21685,6 +21750,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -21911,6 +21979,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -22095,6 +22166,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -22279,6 +22353,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -22549,6 +22626,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -22819,6 +22899,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -23003,6 +23086,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -23273,6 +23359,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -23456,6 +23545,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -23656,6 +23748,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -23856,6 +23951,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -24141,6 +24239,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -24426,6 +24527,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -24626,6 +24730,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -24911,6 +25018,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -25103,6 +25213,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -25475,6 +25588,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "tags": [
@@ -25520,6 +25636,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -25859,6 +25978,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "tags": [
@@ -25904,6 +26026,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -26236,6 +26361,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "tags": [
@@ -26384,6 +26512,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "tags": [
@@ -26429,6 +26560,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -26664,6 +26798,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -27001,6 +27138,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "tags": [
@@ -27046,6 +27186,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -27379,6 +27522,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "tags": [
@@ -27424,6 +27570,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -27754,6 +27903,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "tags": [
@@ -27799,6 +27951,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -28133,6 +28288,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "tags": [
@@ -28178,6 +28336,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -28518,6 +28679,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "tags": [
@@ -28662,6 +28826,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "tags": [
@@ -28707,6 +28874,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -28930,6 +29100,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -29153,6 +29326,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -29323,6 +29499,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -29578,6 +29757,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -29746,6 +29928,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -29927,6 +30112,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -30282,6 +30470,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "tags": [
@@ -30327,6 +30518,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -30630,6 +30824,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -30801,6 +30998,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -31241,6 +31441,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "tags": [
@@ -31391,6 +31594,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "tags": [
@@ -31436,6 +31642,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -31772,6 +31981,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "tags": [
@@ -31817,6 +32029,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -32037,6 +32252,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -32240,6 +32458,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -32694,6 +32915,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "tags": [
@@ -32740,6 +32964,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -32924,6 +33151,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -33193,6 +33423,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -33363,6 +33596,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -33628,6 +33864,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -33839,6 +34078,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -34148,6 +34390,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "tags": [
@@ -34193,6 +34438,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -34425,6 +34673,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -34844,6 +35095,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "tags": [
@@ -35034,6 +35288,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "tags": [
@@ -35182,6 +35439,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "tags": [
@@ -35227,6 +35487,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -35602,6 +35865,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "tags": [
@@ -35647,6 +35913,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -35825,6 +36094,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -35991,6 +36263,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -36162,6 +36437,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -36429,6 +36707,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -36687,6 +36968,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -36879,6 +37163,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -37040,6 +37327,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -37195,6 +37485,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -37366,6 +37659,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -37619,6 +37915,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -37799,6 +38098,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -38045,6 +38347,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -38207,6 +38512,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -38378,6 +38686,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -38628,6 +38939,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -38812,6 +39126,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -39068,6 +39385,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -39224,6 +39544,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -39471,6 +39794,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -39645,6 +39971,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -39805,6 +40134,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -40055,6 +40387,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -40259,6 +40594,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -40463,6 +40801,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -40793,6 +41134,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -41123,6 +41467,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -41327,6 +41674,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -41657,6 +42007,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -41832,6 +42185,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -43303,6 +43659,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -43516,6 +43875,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -43980,6 +44342,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "x-codeSamples": [
@@ -44151,6 +44516,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "x-codeSamples": [
@@ -44180,6 +44548,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -44351,6 +44722,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -44608,6 +44982,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -44806,6 +45183,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -45004,6 +45384,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -45283,6 +45666,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -45545,6 +45931,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -45824,6 +46213,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -46022,6 +46414,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -46301,6 +46696,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -46484,6 +46882,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -46667,6 +47068,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -46934,6 +47338,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -47201,6 +47608,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -47384,6 +47794,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -47650,6 +48063,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -47910,6 +48326,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -48184,6 +48603,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "parameters": [
@@ -48508,6 +48930,9 @@
         "security": [
           {
             "APIKeyHeader": []
+          },
+          {
+            "BearerAuth": []
           }
         ],
         "tags": [
