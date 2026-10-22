@@ -5,7 +5,7 @@ API: candles, order flow, derivatives, liquidations, options, macro, on-chain an
 typed, paginated for you, plus the real-time WebSocket stream.
 
 ```bash
-npm install https://github.com/bytnode/bytnode-SDK/releases/download/v2.0.5/bytnode-2.0.5.tgz
+npm install https://github.com/bytnode/bytnode-SDK/releases/download/v2.0.6/bytnode-2.0.6.tgz
 export BYTNODE_API_KEY=cb_live_...   # create one at https://bytnode.com/dashboard/keys
 ```
 
