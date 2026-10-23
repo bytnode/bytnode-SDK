@@ -5093,8 +5093,8 @@ class MacroIntradayHistoryResource(SyncResource):
         `series` and `timeframe` are recalled in the envelope).
 
         Args:
-            series: The `series` returned by `GET /v1/macro/intraday/series` (e.g. `EURUSD`,
-                `DXY_ICE`), in any case. The `instrument_code` column is NOT accepted.
+            series: The `series` returned by `GET /v1/macro/intraday/series` (e.g.
+                `PAXGUSDT`), in any case. The `instrument_code` column is NOT accepted.
             timeframe: Candle size, required. Each series serves only the timeframes listed
                 in its catalogue entry; others return 422 `timeframe_not_served`.
             limit: Number of rows to return, in the reading order (most recent first by
@@ -5141,8 +5141,8 @@ class MacroIntradayHistoryResource(SyncResource):
         `order` says otherwise. Call `.to_pandas()` / `.to_list()` to collect them.
 
         Args:
-            series: The `series` returned by `GET /v1/macro/intraday/series` (e.g. `EURUSD`,
-                `DXY_ICE`), in any case. The `instrument_code` column is NOT accepted.
+            series: The `series` returned by `GET /v1/macro/intraday/series` (e.g.
+                `PAXGUSDT`), in any case. The `instrument_code` column is NOT accepted.
             timeframe: Candle size, required. Each series serves only the timeframes listed
                 in its catalogue entry; others return 422 `timeframe_not_served`.
             since: Lower time bound, inclusive. A `datetime` (naive = UTC), a `date`, an ISO

@@ -4259,8 +4259,8 @@ export interface MacroIntradayHistoryParams {
    */
   limit?: number;
   /**
-   * The `series` returned by `GET /v1/macro/intraday/series` (e.g. `EURUSD`, `DXY_ICE`), in any
-   * case. The `instrument_code` column is NOT accepted.
+   * The `series` returned by `GET /v1/macro/intraday/series` (e.g. `PAXGUSDT`), in any case.
+   * The `instrument_code` column is NOT accepted.
    */
   series: string;
   /**
@@ -4295,8 +4295,8 @@ export interface MacroIntradayHistoryIterParams {
    */
   until?: TimeLike;
   /**
-   * The `series` returned by `GET /v1/macro/intraday/series` (e.g. `EURUSD`, `DXY_ICE`), in any
-   * case. The `instrument_code` column is NOT accepted.
+   * The `series` returned by `GET /v1/macro/intraday/series` (e.g. `PAXGUSDT`), in any case.
+   * The `instrument_code` column is NOT accepted.
    */
   series: string;
   /**
@@ -8486,4 +8486,4 @@ export const ROUTES: Record<string, string> = {
   "/v1/ws/token": "ws.token",
 };
 /** `info.version` of the contract this SDK was generated from. */
-export const API_VERSION = "2.0.6";
+export const API_VERSION = "3.0.0";
