@@ -5,8 +5,8 @@ order flow, derivatives, liquidations, options, macro, on-chain and ETF data —
 you, one call away from a pandas DataFrame, plus the real-time WebSocket stream.
 
 ```bash
-pip install https://github.com/bytnode/bytnode-SDK/releases/download/v2.0.6/bytnode-2.0.6-py3-none-any.whl
-# with pandas: pip install "bytnode[pandas] @ https://github.com/bytnode/bytnode-SDK/releases/download/v2.0.6/bytnode-2.0.6-py3-none-any.whl"
+pip install https://github.com/bytnode/bytnode-SDK/releases/download/v3.0.1/bytnode-3.0.1-py3-none-any.whl
+# with pandas: pip install "bytnode[pandas] @ https://github.com/bytnode/bytnode-SDK/releases/download/v3.0.1/bytnode-3.0.1-py3-none-any.whl"
 export BYTNODE_API_KEY=cb_live_...   # create one at https://bytnode.com/dashboard/keys
 ```
 
