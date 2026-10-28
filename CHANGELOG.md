@@ -4,6 +4,21 @@ All notable changes to the BytNode SDKs. Both packages share one version number.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow
 [Semantic Versioning](https://semver.org/).
 
+## [3.0.1] — 2026-10-28
+
+Generated from contract `3.0.1`. The first release since 2.0.6: it also carries contract `3.0.0`,
+a MAJOR version.
+
+- **Breaking (contract 3.0.0):** the four intraday macro series from Dukascopy (`EURUSD`,
+  `USDJPY`, `WTIUSD`, `DXY_ICE`) are no longer served by `macro.intraday`; asking for one now
+  returns a 422 naming the daily series to use instead. `PAXGUSDT` remains. `StatusFeedsItem.feed`
+  loses `macro_intraday_1m`, `macro_intraday_5m`, `macro_intraday_15m`, `macro_intraday_1h` and
+  `macro_intraday_4h`.
+- 104 served pairs instead of 77: 102 USDT-margined perpetual markets plus the two stablecoin
+  pairs. `KnownSymbol` now lists all 104 (`GET /v1/symbols` remains the source of truth).
+- The 27 new pairs start on 2026-10-27: open interest and basis `1m`–`30m` from 18:03 UTC;
+  documented on the history methods.
+
 ## [2.0.6] — 2026-10-22
 
 Generated from contract `2.0.6`. No change to the generated methods or models.

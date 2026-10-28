@@ -160,11 +160,11 @@ class BasisHistoryResource(SyncResource):
         to `30m` on 2026-05-28 19:10 UTC (2026-09-12 14:40 UTC for AVAX, HBAR, LINK, NEAR,
         TAO, UNI, XMR, ADA, GRAM and LTC; older readings were taken once a day, then every 4
         hours, then hourly). The 55 pairs added on 2026-10-19 have no imported history:
-        their readings start that day, and `1m` to `30m` start on 2026-10-19 09:31 UTC. Read
-        older periods at a coarser `timeframe`; a `since_ms` before the start is raised to
-        it, and a window entirely before it returns no rows. Most recent first, or oldest
-        first with `order=asc`. Follow `next` to read the following page (it never repeats a
-        row).
+        their readings start that day, and `1m` to `30m` start on 2026-10-19 09:31 UTC;
+        likewise for the 27 pairs added on 2026-10-27, from 2026-10-27 18:03 UTC. Read older
+        periods at a coarser `timeframe`; a `since_ms` before the start is raised to it, and
+        a window entirely before it returns no rows. Most recent first, or oldest first with
+        `order=asc`. Follow `next` to read the following page (it never repeats a row).
 
         Args:
             symbol: Trading pair, e.g. `BTCUSDT`. Required. The served pairs: `GET
@@ -5471,10 +5471,11 @@ class OiChangeHistoryResource(SyncResource):
         19:10 UTC (2026-09-12 14:40 UTC for AVAX, HBAR, LINK, NEAR, TAO, UNI, XMR, ADA, GRAM
         and LTC; older readings were taken once a day, then every 4 hours, then hourly). The
         55 pairs added on 2026-10-19 have no imported history: their readings start that
-        day, and `1m` to `30m` start on 2026-10-19 09:31 UTC. Read older periods at a
-        coarser `timeframe`; a `since_ms` before the start is raised to it, and a window
-        entirely before it returns no rows. Most recent first, or oldest first with
-        `order=asc`. Follow `next` to read the following page (it never repeats a row).
+        day, and `1m` to `30m` start on 2026-10-19 09:31 UTC; likewise for the 27 pairs
+        added on 2026-10-27, from 2026-10-27 18:03 UTC. Read older periods at a coarser
+        `timeframe`; a `since_ms` before the start is raised to it, and a window entirely
+        before it returns no rows. Most recent first, or oldest first with `order=asc`.
+        Follow `next` to read the following page (it never repeats a row).
 
         Args:
             symbol: Trading pair, e.g. `BTCUSDT`. Required. The served pairs: `GET
@@ -5630,10 +5631,11 @@ class OiHistoryResource(SyncResource):
         (2026-09-12 14:40 UTC for AVAX, HBAR, LINK, NEAR, TAO, UNI, XMR, ADA, GRAM and LTC;
         older readings were taken once a day, then every 4 hours, then hourly). The 55 pairs
         added on 2026-10-19 have no imported history: their readings start that day, and
-        `1m` to `30m` start on 2026-10-19 09:31 UTC. Read older periods at a coarser
-        `timeframe`; a `since_ms` before the start is raised to it, and a window entirely
-        before it returns no rows. Most recent first, or oldest first with `order=asc`.
-        Follow `next` to read the following page (it never repeats a row).
+        `1m` to `30m` start on 2026-10-19 09:31 UTC; likewise for the 27 pairs added on
+        2026-10-27, from 2026-10-27 18:03 UTC. Read older periods at a coarser `timeframe`;
+        a `since_ms` before the start is raised to it, and a window entirely before it
+        returns no rows. Most recent first, or oldest first with `order=asc`. Follow `next`
+        to read the following page (it never repeats a row).
 
         Args:
             symbol: Trading pair, e.g. `BTCUSDT`. Required. The served pairs: `GET
