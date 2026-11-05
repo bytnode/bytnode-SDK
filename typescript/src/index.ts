@@ -12,7 +12,7 @@
  */
 
 export { Bytnode, type ClientOptions } from './client.js';
-export { ApiResponse, RowIterator, type Fields, type IterOptions, type RequestOptions, type TimeLike } from './core.js';
+export { ApiResponse, RowIterator, type Fields, type HistoryLimit, type IterOptions, type RequestOptions, type TimeLike } from './core.js';
 export * from './errors.js';
 export type { RateLimit } from './ratelimit.js';
 export {

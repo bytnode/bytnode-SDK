@@ -178,6 +178,14 @@ class Response(Generic[T]):
     def timeframe(self) -> str | None:
         return self.meta.get("timeframe")
 
+    @property
+    def history_limit(self) -> dict[str, Any] | None:
+        """Set when this page reaches the start of the history (contract 3.0.3):
+        `reason` = `data_start` (no older history for this data) or `symbol_start` (this
+        symbol starts later), `first_time`, `message`. `None` while older rows exist."""
+        valeur = self.meta.get("history_limit")
+        return valeur if isinstance(valeur, dict) else None
+
     def __iter__(self) -> Iterator[Any]:
         if isinstance(self.data, list):
             return iter(self.data)

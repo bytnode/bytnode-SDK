@@ -93,6 +93,14 @@ function checkContract(headers: Headers): void {
 
 // --------------------------------------------------------------------------- response
 
+/** The start of the history, reached by a page (contract 3.0.3). */
+export interface HistoryLimit {
+  reached: true;
+  reason: 'data_start' | 'symbol_start';
+  first_time: string;
+  message: string;
+}
+
 /** One API response. `data` is a model, an array of models, or `null` (see `unavailable`). */
 export class ApiResponse<T> {
   /** The payload. */
@@ -131,6 +139,16 @@ export class ApiResponse<T> {
     this.meta = Object.fromEntries(Object.entries(raw).filter(([k]) => !ENVELOPE.has(k)));
     this.rateLimit = rateLimitFromHeaders(headers);
     this.requestId = headers.get('x-request-id');
+  }
+
+  /**
+   * Set when this page reaches the start of the history (contract 3.0.3): `reason` =
+   * `data_start` (no older history for this data) or `symbol_start` (this symbol starts
+   * later), `first_time`, `message`. `null` while older rows exist.
+   */
+  get historyLimit(): HistoryLimit | null {
+    const valeur = this.meta.history_limit;
+    return valeur && typeof valeur === 'object' ? (valeur as HistoryLimit) : null;
   }
 
   /** Effective `symbol` of the request. */

@@ -5214,9 +5214,10 @@ export interface TradesKline {
    */
   time: Date;
   /**
-   * Number of trades. Unit: count.
+   * Number of trades. `null` when the number is not known: history imported from an outside
+   * source carries the buy and sell volumes, not the trade count. Unit: count.
    */
-  trade_count: number;
+  trade_count: number | null;
   /**
    * Average trade size, base asset units (NOT dollars: multiply by the price for a notional).
    * Unit: base asset quantity (BTC for BTCUSDT).
@@ -5255,9 +5256,10 @@ export interface TradesKline {
    */
   buy_sell_coverage_ratio: number | null;
   /**
-   * Average number of trades per second over the bucket. Unit: trades per second.
+   * Average number of trades per second over the bucket. `null` when `trade_count` is. Unit:
+   * trades per second.
    */
-  trade_rate: number;
+  trade_rate: number | null;
   /**
    * `true` when some base-asset quantities of this row were ESTIMATED from USD amounts (history
    * where a source reported amounts but not quantities): a buy or sell amount is converted at
@@ -5297,9 +5299,10 @@ export interface TradesKlineSecond {
    */
   volume: number | null;
   /**
-   * Number of trades. Unit: count.
+   * Number of trades. `null` when the number is not known: history imported from an outside
+   * source carries the buy and sell volumes, not the trade count. Unit: count.
    */
-  trade_count: number;
+  trade_count: number | null;
   /**
    * Aggressive (taker) buy volume, base asset units, aggregated across venues. Unit: base asset
    * quantity (BTC for BTCUSDT).
@@ -5331,9 +5334,10 @@ export interface TradesKlineSecond {
    */
   avg_trade_size: number | null;
   /**
-   * Average number of trades per second over the bucket. Unit: trades per second.
+   * Average number of trades per second over the bucket. `null` when `trade_count` is. Unit:
+   * trades per second.
    */
-  trade_rate: number;
+  trade_rate: number | null;
   /**
    * `true` when some base-asset quantities of this row were ESTIMATED from USD amounts (history
    * where a source reported amounts but not quantities): a buy or sell amount is converted at
@@ -5369,9 +5373,10 @@ export interface TradesAvgSize {
    */
   volume: number | null;
   /**
-   * Number of trades. Unit: count.
+   * Number of trades. `null` when the number is not known: history imported from an outside
+   * source carries the buy and sell volumes, not the trade count. Unit: count.
    */
-  trade_count: number;
+  trade_count: number | null;
   /**
    * `true` when some base-asset quantities of this row were ESTIMATED from USD amounts (history
    * where a source reported amounts but not quantities): a buy or sell amount is converted at
@@ -5424,9 +5429,10 @@ export interface TradesAvgSizeHistoryItem {
    */
   volume: number | null;
   /**
-   * Number of trades. Unit: count.
+   * Number of trades. `null` when the number is not known: history imported from an outside
+   * source carries the buy and sell volumes, not the trade count. Unit: count.
    */
-  trade_count: number;
+  trade_count: number | null;
   /**
    * `true` when some base-asset quantities of this row were ESTIMATED from USD amounts (history
    * where a source reported amounts but not quantities): a buy or sell amount is converted at

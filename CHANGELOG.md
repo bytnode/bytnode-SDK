@@ -4,6 +4,20 @@ All notable changes to the BytNode SDKs. Both packages share one version number.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow
 [Semantic Versioning](https://semver.org/).
 
+## [3.0.3] — 2026-11-05
+
+Generated from contract `3.0.3` (it also carries `3.0.2`, published by the API only).
+
+- **History start:** a history page that reaches the first row there is now says why
+  nothing is older, in the envelope key `history_limit` — `reason` is `data_start` (this
+  data has no older history, whatever the symbol) or `symbol_start` (the data goes back
+  further for other symbols, but this symbol starts later), with `first_time` and a
+  `message`. Read it as `response.history_limit` (Python) or `response.historyLimit`
+  (TypeScript); `None` / `null` while older rows exist.
+- `trade_count` and `trade_rate` (trade candles, average trade size) can be `null`: history
+  imported from outside sources has buy and sell volumes but no trade count. It used to
+  come back as `0`.
+
 ## [3.0.1] — 2026-10-28
 
 Generated from contract `3.0.1`. The first release since 2.0.6: it also carries contract `3.0.0`,
