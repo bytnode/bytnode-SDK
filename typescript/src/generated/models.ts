@@ -12,34 +12,34 @@ export interface AltcoinSeason {
    * Point-in-time value: the instant of the measurement (when the source was read). Unit: ISO
    * 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).
    */
-  time: Date | null;
+  time: Date;
   /**
    * Altcoin Season Index (CoinMarketCap): how many of the top altcoins outperformed BTC over
    * the last 90 days. High = altcoin season, low = bitcoin season. Unit: score from 0 to 100.
    */
-  value: number | null;
+  value: number;
   /**
    * Lowest value of the index over the last year. Unit: score from 0 to 100.
    */
-  year_low: number | null;
+  year_low: number;
   /**
    * Highest value of the index over the last year. Unit: score from 0 to 100.
    */
-  year_high: number | null;
+  year_high: number;
   /**
    * Day of that lowest value, at midnight UTC. Unit: ISO 8601 UTC, milliseconds
    * (2026-09-28T14:00:00.000Z).
    */
-  year_low_at: Date | null;
+  year_low_at: Date;
   /**
    * Day of that highest value, at midnight UTC. Unit: ISO 8601 UTC, milliseconds
    * (2026-09-28T14:00:00.000Z).
    */
-  year_high_at: Date | null;
+  year_high_at: Date;
   /**
    * Total market capitalisation of the altcoins (excluding BTC). Unit: USD.
    */
-  altcoin_market_cap_usd: number | null;
+  altcoin_market_cap_usd: number;
 }
 
 /**
@@ -50,16 +50,16 @@ export interface AltcoinSeasonHistoryItem {
    * The day the value refers to, at midnight UTC. Unit: ISO 8601 UTC, milliseconds
    * (2026-09-28T14:00:00.000Z).
    */
-  time: Date | null;
+  time: Date;
   /**
    * Altcoin Season Index (CoinMarketCap): how many of the top altcoins outperformed BTC over
    * the last 90 days. High = altcoin season, low = bitcoin season. Unit: score from 0 to 100.
    */
-  value: number | null;
+  value: number;
   /**
    * Total market capitalisation of the altcoins (excluding BTC). Unit: USD.
    */
-  altcoin_market_cap_usd: number | null;
+  altcoin_market_cap_usd: number;
   /**
    * `true` = the row is final; `false` = provisional: the latest bucket while it still settles
    * (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period
@@ -69,7 +69,7 @@ export interface AltcoinSeasonHistoryItem {
    * afterwards to include them, usually within minutes and at most one hour later; the
    * correction only adds the late trades.
    */
-  is_closed: boolean | null;
+  is_closed: boolean;
 }
 
 /**
@@ -138,7 +138,7 @@ export interface BasisHistoryItem {
    * open interest) the value is the LAST of them — the bucket's close —; for a flow it is their
    * total. Unit: count.
    */
-  sample_count: number;
+  sample_count: number | null;
   /**
    * `true` = the row is final; `false` = provisional: the latest bucket while it still settles
    * (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period
@@ -838,18 +838,21 @@ export interface BtcNvt {
    */
   time: Date;
   /**
-   * Market cap / daily on-chain transaction volume (NVT ratio). Unit: dimensionless ratio.
+   * Market cap / on-chain transaction volume of the day (NVT ratio), change returned to the
+   * sender excluded. Unit: dimensionless ratio.
    */
   nvt: number;
   /**
-   * NVT smoothed over 90 days (NVT Signal), less noisy. Unit: dimensionless ratio.
+   * NVT Signal: market cap of the day / 90-day average of the on-chain transaction volume in
+   * USD. `null` with less than 90 days of data. Unit: dimensionless ratio.
    */
-  nvt_signal: number;
+  nvt_signal: number | null;
   /**
-   * Zone of the NVT Signal: `undervalued` (<= 45), `fair` (> 45), `overvalued` (> 100),
-   * `bubble` (> 150).
+   * Zone of the NVT Signal against its own last 730 days (share of those days when it was
+   * lower): `undervalued` (below 25 %), `fair` (from 25 %), `overvalued` (from 75 %), `bubble`
+   * (from 95 %). `null` with less than 365 days of NVT Signal.
    */
-  label: string;
+  label: string | null;
 }
 
 /**
@@ -862,18 +865,21 @@ export interface BtcNvtHistoryItem {
    */
   time: Date;
   /**
-   * Market cap / daily on-chain transaction volume (NVT ratio). Unit: dimensionless ratio.
+   * Market cap / on-chain transaction volume of the day (NVT ratio), change returned to the
+   * sender excluded. Unit: dimensionless ratio.
    */
   nvt: number;
   /**
-   * NVT smoothed over 90 days (NVT Signal), less noisy. Unit: dimensionless ratio.
+   * NVT Signal: market cap of the day / 90-day average of the on-chain transaction volume in
+   * USD. `null` with less than 90 days of data. Unit: dimensionless ratio.
    */
-  nvt_signal: number;
+  nvt_signal: number | null;
   /**
-   * Zone of the NVT Signal: `undervalued` (<= 45), `fair` (> 45), `overvalued` (> 100),
-   * `bubble` (> 150).
+   * Zone of the NVT Signal against its own last 730 days (share of those days when it was
+   * lower): `undervalued` (below 25 %), `fair` (from 25 %), `overvalued` (from 75 %), `bubble`
+   * (from 95 %). `null` with less than 365 days of NVT Signal.
    */
-  label: string;
+  label: string | null;
   /**
    * `true` = the row is final; `false` = provisional: the latest bucket while it still settles
    * (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period
@@ -1003,7 +1009,7 @@ export interface BuySellRatio {
    * afterwards to include them, usually within minutes and at most one hour later; the
    * correction only adds the late trades.
    */
-  is_closed: boolean | null;
+  is_closed: boolean;
 }
 
 /**
@@ -1035,7 +1041,7 @@ export interface BuySellRatioHistoryItem {
    * Number of points of the CVD series behind the bucket — the `sample_count` of
    * `/v1/cvd/history` for the same bucket. Unit: count.
    */
-  sample_count: number;
+  sample_count: number | null;
   /**
    * Share of the volume (in USD) whose buy/sell split is known. 1 = every trade is split. Below
    * 1 on part of the history, where some sources did not report the aggressor side:
@@ -1216,10 +1222,10 @@ export interface Cvd {
   /**
    * Cumulative volume delta inside the bucket, one point per step of finer candles (1 minute up
    * to `1h`, 5 minutes in `4h`, 15 minutes in `1d`), starting from 0 at the bucket start.
-   * `null` when those finer candles do not cover the bucket (before 2026-06-05, or a collection
-   * gap): `buy_volume`, `sell_volume` and `net_volume` then come from the bucket's own candle,
-   * as on `/v1/trades-kline`, and `sample_count` is 1. Unit: base asset quantity (BTC for
-   * BTCUSDT).
+   * `null` when those finer candles do not cover the bucket (before 2026-06-05; in `1d`, before
+   * 2023-12; or a collection gap): `buy_volume`, `sell_volume` and `net_volume` then come from
+   * the bucket's own candle, as on `/v1/trades-kline`, and `sample_count` is 1. Unit: base
+   * asset quantity (BTC for BTCUSDT).
    */
   cvd_series: Array<number> | null;
   /**
@@ -1402,11 +1408,11 @@ export interface EthDefi {
   /**
    * DEX volume over 24 h. Unit: USD.
    */
-  dex_volume_24h_usd: number;
+  dex_volume_24h_usd: number | null;
   /**
    * DEX volume over 7 days. Unit: USD.
    */
-  dex_volume_7d_usd: number;
+  dex_volume_7d_usd: number | null;
   /**
    * ETH market capitalisation. Unit: USD.
    */
@@ -1443,11 +1449,11 @@ export interface EthDefiHistoryItem {
   /**
    * DEX volume over 24 h. Unit: USD.
    */
-  dex_volume_24h_usd: number;
+  dex_volume_24h_usd: number | null;
   /**
    * DEX volume over 7 days. Unit: USD.
    */
-  dex_volume_7d_usd: number;
+  dex_volume_7d_usd: number | null;
   /**
    * ETH market capitalisation. Unit: USD.
    */
@@ -1553,18 +1559,6 @@ export interface EthGas {
    * 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).
    */
   time: Date;
-  /**
-   * Gas price for a low-priority transaction. Unit: gwei.
-   */
-  safe_gas_price_gwei: number;
-  /**
-   * Gas price for a standard transaction. Unit: gwei.
-   */
-  propose_gas_price_gwei: number;
-  /**
-   * Gas price for a fast transaction. Unit: gwei.
-   */
-  fast_gas_price_gwei: number;
   /**
    * EIP-1559 base fee (burnt). Unit: gwei.
    */
@@ -1672,18 +1666,6 @@ export interface EthGasHistoryItem {
    * UTC, milliseconds (2026-09-28T14:00:00.000Z).
    */
   time: Date;
-  /**
-   * Gas price for a low-priority transaction. Unit: gwei.
-   */
-  safe_gas_price_gwei: number;
-  /**
-   * Gas price for a standard transaction. Unit: gwei.
-   */
-  propose_gas_price_gwei: number;
-  /**
-   * Gas price for a fast transaction. Unit: gwei.
-   */
-  fast_gas_price_gwei: number;
   /**
    * EIP-1559 base fee (burnt). Unit: gwei.
    */
@@ -1876,7 +1858,7 @@ export interface EthStaking {
   /**
    * Annualised rate in percent. Unit: percent (58.5 = 58.5 %).
    */
-  apr_pct: number;
+  apr_pct: number | null;
 }
 
 /**
@@ -1903,7 +1885,7 @@ export interface EthStakingHistoryItem {
   /**
    * Annualised rate in percent. Unit: percent (58.5 = 58.5 %).
    */
-  apr_pct: number;
+  apr_pct: number | null;
   /**
    * `true` = the row is final; `false` = provisional: the latest bucket while it still settles
    * (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period
@@ -1930,20 +1912,20 @@ export interface EthSupply {
    * published by Etherscan. NOT the supply: `total_supply` = this +
    * `consensus_rewards_cumulative` - `burnt_fees_cumulative` (was `eth_supply`). Unit: ETH.
    */
-  execution_issuance_cumulative: number;
+  execution_issuance_cumulative: number | null;
   /**
    * Cumulative consensus-layer issuance (staking rewards) since the Beacon Chain launch. NOT
    * the ETH staked: see `total_staked` on `/v1/eth/staking`. Unit: ETH.
    */
-  consensus_rewards_cumulative: number;
+  consensus_rewards_cumulative: number | null;
   /**
    * ETH burnt since EIP-1559 (cumulative). Unit: ETH.
    */
-  burnt_fees_cumulative: number;
+  burnt_fees_cumulative: number | null;
   /**
    * ETH withdrawn from staking (cumulative). Unit: ETH.
    */
-  withdrawn_cumulative: number;
+  withdrawn_cumulative: number | null;
   /**
    * Total coins issued (circulating + locked), net of burns. Unit: coins.
    */
@@ -1976,20 +1958,20 @@ export interface EthSupplyHistoryItem {
    * published by Etherscan. NOT the supply: `total_supply` = this +
    * `consensus_rewards_cumulative` - `burnt_fees_cumulative` (was `eth_supply`). Unit: ETH.
    */
-  execution_issuance_cumulative: number;
+  execution_issuance_cumulative: number | null;
   /**
    * Cumulative consensus-layer issuance (staking rewards) since the Beacon Chain launch. NOT
    * the ETH staked: see `total_staked` on `/v1/eth/staking`. Unit: ETH.
    */
-  consensus_rewards_cumulative: number;
+  consensus_rewards_cumulative: number | null;
   /**
    * ETH burnt since EIP-1559 (cumulative). Unit: ETH.
    */
-  burnt_fees_cumulative: number;
+  burnt_fees_cumulative: number | null;
   /**
    * ETH withdrawn from staking (cumulative). Unit: ETH.
    */
-  withdrawn_cumulative: number;
+  withdrawn_cumulative: number | null;
   /**
    * Total coins issued (circulating + locked), net of burns. Unit: coins.
    */
@@ -2047,17 +2029,17 @@ export interface FearGreedCmc {
    * Point-in-time value: the instant of the measurement (when the source was read). Unit: ISO
    * 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).
    */
-  time: Date | null;
+  time: Date;
   /**
    * CMC Crypto Fear & Greed Index (CoinMarketCap), a different index from `/v1/fear-greed`
    * (alternative.me). 0 = extreme fear, 100 = extreme greed. Unit: score from 0 to 100.
    */
-  value: number | null;
+  value: number;
   /**
    * Label of the value, from CoinMarketCap's scale: `extreme_fear`, `fear`, `neutral`, `greed`
    * or `extreme_greed` (snake_case, like every label of the API).
    */
-  label: string | null;
+  label: string;
 }
 
 /**
@@ -2068,17 +2050,17 @@ export interface FearGreedCmcHistoryItem {
    * The day the value refers to, at midnight UTC. Unit: ISO 8601 UTC, milliseconds
    * (2026-09-28T14:00:00.000Z).
    */
-  time: Date | null;
+  time: Date;
   /**
    * CMC Crypto Fear & Greed Index (CoinMarketCap), a different index from `/v1/fear-greed`
    * (alternative.me). 0 = extreme fear, 100 = extreme greed. Unit: score from 0 to 100.
    */
-  value: number | null;
+  value: number;
   /**
    * Label of the value, from CoinMarketCap's scale: `extreme_fear`, `fear`, `neutral`, `greed`
    * or `extreme_greed` (snake_case, like every label of the API).
    */
-  label: string | null;
+  label: string;
   /**
    * `true` = the row is final; `false` = provisional: the latest bucket while it still settles
    * (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period
@@ -2088,7 +2070,7 @@ export interface FearGreedCmcHistoryItem {
    * afterwards to include them, usually within minutes and at most one hour later; the
    * correction only adds the late trades.
    */
-  is_closed: boolean | null;
+  is_closed: boolean;
 }
 
 /**
@@ -2152,11 +2134,11 @@ export interface FundingCumulative {
   /**
    * Annualised rate in percent. Unit: percent (58.5 = 58.5 %).
    */
-  apr_pct: number;
+  apr_pct: number | null;
   /**
    * Number of 8-hour funding windows summed. Unit: count.
    */
-  sample_count: number;
+  sample_count: number | null;
 }
 
 /**
@@ -2188,11 +2170,11 @@ export interface FundingCumulativeHistoryItem {
   /**
    * Annualised rate in percent. Unit: percent (58.5 = 58.5 %).
    */
-  apr_pct: number;
+  apr_pct: number | null;
   /**
    * Number of 8-hour funding windows summed. Unit: count.
    */
-  sample_count: number;
+  sample_count: number | null;
   /**
    * `true` = the row is final; `false` = provisional: the latest bucket while it still settles
    * (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period
@@ -2222,7 +2204,7 @@ export interface FundingNext {
   /**
    * Annualised rate in percent. Unit: percent (58.5 = 58.5 %).
    */
-  apr_pct: number;
+  apr_pct: number | null;
   /**
    * `true` if the forecast settlement instant is already past (the next forecast is not
    * published yet).
@@ -2259,7 +2241,7 @@ export interface FundingRate {
   /**
    * Annualised rate in percent. Unit: percent (58.5 = 58.5 %).
    */
-  apr_pct: number;
+  apr_pct: number | null;
   /**
    * `true` = the row is final; `false` = provisional: the latest bucket while it still settles
    * (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period
@@ -2449,7 +2431,7 @@ export interface HeatmapClustersHistoryItem {
    * open interest) the value is the LAST of them — the bucket's close —; for a flow it is their
    * total. Unit: count.
    */
-  sample_count: number;
+  sample_count: number | null;
   /**
    * `true` = the row is final; `false` = provisional: the latest bucket while it still settles
    * (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period
@@ -2469,15 +2451,15 @@ export interface IndicesCmc100ConstituentsItem {
   /**
    * Asset name (`Bitcoin`).
    */
-  name: string | null;
+  name: string;
   /**
    * Asset symbol (`BTC`).
    */
-  asset: string | null;
+  asset: string;
   /**
    * Weight of the asset in the index (67.9 = 67.9 %). Unit: percent (58.5 = 58.5 %).
    */
-  weight_pct: number | null;
+  weight_pct: number;
 }
 
 /**
@@ -2488,12 +2470,12 @@ export interface IndicesCmc100 {
    * Point-in-time value: the instant of the measurement (when the source was read). Unit: ISO
    * 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).
    */
-  time: Date | null;
+  time: Date;
   /**
    * CoinMarketCap 100 Index: the 100 largest crypto assets, weighted by market capitalisation.
    * Unit: index points.
    */
-  value: number | null;
+  value: number;
   /**
    * The assets of the index, with their weight.
    */
@@ -2501,7 +2483,7 @@ export interface IndicesCmc100 {
   /**
    * Change of the index over the last 24 hours. Unit: percent (58.5 = 58.5 %).
    */
-  change_24h_pct: number | null;
+  change_24h_pct: number;
 }
 
 /**
@@ -2512,12 +2494,12 @@ export interface IndicesCmc100HistoryItem {
    * The day the value refers to, at midnight UTC. Unit: ISO 8601 UTC, milliseconds
    * (2026-09-28T14:00:00.000Z).
    */
-  time: Date | null;
+  time: Date;
   /**
    * CoinMarketCap 100 Index: the 100 largest crypto assets, weighted by market capitalisation.
    * Unit: index points.
    */
-  value: number | null;
+  value: number;
   /**
    * `true` = the row is final; `false` = provisional: the latest bucket while it still settles
    * (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period
@@ -2527,7 +2509,7 @@ export interface IndicesCmc100HistoryItem {
    * afterwards to include them, usually within minutes and at most one hour later; the
    * correction only adds the late trades.
    */
-  is_closed: boolean | null;
+  is_closed: boolean;
 }
 
 /**
@@ -2537,15 +2519,15 @@ export interface IndicesCmc20ConstituentsItem {
   /**
    * Asset name (`Bitcoin`).
    */
-  name: string | null;
+  name: string;
   /**
    * Asset symbol (`BTC`).
    */
-  asset: string | null;
+  asset: string;
   /**
    * Weight of the asset in the index (70.9 = 70.9 %). Unit: percent (58.5 = 58.5 %).
    */
-  weight_pct: number | null;
+  weight_pct: number;
 }
 
 /**
@@ -2556,12 +2538,12 @@ export interface IndicesCmc20 {
    * Point-in-time value: the instant of the measurement (when the source was read). Unit: ISO
    * 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).
    */
-  time: Date | null;
+  time: Date;
   /**
    * CoinMarketCap 20 Index: the 20 largest crypto assets, weighted by market capitalisation.
    * Unit: index points.
    */
-  value: number | null;
+  value: number;
   /**
    * The assets of the index, with their weight.
    */
@@ -2569,7 +2551,7 @@ export interface IndicesCmc20 {
   /**
    * Change of the index over the last 24 hours. Unit: percent (58.5 = 58.5 %).
    */
-  change_24h_pct: number | null;
+  change_24h_pct: number;
 }
 
 /**
@@ -2580,12 +2562,12 @@ export interface IndicesCmc20HistoryItem {
    * The day the value refers to, at midnight UTC. Unit: ISO 8601 UTC, milliseconds
    * (2026-09-28T14:00:00.000Z).
    */
-  time: Date | null;
+  time: Date;
   /**
    * CoinMarketCap 20 Index: the 20 largest crypto assets, weighted by market capitalisation.
    * Unit: index points.
    */
-  value: number | null;
+  value: number;
   /**
    * `true` = the row is final; `false` = provisional: the latest bucket while it still settles
    * (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period
@@ -2595,7 +2577,7 @@ export interface IndicesCmc20HistoryItem {
    * afterwards to include them, usually within minutes and at most one hour later; the
    * correction only adds the late trades.
    */
-  is_closed: boolean | null;
+  is_closed: boolean;
 }
 
 /**
@@ -3005,7 +2987,7 @@ export interface LiquidationsBigSmallRatioHistoryItem {
   /**
    * Minutes of the bucket that had at least one liquidation. Unit: count.
    */
-  sample_count: number;
+  sample_count: number | null;
   /**
    * `true` = the row is final; `false` = provisional: the latest bucket while it still settles
    * (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period
@@ -3079,7 +3061,7 @@ export interface LiquidationsCumulativeHistoryItem {
    * open interest) the value is the LAST of them — the bucket's close —; for a flow it is their
    * total. Unit: count.
    */
-  sample_count: number;
+  sample_count: number | null;
   /**
    * `true` = the row is final; `false` = provisional: the latest bucket while it still settles
    * (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period
@@ -3169,7 +3151,7 @@ export interface MacroCorrelationsCorrelationsDxy30d {
   /**
    * Number of days used. Unit: count.
    */
-  sample_count: number;
+  sample_count: number | null;
 }
 
 /**
@@ -3189,7 +3171,7 @@ export interface MacroCorrelationsCorrelationsDxy90d {
   /**
    * Number of days used. Unit: count.
    */
-  sample_count: number;
+  sample_count: number | null;
 }
 
 /**
@@ -3223,7 +3205,7 @@ export interface MacroCorrelationsCorrelationsSp50030d {
   /**
    * Number of days used. Unit: count.
    */
-  sample_count: number;
+  sample_count: number | null;
 }
 
 /**
@@ -3243,7 +3225,7 @@ export interface MacroCorrelationsCorrelationsSp50090d {
   /**
    * Number of days used. Unit: count.
    */
-  sample_count: number;
+  sample_count: number | null;
 }
 
 /**
@@ -3277,7 +3259,7 @@ export interface MacroCorrelationsCorrelationsGold30d {
   /**
    * Number of days used. Unit: count.
    */
-  sample_count: number;
+  sample_count: number | null;
 }
 
 /**
@@ -3297,7 +3279,7 @@ export interface MacroCorrelationsCorrelationsGold90d {
   /**
    * Number of days used. Unit: count.
    */
-  sample_count: number;
+  sample_count: number | null;
 }
 
 /**
@@ -3331,7 +3313,7 @@ export interface MacroCorrelationsCorrelationsVix30d {
   /**
    * Number of days used. Unit: count.
    */
-  sample_count: number;
+  sample_count: number | null;
 }
 
 /**
@@ -3351,7 +3333,7 @@ export interface MacroCorrelationsCorrelationsVix90d {
   /**
    * Number of days used. Unit: count.
    */
-  sample_count: number;
+  sample_count: number | null;
 }
 
 /**
@@ -4081,7 +4063,7 @@ export interface OiChangeHistoryItem {
    * open interest) the value is the LAST of them — the bucket's close —; for a flow it is their
    * total. Unit: count.
    */
-  sample_count: number;
+  sample_count: number | null;
   /**
    * `true` = the row is final; `false` = provisional: the latest bucket while it still settles
    * (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period
@@ -4114,7 +4096,7 @@ export interface OiHistoryItem {
    * open interest) the value is the LAST of them — the bucket's close —; for a flow it is their
    * total. Unit: count.
    */
-  sample_count: number;
+  sample_count: number | null;
   /**
    * `true` = the row is final; `false` = provisional: the latest bucket while it still settles
    * (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period
@@ -4157,7 +4139,7 @@ export interface OptionsExpiry {
    * Put/call open interest ratio (a quotient, not a share: 1.2 = 1.2 puts per call). Below 1 =
    * more calls than puts. Unit: puts / calls.
    */
-  put_call_ratio: number | null;
+  put_call_ratio: number;
   /**
    * Strike at which option holders lose the most at expiry (max pain). Unit: USD.
    */
@@ -4344,7 +4326,7 @@ export interface OptionsMaxPain {
    * Put/call open interest ratio (a quotient, not a share: 1.2 = 1.2 puts per call). Below 1 =
    * more calls than puts. Unit: puts / calls.
    */
-  put_call_ratio: number | null;
+  put_call_ratio: number;
   /**
    * Call open interest, USD. Unit: USD.
    */
@@ -4373,7 +4355,7 @@ export interface OptionsMaxPainHistoryItem {
    * Put/call open interest ratio (a quotient, not a share: 1.2 = 1.2 puts per call). Below 1 =
    * more calls than puts. Unit: puts / calls.
    */
-  put_call_ratio: number | null;
+  put_call_ratio: number;
   /**
    * `true` = the row is final; `false` = provisional: the latest bucket while it still settles
    * (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period
@@ -4582,7 +4564,7 @@ export interface OptionsPutCallRatio {
    * Put/call open interest ratio (a quotient, not a share: 1.2 = 1.2 puts per call). Below 1 =
    * more calls than puts. Unit: puts / calls.
    */
-  put_call_ratio: number | null;
+  put_call_ratio: number;
   /**
    * `bullish` (put_call_ratio < 0.7), `neutral`, or `bearish` (put_call_ratio > 1).
    */
@@ -4602,7 +4584,7 @@ export interface OptionsPutCallRatioHistoryItem {
    * Put/call open interest ratio (a quotient, not a share: 1.2 = 1.2 puts per call). Below 1 =
    * more calls than puts. Unit: puts / calls.
    */
-  put_call_ratio: number | null;
+  put_call_ratio: number;
   /**
    * `bullish` (put_call_ratio < 0.7), `neutral`, or `bearish` (put_call_ratio > 1).
    */
@@ -4640,7 +4622,7 @@ export interface OptionsSummaryNearestExpiry {
    * Put/call open interest ratio (a quotient, not a share: 1.2 = 1.2 puts per call). Below 1 =
    * more calls than puts. Unit: puts / calls.
    */
-  put_call_ratio: number | null;
+  put_call_ratio: number;
   /**
    * At-the-money implied volatility of THIS expiry, annualised, in percent (55.2 = 55.2 %).
    * Unit: percent (58.5 = 58.5 %).
@@ -4703,7 +4685,7 @@ export interface OptionsSummary {
    * Put/call open interest ratio (a quotient, not a share: 1.2 = 1.2 puts per call). Below 1 =
    * more calls than puts. Unit: puts / calls.
    */
-  put_call_ratio: number | null;
+  put_call_ratio: number;
   /**
    * `bullish` (put_call_ratio < 0.7), `neutral`, or `bearish` (put_call_ratio > 1).
    */
@@ -5446,7 +5428,7 @@ export interface TradesAvgSizeHistoryItem {
    * open interest) the value is the LAST of them — the bucket's close —; for a flow it is their
    * total. Unit: count.
    */
-  sample_count: number;
+  sample_count: number | null;
   /**
    * `true` = the row is final; `false` = provisional: the latest bucket while it still settles
    * (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period

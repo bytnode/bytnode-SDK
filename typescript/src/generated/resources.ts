@@ -333,12 +333,13 @@ export interface BasisHistoryResource {
    * history, `4h` starts on 2025-10-07, `1h` on 2026-04-04 17:00 UTC, and `1m` to `30m` on
    * 2026-05-28 19:10 UTC (2026-09-12 14:40 UTC for AVAX, HBAR, LINK, NEAR, TAO, UNI, XMR, ADA,
    * GRAM and LTC; older readings were taken once a day, then every 4 hours, then hourly). The
-   * 55 pairs added on 2026-10-19 have no imported history: their readings start that day, and
-   * `1m` to `30m` start on 2026-10-19 09:31 UTC; likewise for the 27 pairs added on 2026-10-27,
-   * from 2026-10-27 18:03 UTC. Read older periods at a coarser `timeframe`; a `since_ms` before
-   * the start is raised to it, and a window entirely before it returns no rows. Most recent
-   * first, or oldest first with `order=asc`. Follow `next` to read the following page (it never
-   * repeats a row).
+   * 82 pairs added in October 2026 have their own starts, pair by pair: `1d` covers their whole
+   * history, `1h` and `4h` start around 2025-10-24, `30m` around 2026-04-22, `15m` around
+   * 2026-07-21, and `1m` and `5m` on the day the pair was added (2026-10-19 09:31 UTC, or
+   * 2026-10-27 18:03 UTC for the 27 latest). Read older periods at a coarser `timeframe`; a
+   * `since_ms` before the start is raised to it, and a window entirely before it returns no
+   * rows. Most recent first, or oldest first with `order=asc`. Follow `next` to read the
+   * following page (it never repeats a row).
    */
   (params: BasisHistoryParams, options?: RequestOptions): Promise<ApiResponse<Array<M.BasisHistoryItem>>>;
   /**
@@ -1019,7 +1020,8 @@ export interface BtcNvtResource {
   /**
    * GET /v1/btc/nvt — Bitcoin NVT
    *
-   * Network value to transactions ratio and its 90-day NVT Signal, derived on demand. Daily.
+   * Network value to transactions ratio and its NVT Signal, computed from Bitcoin blocks.
+   * Daily. A secondary indicator: part of the trading volume no longer goes through the chain.
    */
   (params?: BtcNvtParams, options?: RequestOptions): Promise<ApiResponse<M.BtcNvt | null>>;
   history: BtcNvtHistoryResource;
@@ -1756,15 +1758,16 @@ export interface CvdHistoryResource {
   /**
    * GET /v1/cvd/history — Cumulative volume delta history
    *
-   * Same as `/v1/cvd`, one row per closed bucket. Older buckets (before 2026-06-05, when the
-   * finer candles start) carry the buy and sell volumes of their own candle with `cvd_series:
-   * null`; where some sources did not report the aggressor side, `buy_sell_coverage_ratio` < 1
-   * says which share of the volume is split. The market is in the PATH: no suffix = all markets
-   * (spot + perpetual futures), `/spot`, `/futures`; the envelope says which (`market`). Spot
-   * base-asset quantities are measured since 2026-09-27: before that date, spot and all-market
-   * buy/sell volumes are estimated from USD amounts (`is_volume_estimated: true`); `/futures`
-   * serves the full futures history. Most recent first, or oldest first with `order=asc`.
-   * Follow `next` to read the following page (it never repeats a row).
+   * Same as `/v1/cvd`, one row per closed bucket. Older buckets (before 2026-06-05 when the
+   * finer candles start; in `1d`, before 2023-12) carry the buy and sell volumes of their own
+   * candle with `cvd_series: null`; where some sources did not report the aggressor side,
+   * `buy_sell_coverage_ratio` < 1 says which share of the volume is split. The market is in the
+   * PATH: no suffix = all markets (spot + perpetual futures), `/spot`, `/futures`; the envelope
+   * says which (`market`). Spot base-asset quantities are measured since 2026-09-27: before
+   * that date, spot and all-market buy/sell volumes are estimated from USD amounts
+   * (`is_volume_estimated: true`); `/futures` serves the full futures history. Most recent
+   * first, or oldest first with `order=asc`. Follow `next` to read the following page (it never
+   * repeats a row).
    */
   (params: CvdHistoryParams, options?: RequestOptions): Promise<ApiResponse<Array<M.Cvd>>>;
   /**
@@ -4630,12 +4633,14 @@ export interface OiChangeHistoryResource {
    * `step` is always the real spacing: `1d` covers the whole history, `4h` starts on
    * 2025-10-07, `1h` on 2026-04-04 17:00 UTC, and `1m` to `30m` on 2026-05-28 19:10 UTC
    * (2026-09-12 14:40 UTC for AVAX, HBAR, LINK, NEAR, TAO, UNI, XMR, ADA, GRAM and LTC; older
-   * readings were taken once a day, then every 4 hours, then hourly). The 55 pairs added on
-   * 2026-10-19 have no imported history: their readings start that day, and `1m` to `30m` start
-   * on 2026-10-19 09:31 UTC; likewise for the 27 pairs added on 2026-10-27, from 2026-10-27
-   * 18:03 UTC. Read older periods at a coarser `timeframe`; a `since_ms` before the start is
-   * raised to it, and a window entirely before it returns no rows. Most recent first, or oldest
-   * first with `order=asc`. Follow `next` to read the following page (it never repeats a row).
+   * readings were taken once a day, then every 4 hours, then hourly). The 82 pairs added in
+   * October 2026 have their own starts, pair by pair: `1d` covers their whole history, `1h` and
+   * `4h` start around 2025-10-24, `30m` around 2026-04-22, `15m` around 2026-07-21, and `1m`
+   * and `5m` on the day the pair was added (2026-10-19 09:31 UTC, or 2026-10-27 18:03 UTC for
+   * the 27 latest). Read older periods at a coarser `timeframe`; a `since_ms` before the start
+   * is raised to it, and a window entirely before it returns no rows. Most recent first, or
+   * oldest first with `order=asc`. Follow `next` to read the following page (it never repeats a
+   * row).
    */
   (params: OiChangeHistoryParams, options?: RequestOptions): Promise<ApiResponse<Array<M.OiChangeHistoryItem>>>;
   /**
@@ -4768,10 +4773,11 @@ export interface OiHistoryResource {
    * least that fine, so `step` is always the real spacing: `1d` covers the whole history, `4h`
    * starts on 2025-10-07, `1h` on 2026-04-04 17:00 UTC, and `1m` to `30m` on 2026-05-28 19:10
    * UTC (2026-09-12 14:40 UTC for AVAX, HBAR, LINK, NEAR, TAO, UNI, XMR, ADA, GRAM and LTC;
-   * older readings were taken once a day, then every 4 hours, then hourly). The 55 pairs added
-   * on 2026-10-19 have no imported history: their readings start that day, and `1m` to `30m`
-   * start on 2026-10-19 09:31 UTC; likewise for the 27 pairs added on 2026-10-27, from
-   * 2026-10-27 18:03 UTC. Read older periods at a coarser `timeframe`; a `since_ms` before the
+   * older readings were taken once a day, then every 4 hours, then hourly). The 82 pairs added
+   * in October 2026 have their own starts, pair by pair: `1d` covers their whole history, `1h`
+   * and `4h` start around 2025-10-24, `30m` around 2026-04-22, `15m` around 2026-07-21, and
+   * `1m` and `5m` on the day the pair was added (2026-10-19 09:31 UTC, or 2026-10-27 18:03 UTC
+   * for the 27 latest). Read older periods at a coarser `timeframe`; a `since_ms` before the
    * start is raised to it, and a window entirely before it returns no rows. Most recent first,
    * or oldest first with `order=asc`. Follow `next` to read the following page (it never
    * repeats a row).
@@ -8488,4 +8494,4 @@ export const ROUTES: Record<string, string> = {
   "/v1/ws/token": "ws.token",
 };
 /** `info.version` of the contract this SDK was generated from. */
-export const API_VERSION = "3.0.3";
+export const API_VERSION = "1.0.0";
