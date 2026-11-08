@@ -2935,6 +2935,12 @@ export interface LiquidationsBigSmallRatio {
    */
   big_small_ratio: number | null;
   /**
+   * Venues whose liquidations are summed in the row, by name (empty when none in the row). Rows
+   * before the first individual liquidation are imported totals: their list is the venues those
+   * totals cover.
+   */
+  venues: Array<string>;
+  /**
    * Number of source points in the bucket (one-minute points with data). For a state (basis,
    * open interest) the value is the LAST of them — the bucket's close —; for a flow it is their
    * total. Unit: count.
@@ -2985,6 +2991,12 @@ export interface LiquidationsBigSmallRatioHistoryItem {
    */
   big_small_ratio: number | null;
   /**
+   * Venues whose liquidations are summed in the row, by name (empty when none in the row). Rows
+   * before the first individual liquidation are imported totals: their list is the venues those
+   * totals cover.
+   */
+  venues: Array<string>;
+  /**
    * Minutes of the bucket that had at least one liquidation. Unit: count.
    */
   sample_count: number | null;
@@ -3021,6 +3033,12 @@ export interface LiquidationsCumulative {
    * Total, USD. Unit: USD.
    */
   total_usd: number;
+  /**
+   * Venues whose liquidations are summed in the row, by name (empty when none in the row). Rows
+   * before the first individual liquidation are imported totals: their list is the venues those
+   * totals cover.
+   */
+  venues: Array<unknown>;
   /**
    * Start of the ROLLING window the value covers (inclusive). Only rolling-window values carry
    * it, and their `time` is always the END of the window; a bucket row has no window fields
@@ -3063,6 +3081,12 @@ export interface LiquidationsCumulativeHistoryItem {
    */
   sample_count: number | null;
   /**
+   * Venues whose liquidations are summed in the row, by name (empty when none in the row). Rows
+   * before the first individual liquidation are imported totals: their list is the venues those
+   * totals cover.
+   */
+  venues: Array<string>;
+  /**
    * `true` = the row is final; `false` = provisional: the latest bucket while it still settles
    * (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period
    * in progress with `?live=1` on the routes that take it. Exception, rare: when a venue
@@ -3101,6 +3125,10 @@ export interface LiquidationEvent {
    * USD. Unit: USD.
    */
   value_usd: number;
+  /**
+   * Venue where the liquidation happened (liquidations name their venues).
+   */
+  venue: string | null;
 }
 
 /**
@@ -4909,7 +4937,7 @@ export interface PriceChange {
  */
 export interface SpreadInterexchangeVenuesItem {
   /**
-   * Venue name (this route is the only one that names venues).
+   * Venue name (with the liquidations, the only data that names its venues).
    */
   venue: string;
   /**

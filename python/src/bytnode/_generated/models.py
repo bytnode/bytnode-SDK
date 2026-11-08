@@ -885,6 +885,7 @@ class LiquidationsBigSmallRatio(BytnodeModel):
     small_count: int = PydField(description='Liquidations below 100,000 USD. Unit: count.')
     small_usd: float = PydField(description='Notional of liquidations below 100,000 USD. Unit: USD.')
     big_small_ratio: float | None = PydField(None, description='big_usd / small_usd: the notional of liquidations of 100,000 USD or more DIVIDED BY that of the smaller ones (8.2 = the big ones weigh 8.2 times the small ones: a quotient, not a share). `null` when small_usd is 0. Unit: big / small.')
+    venues: list[str] = PydField(description='Venues whose liquidations are summed in the row, by name (empty when none in the row). Rows before the first individual liquidation are imported totals: their list is the venues those totals cover.')
     sample_count: int | None = PydField(None, description="Number of source points in the bucket (one-minute points with data). For a state (basis, open interest) the value is the LAST of them — the bucket's close —; for a flow it is their total. Unit: count.")
     is_closed: bool = PydField(description='`true` = the row is final; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it. Exception, rare: when a venue delivers trades LATE (seconds to minutes, e.g. during a burst), a closed row built from trades (trade candles, candle volumes, CVD, buy/sell ratio, trades per second) is corrected afterwards to include them, usually within minutes and at most one hour later; the correction only adds the late trades.')
 
@@ -898,6 +899,7 @@ class LiquidationsBigSmallRatioHistoryItem(BytnodeModel):
     small_count: int = PydField(description='Liquidations below 100,000 USD. Unit: count.')
     small_usd: float = PydField(description='Notional of liquidations below 100,000 USD. Unit: USD.')
     big_small_ratio: float | None = PydField(None, description='big_usd / small_usd: the notional of liquidations of 100,000 USD or more DIVIDED BY that of the smaller ones (8.2 = the big ones weigh 8.2 times the small ones: a quotient, not a share). `null` when small_usd is 0. Unit: big / small.')
+    venues: list[str] = PydField(description='Venues whose liquidations are summed in the row, by name (empty when none in the row). Rows before the first individual liquidation are imported totals: their list is the venues those totals cover.')
     sample_count: int | None = PydField(None, description='Minutes of the bucket that had at least one liquidation. Unit: count.')
     is_closed: bool = PydField(description='`true` = the row is final; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it. Exception, rare: when a venue delivers trades LATE (seconds to minutes, e.g. during a burst), a closed row built from trades (trade candles, candle volumes, CVD, buy/sell ratio, trades per second) is corrected afterwards to include them, usually within minutes and at most one hour later; the correction only adds the late trades.')
 
@@ -909,6 +911,7 @@ class LiquidationsCumulative(BytnodeModel):
     long_usd: float = PydField(description='Long positions liquidated, USD. Unit: USD.')
     short_usd: float = PydField(description='Short positions liquidated, USD. Unit: USD.')
     total_usd: float = PydField(description='Total, USD. Unit: USD.')
+    venues: list[Any] = PydField(description='Venues whose liquidations are summed in the row, by name (empty when none in the row). Rows before the first individual liquidation are imported totals: their list is the venues those totals cover.')
     window_start_at: datetime = PydField(description="Start of the ROLLING window the value covers (inclusive). Only rolling-window values carry it, and their `time` is always the END of the window; a bucket row has no window fields (its span is the envelope's `step`). Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).")
     window_s: int | None = PydField(None, description='Length of that rolling window, in whole seconds: it runs from `window_start_at` to `time` (excluded). Unit: seconds.')
 
@@ -921,6 +924,7 @@ class LiquidationsCumulativeHistoryItem(BytnodeModel):
     short_usd: float = PydField(description='Short positions liquidated, USD. Unit: USD.')
     total_usd: float = PydField(description='Total, USD. Unit: USD.')
     sample_count: int | None = PydField(None, description="Number of source points in the bucket (one-minute points with data). For a state (basis, open interest) the value is the LAST of them — the bucket's close —; for a flow it is their total. Unit: count.")
+    venues: list[str] = PydField(description='Venues whose liquidations are summed in the row, by name (empty when none in the row). Rows before the first individual liquidation are imported totals: their list is the venues those totals cover.')
     is_closed: bool = PydField(description='`true` = the row is final; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it. Exception, rare: when a venue delivers trades LATE (seconds to minutes, e.g. during a burst), a closed row built from trades (trade candles, candle volumes, CVD, buy/sell ratio, trades per second) is corrected afterwards to include them, usually within minutes and at most one hour later; the correction only adds the late trades.')
 
 
@@ -932,6 +936,7 @@ class LiquidationEvent(BytnodeModel):
     price: float = PydField(description='Price. Unit: quote currency (USDT for BTCUSDT).')
     quantity: float = PydField(description='Quantity traded or liquidated, in base asset units. Unit: base asset quantity (BTC for BTCUSDT).')
     value_usd: float = PydField(description="Notional value: price × quantity, in the pair's quote currency (USDT for BTCUSDT), taken as USD. Unit: USD.")
+    venue: str | None = PydField(None, description='Venue where the liquidation happened (liquidations name their venues).')
 
 
 class Macro(BytnodeModel):
@@ -1561,7 +1566,7 @@ class PriceChange(BytnodeModel):
 class SpreadInterexchangeVenuesItem(BytnodeModel):
     """Nested object (SpreadInterexchangeVenuesItem)."""
 
-    venue: str = PydField(description='Venue name (this route is the only one that names venues).')
+    venue: str = PydField(description='Venue name (with the liquidations, the only data that names its venues).')
     price: float = PydField(description='Volume-weighted price of the venue over the bucket. Unit: quote currency (USDT for BTCUSDT).')
     premium_bps: float = PydField(description='Venue price premium (positive) or discount (negative) versus ref_price. Unit: basis points (1 bp = 0.01 %).')
 

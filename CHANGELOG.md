@@ -4,6 +4,14 @@ All notable changes to the BytNode SDKs. Both packages share one version number.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow
 [Semantic Versioning](https://semver.org/).
 
+## [1.0.1] — 2026-11-08
+
+Generated from contract `1.0.1`.
+
+- Liquidations name their venues: `venue` on each event (`liquidations.events`), `venues` (the
+  venues summed in the row) on `liquidations.cumulative`, `liquidations.cumulative.history`,
+  `liquidations.big_small_ratio` and `liquidations.big_small_ratio.history`.
+
 ## [1.0.0] — 2026-11-07
 
 A new starting point, generated from contract `1.0.0`. Earlier SDK releases are withdrawn.
