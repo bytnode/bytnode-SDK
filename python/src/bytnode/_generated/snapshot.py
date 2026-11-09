@@ -45,7 +45,6 @@ class SnapshotData(BytnodeModel):
     funding_next: m.FundingNext | None = PydField(None, alias='funding_next', description='Next funding forecast. Same content as `/v1/funding/next`. Value: `true` (or 1): the latest value only.')
     funding_rate: m.FundingRate | None = PydField(None, alias='funding_rate', description='Latest settled funding window. Same content as `/v1/funding/rate`. Value: `true` (or 1): the latest value only.')
     global_: m.GlobalMarket | None = PydField(None, alias='global', description='Total crypto market cap and dominance. Same content as `/v1/global`. Value: `true` (or 1): the latest value only.')
-    heatmap_clusters: m.HeatmapClusters | None = PydField(None, alias='heatmap_clusters', description='Liquidation heatmap clusters. Same content as `/v1/heatmap/clusters`. Value: `true` (or 1): the latest value only.')
     liquidations_cumulative: m.LiquidationsCumulative | None = PydField(None, alias='liquidations_cumulative', description='Liquidations long/short USD over the last 5 minutes (latest value). Same content as `/v1/liquidations/cumulative`. Value: `true` (or 1): the latest value only.')
     liquidations_events: list[m.LiquidationEvent] | None = PydField(None, alias='liquidations_events', description="Individual liquidations (N latest events, at most your plan's count). Same content as `/v1/liquidations/events`. Value: depth N (at most 10000), or `true` for 1.")
     macro_correlations: m.MacroCorrelations | None = PydField(None, alias='macro_correlations', description='BTC correlation with DXY, S&P 500, gold, VIX. Same content as `/v1/macro/correlations`. Value: `true` (or 1): the latest value only.')
@@ -167,7 +166,6 @@ SNAPSHOT_FIELDS: dict[str, tuple[str, str | None]] = {
     'funding_next': ('funding_next', None),
     'funding_rate': ('funding_rate', None),
     'global': ('global', None),
-    'heatmap_clusters': ('heatmap_clusters', None),
     'liquidations_cumulative': ('liquidations_cumulative', None),
     'liquidations_events': ('liquidations_events', None),
     'macro_correlations': ('macro_correlations', None),

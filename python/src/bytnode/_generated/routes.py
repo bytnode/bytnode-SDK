@@ -69,8 +69,6 @@ ROUTES: dict[str, str] = {
     '/v1/global': 'global_',
     '/v1/global/history': 'global_.history',
     '/v1/health': 'health',
-    '/v1/heatmap/clusters': 'heatmap.clusters',
-    '/v1/heatmap/clusters/history': 'heatmap.clusters.history',
     '/v1/indicators': 'indicators',
     '/v1/indices/cmc100': 'indices.cmc100',
     '/v1/indices/cmc100/history': 'indices.cmc100.history',
@@ -147,5 +145,5 @@ ROUTES: dict[str, str] = {
     '/v1/trades/spot': 'trades.spot',
     '/v1/ws/token': 'ws.token',
 }
-API_VERSION = '1.0.1'
+API_VERSION = '1.0.2'
 """`info.version` of the contract this SDK was generated from."""

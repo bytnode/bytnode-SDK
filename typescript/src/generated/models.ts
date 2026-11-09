@@ -1165,10 +1165,6 @@ export interface CapabilitiesComputedMetricsNotApplicable {
    * Why `trades_kline_futures` does not apply to this symbol.
    */
   trades_kline_futures?: string;
-  /**
-   * Why `heatmap_clusters` does not apply to this symbol.
-   */
-  heatmap_clusters?: string;
 }
 
 /**
@@ -2344,104 +2340,6 @@ export interface Health {
    * `service_unavailable` with `database` in `error.details`.
    */
   database: string;
-}
-
-/**
- * Row of `/v1/heatmap/clusters`.
- */
-export interface HeatmapClusters {
-  /**
-   * Point-in-time value: the instant of the measurement (when the source was read). Unit: ISO
-   * 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).
-   */
-  time: Date;
-  /**
-   * Estimated liquidation density of the most attractive cluster ABOVE the price (short
-   * positions). Unit: dimensionless score.
-   */
-  density_up: number;
-  /**
-   * Distance from the price to the cluster above, as a fraction of the price (0.037 = 3.7 %
-   * higher). Unit: fraction (0.585 = 58.5 %).
-   */
-  dist_up_ratio: number;
-  /**
-   * Estimated liquidation density of the most attractive cluster BELOW the price (long
-   * positions). Unit: dimensionless score.
-   */
-  density_down: number;
-  /**
-   * Distance from the price to the cluster below, as a fraction of the price. Unit: fraction
-   * (0.585 = 58.5 %).
-   */
-  dist_down_ratio: number;
-  /**
-   * density_up / dist_up_ratio²: how strongly the cluster above pulls the price. Unit:
-   * dimensionless score.
-   */
-  attraction_up: number;
-  /**
-   * density_down / dist_down_ratio²: how strongly the cluster below pulls the price. Compare
-   * with attraction_up. Unit: dimensionless score.
-   */
-  attraction_down: number;
-}
-
-/**
- * Row of `/v1/heatmap/clusters/history`.
- */
-export interface HeatmapClustersHistoryItem {
-  /**
-   * Start of the bucket of `timeframe`; the value is the LAST one of the bucket's minutes.
-   * Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).
-   */
-  time: Date;
-  /**
-   * Estimated liquidation density of the most attractive cluster ABOVE the price (short
-   * positions). Unit: dimensionless score.
-   */
-  density_up: number;
-  /**
-   * Distance from the price to the cluster above, as a fraction of the price (0.037 = 3.7 %
-   * higher). Unit: fraction (0.585 = 58.5 %).
-   */
-  dist_up_ratio: number;
-  /**
-   * Estimated liquidation density of the most attractive cluster BELOW the price (long
-   * positions). Unit: dimensionless score.
-   */
-  density_down: number;
-  /**
-   * Distance from the price to the cluster below, as a fraction of the price. Unit: fraction
-   * (0.585 = 58.5 %).
-   */
-  dist_down_ratio: number;
-  /**
-   * density_up / dist_up_ratio²: how strongly the cluster above pulls the price. Unit:
-   * dimensionless score.
-   */
-  attraction_up: number;
-  /**
-   * density_down / dist_down_ratio²: how strongly the cluster below pulls the price. Compare
-   * with attraction_up. Unit: dimensionless score.
-   */
-  attraction_down: number;
-  /**
-   * Number of source points in the bucket (one-minute points with data). For a state (basis,
-   * open interest) the value is the LAST of them — the bucket's close —; for a flow it is their
-   * total. Unit: count.
-   */
-  sample_count: number | null;
-  /**
-   * `true` = the row is final; `false` = provisional: the latest bucket while it still settles
-   * (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period
-   * in progress with `?live=1` on the routes that take it. Exception, rare: when a venue
-   * delivers trades LATE (seconds to minutes, e.g. during a burst), a closed row built from
-   * trades (trade candles, candle volumes, CVD, buy/sell ratio, trades per second) is corrected
-   * afterwards to include them, usually within minutes and at most one hour later; the
-   * correction only adds the late trades.
-   */
-  is_closed: boolean;
 }
 
 /**
@@ -5016,7 +4914,7 @@ export interface StatusFeedsItem {
    * Public feed name. The closed list of this contract version; `routes` gives the routes each
    * one supplies.
    */
-  feed: "altcoin_season" | "basis" | "btc_block_rewards" | "btc_blocks" | "btc_difficulty_adjustments" | "btc_fee_rates" | "btc_fees" | "btc_mempool" | "btc_mining_pools" | "btc_mvrv" | "btc_network" | "btc_onchain_metrics" | "buy_sell_ratio" | "cmc_indices" | "etf_filings" | "eth_beacon" | "eth_defi" | "eth_gas" | "eth_market" | "eth_staking_yield" | "eth_supply" | "fear_greed" | "fear_greed_cmc" | "funding_next" | "funding_rate" | "global_market" | "heatmap_clusters" | "klines_1m" | "klines_futures_1m" | "klines_futures_multi" | "klines_multi" | "liquidations_cumulative" | "liquidations_events" | "macro_daily_weekly" | "macro_gold" | "macro_intraday_15m_continuous" | "macro_intraday_1d" | "macro_intraday_1d_continuous" | "macro_intraday_1h_continuous" | "macro_intraday_1m_continuous" | "macro_intraday_4h_continuous" | "macro_intraday_5m_continuous" | "macro_monthly" | "oi" | "oi_change" | "options_aggregates" | "options_chain" | "options_expiries" | "orderbook_15m" | "orderbook_1d" | "orderbook_1h" | "orderbook_1m" | "orderbook_30m" | "orderbook_4h" | "orderbook_5m" | "sentiment_cmc_current" | "spread_interexchange_15m" | "spread_interexchange_1d" | "spread_interexchange_1h" | "spread_interexchange_1m" | "spread_interexchange_30m" | "spread_interexchange_4h" | "spread_interexchange_5m" | "tokenomics_supply" | "trades_avg_size" | "trades_futures" | "trades_kline_futures_15m" | "trades_kline_futures_1d" | "trades_kline_futures_1h" | "trades_kline_futures_1m" | "trades_kline_futures_30m" | "trades_kline_futures_4h" | "trades_kline_futures_5m" | "trades_kline_futures_seconds" | "trades_kline_spot_15m" | "trades_kline_spot_1d" | "trades_kline_spot_1h" | "trades_kline_spot_1m" | "trades_kline_spot_30m" | "trades_kline_spot_4h" | "trades_kline_spot_5m" | "trades_spot";
+  feed: "altcoin_season" | "basis" | "btc_block_rewards" | "btc_blocks" | "btc_difficulty_adjustments" | "btc_fee_rates" | "btc_fees" | "btc_mempool" | "btc_mining_pools" | "btc_mvrv" | "btc_network" | "btc_onchain_metrics" | "buy_sell_ratio" | "cmc_indices" | "etf_filings" | "eth_beacon" | "eth_defi" | "eth_gas" | "eth_market" | "eth_staking_yield" | "eth_supply" | "fear_greed" | "fear_greed_cmc" | "funding_next" | "funding_rate" | "global_market" | "klines_1m" | "klines_futures_1m" | "klines_futures_multi" | "klines_multi" | "liquidations_cumulative" | "liquidations_events" | "macro_daily_weekly" | "macro_gold" | "macro_intraday_15m_continuous" | "macro_intraday_1d" | "macro_intraday_1d_continuous" | "macro_intraday_1h_continuous" | "macro_intraday_1m_continuous" | "macro_intraday_4h_continuous" | "macro_intraday_5m_continuous" | "macro_monthly" | "oi" | "oi_change" | "options_aggregates" | "options_chain" | "options_expiries" | "orderbook_15m" | "orderbook_1d" | "orderbook_1h" | "orderbook_1m" | "orderbook_30m" | "orderbook_4h" | "orderbook_5m" | "sentiment_cmc_current" | "spread_interexchange_15m" | "spread_interexchange_1d" | "spread_interexchange_1h" | "spread_interexchange_1m" | "spread_interexchange_30m" | "spread_interexchange_4h" | "spread_interexchange_5m" | "tokenomics_supply" | "trades_avg_size" | "trades_futures" | "trades_kline_futures_15m" | "trades_kline_futures_1d" | "trades_kline_futures_1h" | "trades_kline_futures_1m" | "trades_kline_futures_30m" | "trades_kline_futures_4h" | "trades_kline_futures_5m" | "trades_kline_futures_seconds" | "trades_kline_spot_15m" | "trades_kline_spot_1d" | "trades_kline_spot_1h" | "trades_kline_spot_1m" | "trades_kline_spot_30m" | "trades_kline_spot_4h" | "trades_kline_spot_5m" | "trades_spot";
   /**
    * Data family the feed belongs to, as in `/v1/limits` and the `x-family` of each route:
    * `price_volume`, `derivatives`, `microstructure`, `trades`, `options`, `onchain`, `macro`,
@@ -5593,8 +5491,6 @@ export const MODEL_SHAPES: Record<string, { dates: string[]; nested: Record<stri
   GlobalMarket: { dates: ["time"], nested: {} },
   GlobalMarketHistoryItem: { dates: ["time"], nested: {} },
   Health: { dates: [], nested: {} },
-  HeatmapClusters: { dates: ["time"], nested: {} },
-  HeatmapClustersHistoryItem: { dates: ["time"], nested: {} },
   IndicesCmc100ConstituentsItem: { dates: [], nested: {} },
   IndicesCmc100: { dates: ["time"], nested: {"constituents": "IndicesCmc100ConstituentsItem"} },
   IndicesCmc100HistoryItem: { dates: ["time"], nested: {} },

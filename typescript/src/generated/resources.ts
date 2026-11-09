@@ -72,8 +72,6 @@ const R_FUNDING_RATE_HISTORY: RouteSpec = {"path": "/v1/funding/rate/history", "
 const R_GLOBAL: RouteSpec = {"path": "/v1/global", "method": "GET", "shape": "object", "model": "GlobalMarket", "paginated": false, "pathParams": [], "maxLimit": null, "rangeMode": false, "wire": {}};
 const R_GLOBAL_HISTORY: RouteSpec = {"path": "/v1/global/history", "method": "GET", "shape": "list", "model": "GlobalMarketHistoryItem", "paginated": true, "pathParams": [], "maxLimit": 1000, "rangeMode": false, "wire": {"since": "since_ms", "until": "until_ms", "before": "before_ms"}};
 const R_HEALTH: RouteSpec = {"path": "/v1/health", "method": "GET", "shape": "object", "model": "Health", "paginated": false, "pathParams": [], "maxLimit": null, "rangeMode": false, "wire": {}};
-const R_HEATMAP_CLUSTERS: RouteSpec = {"path": "/v1/heatmap/clusters", "method": "GET", "shape": "object", "model": "HeatmapClusters", "paginated": false, "pathParams": [], "maxLimit": null, "rangeMode": false, "wire": {}};
-const R_HEATMAP_CLUSTERS_HISTORY: RouteSpec = {"path": "/v1/heatmap/clusters/history", "method": "GET", "shape": "list", "model": "HeatmapClustersHistoryItem", "paginated": true, "pathParams": [], "maxLimit": 1000, "rangeMode": false, "wire": {"since": "since_ms", "until": "until_ms", "before": "before_ms"}};
 const R_INDICATORS: RouteSpec = {"path": "/v1/indicators", "method": "POST", "shape": "indicators", "model": null, "paginated": false, "pathParams": [], "maxLimit": null, "rangeMode": false, "wire": {}};
 const R_INDICES_CMC100: RouteSpec = {"path": "/v1/indices/cmc100", "method": "GET", "shape": "object", "model": "IndicesCmc100", "paginated": false, "pathParams": [], "maxLimit": null, "rangeMode": false, "wire": {}};
 const R_INDICES_CMC100_HISTORY: RouteSpec = {"path": "/v1/indices/cmc100/history", "method": "GET", "shape": "list", "model": "IndicesCmc100HistoryItem", "paginated": true, "pathParams": [], "maxLimit": 1000, "rangeMode": false, "wire": {"since": "since_ms", "until": "until_ms", "before": "before_ms"}};
@@ -258,8 +256,8 @@ export interface BasisHistoryParams {
   limit?: number;
   /**
    * Required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. One row per closed bucket: for a
-   * STATE (basis, open interest, heatmap) the value of its LAST minute — its close —, for a
-   * FLOW (open-interest change, liquidations, trade sizes) the total over its minutes;
+   * STATE (basis, open interest) the value of its LAST minute — its close —, for a FLOW
+   * (open-interest change, liquidations, trade sizes) the total over its minutes;
    * `sample_count` = minutes with data in the bucket. `1m` gives one row per minute, aligned on
    * the minute. Missing: 422 `missing_parameter`.
    */
@@ -298,8 +296,8 @@ export interface BasisHistoryIterParams {
   until?: TimeLike;
   /**
    * Required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. One row per closed bucket: for a
-   * STATE (basis, open interest, heatmap) the value of its LAST minute — its close —, for a
-   * FLOW (open-interest change, liquidations, trade sizes) the total over its minutes;
+   * STATE (basis, open interest) the value of its LAST minute — its close —, for a FLOW
+   * (open-interest change, liquidations, trade sizes) the total over its minutes;
    * `sample_count` = minutes with data in the bucket. `1m` gives one row per minute, aligned on
    * the minute. Missing: 422 `missing_parameter`.
    */
@@ -3354,137 +3352,6 @@ export interface HealthResource {
   (params?: HealthParams, options?: RequestOptions): Promise<ApiResponse<M.Health | null>>;
 }
 
-export interface HeatmapClustersHistoryParams {
-  /**
-   * Lower time bound, inclusive. A `Date`, an ISO string (`2026-01-01`) or epoch milliseconds.
-   */
-  since?: TimeLike;
-  /**
-   * Upper time bound, inclusive to the millisecond. A `Date`, an ISO string (`2026-01-01`) or
-   * epoch milliseconds.
-   */
-  until?: TimeLike;
-  /**
-   * Number of rows to return, in the reading order (most recent first by default). Bounded by
-   * your plan's history window: an explicit `limit` (or `since_ms`) reaching beyond it returns
-   * 403 `history_depth`; without them the page simply stops at the window.
-   */
-  limit?: number;
-  /**
-   * Required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. One row per closed bucket: for a
-   * STATE (basis, open interest, heatmap) the value of its LAST minute — its close —, for a
-   * FLOW (open-interest change, liquidations, trade sizes) the total over its minutes;
-   * `sample_count` = minutes with data in the bucket. `1m` gives one row per minute, aligned on
-   * the minute. Missing: 422 `missing_parameter`.
-   */
-  timeframe: Timeframe;
-  /**
-   * Trading pair, e.g. `BTCUSDT`. Required. The served pairs: `GET /v1/symbols`.
-   * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
-   * pair returns 422 `invalid_symbol` with the accepted list.
-   */
-  symbol: KnownSymbol | (string & {});
-  /**
-   * Only return these fields of each row (array or comma-separated). Rows are then partial.
-   */
-  fields?: Fields;
-  /**
-   * Upper time bound, exclusive (rows strictly before it). Not combinable with `until`. A
-   * `Date`, an ISO string (`2026-01-01`) or epoch milliseconds.
-   */
-  before?: TimeLike;
-  /**
-   * Reading order: `desc` (most recent first, the default) or `asc` (oldest first, reading
-   * forward from `since_ms`, which is then required). Follow `next` to read the following page.
-   */
-  order?: Order;
-}
-
-export interface HeatmapClustersHistoryIterParams {
-  /**
-   * Lower time bound, inclusive. A `Date`, an ISO string (`2026-01-01`) or epoch milliseconds.
-   */
-  since?: TimeLike;
-  /**
-   * Upper time bound, inclusive to the millisecond. A `Date`, an ISO string (`2026-01-01`) or
-   * epoch milliseconds.
-   */
-  until?: TimeLike;
-  /**
-   * Required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. One row per closed bucket: for a
-   * STATE (basis, open interest, heatmap) the value of its LAST minute — its close —, for a
-   * FLOW (open-interest change, liquidations, trade sizes) the total over its minutes;
-   * `sample_count` = minutes with data in the bucket. `1m` gives one row per minute, aligned on
-   * the minute. Missing: 422 `missing_parameter`.
-   */
-  timeframe: Timeframe;
-  /**
-   * Trading pair, e.g. `BTCUSDT`. Required. The served pairs: `GET /v1/symbols`.
-   * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
-   * pair returns 422 `invalid_symbol` with the accepted list.
-   */
-  symbol: KnownSymbol | (string & {});
-  /**
-   * Only return these fields of each row (array or comma-separated). Rows are then partial.
-   */
-  fields?: Fields;
-  /**
-   * Reading order: `desc` (most recent first, the default) or `asc` (oldest first, reading
-   * forward from `since_ms`, which is then required). Follow `next` to read the following page.
-   */
-  order?: Order;
-}
-
-export type HeatmapClustersHistoryIterOptions = HeatmapClustersHistoryIterParams & IterOptions;
-
-/** `/v1/heatmap/clusters/history`. */
-export interface HeatmapClustersHistoryResource {
-  /**
-   * GET /v1/heatmap/clusters/history — Liquidation clusters history
-   *
-   * One row per closed bucket of `timeframe` (required). Most recent first, or oldest first
-   * with `order=asc`. Follow `next` to read the following page (it never repeats a row).
-   */
-  (params: HeatmapClustersHistoryParams, options?: RequestOptions): Promise<ApiResponse<Array<M.HeatmapClustersHistoryItem>>>;
-  /**
-   * Every row of `/v1/heatmap/clusters/history` over a period, following `next` page after page
-   * (`for await`).
-   */
-  iter(params: HeatmapClustersHistoryIterOptions, options?: RequestOptions): RowIterator<M.HeatmapClustersHistoryItem>;
-}
-
-export interface HeatmapClustersParams {
-  /**
-   * Trading pair, e.g. `BTCUSDT`. Required. The served pairs: `GET /v1/symbols`.
-   * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
-   * pair returns 422 `invalid_symbol` with the accepted list.
-   */
-  symbol: KnownSymbol | (string & {});
-  /**
-   * Only return these fields of each row (array or comma-separated). Rows are then partial.
-   */
-  fields?: Fields;
-}
-
-/** `/v1/heatmap/clusters` and its sub-routes. */
-export interface HeatmapClustersResource {
-  /**
-   * GET /v1/heatmap/clusters — Liquidation heatmap clusters
-   *
-   * The most attractive cluster of estimated liquidation levels above and below the price,
-   * projected from open interest changes and the leverage mix. `attraction` = density /
-   * distance²: compare `attraction_up` and `attraction_down` to see where the price has a
-   * mechanical reason to go. Not a prediction.
-   */
-  (params: HeatmapClustersParams, options?: RequestOptions): Promise<ApiResponse<M.HeatmapClusters | null>>;
-  history: HeatmapClustersHistoryResource;
-}
-
-/** `/v1/heatmap` and its sub-routes. */
-export interface HeatmapResource {
-  clusters: HeatmapClustersResource;
-}
-
 /** `/v1/indicators`. */
 export interface IndicatorsResource {
   (params: IndicatorsParams, options?: RequestOptions): Promise<ApiResponse<IndicatorsResult | null>>;
@@ -3863,8 +3730,8 @@ export interface LiquidationsBigSmallRatioHistoryParams {
   limit?: number;
   /**
    * Required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. One row per closed bucket: for a
-   * STATE (basis, open interest, heatmap) the value of its LAST minute — its close —, for a
-   * FLOW (open-interest change, liquidations, trade sizes) the total over its minutes;
+   * STATE (basis, open interest) the value of its LAST minute — its close —, for a FLOW
+   * (open-interest change, liquidations, trade sizes) the total over its minutes;
    * `sample_count` = minutes with data in the bucket. `1m` gives one row per minute, aligned on
    * the minute. Missing: 422 `missing_parameter`.
    */
@@ -3903,8 +3770,8 @@ export interface LiquidationsBigSmallRatioHistoryIterParams {
   until?: TimeLike;
   /**
    * Required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. One row per closed bucket: for a
-   * STATE (basis, open interest, heatmap) the value of its LAST minute — its close —, for a
-   * FLOW (open-interest change, liquidations, trade sizes) the total over its minutes;
+   * STATE (basis, open interest) the value of its LAST minute — its close —, for a FLOW
+   * (open-interest change, liquidations, trade sizes) the total over its minutes;
    * `sample_count` = minutes with data in the bucket. `1m` gives one row per minute, aligned on
    * the minute. Missing: 422 `missing_parameter`.
    */
@@ -4557,8 +4424,8 @@ export interface OiChangeHistoryParams {
   limit?: number;
   /**
    * Required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. One row per closed bucket: for a
-   * STATE (basis, open interest, heatmap) the value of its LAST minute — its close —, for a
-   * FLOW (open-interest change, liquidations, trade sizes) the total over its minutes;
+   * STATE (basis, open interest) the value of its LAST minute — its close —, for a FLOW
+   * (open-interest change, liquidations, trade sizes) the total over its minutes;
    * `sample_count` = minutes with data in the bucket. `1m` gives one row per minute, aligned on
    * the minute. Missing: 422 `missing_parameter`.
    */
@@ -4597,8 +4464,8 @@ export interface OiChangeHistoryIterParams {
   until?: TimeLike;
   /**
    * Required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. One row per closed bucket: for a
-   * STATE (basis, open interest, heatmap) the value of its LAST minute — its close —, for a
-   * FLOW (open-interest change, liquidations, trade sizes) the total over its minutes;
+   * STATE (basis, open interest) the value of its LAST minute — its close —, for a FLOW
+   * (open-interest change, liquidations, trade sizes) the total over its minutes;
    * `sample_count` = minutes with data in the bucket. `1m` gives one row per minute, aligned on
    * the minute. Missing: 422 `missing_parameter`.
    */
@@ -4694,8 +4561,8 @@ export interface OiHistoryParams {
   limit?: number;
   /**
    * Required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. One row per closed bucket: for a
-   * STATE (basis, open interest, heatmap) the value of its LAST minute — its close —, for a
-   * FLOW (open-interest change, liquidations, trade sizes) the total over its minutes;
+   * STATE (basis, open interest) the value of its LAST minute — its close —, for a FLOW
+   * (open-interest change, liquidations, trade sizes) the total over its minutes;
    * `sample_count` = minutes with data in the bucket. `1m` gives one row per minute, aligned on
    * the minute. Missing: 422 `missing_parameter`.
    */
@@ -4734,8 +4601,8 @@ export interface OiHistoryIterParams {
   until?: TimeLike;
   /**
    * Required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. One row per closed bucket: for a
-   * STATE (basis, open interest, heatmap) the value of its LAST minute — its close —, for a
-   * FLOW (open-interest change, liquidations, trade sizes) the total over its minutes;
+   * STATE (basis, open interest) the value of its LAST minute — its close —, for a FLOW
+   * (open-interest change, liquidations, trade sizes) the total over its minutes;
    * `sample_count` = minutes with data in the bucket. `1m` gives one row per minute, aligned on
    * the minute. Missing: 422 `missing_parameter`.
    */
@@ -6207,11 +6074,6 @@ export interface SnapshotParams {
    */
   global?: true | 1;
   /**
-   * Liquidation heatmap clusters. Same content as `/v1/heatmap/clusters`. Value: `true` (or 1):
-   * the latest value only.
-   */
-  heatmap_clusters?: true | 1;
-  /**
    * Liquidations long/short USD over the last 5 minutes (latest value). Same content as
    * `/v1/liquidations/cumulative`. Value: `true` (or 1): the latest value only.
    */
@@ -6333,7 +6195,6 @@ export interface SnapshotData {
   funding_next?: M.FundingNext | null;
   funding_rate?: M.FundingRate | null;
   global?: M.GlobalMarket | null;
-  heatmap_clusters?: M.HeatmapClusters | null;
   liquidations_cumulative?: M.LiquidationsCumulative | null;
   liquidations_events?: Array<M.LiquidationEvent> | null;
   macro_correlations?: M.MacroCorrelations | null;
@@ -6456,7 +6317,6 @@ export const SNAPSHOT_FIELDS: Record<string, { base: string; timeframe: string |
   "funding_next": { base: "funding_next", timeframe: null, model: "FundingNext" },
   "funding_rate": { base: "funding_rate", timeframe: null, model: "FundingRate" },
   "global": { base: "global", timeframe: null, model: "GlobalMarket" },
-  "heatmap_clusters": { base: "heatmap_clusters", timeframe: null, model: "HeatmapClusters" },
   "liquidations_cumulative": { base: "liquidations_cumulative", timeframe: null, model: "LiquidationsCumulative" },
   "liquidations_events": { base: "liquidations_events", timeframe: null, model: "LiquidationEvent" },
   "macro_correlations": { base: "macro_correlations", timeframe: null, model: "MacroCorrelations" },
@@ -6550,7 +6410,7 @@ export const SNAPSHOT_FIELDS: Record<string, { base: string; timeframe: string |
   "trades_kline_spot@4h": { base: "trades_kline_spot", timeframe: "4h", model: "TradesKline" },
   "trades_kline_spot@1d": { base: "trades_kline_spot", timeframe: "1d", model: "TradesKline" },
 };
-export const SNAPSHOT_SINGLE_FIELDS = ["altcoin_season", "basis", "btc_active_addresses", "btc_fees", "btc_mempool", "btc_mining", "btc_mvrv", "btc_network", "btc_nvt", "btc_revenue_per_difficulty", "cmc100", "cmc20", "eth_defi", "eth_deflation", "eth_gas", "eth_gas_momentum", "eth_price_btc", "eth_squeeze", "eth_staking", "eth_supply", "fear_greed", "fear_greed_cmc", "funding_cumulative", "funding_next", "funding_rate", "global", "heatmap_clusters", "liquidations_cumulative", "liquidations_events", "macro_correlations", "macro_momentum", "macro_net_liquidity", "macro_risk", "macro_series", "oi_change", "options_summary", "price_change", "tokenomics", "trades_futures", "trades_kline_futures_seconds", "trades_spot"] as const;
+export const SNAPSHOT_SINGLE_FIELDS = ["altcoin_season", "basis", "btc_active_addresses", "btc_fees", "btc_mempool", "btc_mining", "btc_mvrv", "btc_network", "btc_nvt", "btc_revenue_per_difficulty", "cmc100", "cmc20", "eth_defi", "eth_deflation", "eth_gas", "eth_gas_momentum", "eth_price_btc", "eth_squeeze", "eth_staking", "eth_supply", "fear_greed", "fear_greed_cmc", "funding_cumulative", "funding_next", "funding_rate", "global", "liquidations_cumulative", "liquidations_events", "macro_correlations", "macro_momentum", "macro_net_liquidity", "macro_risk", "macro_series", "oi_change", "options_summary", "price_change", "tokenomics", "trades_futures", "trades_kline_futures_seconds", "trades_spot"] as const;
 export const SNAPSHOT_MULTI_FIELDS = ["buy_sell_ratio", "cvd", "klines", "liquidations_big_small_ratio", "oi", "orderbook", "spread_interexchange", "trades_avg_size", "trades_kline", "trades_kline_futures", "trades_kline_spot"] as const;
 
 /** `/v1/snapshot`. */
@@ -7368,8 +7228,8 @@ export interface TradesAvgSizeFuturesHistoryParams {
   limit?: number;
   /**
    * Required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. One row per closed bucket: for a
-   * STATE (basis, open interest, heatmap) the value of its LAST minute — its close —, for a
-   * FLOW (open-interest change, liquidations, trade sizes) the total over its minutes;
+   * STATE (basis, open interest) the value of its LAST minute — its close —, for a FLOW
+   * (open-interest change, liquidations, trade sizes) the total over its minutes;
    * `sample_count` = minutes with data in the bucket. `1m` gives one row per minute, aligned on
    * the minute. Missing: 422 `missing_parameter`.
    */
@@ -7408,8 +7268,8 @@ export interface TradesAvgSizeFuturesHistoryIterParams {
   until?: TimeLike;
   /**
    * Required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. One row per closed bucket: for a
-   * STATE (basis, open interest, heatmap) the value of its LAST minute — its close —, for a
-   * FLOW (open-interest change, liquidations, trade sizes) the total over its minutes;
+   * STATE (basis, open interest) the value of its LAST minute — its close —, for a FLOW
+   * (open-interest change, liquidations, trade sizes) the total over its minutes;
    * `sample_count` = minutes with data in the bucket. `1m` gives one row per minute, aligned on
    * the minute. Missing: 422 `missing_parameter`.
    */
@@ -7499,8 +7359,8 @@ export interface TradesAvgSizeHistoryParams {
   limit?: number;
   /**
    * Required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. One row per closed bucket: for a
-   * STATE (basis, open interest, heatmap) the value of its LAST minute — its close —, for a
-   * FLOW (open-interest change, liquidations, trade sizes) the total over its minutes;
+   * STATE (basis, open interest) the value of its LAST minute — its close —, for a FLOW
+   * (open-interest change, liquidations, trade sizes) the total over its minutes;
    * `sample_count` = minutes with data in the bucket. `1m` gives one row per minute, aligned on
    * the minute. Missing: 422 `missing_parameter`.
    */
@@ -7539,8 +7399,8 @@ export interface TradesAvgSizeHistoryIterParams {
   until?: TimeLike;
   /**
    * Required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. One row per closed bucket: for a
-   * STATE (basis, open interest, heatmap) the value of its LAST minute — its close —, for a
-   * FLOW (open-interest change, liquidations, trade sizes) the total over its minutes;
+   * STATE (basis, open interest) the value of its LAST minute — its close —, for a FLOW
+   * (open-interest change, liquidations, trade sizes) the total over its minutes;
    * `sample_count` = minutes with data in the bucket. `1m` gives one row per minute, aligned on
    * the minute. Missing: 422 `missing_parameter`.
    */
@@ -7605,8 +7465,8 @@ export interface TradesAvgSizeSpotHistoryParams {
   limit?: number;
   /**
    * Required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. One row per closed bucket: for a
-   * STATE (basis, open interest, heatmap) the value of its LAST minute — its close —, for a
-   * FLOW (open-interest change, liquidations, trade sizes) the total over its minutes;
+   * STATE (basis, open interest) the value of its LAST minute — its close —, for a FLOW
+   * (open-interest change, liquidations, trade sizes) the total over its minutes;
    * `sample_count` = minutes with data in the bucket. `1m` gives one row per minute, aligned on
    * the minute. Missing: 422 `missing_parameter`.
    */
@@ -7645,8 +7505,8 @@ export interface TradesAvgSizeSpotHistoryIterParams {
   until?: TimeLike;
   /**
    * Required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. One row per closed bucket: for a
-   * STATE (basis, open interest, heatmap) the value of its LAST minute — its close —, for a
-   * FLOW (open-interest change, liquidations, trade sizes) the total over its minutes;
+   * STATE (basis, open interest) the value of its LAST minute — its close —, for a FLOW
+   * (open-interest change, liquidations, trade sizes) the total over its minutes;
    * `sample_count` = minutes with data in the bucket. `1m` gives one row per minute, aligned on
    * the minute. Missing: 422 `missing_parameter`.
    */
@@ -8101,7 +7961,6 @@ export interface Resources {
   funding: FundingResource;
   global: GlobalResource;
   health: HealthResource;
-  heatmap: HeatmapResource;
   indicators: IndicatorsResource;
   indices: IndicesResource;
   klines: KlinesResource;
@@ -8226,11 +8085,6 @@ export function createResources(core: Core): Resources {
       history: core.resource(R_GLOBAL_HISTORY)
     }) as GlobalResource,
     health: core.resource(R_HEALTH) as HealthResource,
-    heatmap: {
-      clusters: Object.assign(core.resource(R_HEATMAP_CLUSTERS), {
-        history: core.resource(R_HEATMAP_CLUSTERS_HISTORY)
-      })
-    } as HeatmapResource,
     indicators: core.indicatorsResource(R_INDICATORS) as IndicatorsResource,
     indices: {
       cmc100: Object.assign(core.resource(R_INDICES_CMC100), {
@@ -8415,8 +8269,6 @@ export const ROUTES: Record<string, string> = {
   "/v1/global": "global",
   "/v1/global/history": "global.history",
   "/v1/health": "health",
-  "/v1/heatmap/clusters": "heatmap.clusters",
-  "/v1/heatmap/clusters/history": "heatmap.clusters.history",
   "/v1/indicators": "indicators",
   "/v1/indices/cmc100": "indices.cmc100",
   "/v1/indices/cmc100/history": "indices.cmc100.history",
@@ -8494,4 +8346,4 @@ export const ROUTES: Record<string, string> = {
   "/v1/ws/token": "ws.token",
 };
 /** `info.version` of the contract this SDK was generated from. */
-export const API_VERSION = "1.0.1";
+export const API_VERSION = "1.0.2";

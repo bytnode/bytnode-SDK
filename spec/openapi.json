@@ -2,9 +2,9 @@
   "openapi": "3.1.0",
   "info": {
     "title": "BytNode Crypto Market Data API",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "summary": "Crypto market data aggregated across the major venues, derivatives, order flow, options, macro, ETF and on-chain — for developers and AI agents.",
-    "description": "**BytNode is a crypto market-data API built for developers and AI agents.** One key gives you market data aggregated across the major crypto venues, derivatives positioning, order flow, options, macro, ETF and on-chain fundamentals — 140 REST routes, a consolidated real-time WebSocket and a native MCP server, all behind one consistent contract.\n\n## Why BytNode\n\n- **Aggregated across the major venues, not one exchange.** Spot and perpetual futures markets are consolidated into one number per metric: volumes are summed, rates are open-interest weighted, prices volume weighted — and the method is documented for every metric.\n- **Depth on the assets that matter.** 104 pairs: 102 USDT-margined perpetual markets — the largest crypto assets by market capitalisation that the venues list as perpetuals, from BTC, ETH and SOL to ZEC, AAVE or SUI — plus USDC and USDT spot pairs (the full list: `GET /v1/symbols`). This is a deliberate choice: together these assets are about 98 % of the total crypto market capitalisation (measured on 2026-10-28: 2.63 of 2.69 trillion USD), and each of them gets every family of data from every venue that lists it (`GET /v1/capabilities` says what a pair supports) — quality and depth on the assets people actually trade, instead of thin coverage of thousands of tickers.\n- **Ten data families in one API.** Market (prices and candles, individual trades, large trades), derivatives (funding, basis, open interest, liquidations), order flow (CVD, order book, trade candles, liquidation heatmap), options (OI, IV, max pain, greeks), 19 server-side technical indicators, on-chain (Bitcoin network, Ethereum fundamentals, on-chain valuation), spot ETF fundamentals (SEC EDGAR), macro (FRED + intraday), tokenomics and sentiment (two Fear & Greed indices, Altcoin Season, CMC20 and CMC100). Many providers sell these as separate products; here they share one key, one envelope and one set of conventions.\n- **Honest numbers.** Every bucketed or history row says whether it is final (`is_closed`); every empty answer says why (`unavailable`: `not_applicable`, `no_api_key`, `no_data`); every numeric field has a documented unit.\n- **Made for AI agents.** A native MCP server (11 tools, 64 fields), `llms.txt` and `llms-full.txt`, this OpenAPI contract with units and real examples, one-request snapshots of up to 52 fields, and stable machine-readable error codes.\n- **Priced for builders.** A free plan (10,000 requests/month), then Traders from 6.95 USD/month, Financial from 19.95 USD/month and Startup from 99.95 USD/month (billed yearly), with history depth and families growing with the plan. See https://bytnode.com/pricing. Each operation names its data family in `x-family` (the identifiers `GET /v1/limits` returns for your key); `x-metered: false` marks the routes that are never counted.\n\n## Quick start\n\n1. Create a free key at https://bytnode.com/sign-up.\n2. Send it in the `X-API-KEY` header (or as `Authorization: Bearer <key>`):\n\n```\ncurl -H \"X-API-KEY: $BYTNODE_API_KEY\" \"https://api.bytnode.com/v1/funding/rate?symbol=BTCUSDT\"\n```\n\nMCP connectors (claude.ai, ChatGPT, Claude Code) need no key at all: they sign in with OAuth on https://bytnode.com, where you approve the connection, and send the token they receive as `Authorization: Bearer`. It carries the rights and the quota of your plan.\n\n## Conventions\n\n- **Envelope.** Every success is `{status: \"ok\", server_time, data_type, data}`, plus the effective `symbol`, `timeframe`, `asset`, `series`, `market` or filter (`expiry`, `ticker`, `dataset`, `category`) when the route has them. `status` is `ok` whenever the request succeeded (the state of the feeds is `data.state` on `/v1/status`). The shape of `data` follows the path: an OBJECT (or `null`) for the latest value of a metric — `/v1/klines` is the latest closed candle; a LIST (most recent first, or oldest first with `order=asc`) for every `/history` route and for the event series `/v1/trades/{spot,futures,large}`, `/v1/trades-kline/futures/seconds` and `/v1/liquidations/events`. A list carries `step`, the step between its rows (`1h` when you asked `timeframe=1h`; `1d` for a daily series, `8h` for funding, `1m` for the Bitcoin fee readings): a bucket row is dated at the start of its bucket, a periodic reading at its own instant; `timeframe` is only ever the parameter you sent. Collections are lists too: `/v1/symbols`, `/v1/etf/fundamentals`, `/v1/macro/series`, `/v1/macro/intraday/series`, and the options expiry, max-pain and OI distribution routes. A field that can be `null` is typed so in the schema; any other field is never `null`.\n- **Units.** `*_pct` = percent (58.5 = 58.5 %), `*_ratio` = a dimensionless quotient that names what it divides (`put_call_ratio` 1.2 = 1.2 puts per call, `big_small_ratio`; a share of a whole is a fraction, 0.585 = 58.5 %), `*_bps` = basis points, `*_usd` = USD (every USD amount ends in `_usd`), `*_s` = seconds (every duration), `*_count` = a count, `*_pp` = percentage points. Prices, and price differences such as `basis_value`, are in the quote currency (USDT for BTCUSDT). Volumes and quantities (`volume`, `buy_volume`, `sell_volume`, `net_volume`, `oi`, `holdings`...) are in BASE ASSET units (BTC for BTCUSDT), never dollars: a quantity OF AN ASSET without a unit suffix is in base asset units; any other measure (virtual bytes, difficulty, block height, index points) states its unit in `x-unit`. A name without a market suffix covers EVERY market of the route: on a candle, `volume` is spot + perpetual futures, `volume_spot` and `volume_futures` one market each; the candle's prices (`open`... `close`) are those of one reference spot market. Every response schema carries each field's unit in `x-unit`; `x-units` at the root maps a field NAME to its unit only when that unit is the same on every route. Numbers are rounded to 12 significant digits.\n- **Names.** One concept has one name on every route, in the snapshot, in the MCP and on the WebSocket: `buy_volume` / `sell_volume` / `net_volume`, `trade_count`, `sample_count`, booleans `is_*`, a qualitative reading `label` (`put_call_label` for the put/call reading), instants `*_at`, durations `*_s`, counts `*_count`, a value at the start of a window `previous_*`, a running total `*_cumulative`, a change over time `*_change*`; the perpetual market is `futures` everywhere and the order book is `orderbook` everywhere (REST, snapshot, WebSocket `orderbook.*`). A TRADE is one execution (`/v1/trades/spot`, `/v1/trades/futures`, WebSocket `trades.*`, plan family `trades`); the candles aggregated from trades are `trades_kline` (`/v1/trades-kline`). A path uses the name of its fields (`/v1/oi/change` serves `oi_change`, `/v1/options/put-call-ratio` serves `put_call_ratio`); a ratio route is `<a>-<b>-ratio`; Bitcoin lives under `/v1/btc/*` and Ethereum under `/v1/eth/*`. `data_type` is the route's own name (`/v1/trades/avg-size/history` -> `trades_avg_size_history`), and a snapshot field is named after the route that serves the same data (`liquidations_cumulative`, `trades_kline@1h`).\n- **Market in the path.** A route that serves several markets takes the market as a path suffix: no suffix = every market (spot + perpetual futures), `/spot`, `/futures` (`/v1/cvd`, `/v1/cvd/spot`, `/v1/cvd/futures`; the same for `/v1/buy-sell-ratio`, `/v1/trades/avg-size`, `/v1/orderbook`, `/v1/trades-kline`). The envelope repeats it in `market`. A route on ONE market says it in its path or its description and repeats it in `market` too: `/v1/trades/large` (large trades are perpetual futures trades), `/v1/trades-kline/futures/seconds`.\n- **Time.** Timestamps are ISO 8601 UTC with milliseconds (`2026-09-28T14:00:00.000Z`). `time` is the canonical key: every timestamped object under `data` carries it. It follows ONE of two rules, and the description of `time` on each route says which. (1) A BUCKET (candles, trade candles, CVD, order book per bucket, funding per 8-hour period, every `/history` row, and the latest value of a bucketed route: `/v1/klines`, `/v1/cvd`, `/v1/buy-sell-ratio`, `/v1/trades/avg-size`, `/v1/liquidations/big-small-ratio`, `/v1/orderbook`, `/v1/spread/interexchange`, `/v1/trades-kline`: each one requires `timeframe` and returns the first row of its `/history`) is dated at its START and carries `is_closed`. (2) A POINT-IN-TIME value is dated at the instant it refers to: the END of a rolling window — and only a rolling window carries `window_start_at` and `window_s` (`/v1/liquidations/cumulative`, `/v1/oi/change`, `/v1/funding/cumulative`, `/v1/options/oi/change`) — the instant of the computation (`/v1/basis`), the instant the SOURCE states (options, BTC, ETH, tokenomics; `/v1/global`, which may end in `.999`), the settlement a forecast is for (`/v1/funding/next`), the EVENT (trades, large trades, liquidations), and the most recent input of a composite (`/v1/macro/correlations`, `/momentum`, `/risk`, which also give `oldest_input_date`). A daily value is dated at midnight UTC. The envelope's `server_time` is the time of the response. Time bounds (`since_ms`, `until_ms`) are epoch MILLISECONDS, inclusive; `since_ms=0` means \"from the start of the data\".\n- **Closed buckets.** Bucketed routes serve the last CLOSED bucket. `?live=1` adds the open one with `is_closed: false` on the routes that declare it: `/v1/klines`, `/v1/cvd`, `/v1/trades-kline` (and their `/spot` and `/futures` variants), `/v1/funding/rate` and `/v1/spread/interexchange`; elsewhere it is an unknown parameter (422). A bucket appears once its inputs are settled, a few seconds after its end (about 2 s for a 1m order book, 5 s for a 1m candle; 20 s at most when a venue is late). Every bucket row carries `is_closed`; a rolling-window value is always final and carries none.\n- **Pagination.** Every paged route speaks one dialect: `next` is the relative URL of the following page, ready to call (`/v1/klines/history?symbol=BTCUSDT&timeframe=1h&limit=100&before_ms=…`), or `null` once the range is read. Going back, the bound is `before_ms` (EXCLUSIVE); going forward, `order=asc` reads from `since_ms` (then required). The trades routes add `after_id`, to resume inside one millisecond. Loop `while next: GET base + next`; it never repeats a row. A read that would exceed its time budget returns the rows it has with a `next` instead of failing, so a page can be shorter than `limit` (even empty) and still have a `next`: only `next: null` means the end. A 504 `upstream_timeout` remains possible on one very heavy page: reduce `limit`.\n- **Freshness.** A response is usually up to one second old (`Cache-Control: private, max-age=1`); a cached copy can occasionally reach two seconds.\n- **Strict parameters.** An undeclared or repeated parameter is a 422 with a suggestion (`limt` -> did you mean `limit`?), and so is an unknown value of a closed set (`symbol`, `asset`, `series`, `timeframe`, `category`, `ticker`, `expiry`…), with the accepted values in `error.details.accepted`. `symbol`, `asset`, `series`, `timeframe` and `order` are case-insensitive (`1M` excepted: elsewhere a month, here refused). `?fields=a,b.c` projects `data` (not on `POST /v1/indicators`, which takes no query parameter).\n- **Aggregation only.** No route discloses which venue a number came from, except the inter-venue spread, whose purpose is to compare venues.\n- **Browsers and probes.** The REST API answers CORS (`Access-Control-Allow-Origin: *`, the `X-API-KEY` and `Authorization` headers allowed, preflight `OPTIONS` without a key) and `HEAD` on every `GET` route. A key used in a web page is readable by its visitors: use a dedicated key there.\n\n## Errors\n\nEvery error has one shape, on the REST API and on the WebSocket (`{\"op\": \"error\", \"server_time\", \"error\": {...}}`):\n\n```\n{\"status\": \"error\", \"server_time\": \"2026-10-13T08:00:00.000Z\",\n \"error\": {\"code\": \"invalid_symbol\", \"param\": \"symbol\",\n           \"message\": \"Unknown symbol 'BTCUSD'. Did you mean 'BTCUSDT'? Accepted values: ...\",\n           \"details\": {\"suggestion\": \"BTCUSDT\", \"accepted\": [\"ADAUSDT\", \"...\"]}}}\n```\n\nBranch on `error.code` (stable, listed in the `ApiError` schema), show `error.message` (English), read `error.details` (an object, present when the error carries structured data) for what to change. A missing key is `missing_api_key`, a wrong one `invalid_api_key` (401). Key and plan refusals carry the same code in an `X-Deny-Reason` header (the edge anti-flood 429 `edge_rate_limited` carries none); 429 and 503 carry `Retry-After` (the real delay: until the next request of your rate, or the 1st of the month for the quota), always equal to `error.details.retry_after_s`.\n\n## Limits\n\nEach plan has a per-minute rate, a monthly quota and a history window per timeframe; `GET /v1/limits` returns those of your key. Responses made with a metered key carry the IETF `RateLimit-Policy` and `RateLimit` headers (policies `rate` and `quota`). Going further back than your plan allows is a 403 `history_depth`, never a silently truncated answer. Details: https://bytnode.com/docs/rate-limits.\n\n## Versioning\n\nThe URL prefix `/v1` is the API generation. `info.version` is the revision of THIS contract, in semantic versioning: a PATCH corrects (a text, a value, a nullable field), a MINOR adds (a route, a field, a parameter, an accepted value), a MAJOR removes, renames or changes a meaning. Every response carries it in the `BytNode-Contract-Version` header, and each published version stays readable at `https://api.bytnode.com/openapi/<version>.json` (the list: `https://api.bytnode.com/openapi/index.json`). 2.0.0 (2026-10-16) is the reference version of this contract. The guide: https://bytnode.com/docs/versioning.\n\n## Machine-readable files\n\nThis contract (`/openapi.json`, OpenAPI 3.1), the same in OpenAPI 3.0 (`/openapi-3.0.json`), a light copy without examples for AI agents (`/openapi-lite.json`), the WebSocket in AsyncAPI 3.0 (`/asyncapi.json`), and every published version (`/openapi/<version>.json`, listed in `/openapi/index.json`), all on https://api.bytnode.com, without a key. `GET /` (no key) returns the index of these links in the standard envelope (`data_type: index`, `data.contract_version`); it is a pointer to this contract, not a data route, so it is not listed under `paths`.\n\n## Links\n\nDocs https://bytnode.com/docs · Pricing https://bytnode.com/pricing · Full reference for LLMs https://bytnode.com/llms-full.txt · WebSocket `wss://ws.bytnode.com/ws` · MCP `https://api.bytnode.com/mcp` · Contact contact@bytnode.com\n",
+    "description": "**BytNode is a crypto market-data API built for developers and AI agents.** One key gives you market data aggregated across the major crypto venues, derivatives positioning, order flow, options, macro, ETF and on-chain fundamentals — 138 REST routes, a consolidated real-time WebSocket and a native MCP server, all behind one consistent contract.\n\n## Why BytNode\n\n- **Aggregated across the major venues, not one exchange.** Spot and perpetual futures markets are consolidated into one number per metric: volumes are summed, rates are open-interest weighted, prices volume weighted — and the method is documented for every metric.\n- **Depth on the assets that matter.** 104 pairs: 102 USDT-margined perpetual markets — the largest crypto assets by market capitalisation that the venues list as perpetuals, from BTC, ETH and SOL to ZEC, AAVE or SUI — plus USDC and USDT spot pairs (the full list: `GET /v1/symbols`). This is a deliberate choice: together these assets are about 98 % of the total crypto market capitalisation (measured on 2026-10-28: 2.63 of 2.69 trillion USD), and each of them gets every family of data from every venue that lists it (`GET /v1/capabilities` says what a pair supports) — quality and depth on the assets people actually trade, instead of thin coverage of thousands of tickers.\n- **Ten data families in one API.** Market (prices and candles, individual trades, large trades), derivatives (funding, basis, open interest, liquidations), order flow (CVD, order book, trade candles), options (OI, IV, max pain, greeks), 19 server-side technical indicators, on-chain (Bitcoin network, Ethereum fundamentals, on-chain valuation), spot ETF fundamentals (SEC EDGAR), macro (FRED + intraday), tokenomics and sentiment (two Fear & Greed indices, Altcoin Season, CMC20 and CMC100). Many providers sell these as separate products; here they share one key, one envelope and one set of conventions.\n- **Honest numbers.** Every bucketed or history row says whether it is final (`is_closed`); every empty answer says why (`unavailable`: `not_applicable`, `no_api_key`, `no_data`); every numeric field has a documented unit.\n- **Made for AI agents.** A native MCP server (11 tools, 64 fields), `llms.txt` and `llms-full.txt`, this OpenAPI contract with units and real examples, one-request snapshots of up to 51 fields, and stable machine-readable error codes.\n- **Priced for builders.** A free plan (10,000 requests/month), then Traders from 6.95 USD/month, Financial from 19.95 USD/month and Startup from 99.95 USD/month (billed yearly), with history depth and families growing with the plan. See https://bytnode.com/pricing. Each operation names its data family in `x-family` (the identifiers `GET /v1/limits` returns for your key); `x-metered: false` marks the routes that are never counted.\n\n## Quick start\n\n1. Create a free key at https://bytnode.com/sign-up.\n2. Send it in the `X-API-KEY` header (or as `Authorization: Bearer <key>`):\n\n```\ncurl -H \"X-API-KEY: $BYTNODE_API_KEY\" \"https://api.bytnode.com/v1/funding/rate?symbol=BTCUSDT\"\n```\n\nMCP connectors (claude.ai, ChatGPT, Claude Code) need no key at all: they sign in with OAuth on https://bytnode.com, where you approve the connection, and send the token they receive as `Authorization: Bearer`. It carries the rights and the quota of your plan.\n\n## Conventions\n\n- **Envelope.** Every success is `{status: \"ok\", server_time, data_type, data}`, plus the effective `symbol`, `timeframe`, `asset`, `series`, `market` or filter (`expiry`, `ticker`, `dataset`, `category`) when the route has them. `status` is `ok` whenever the request succeeded (the state of the feeds is `data.state` on `/v1/status`). The shape of `data` follows the path: an OBJECT (or `null`) for the latest value of a metric — `/v1/klines` is the latest closed candle; a LIST (most recent first, or oldest first with `order=asc`) for every `/history` route and for the event series `/v1/trades/{spot,futures,large}`, `/v1/trades-kline/futures/seconds` and `/v1/liquidations/events`. A list carries `step`, the step between its rows (`1h` when you asked `timeframe=1h`; `1d` for a daily series, `8h` for funding, `1m` for the Bitcoin fee readings): a bucket row is dated at the start of its bucket, a periodic reading at its own instant; `timeframe` is only ever the parameter you sent. Collections are lists too: `/v1/symbols`, `/v1/etf/fundamentals`, `/v1/macro/series`, `/v1/macro/intraday/series`, and the options expiry, max-pain and OI distribution routes. A field that can be `null` is typed so in the schema; any other field is never `null`.\n- **Units.** `*_pct` = percent (58.5 = 58.5 %), `*_ratio` = a dimensionless quotient that names what it divides (`put_call_ratio` 1.2 = 1.2 puts per call, `big_small_ratio`; a share of a whole is a fraction, 0.585 = 58.5 %), `*_bps` = basis points, `*_usd` = USD (every USD amount ends in `_usd`), `*_s` = seconds (every duration), `*_count` = a count, `*_pp` = percentage points. Prices, and price differences such as `basis_value`, are in the quote currency (USDT for BTCUSDT). Volumes and quantities (`volume`, `buy_volume`, `sell_volume`, `net_volume`, `oi`, `holdings`...) are in BASE ASSET units (BTC for BTCUSDT), never dollars: a quantity OF AN ASSET without a unit suffix is in base asset units; any other measure (virtual bytes, difficulty, block height, index points) states its unit in `x-unit`. A name without a market suffix covers EVERY market of the route: on a candle, `volume` is spot + perpetual futures, `volume_spot` and `volume_futures` one market each; the candle's prices (`open`... `close`) are those of one reference spot market. Every response schema carries each field's unit in `x-unit`; `x-units` at the root maps a field NAME to its unit only when that unit is the same on every route. Numbers are rounded to 12 significant digits.\n- **Names.** One concept has one name on every route, in the snapshot, in the MCP and on the WebSocket: `buy_volume` / `sell_volume` / `net_volume`, `trade_count`, `sample_count`, booleans `is_*`, a qualitative reading `label` (`put_call_label` for the put/call reading), instants `*_at`, durations `*_s`, counts `*_count`, a value at the start of a window `previous_*`, a running total `*_cumulative`, a change over time `*_change*`; the perpetual market is `futures` everywhere and the order book is `orderbook` everywhere (REST, snapshot, WebSocket `orderbook.*`). A TRADE is one execution (`/v1/trades/spot`, `/v1/trades/futures`, WebSocket `trades.*`, plan family `trades`); the candles aggregated from trades are `trades_kline` (`/v1/trades-kline`). A path uses the name of its fields (`/v1/oi/change` serves `oi_change`, `/v1/options/put-call-ratio` serves `put_call_ratio`); a ratio route is `<a>-<b>-ratio`; Bitcoin lives under `/v1/btc/*` and Ethereum under `/v1/eth/*`. `data_type` is the route's own name (`/v1/trades/avg-size/history` -> `trades_avg_size_history`), and a snapshot field is named after the route that serves the same data (`liquidations_cumulative`, `trades_kline@1h`).\n- **Market in the path.** A route that serves several markets takes the market as a path suffix: no suffix = every market (spot + perpetual futures), `/spot`, `/futures` (`/v1/cvd`, `/v1/cvd/spot`, `/v1/cvd/futures`; the same for `/v1/buy-sell-ratio`, `/v1/trades/avg-size`, `/v1/orderbook`, `/v1/trades-kline`). The envelope repeats it in `market`. A route on ONE market says it in its path or its description and repeats it in `market` too: `/v1/trades/large` (large trades are perpetual futures trades), `/v1/trades-kline/futures/seconds`.\n- **Time.** Timestamps are ISO 8601 UTC with milliseconds (`2026-09-28T14:00:00.000Z`). `time` is the canonical key: every timestamped object under `data` carries it. It follows ONE of two rules, and the description of `time` on each route says which. (1) A BUCKET (candles, trade candles, CVD, order book per bucket, funding per 8-hour period, every `/history` row, and the latest value of a bucketed route: `/v1/klines`, `/v1/cvd`, `/v1/buy-sell-ratio`, `/v1/trades/avg-size`, `/v1/liquidations/big-small-ratio`, `/v1/orderbook`, `/v1/spread/interexchange`, `/v1/trades-kline`: each one requires `timeframe` and returns the first row of its `/history`) is dated at its START and carries `is_closed`. (2) A POINT-IN-TIME value is dated at the instant it refers to: the END of a rolling window — and only a rolling window carries `window_start_at` and `window_s` (`/v1/liquidations/cumulative`, `/v1/oi/change`, `/v1/funding/cumulative`, `/v1/options/oi/change`) — the instant of the computation (`/v1/basis`), the instant the SOURCE states (options, BTC, ETH, tokenomics; `/v1/global`, which may end in `.999`), the settlement a forecast is for (`/v1/funding/next`), the EVENT (trades, large trades, liquidations), and the most recent input of a composite (`/v1/macro/correlations`, `/momentum`, `/risk`, which also give `oldest_input_date`). A daily value is dated at midnight UTC. The envelope's `server_time` is the time of the response. Time bounds (`since_ms`, `until_ms`) are epoch MILLISECONDS, inclusive; `since_ms=0` means \"from the start of the data\".\n- **Closed buckets.** Bucketed routes serve the last CLOSED bucket. `?live=1` adds the open one with `is_closed: false` on the routes that declare it: `/v1/klines`, `/v1/cvd`, `/v1/trades-kline` (and their `/spot` and `/futures` variants), `/v1/funding/rate` and `/v1/spread/interexchange`; elsewhere it is an unknown parameter (422). A bucket appears once its inputs are settled, a few seconds after its end (about 2 s for a 1m order book, 5 s for a 1m candle; 20 s at most when a venue is late). Every bucket row carries `is_closed`; a rolling-window value is always final and carries none.\n- **Pagination.** Every paged route speaks one dialect: `next` is the relative URL of the following page, ready to call (`/v1/klines/history?symbol=BTCUSDT&timeframe=1h&limit=100&before_ms=…`), or `null` once the range is read. Going back, the bound is `before_ms` (EXCLUSIVE); going forward, `order=asc` reads from `since_ms` (then required). The trades routes add `after_id`, to resume inside one millisecond. Loop `while next: GET base + next`; it never repeats a row. A read that would exceed its time budget returns the rows it has with a `next` instead of failing, so a page can be shorter than `limit` (even empty) and still have a `next`: only `next: null` means the end. A 504 `upstream_timeout` remains possible on one very heavy page: reduce `limit`.\n- **Freshness.** A response is usually up to one second old (`Cache-Control: private, max-age=1`); a cached copy can occasionally reach two seconds.\n- **Strict parameters.** An undeclared or repeated parameter is a 422 with a suggestion (`limt` -> did you mean `limit`?), and so is an unknown value of a closed set (`symbol`, `asset`, `series`, `timeframe`, `category`, `ticker`, `expiry`…), with the accepted values in `error.details.accepted`. `symbol`, `asset`, `series`, `timeframe` and `order` are case-insensitive (`1M` excepted: elsewhere a month, here refused). `?fields=a,b.c` projects `data` (not on `POST /v1/indicators`, which takes no query parameter).\n- **Aggregation only.** No route discloses which venue a number came from, except the inter-venue spread, whose purpose is to compare venues.\n- **Browsers and probes.** The REST API answers CORS (`Access-Control-Allow-Origin: *`, the `X-API-KEY` and `Authorization` headers allowed, preflight `OPTIONS` without a key) and `HEAD` on every `GET` route. A key used in a web page is readable by its visitors: use a dedicated key there.\n\n## Errors\n\nEvery error has one shape, on the REST API and on the WebSocket (`{\"op\": \"error\", \"server_time\", \"error\": {...}}`):\n\n```\n{\"status\": \"error\", \"server_time\": \"2026-10-13T08:00:00.000Z\",\n \"error\": {\"code\": \"invalid_symbol\", \"param\": \"symbol\",\n           \"message\": \"Unknown symbol 'BTCUSD'. Did you mean 'BTCUSDT'? Accepted values: ...\",\n           \"details\": {\"suggestion\": \"BTCUSDT\", \"accepted\": [\"ADAUSDT\", \"...\"]}}}\n```\n\nBranch on `error.code` (stable, listed in the `ApiError` schema), show `error.message` (English), read `error.details` (an object, present when the error carries structured data) for what to change. A missing key is `missing_api_key`, a wrong one `invalid_api_key` (401). Key and plan refusals carry the same code in an `X-Deny-Reason` header (the edge anti-flood 429 `edge_rate_limited` carries none); 429 and 503 carry `Retry-After` (the real delay: until the next request of your rate, or the 1st of the month for the quota), always equal to `error.details.retry_after_s`.\n\n## Limits\n\nEach plan has a per-minute rate, a monthly quota and a history window per timeframe; `GET /v1/limits` returns those of your key. Responses made with a metered key carry the IETF `RateLimit-Policy` and `RateLimit` headers (policies `rate` and `quota`). Going further back than your plan allows is a 403 `history_depth`, never a silently truncated answer. Details: https://bytnode.com/docs/rate-limits.\n\n## Versioning\n\nThe URL prefix `/v1` is the API generation. `info.version` is the revision of THIS contract, in semantic versioning: a PATCH corrects (a text, a value, a nullable field), a MINOR adds (a route, a field, a parameter, an accepted value), a MAJOR removes, renames or changes a meaning. Every response carries it in the `BytNode-Contract-Version` header, and each published version stays readable at `https://api.bytnode.com/openapi/<version>.json` (the list: `https://api.bytnode.com/openapi/index.json`). 2.0.0 (2026-10-16) is the reference version of this contract. The guide: https://bytnode.com/docs/versioning.\n\n## Machine-readable files\n\nThis contract (`/openapi.json`, OpenAPI 3.1), the same in OpenAPI 3.0 (`/openapi-3.0.json`), a light copy without examples for AI agents (`/openapi-lite.json`), the WebSocket in AsyncAPI 3.0 (`/asyncapi.json`), and every published version (`/openapi/<version>.json`, listed in `/openapi/index.json`), all on https://api.bytnode.com, without a key. `GET /` (no key) returns the index of these links in the standard envelope (`data_type: index`, `data.contract_version`); it is a pointer to this contract, not a data route, so it is not listed under `paths`.\n\n## Links\n\nDocs https://bytnode.com/docs · Pricing https://bytnode.com/pricing · Full reference for LLMs https://bytnode.com/llms-full.txt · WebSocket `wss://ws.bytnode.com/ws` · MCP `https://api.bytnode.com/mcp` · Contact contact@bytnode.com\n",
     "license": {
       "name": "Proprietary: BytNode terms of service",
       "url": "https://bytnode.com/terms"
@@ -32,7 +32,7 @@
     },
     {
       "name": "Snapshot",
-      "description": "One request, up to 52 fields for one symbol: the fastest way to fill a dashboard or give an AI agent full market context. Each field is `name=depth` (`funding_rate=1`, or `true` for depth 1); multi-timeframe fields are `name@tf=depth` (`klines@1h=24`, `cvd@1h=24`). Call it with only `symbol` to list the fields your plan includes."
+      "description": "One request, up to 51 fields for one symbol: the fastest way to fill a dashboard or give an AI agent full market context. Each field is `name=depth` (`funding_rate=1`, or `true` for depth 1); multi-timeframe fields are `name@tf=depth` (`klines@1h=24`, `cvd@1h=24`). Call it with only `symbol` to list the fields your plan includes."
     },
     {
       "name": "Market: prices & volumes",
@@ -48,7 +48,7 @@
     },
     {
       "name": "Liquidations",
-      "description": "Forced liquidations across venues: individual events, cumulative long/short USD, big vs small liquidations, and the liquidation heatmap clusters the price is drawn to."
+      "description": "Forced liquidations across venues: individual events, cumulative long/short USD, big vs small liquidations."
     },
     {
       "name": "Tokenomics & sentiment",
@@ -3032,10 +3032,6 @@
               "trades_kline_futures": {
                 "type": "string",
                 "description": "Why `trades_kline_futures` does not apply to this symbol."
-              },
-              "heatmap_clusters": {
-                "type": "string",
-                "description": "Why `heatmap_clusters` does not apply to this symbol."
               }
             },
             "description": "Derived metrics that do not apply (stablecoins have no futures).",
@@ -6578,271 +6574,6 @@
             "anyOf": [
               {
                 "$ref": "#/components/schemas/Health"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "description": "The payload: the latest value, or `null` (then `unavailable` says why)."
-          },
-          "unavailable": {
-            "$ref": "#/components/schemas/Unavailable",
-            "description": "Present only when `data` is empty: why."
-          }
-        }
-      },
-      "HeatmapClusters": {
-        "type": "object",
-        "properties": {
-          "time": {
-            "type": "string",
-            "format": "date-time",
-            "description": "Point-in-time value: the instant of the measurement (when the source was read).",
-            "x-unit": "ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z)"
-          },
-          "density_up": {
-            "type": "number",
-            "description": "Estimated liquidation density of the most attractive cluster ABOVE the price (short positions).",
-            "x-unit": "dimensionless score"
-          },
-          "dist_up_ratio": {
-            "type": "number",
-            "description": "Distance from the price to the cluster above, as a fraction of the price (0.037 = 3.7 % higher).",
-            "x-unit": "fraction (0.585 = 58.5 %)"
-          },
-          "density_down": {
-            "type": "number",
-            "description": "Estimated liquidation density of the most attractive cluster BELOW the price (long positions).",
-            "x-unit": "dimensionless score"
-          },
-          "dist_down_ratio": {
-            "type": "number",
-            "description": "Distance from the price to the cluster below, as a fraction of the price.",
-            "x-unit": "fraction (0.585 = 58.5 %)"
-          },
-          "attraction_up": {
-            "type": "number",
-            "description": "density_up / dist_up_ratio²: how strongly the cluster above pulls the price.",
-            "x-unit": "dimensionless score"
-          },
-          "attraction_down": {
-            "type": "number",
-            "description": "density_down / dist_down_ratio²: how strongly the cluster below pulls the price. Compare with attraction_up.",
-            "x-unit": "dimensionless score"
-          }
-        },
-        "required": [
-          "time",
-          "density_up",
-          "dist_up_ratio",
-          "density_down",
-          "dist_down_ratio",
-          "attraction_up",
-          "attraction_down"
-        ]
-      },
-      "HeatmapClustersHistoryItem": {
-        "type": "object",
-        "properties": {
-          "time": {
-            "type": "string",
-            "format": "date-time",
-            "description": "Start of the bucket of `timeframe`; the value is the LAST one of the bucket's minutes.",
-            "x-unit": "ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z)"
-          },
-          "density_up": {
-            "type": "number",
-            "description": "Estimated liquidation density of the most attractive cluster ABOVE the price (short positions).",
-            "x-unit": "dimensionless score"
-          },
-          "dist_up_ratio": {
-            "type": "number",
-            "description": "Distance from the price to the cluster above, as a fraction of the price (0.037 = 3.7 % higher).",
-            "x-unit": "fraction (0.585 = 58.5 %)"
-          },
-          "density_down": {
-            "type": "number",
-            "description": "Estimated liquidation density of the most attractive cluster BELOW the price (long positions).",
-            "x-unit": "dimensionless score"
-          },
-          "dist_down_ratio": {
-            "type": "number",
-            "description": "Distance from the price to the cluster below, as a fraction of the price.",
-            "x-unit": "fraction (0.585 = 58.5 %)"
-          },
-          "attraction_up": {
-            "type": "number",
-            "description": "density_up / dist_up_ratio²: how strongly the cluster above pulls the price.",
-            "x-unit": "dimensionless score"
-          },
-          "attraction_down": {
-            "type": "number",
-            "description": "density_down / dist_down_ratio²: how strongly the cluster below pulls the price. Compare with attraction_up.",
-            "x-unit": "dimensionless score"
-          },
-          "sample_count": {
-            "type": [
-              "integer",
-              "null"
-            ],
-            "description": "Number of source points in the bucket (one-minute points with data). For a state (basis, open interest) the value is the LAST of them — the bucket's close —; for a flow it is their total.",
-            "x-unit": "count"
-          },
-          "is_closed": {
-            "type": "boolean",
-            "description": "`true` = the row is final; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it. Exception, rare: when a venue delivers trades LATE (seconds to minutes, e.g. during a burst), a closed row built from trades (trade candles, candle volumes, CVD, buy/sell ratio, trades per second) is corrected afterwards to include them, usually within minutes and at most one hour later; the correction only adds the late trades."
-          }
-        },
-        "required": [
-          "time",
-          "density_up",
-          "dist_up_ratio",
-          "density_down",
-          "dist_down_ratio",
-          "attraction_up",
-          "attraction_down",
-          "sample_count",
-          "is_closed"
-        ]
-      },
-      "HeatmapClustersHistoryResponse": {
-        "type": "object",
-        "required": [
-          "status",
-          "server_time",
-          "data_type",
-          "data"
-        ],
-        "properties": {
-          "status": {
-            "$ref": "#/components/schemas/ResponseStatus"
-          },
-          "server_time": {
-            "type": "string",
-            "format": "date-time",
-            "description": "Server time of the response, ISO 8601 UTC with milliseconds, in the format of every date of `data`. It is not the time of the data: rows carry their own `time`.",
-            "x-unit": "ISO 8601 UTC"
-          },
-          "data_type": {
-            "type": "string",
-            "const": "heatmap_clusters_history",
-            "description": "Name of the payload type: the route's own name (stable)."
-          },
-          "symbol": {
-            "type": "string",
-            "description": "Effective `symbol` of the request."
-          },
-          "timeframe": {
-            "type": "string",
-            "description": "Effective `timeframe` of the request."
-          },
-          "market": {
-            "type": "string",
-            "const": "futures",
-            "description": "Market the data comes from: always `futures` on this route."
-          },
-          "step": {
-            "$ref": "#/components/schemas/Step",
-            "description": "Step between two rows of `data`: the `timeframe` you asked for on a route that takes one, otherwise the cadence of the series. A BUCKET row is dated at the start of its bucket (aligned: `14:00:00.000Z` in `1h`); a row of a periodic READING (Bitcoin fees, mempool and network, mining pools) is dated at the instant of the reading, `step` apart (`08:19:08.316Z`, then `08:18:08.297Z` in `1m`). Absent when the rows have no fixed step (one row per publication or per block, a monthly series)."
-          },
-          "data": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/HeatmapClustersHistoryItem"
-            },
-            "description": "The payload. Most recent first when it is a list."
-          },
-          "next": {
-            "type": [
-              "string",
-              "null"
-            ],
-            "description": "The relative URL of the following page, ready to call (`GET https://api.bytnode.com` + `next`): your parameters, with the page bound set. It never repeats a row. `null` once the range is read. Follow it until it is `null`: a page can hold fewer rows than `limit` (even none) and still have a `next` — an ascending read that reaches a dense period returns, within its time budget, what it has read so far.",
-            "example": "/v1/klines?symbol=BTCUSDT&limit=3&timeframe=1h&before_ms=1791734400000&order=desc"
-          },
-          "history_limit": {
-            "type": "object",
-            "description": "Present only when this page reaches the START of the history (its oldest row is the first one there is), or when the range you asked for lies entirely before it. `reason` says why there is nothing older: `data_start` = this data has no older history, whatever the symbol; `symbol_start` = the data goes back further for other symbols, but this symbol starts later (its listing). Absent while older rows exist, and when your plan's history window, not the data, stops the reading (see `/v1/limits`).",
-            "properties": {
-              "reached": {
-                "type": "boolean",
-                "const": true,
-                "description": "Always `true` when present."
-              },
-              "reason": {
-                "type": "string",
-                "enum": [
-                  "data_start",
-                  "symbol_start"
-                ],
-                "description": "`data_start`: no older history for this data. `symbol_start`: this symbol's history starts here, other symbols go back further."
-              },
-              "first_time": {
-                "type": "string",
-                "format": "date-time",
-                "description": "First instant of the history for this symbol, at this `timeframe`."
-              },
-              "message": {
-                "type": "string",
-                "description": "The same, in one English sentence."
-              }
-            },
-            "required": [
-              "reached",
-              "reason",
-              "first_time",
-              "message"
-            ],
-            "example": {
-              "reached": true,
-              "reason": "symbol_start",
-              "first_time": "2024-10-29T00:00:00.000Z",
-              "message": "Start of this symbol's history reached: no data before 2024-10-29."
-            },
-            "title": "HeatmapClustersHistoryResponseHistoryLimit"
-          },
-          "unavailable": {
-            "$ref": "#/components/schemas/Unavailable",
-            "description": "Present only when `data` is empty: why."
-          }
-        }
-      },
-      "HeatmapClustersResponse": {
-        "type": "object",
-        "required": [
-          "status",
-          "server_time",
-          "data_type",
-          "data"
-        ],
-        "properties": {
-          "status": {
-            "$ref": "#/components/schemas/ResponseStatus"
-          },
-          "server_time": {
-            "type": "string",
-            "format": "date-time",
-            "description": "Server time of the response, ISO 8601 UTC with milliseconds, in the format of every date of `data`. It is not the time of the data: rows carry their own `time`.",
-            "x-unit": "ISO 8601 UTC"
-          },
-          "data_type": {
-            "type": "string",
-            "const": "heatmap_clusters",
-            "description": "Name of the payload type: the route's own name (stable)."
-          },
-          "symbol": {
-            "type": "string",
-            "description": "Effective `symbol` of the request."
-          },
-          "market": {
-            "type": "string",
-            "const": "futures",
-            "description": "Market the data comes from: always `futures` on this route."
-          },
-          "data": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/HeatmapClusters"
               },
               {
                 "type": "null"
@@ -14425,20 +14156,6 @@
             ],
             "description": "Total crypto market cap and dominance. Same content as `/v1/global`. Value: `true` (or 1): the latest value only."
           },
-          "heatmap_clusters": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/HeatmapClusters"
-              },
-              {
-                "$ref": "#/components/schemas/SnapshotFieldError"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "description": "Liquidation heatmap clusters. Same content as `/v1/heatmap/clusters`. Value: `true` (or 1): the latest value only."
-          },
           "liquidations_cumulative": {
             "anyOf": [
               {
@@ -16183,7 +15900,6 @@
                     "funding_next",
                     "funding_rate",
                     "global_market",
-                    "heatmap_clusters",
                     "klines_1m",
                     "klines_futures_1m",
                     "klines_futures_multi",
@@ -18410,7 +18126,7 @@
             "schema": {
               "type": "string"
             },
-            "example": "1.0.1"
+            "example": "1.0.2"
           }
         }
       },
@@ -18470,7 +18186,7 @@
             "schema": {
               "type": "string"
             },
-            "example": "1.0.1"
+            "example": "1.0.2"
           }
         }
       },
@@ -18510,7 +18226,7 @@
             "schema": {
               "type": "string"
             },
-            "example": "1.0.1"
+            "example": "1.0.2"
           }
         }
       },
@@ -18553,7 +18269,7 @@
             "schema": {
               "type": "string"
             },
-            "example": "1.0.1"
+            "example": "1.0.2"
           }
         }
       },
@@ -18728,7 +18444,7 @@
             "schema": {
               "type": "string"
             },
-            "example": "1.0.1"
+            "example": "1.0.2"
           }
         }
       },
@@ -18807,7 +18523,7 @@
             "schema": {
               "type": "string"
             },
-            "example": "1.0.1"
+            "example": "1.0.2"
           }
         }
       },
@@ -18853,7 +18569,7 @@
             "schema": {
               "type": "string"
             },
-            "example": "1.0.1"
+            "example": "1.0.2"
           }
         }
       },
@@ -18890,7 +18606,7 @@
             "schema": {
               "type": "string"
             },
-            "example": "1.0.1"
+            "example": "1.0.2"
           }
         }
       },
@@ -18927,7 +18643,7 @@
             "schema": {
               "type": "string"
             },
-            "example": "1.0.1"
+            "example": "1.0.2"
           }
         }
       }
@@ -19091,7 +18807,7 @@
         "schema": {
           "type": "string"
         },
-        "example": "1.0.1"
+        "example": "1.0.2"
       },
       "Cache-Control": {
         "description": "`private, max-age=1` at most: a response is usually up to one second old; a cached copy can occasionally reach two seconds.",
@@ -19726,7 +19442,7 @@
             "schema": {
               "$ref": "#/components/schemas/Timeframe"
             },
-            "description": "Required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. One row per closed bucket: for a STATE (basis, open interest, heatmap) the value of its LAST minute — its close —, for a FLOW (open-interest change, liquidations, trade sizes) the total over its minutes; `sample_count` = minutes with data in the bucket. `1m` gives one row per minute, aligned on the minute. Missing: 422 `missing_parameter`.",
+            "description": "Required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. One row per closed bucket: for a STATE (basis, open interest) the value of its LAST minute — its close —, for a FLOW (open-interest change, liquidations, trade sizes) the total over its minutes; `sample_count` = minutes with data in the bucket. `1m` gives one row per minute, aligned on the minute. Missing: 422 `missing_parameter`.",
             "example": "1h"
           },
           {
@@ -31914,456 +31630,6 @@
         ]
       }
     },
-    "/v1/heatmap/clusters": {
-      "get": {
-        "summary": "Liquidation heatmap clusters",
-        "operationId": "getHeatmapClusters",
-        "security": [
-          {
-            "APIKeyHeader": []
-          },
-          {
-            "BearerAuth": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "symbol",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "anyOf": [
-                {
-                  "$ref": "#/components/schemas/Symbol"
-                },
-                {
-                  "type": "string"
-                }
-              ]
-            },
-            "description": "Trading pair, e.g. `BTCUSDT`. Required. The served pairs: `GET /v1/symbols`. Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the accepted list.",
-            "example": "BTCUSDT"
-          },
-          {
-            "name": "fields",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Comma-separated projection of `data` (dot notation for nested keys): `fields=time,density_up`. Unknown field: 422 `unknown_field` with a suggestion.",
-            "example": "time,density_up"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Success. The example is a real response captured in production.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HeatmapClustersResponse"
-                },
-                "example": {
-                  "status": "ok",
-                  "server_time": "2026-11-08T12:51:48.713Z",
-                  "data_type": "heatmap_clusters",
-                  "symbol": "BTCUSDT",
-                  "market": "futures",
-                  "data": {
-                    "time": "2026-11-08T12:51:14.014Z",
-                    "density_up": 1.4062633298,
-                    "dist_up_ratio": 0.0085468283995,
-                    "density_down": 4.72686821364,
-                    "dist_down_ratio": 0.0114765673576,
-                    "attraction_up": 19251.150236,
-                    "attraction_down": 35888.0180191
-                  }
-                }
-              }
-            },
-            "headers": {
-              "RateLimit-Policy": {
-                "$ref": "#/components/headers/RateLimit-Policy"
-              },
-              "RateLimit": {
-                "$ref": "#/components/headers/RateLimit"
-              },
-              "X-Request-Id": {
-                "$ref": "#/components/headers/X-Request-Id"
-              },
-              "BytNode-Contract-Version": {
-                "$ref": "#/components/headers/BytNode-Contract-Version"
-              },
-              "Cache-Control": {
-                "$ref": "#/components/headers/Cache-Control"
-              }
-            }
-          },
-          "401": {
-            "$ref": "#/components/responses/Unauthorized"
-          },
-          "403": {
-            "$ref": "#/components/responses/Forbidden"
-          },
-          "404": {
-            "$ref": "#/components/responses/NotFound"
-          },
-          "405": {
-            "$ref": "#/components/responses/MethodNotAllowed"
-          },
-          "422": {
-            "description": "A parameter is missing, unknown, repeated or has an invalid value (`missing_parameter`, `unknown_parameter`, `repeated_parameter`, `invalid_parameter`, `invalid_symbol`, `invalid_asset`, `invalid_series`, `invalid_timeframe`, `invalid_time_range`, `invalid_depth`, `depth_too_large`, `invalid_indicator`, `unknown_field`...).",
-            "headers": {
-              "X-Request-Id": {
-                "$ref": "#/components/headers/X-Request-Id"
-              },
-              "BytNode-Contract-Version": {
-                "$ref": "#/components/headers/BytNode-Contract-Version"
-              }
-            },
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiError"
-                },
-                "examples": {
-                  "invalid_symbol": {
-                    "$ref": "#/components/examples/invalid_symbol"
-                  },
-                  "unknown_parameter": {
-                    "value": {
-                      "status": "error",
-                      "server_time": "2026-11-08T12:52:47.540Z",
-                      "error": {
-                        "code": "unknown_parameter",
-                        "message": "Unknown parameter 'limt'. Accepted parameters: fields, symbol.",
-                        "param": "limt",
-                        "details": {
-                          "accepted": [
-                            "fields",
-                            "symbol"
-                          ]
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "429": {
-            "$ref": "#/components/responses/TooManyRequests"
-          },
-          "503": {
-            "$ref": "#/components/responses/ServiceUnavailable"
-          },
-          "500": {
-            "$ref": "#/components/responses/InternalError"
-          },
-          "504": {
-            "$ref": "#/components/responses/GatewayTimeout"
-          }
-        },
-        "tags": [
-          "Liquidations"
-        ],
-        "description": "The most attractive cluster of estimated liquidation levels above and below the price, projected from open interest changes and the leverage mix. `attraction` = density / distance²: compare `attraction_up` and `attraction_down` to see where the price has a mechanical reason to go. Not a prediction.",
-        "x-family": "derivatives",
-        "x-codeSamples": [
-          {
-            "lang": "curl",
-            "label": "curl",
-            "source": "curl -H \"X-API-KEY: $BYTNODE_API_KEY\" \"https://api.bytnode.com/v1/heatmap/clusters?symbol=BTCUSDT\""
-          },
-          {
-            "lang": "python",
-            "label": "Python",
-            "source": "import os\n\nimport requests  # pip install requests\n\nr = requests.get(\n    \"https://api.bytnode.com/v1/heatmap/clusters\",\n    params={\"symbol\": \"BTCUSDT\"},\n    headers={\"X-API-KEY\": os.environ[\"BYTNODE_API_KEY\"]},\n    timeout=30,\n)\nbody = r.json()\nif body[\"status\"] == \"error\":\n    raise RuntimeError(body[\"error\"][\"code\"] + \": \" + body[\"error\"][\"message\"])\nprint(body[\"data\"])"
-          },
-          {
-            "lang": "javascript",
-            "label": "JavaScript",
-            "source": "// Node 18+, as an ES module: save as example.mjs (top-level await), then `node example.mjs`.\nconst r = await fetch(\"https://api.bytnode.com/v1/heatmap/clusters?symbol=BTCUSDT\", {\n  headers: { \"X-API-KEY\": process.env.BYTNODE_API_KEY },\n});\nconst body = await r.json();\nif (body.status === \"error\") throw new Error(body.error.code);\nconsole.log(body.data);"
-          }
-        ]
-      }
-    },
-    "/v1/heatmap/clusters/history": {
-      "get": {
-        "summary": "Liquidation clusters history",
-        "operationId": "getHeatmapClustersHistory",
-        "security": [
-          {
-            "APIKeyHeader": []
-          },
-          {
-            "BearerAuth": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "since_ms",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "minimum": 0
-            },
-            "description": "Lower time bound, INCLUSIVE, in epoch MILLISECONDS (13 digits). A value in seconds returns 422 `invalid_time_range`."
-          },
-          {
-            "name": "until_ms",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "minimum": 0
-            },
-            "description": "Upper time bound, INCLUSIVE to the millisecond, in epoch milliseconds. To page, prefer `before_ms` (exclusive) or simply follow `next`."
-          },
-          {
-            "name": "limit",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "maximum": 1000,
-              "minimum": 1,
-              "default": 100
-            },
-            "description": "Number of rows to return, in the reading order (most recent first by default). Bounded by your plan's history window: an explicit `limit` (or `since_ms`) reaching beyond it returns 403 `history_depth`; without them the page simply stops at the window.",
-            "example": 3
-          },
-          {
-            "name": "timeframe",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "$ref": "#/components/schemas/Timeframe"
-            },
-            "description": "Required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. One row per closed bucket: for a STATE (basis, open interest, heatmap) the value of its LAST minute — its close —, for a FLOW (open-interest change, liquidations, trade sizes) the total over its minutes; `sample_count` = minutes with data in the bucket. `1m` gives one row per minute, aligned on the minute. Missing: 422 `missing_parameter`.",
-            "example": "1h"
-          },
-          {
-            "name": "symbol",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "anyOf": [
-                {
-                  "$ref": "#/components/schemas/Symbol"
-                },
-                {
-                  "type": "string"
-                }
-              ]
-            },
-            "description": "Trading pair, e.g. `BTCUSDT`. Required. The served pairs: `GET /v1/symbols`. Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the accepted list.",
-            "example": "BTCUSDT"
-          },
-          {
-            "name": "fields",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Comma-separated projection of `data` (dot notation for nested keys): `fields=time,density_up`. Unknown field: 422 `unknown_field` with a suggestion.",
-            "example": "time,density_up"
-          },
-          {
-            "name": "before_ms",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "minimum": 0
-            },
-            "description": "Upper time bound, EXCLUSIVE, in epoch milliseconds: rows strictly before it. Pass the oldest `time` you received to read the previous page without repeating a row. Not combinable with `until_ms` (422 `invalid_time_range`)."
-          },
-          {
-            "name": "order",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "$ref": "#/components/schemas/Order",
-              "default": "desc"
-            },
-            "description": "Reading order: `desc` (most recent first, the default) or `asc` (oldest first, reading forward from `since_ms`, which is then required). Follow `next` to read the following page."
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Success. The example is a real response captured in production, trimmed to 3 rows.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HeatmapClustersHistoryResponse"
-                },
-                "example": {
-                  "status": "ok",
-                  "server_time": "2026-11-08T12:51:49.270Z",
-                  "data_type": "heatmap_clusters_history",
-                  "symbol": "BTCUSDT",
-                  "timeframe": "1h",
-                  "market": "futures",
-                  "step": "1h",
-                  "data": [
-                    {
-                      "time": "2026-11-08T11:00:00.000Z",
-                      "density_up": 1.06447518158,
-                      "dist_up_ratio": 0.00823072364522,
-                      "density_down": 3.51769093888,
-                      "dist_down_ratio": 0.01178639626,
-                      "attraction_up": 15713.0140964,
-                      "attraction_down": 25321.8600402,
-                      "sample_count": 60,
-                      "is_closed": true
-                    },
-                    {
-                      "time": "2026-11-08T10:00:00.000Z",
-                      "density_up": 1.03646292576,
-                      "dist_up_ratio": 0.00920889938757,
-                      "density_down": 3.39553391596,
-                      "dist_down_ratio": 0.0108276409347,
-                      "attraction_up": 12221.8884579,
-                      "attraction_down": 28962.789119,
-                      "sample_count": 60,
-                      "is_closed": true
-                    },
-                    {
-                      "time": "2026-11-08T09:00:00.000Z",
-                      "density_up": 0.606057425446,
-                      "dist_up_ratio": 0.00659292012079,
-                      "density_down": 2.99383035871,
-                      "dist_down_ratio": 0.0113254878814,
-                      "attraction_up": 13943.0616872,
-                      "attraction_down": 23340.6716217,
-                      "sample_count": 60,
-                      "is_closed": true
-                    }
-                  ],
-                  "next": "/v1/heatmap/clusters/history?symbol=BTCUSDT&limit=3&timeframe=1h&before_ms=1794128400000&order=desc"
-                }
-              }
-            },
-            "headers": {
-              "RateLimit-Policy": {
-                "$ref": "#/components/headers/RateLimit-Policy"
-              },
-              "RateLimit": {
-                "$ref": "#/components/headers/RateLimit"
-              },
-              "X-Request-Id": {
-                "$ref": "#/components/headers/X-Request-Id"
-              },
-              "BytNode-Contract-Version": {
-                "$ref": "#/components/headers/BytNode-Contract-Version"
-              },
-              "Cache-Control": {
-                "$ref": "#/components/headers/Cache-Control"
-              }
-            }
-          },
-          "401": {
-            "$ref": "#/components/responses/Unauthorized"
-          },
-          "403": {
-            "$ref": "#/components/responses/Forbidden"
-          },
-          "404": {
-            "$ref": "#/components/responses/NotFound"
-          },
-          "405": {
-            "$ref": "#/components/responses/MethodNotAllowed"
-          },
-          "422": {
-            "description": "A parameter is missing, unknown, repeated or has an invalid value (`missing_parameter`, `unknown_parameter`, `repeated_parameter`, `invalid_parameter`, `invalid_symbol`, `invalid_asset`, `invalid_series`, `invalid_timeframe`, `invalid_time_range`, `invalid_depth`, `depth_too_large`, `invalid_indicator`, `unknown_field`...).",
-            "headers": {
-              "X-Request-Id": {
-                "$ref": "#/components/headers/X-Request-Id"
-              },
-              "BytNode-Contract-Version": {
-                "$ref": "#/components/headers/BytNode-Contract-Version"
-              }
-            },
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiError"
-                },
-                "examples": {
-                  "invalid_symbol": {
-                    "$ref": "#/components/examples/invalid_symbol"
-                  },
-                  "unknown_parameter": {
-                    "value": {
-                      "status": "error",
-                      "server_time": "2026-11-08T12:52:47.540Z",
-                      "error": {
-                        "code": "unknown_parameter",
-                        "message": "Unknown parameter 'limt'. Did you mean 'limit'? Accepted parameters: before_ms, fields, limit, order, since_ms, symbol, timeframe, until_ms.",
-                        "param": "limt",
-                        "details": {
-                          "suggestion": "limit",
-                          "accepted": [
-                            "before_ms",
-                            "fields",
-                            "limit",
-                            "order",
-                            "since_ms",
-                            "symbol",
-                            "timeframe",
-                            "until_ms"
-                          ]
-                        }
-                      }
-                    }
-                  },
-                  "invalid_time_range": {
-                    "$ref": "#/components/examples/invalid_time_range"
-                  }
-                }
-              }
-            }
-          },
-          "429": {
-            "$ref": "#/components/responses/TooManyRequests"
-          },
-          "503": {
-            "$ref": "#/components/responses/ServiceUnavailable"
-          },
-          "500": {
-            "$ref": "#/components/responses/InternalError"
-          },
-          "504": {
-            "$ref": "#/components/responses/GatewayTimeout"
-          }
-        },
-        "tags": [
-          "Liquidations"
-        ],
-        "description": "One row per closed bucket of `timeframe` (required). Most recent first, or oldest first with `order=asc`. Follow `next` to read the following page (it never repeats a row).",
-        "x-family": "derivatives",
-        "x-codeSamples": [
-          {
-            "lang": "curl",
-            "label": "curl",
-            "source": "curl -H \"X-API-KEY: $BYTNODE_API_KEY\" \"https://api.bytnode.com/v1/heatmap/clusters/history?symbol=BTCUSDT&limit=3&timeframe=1h\""
-          },
-          {
-            "lang": "python",
-            "label": "Python",
-            "source": "import os\n\nimport requests  # pip install requests\n\nr = requests.get(\n    \"https://api.bytnode.com/v1/heatmap/clusters/history\",\n    params={\"symbol\": \"BTCUSDT\", \"limit\": \"3\", \"timeframe\": \"1h\"},\n    headers={\"X-API-KEY\": os.environ[\"BYTNODE_API_KEY\"]},\n    timeout=30,\n)\nbody = r.json()\nif body[\"status\"] == \"error\":\n    raise RuntimeError(body[\"error\"][\"code\"] + \": \" + body[\"error\"][\"message\"])\nprint(body[\"data\"])"
-          },
-          {
-            "lang": "javascript",
-            "label": "JavaScript",
-            "source": "// Node 18+, as an ES module: save as example.mjs (top-level await), then `node example.mjs`.\nconst r = await fetch(\"https://api.bytnode.com/v1/heatmap/clusters/history?symbol=BTCUSDT&limit=3&timeframe=1h\", {\n  headers: { \"X-API-KEY\": process.env.BYTNODE_API_KEY },\n});\nconst body = await r.json();\nif (body.status === \"error\") throw new Error(body.error.code);\nconsole.log(body.data);"
-          }
-        ]
-      }
-    },
     "/v1/indicators": {
       "post": {
         "summary": "Compute technical indicators",
@@ -34299,7 +33565,7 @@
             "schema": {
               "$ref": "#/components/schemas/Timeframe"
             },
-            "description": "Required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. One row per closed bucket: for a STATE (basis, open interest, heatmap) the value of its LAST minute — its close —, for a FLOW (open-interest change, liquidations, trade sizes) the total over its minutes; `sample_count` = minutes with data in the bucket. `1m` gives one row per minute, aligned on the minute. Missing: 422 `missing_parameter`.",
+            "description": "Required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. One row per closed bucket: for a STATE (basis, open interest) the value of its LAST minute — its close —, for a FLOW (open-interest change, liquidations, trade sizes) the total over its minutes; `sample_count` = minutes with data in the bucket. `1m` gives one row per minute, aligned on the minute. Missing: 422 `missing_parameter`.",
             "example": "1h"
           },
           {
@@ -37573,7 +36839,7 @@
             "schema": {
               "$ref": "#/components/schemas/Timeframe"
             },
-            "description": "Required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. One row per closed bucket: for a STATE (basis, open interest, heatmap) the value of its LAST minute — its close —, for a FLOW (open-interest change, liquidations, trade sizes) the total over its minutes; `sample_count` = minutes with data in the bucket. `1m` gives one row per minute, aligned on the minute. Missing: 422 `missing_parameter`.",
+            "description": "Required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. One row per closed bucket: for a STATE (basis, open interest) the value of its LAST minute — its close —, for a FLOW (open-interest change, liquidations, trade sizes) the total over its minutes; `sample_count` = minutes with data in the bucket. `1m` gives one row per minute, aligned on the minute. Missing: 422 `missing_parameter`.",
             "example": "1h"
           },
           {
@@ -37843,7 +37109,7 @@
             "schema": {
               "$ref": "#/components/schemas/Timeframe"
             },
-            "description": "Required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. One row per closed bucket: for a STATE (basis, open interest, heatmap) the value of its LAST minute — its close —, for a FLOW (open-interest change, liquidations, trade sizes) the total over its minutes; `sample_count` = minutes with data in the bucket. `1m` gives one row per minute, aligned on the minute. Missing: 422 `missing_parameter`.",
+            "description": "Required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. One row per closed bucket: for a STATE (basis, open interest) the value of its LAST minute — its close —, for a FLOW (open-interest change, liquidations, trade sizes) the total over its minutes; `sample_count` = minutes with data in the bucket. `1m` gives one row per minute, aligned on the minute. Missing: 422 `missing_parameter`.",
             "example": "1h"
           },
           {
@@ -43270,7 +42536,7 @@
     "/v1/snapshot": {
       "get": {
         "summary": "Many fields for one symbol in one request",
-        "description": "52 fields for one symbol in a single call (41 plain, 11 multi-timeframe): prices, flow, derivatives, liquidations, macro, on-chain, options. Each query key is a field and its value a depth: `funding_rate=1` (or `=true`). Multi-timeframe fields take `@tf`: `klines@1h=24`, `cvd@1h=24`; `klines` also takes `1w`. Every field has the name of its route, and ONE type whatever the depth: a field WITHOUT a timeframe is the response of its latest-value route, an object (depth 1, or `true`; 422 `depth_too_large` above, naming its `/history` route) — except the event series `trades_spot`, `trades_futures`, `trades_kline_futures_seconds` and `liquidations_events`, always a list of their latest N rows; a field WITH `@tf` is ALWAYS a list, the latest N rows of its `/history` at that timeframe (`cvd@1h=1` is a list of one row). `max_depth` gives each ceiling. The timeframe is case-insensitive like everywhere (`cvd@1H`), except `1M`. A market field serves all markets (the route without `/spot` or `/futures`). Call it with only `symbol` to get, under `data`, `available_fields` (fields without a timeframe), `available_multi_tf_fields`, `multi_tf_syntax`, `timeframes`, `timeframes_by_field` and `max_depth`. An empty field carries `unavailable` (`not_applicable`, `no_api_key` or `no_data`) so 'no measure' is never mistaken for 'nothing happened'. Response: `symbol`, `data` (an object keyed by field name) and `is_partial` (true if a field failed: that field is then an `error` object with `code` and `message`, with the codes of the error catalogue).",
+        "description": "51 fields for one symbol in a single call (40 plain, 11 multi-timeframe): prices, flow, derivatives, liquidations, macro, on-chain, options. Each query key is a field and its value a depth: `funding_rate=1` (or `=true`). Multi-timeframe fields take `@tf`: `klines@1h=24`, `cvd@1h=24`; `klines` also takes `1w`. Every field has the name of its route, and ONE type whatever the depth: a field WITHOUT a timeframe is the response of its latest-value route, an object (depth 1, or `true`; 422 `depth_too_large` above, naming its `/history` route) — except the event series `trades_spot`, `trades_futures`, `trades_kline_futures_seconds` and `liquidations_events`, always a list of their latest N rows; a field WITH `@tf` is ALWAYS a list, the latest N rows of its `/history` at that timeframe (`cvd@1h=1` is a list of one row). `max_depth` gives each ceiling. The timeframe is case-insensitive like everywhere (`cvd@1H`), except `1M`. A market field serves all markets (the route without `/spot` or `/futures`). Call it with only `symbol` to get, under `data`, `available_fields` (fields without a timeframe), `available_multi_tf_fields`, `multi_tf_syntax`, `timeframes`, `timeframes_by_field` and `max_depth`. An empty field carries `unavailable` (`not_applicable`, `no_api_key` or `no_data`) so 'no measure' is never mistaken for 'nothing happened'. Response: `symbol`, `data` (an object keyed by field name) and `is_partial` (true if a field failed: that field is then an `error` object with `code` and `message`, with the codes of the error catalogue).",
         "operationId": "getSnapshot",
         "security": [
           {
@@ -43571,17 +42837,6 @@
             "in": "query",
             "required": false,
             "description": "Total crypto market cap and dominance. Same content as `/v1/global`. Value: `true` (or 1): the latest value only.",
-            "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "maximum": 1
-            }
-          },
-          {
-            "name": "heatmap_clusters",
-            "in": "query",
-            "required": false,
-            "description": "Liquidation heatmap clusters. Same content as `/v1/heatmap/clusters`. Value: `true` (or 1): the latest value only.",
             "schema": {
               "type": "integer",
               "minimum": 1,
@@ -45313,8 +44568,7 @@
                         "family": "price_volume",
                         "routes": [
                           "/v1/klines",
-                          "/v1/klines/history",
-                          "/v1/heatmap/clusters"
+                          "/v1/klines/history"
                         ],
                         "age_s": 73.7,
                         "expected_interval_s": 120,
@@ -48204,7 +47458,7 @@
             "schema": {
               "$ref": "#/components/schemas/Timeframe"
             },
-            "description": "Required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. One row per closed bucket: for a STATE (basis, open interest, heatmap) the value of its LAST minute — its close —, for a FLOW (open-interest change, liquidations, trade sizes) the total over its minutes; `sample_count` = minutes with data in the bucket. `1m` gives one row per minute, aligned on the minute. Missing: 422 `missing_parameter`.",
+            "description": "Required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. One row per closed bucket: for a STATE (basis, open interest) the value of its LAST minute — its close —, for a FLOW (open-interest change, liquidations, trade sizes) the total over its minutes; `sample_count` = minutes with data in the bucket. `1m` gives one row per minute, aligned on the minute. Missing: 422 `missing_parameter`.",
             "example": "1h"
           },
           {
@@ -48474,7 +47728,7 @@
             "schema": {
               "$ref": "#/components/schemas/Timeframe"
             },
-            "description": "Required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. One row per closed bucket: for a STATE (basis, open interest, heatmap) the value of its LAST minute — its close —, for a FLOW (open-interest change, liquidations, trade sizes) the total over its minutes; `sample_count` = minutes with data in the bucket. `1m` gives one row per minute, aligned on the minute. Missing: 422 `missing_parameter`.",
+            "description": "Required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. One row per closed bucket: for a STATE (basis, open interest) the value of its LAST minute — its close —, for a FLOW (open-interest change, liquidations, trade sizes) the total over its minutes; `sample_count` = minutes with data in the bucket. `1m` gives one row per minute, aligned on the minute. Missing: 422 `missing_parameter`.",
             "example": "1h"
           },
           {
@@ -48930,7 +48184,7 @@
             "schema": {
               "$ref": "#/components/schemas/Timeframe"
             },
-            "description": "Required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. One row per closed bucket: for a STATE (basis, open interest, heatmap) the value of its LAST minute — its close —, for a FLOW (open-interest change, liquidations, trade sizes) the total over its minutes; `sample_count` = minutes with data in the bucket. `1m` gives one row per minute, aligned on the minute. Missing: 422 `missing_parameter`.",
+            "description": "Required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. One row per closed bucket: for a STATE (basis, open interest) the value of its LAST minute — its close —, for a FLOW (open-interest change, liquidations, trade sizes) the total over its minutes; `sample_count` = minutes with data in the bucket. `1m` gives one row per minute, aligned on the minute. Missing: 422 `missing_parameter`.",
             "example": "1h"
           },
           {

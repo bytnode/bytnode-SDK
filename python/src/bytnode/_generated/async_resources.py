@@ -174,11 +174,11 @@ class AsyncBasisHistoryResource(AsyncResource):
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
             timeframe: Required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. One row per
-                closed bucket: for a STATE (basis, open interest, heatmap) the value of its
-                LAST minute — its close —, for a FLOW (open-interest change, liquidations,
-                trade sizes) the total over its minutes; `sample_count` = minutes with data
-                in the bucket. `1m` gives one row per minute, aligned on the minute.
-                Missing: 422 `missing_parameter`.
+                closed bucket: for a STATE (basis, open interest) the value of its LAST
+                minute — its close —, for a FLOW (open-interest change, liquidations, trade
+                sizes) the total over its minutes; `sample_count` = minutes with data in the
+                bucket. `1m` gives one row per minute, aligned on the minute. Missing: 422
+                `missing_parameter`.
             limit: Number of rows to return, in the reading order (most recent first by
                 default). Bounded by your plan's history window: an explicit `limit` (or
                 `since_ms`) reaching beyond it returns 403 `history_depth`; without them the
@@ -228,11 +228,11 @@ class AsyncBasisHistoryResource(AsyncResource):
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
             timeframe: Required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. One row per
-                closed bucket: for a STATE (basis, open interest, heatmap) the value of its
-                LAST minute — its close —, for a FLOW (open-interest change, liquidations,
-                trade sizes) the total over its minutes; `sample_count` = minutes with data
-                in the bucket. `1m` gives one row per minute, aligned on the minute.
-                Missing: 422 `missing_parameter`.
+                closed bucket: for a STATE (basis, open interest) the value of its LAST
+                minute — its close —, for a FLOW (open-interest change, liquidations, trade
+                sizes) the total over its minutes; `sample_count` = minutes with data in the
+                bucket. `1m` gives one row per minute, aligned on the minute. Missing: 422
+                `missing_parameter`.
             since: Lower time bound, inclusive. A `datetime` (naive = UTC), a `date`, an ISO
                 string (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
             until: Upper time bound, inclusive to the millisecond. A `datetime` (naive =
@@ -3959,164 +3959,6 @@ class AsyncHealthResource(AsyncResource):
         return await self._call(self._route, {}, request_options)
 
 
-class AsyncHeatmapClustersHistoryResource(AsyncResource):
-    """`/v1/heatmap/clusters/history`."""
-
-    _route = RouteSpec(path='/v1/heatmap/clusters/history', method='GET', shape='list', model=m.HeatmapClustersHistoryItem, paginated=True, path_params=(), max_limit=1000, range_mode=False)
-
-    async def __call__(
-        self,
-        symbol: KnownSymbol | str,
-        timeframe: Timeframe,
-        *,
-        limit: int | None = None,
-        since: TimeLike | None = None,
-        until: TimeLike | None = None,
-        before: TimeLike | None = None,
-        order: Order | None = None,
-        fields: Fields | None = None,
-        request_options: RequestOptions | None = None,
-    ) -> Response[list[m.HeatmapClustersHistoryItem]]:
-        """GET /v1/heatmap/clusters/history — Liquidation clusters history
-
-        One row per closed bucket of `timeframe` (required). Most recent first, or oldest
-        first with `order=asc`. Follow `next` to read the following page (it never repeats a
-        row).
-
-        Args:
-            symbol: Trading pair, e.g. `BTCUSDT`. Required. The served pairs: `GET
-                /v1/symbols`. Case-insensitive (`btcusdt` works; the envelope gives the
-                canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
-                accepted list.
-            timeframe: Required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. One row per
-                closed bucket: for a STATE (basis, open interest, heatmap) the value of its
-                LAST minute — its close —, for a FLOW (open-interest change, liquidations,
-                trade sizes) the total over its minutes; `sample_count` = minutes with data
-                in the bucket. `1m` gives one row per minute, aligned on the minute.
-                Missing: 422 `missing_parameter`.
-            limit: Number of rows to return, in the reading order (most recent first by
-                default). Bounded by your plan's history window: an explicit `limit` (or
-                `since_ms`) reaching beyond it returns 403 `history_depth`; without them the
-                page simply stops at the window.
-            since: Lower time bound, inclusive. A `datetime` (naive = UTC), a `date`, an ISO
-                string (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
-            until: Upper time bound, inclusive to the millisecond. A `datetime` (naive =
-                UTC), a `date`, an ISO string (`2026-01-01`, `2026-01-01T12:00:00Z`) or
-                epoch milliseconds.
-            before: Upper time bound, exclusive (rows strictly before it). Not combinable
-                with `until`. A `datetime` (naive = UTC), a `date`, an ISO string
-                (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
-            order: Reading order: `desc` (most recent first, the default) or `asc` (oldest
-                first, reading forward from `since_ms`, which is then required). Follow
-                `next` to read the following page.
-            fields: Only return these fields of each row (a list or a comma-separated
-                string; dotted paths reach nested keys). Rows are then partial and not
-                validated.
-            request_options: Per-request `timeout`, `max_retries` or extra `headers`.
-        """
-        return await self._call(self._route, {'symbol': symbol, 'timeframe': timeframe, 'limit': limit, 'since_ms': since, 'until_ms': until, 'before_ms': before, 'order': order, 'fields': fields}, request_options)
-
-    def iter(
-        self,
-        symbol: KnownSymbol | str,
-        timeframe: Timeframe,
-        *,
-        since: TimeLike | None = None,
-        until: TimeLike | None = None,
-        order: Order | None = None,
-        fields: Fields | None = None,
-        page_size: int | None = None,
-        max_items: int | None = None,
-        limit: int | None = None,
-        request_options: RequestOptions | None = None,
-    ) -> AsyncRowIterator[m.HeatmapClustersHistoryItem]:
-        """Every row of `/v1/heatmap/clusters/history` over a period, following `next` page after page.
-
-        Pages are fetched lazily, `page_size` rows at a time (default with `since`: the
-        route's maximum; without it, the route's default page, which stops at your plan's
-        history window). With `since`, rows come oldest first unless
-        `order` says otherwise. Call `.to_pandas()` / `.to_list()` to collect them.
-
-        Args:
-            symbol: Trading pair, e.g. `BTCUSDT`. Required. The served pairs: `GET
-                /v1/symbols`. Case-insensitive (`btcusdt` works; the envelope gives the
-                canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
-                accepted list.
-            timeframe: Required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. One row per
-                closed bucket: for a STATE (basis, open interest, heatmap) the value of its
-                LAST minute — its close —, for a FLOW (open-interest change, liquidations,
-                trade sizes) the total over its minutes; `sample_count` = minutes with data
-                in the bucket. `1m` gives one row per minute, aligned on the minute.
-                Missing: 422 `missing_parameter`.
-            since: Lower time bound, inclusive. A `datetime` (naive = UTC), a `date`, an ISO
-                string (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
-            until: Upper time bound, inclusive to the millisecond. A `datetime` (naive =
-                UTC), a `date`, an ISO string (`2026-01-01`, `2026-01-01T12:00:00Z`) or
-                epoch milliseconds.
-            order: Reading order: `desc` (most recent first, the default) or `asc` (oldest
-                first, reading forward from `since_ms`, which is then required). Follow
-                `next` to read the following page.
-            fields: Only return these fields of each row (a list or a comma-separated
-                string; dotted paths reach nested keys). Rows are then partial and not
-                validated.
-            page_size: Rows per request (`limit`), up to the route's maximum.
-            max_items: Stop after this many rows.
-            limit: The same as `max_items` (the name the other methods use for a number of
-                rows).
-            request_options: Per-request `timeout`, `max_retries` or extra `headers`.
-        """
-        return self._iter(self._route, {'symbol': symbol, 'timeframe': timeframe, 'since_ms': since, 'until_ms': until, 'order': order, 'fields': fields}, page_size=page_size, max_items=max_items if max_items is not None else limit, request_options=request_options)
-
-
-class AsyncHeatmapClustersResource(AsyncResource):
-    """`/v1/heatmap/clusters` and its sub-routes."""
-
-    history: AsyncHeatmapClustersHistoryResource
-
-    def __init__(self, client: Any) -> None:
-        super().__init__(client)
-        self.history = AsyncHeatmapClustersHistoryResource(client)
-
-    _route = RouteSpec(path='/v1/heatmap/clusters', method='GET', shape='object', model=m.HeatmapClusters, paginated=False, path_params=(), max_limit=None, range_mode=False)
-
-    async def __call__(
-        self,
-        symbol: KnownSymbol | str,
-        *,
-        fields: Fields | None = None,
-        request_options: RequestOptions | None = None,
-    ) -> Response[m.HeatmapClusters | None]:
-        """GET /v1/heatmap/clusters — Liquidation heatmap clusters
-
-        The most attractive cluster of estimated liquidation levels above and below the
-        price, projected from open interest changes and the leverage mix. `attraction` =
-        density / distance²: compare `attraction_up` and `attraction_down` to see where the
-        price has a mechanical reason to go. Not a prediction.
-
-        Args:
-            symbol: Trading pair, e.g. `BTCUSDT`. Required. The served pairs: `GET
-                /v1/symbols`. Case-insensitive (`btcusdt` works; the envelope gives the
-                canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
-                accepted list.
-            fields: Only return these fields of each row (a list or a comma-separated
-                string; dotted paths reach nested keys). Rows are then partial and not
-                validated.
-            request_options: Per-request `timeout`, `max_retries` or extra `headers`.
-        """
-        return await self._call(self._route, {'symbol': symbol, 'fields': fields}, request_options)
-
-
-class AsyncHeatmapResource(AsyncResource):
-    """`/v1/heatmap` and its sub-routes."""
-
-    clusters: AsyncHeatmapClustersResource
-
-    def __init__(self, client: Any) -> None:
-        super().__init__(client)
-        self.clusters = AsyncHeatmapClustersResource(client)
-
-
-
 class AsyncIndicatorsResource(AsyncResource):
     """`/v1/indicators`."""
 
@@ -4635,11 +4477,11 @@ class AsyncLiquidationsBigSmallRatioHistoryResource(AsyncResource):
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
             timeframe: Required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. One row per
-                closed bucket: for a STATE (basis, open interest, heatmap) the value of its
-                LAST minute — its close —, for a FLOW (open-interest change, liquidations,
-                trade sizes) the total over its minutes; `sample_count` = minutes with data
-                in the bucket. `1m` gives one row per minute, aligned on the minute.
-                Missing: 422 `missing_parameter`.
+                closed bucket: for a STATE (basis, open interest) the value of its LAST
+                minute — its close —, for a FLOW (open-interest change, liquidations, trade
+                sizes) the total over its minutes; `sample_count` = minutes with data in the
+                bucket. `1m` gives one row per minute, aligned on the minute. Missing: 422
+                `missing_parameter`.
             limit: Number of rows to return, in the reading order (most recent first by
                 default). Bounded by your plan's history window: an explicit `limit` (or
                 `since_ms`) reaching beyond it returns 403 `history_depth`; without them the
@@ -4689,11 +4531,11 @@ class AsyncLiquidationsBigSmallRatioHistoryResource(AsyncResource):
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
             timeframe: Required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. One row per
-                closed bucket: for a STATE (basis, open interest, heatmap) the value of its
-                LAST minute — its close —, for a FLOW (open-interest change, liquidations,
-                trade sizes) the total over its minutes; `sample_count` = minutes with data
-                in the bucket. `1m` gives one row per minute, aligned on the minute.
-                Missing: 422 `missing_parameter`.
+                closed bucket: for a STATE (basis, open interest) the value of its LAST
+                minute — its close —, for a FLOW (open-interest change, liquidations, trade
+                sizes) the total over its minutes; `sample_count` = minutes with data in the
+                bucket. `1m` gives one row per minute, aligned on the minute. Missing: 422
+                `missing_parameter`.
             since: Lower time bound, inclusive. A `datetime` (naive = UTC), a `date`, an ISO
                 string (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
             until: Upper time bound, inclusive to the millisecond. A `datetime` (naive =
@@ -5487,11 +5329,11 @@ class AsyncOiChangeHistoryResource(AsyncResource):
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
             timeframe: Required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. One row per
-                closed bucket: for a STATE (basis, open interest, heatmap) the value of its
-                LAST minute — its close —, for a FLOW (open-interest change, liquidations,
-                trade sizes) the total over its minutes; `sample_count` = minutes with data
-                in the bucket. `1m` gives one row per minute, aligned on the minute.
-                Missing: 422 `missing_parameter`.
+                closed bucket: for a STATE (basis, open interest) the value of its LAST
+                minute — its close —, for a FLOW (open-interest change, liquidations, trade
+                sizes) the total over its minutes; `sample_count` = minutes with data in the
+                bucket. `1m` gives one row per minute, aligned on the minute. Missing: 422
+                `missing_parameter`.
             limit: Number of rows to return, in the reading order (most recent first by
                 default). Bounded by your plan's history window: an explicit `limit` (or
                 `since_ms`) reaching beyond it returns 403 `history_depth`; without them the
@@ -5541,11 +5383,11 @@ class AsyncOiChangeHistoryResource(AsyncResource):
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
             timeframe: Required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. One row per
-                closed bucket: for a STATE (basis, open interest, heatmap) the value of its
-                LAST minute — its close —, for a FLOW (open-interest change, liquidations,
-                trade sizes) the total over its minutes; `sample_count` = minutes with data
-                in the bucket. `1m` gives one row per minute, aligned on the minute.
-                Missing: 422 `missing_parameter`.
+                closed bucket: for a STATE (basis, open interest) the value of its LAST
+                minute — its close —, for a FLOW (open-interest change, liquidations, trade
+                sizes) the total over its minutes; `sample_count` = minutes with data in the
+                bucket. `1m` gives one row per minute, aligned on the minute. Missing: 422
+                `missing_parameter`.
             since: Lower time bound, inclusive. A `datetime` (naive = UTC), a `date`, an ISO
                 string (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
             until: Upper time bound, inclusive to the millisecond. A `datetime` (naive =
@@ -5648,11 +5490,11 @@ class AsyncOiHistoryResource(AsyncResource):
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
             timeframe: Required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. One row per
-                closed bucket: for a STATE (basis, open interest, heatmap) the value of its
-                LAST minute — its close —, for a FLOW (open-interest change, liquidations,
-                trade sizes) the total over its minutes; `sample_count` = minutes with data
-                in the bucket. `1m` gives one row per minute, aligned on the minute.
-                Missing: 422 `missing_parameter`.
+                closed bucket: for a STATE (basis, open interest) the value of its LAST
+                minute — its close —, for a FLOW (open-interest change, liquidations, trade
+                sizes) the total over its minutes; `sample_count` = minutes with data in the
+                bucket. `1m` gives one row per minute, aligned on the minute. Missing: 422
+                `missing_parameter`.
             limit: Number of rows to return, in the reading order (most recent first by
                 default). Bounded by your plan's history window: an explicit `limit` (or
                 `since_ms`) reaching beyond it returns 403 `history_depth`; without them the
@@ -5702,11 +5544,11 @@ class AsyncOiHistoryResource(AsyncResource):
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
             timeframe: Required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. One row per
-                closed bucket: for a STATE (basis, open interest, heatmap) the value of its
-                LAST minute — its close —, for a FLOW (open-interest change, liquidations,
-                trade sizes) the total over its minutes; `sample_count` = minutes with data
-                in the bucket. `1m` gives one row per minute, aligned on the minute.
-                Missing: 422 `missing_parameter`.
+                closed bucket: for a STATE (basis, open interest) the value of its LAST
+                minute — its close —, for a FLOW (open-interest change, liquidations, trade
+                sizes) the total over its minutes; `sample_count` = minutes with data in the
+                bucket. `1m` gives one row per minute, aligned on the minute. Missing: 422
+                `missing_parameter`.
             since: Lower time bound, inclusive. A `datetime` (naive = UTC), a `date`, an ISO
                 string (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
             until: Upper time bound, inclusive to the millisecond. A `datetime` (naive =
@@ -7257,7 +7099,6 @@ class AsyncSnapshotResource(AsyncResource):
         funding_next: Literal[True, 1] | None = None,
         funding_rate: Literal[True, 1] | None = None,
         global_: Literal[True, 1] | None = None,
-        heatmap_clusters: Literal[True, 1] | None = None,
         liquidations_cumulative: Literal[True, 1] | None = None,
         liquidations_events: Depth | None = None,
         macro_correlations: Literal[True, 1] | None = None,
@@ -7287,7 +7128,7 @@ class AsyncSnapshotResource(AsyncResource):
     ) -> Response[SnapshotData]:
         """GET /v1/snapshot — Many fields for one symbol in one request
 
-        52 fields for one symbol in a single call (41 plain, 11 multi-timeframe): prices,
+        51 fields for one symbol in a single call (40 plain, 11 multi-timeframe): prices,
         flow, derivatives, liquidations, macro, on-chain, options. Each query key is a field
         and its value a depth: `funding_rate=1` (or `=true`). Multi-timeframe fields take
         `@tf`: `klines@1h=24`, `cvd@1h=24`; `klines` also takes `1w`. Every field has the
@@ -7343,7 +7184,6 @@ class AsyncSnapshotResource(AsyncResource):
             'funding_next': funding_next,
             'funding_rate': funding_rate,
             'global': global_,
-            'heatmap_clusters': heatmap_clusters,
             'liquidations_cumulative': liquidations_cumulative,
             'liquidations_events': liquidations_events,
             'macro_correlations': macro_correlations,
@@ -8324,11 +8164,11 @@ class AsyncTradesAvgSizeFuturesHistoryResource(AsyncResource):
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
             timeframe: Required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. One row per
-                closed bucket: for a STATE (basis, open interest, heatmap) the value of its
-                LAST minute — its close —, for a FLOW (open-interest change, liquidations,
-                trade sizes) the total over its minutes; `sample_count` = minutes with data
-                in the bucket. `1m` gives one row per minute, aligned on the minute.
-                Missing: 422 `missing_parameter`.
+                closed bucket: for a STATE (basis, open interest) the value of its LAST
+                minute — its close —, for a FLOW (open-interest change, liquidations, trade
+                sizes) the total over its minutes; `sample_count` = minutes with data in the
+                bucket. `1m` gives one row per minute, aligned on the minute. Missing: 422
+                `missing_parameter`.
             limit: Number of rows to return, in the reading order (most recent first by
                 default). Bounded by your plan's history window: an explicit `limit` (or
                 `since_ms`) reaching beyond it returns 403 `history_depth`; without them the
@@ -8378,11 +8218,11 @@ class AsyncTradesAvgSizeFuturesHistoryResource(AsyncResource):
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
             timeframe: Required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. One row per
-                closed bucket: for a STATE (basis, open interest, heatmap) the value of its
-                LAST minute — its close —, for a FLOW (open-interest change, liquidations,
-                trade sizes) the total over its minutes; `sample_count` = minutes with data
-                in the bucket. `1m` gives one row per minute, aligned on the minute.
-                Missing: 422 `missing_parameter`.
+                closed bucket: for a STATE (basis, open interest) the value of its LAST
+                minute — its close —, for a FLOW (open-interest change, liquidations, trade
+                sizes) the total over its minutes; `sample_count` = minutes with data in the
+                bucket. `1m` gives one row per minute, aligned on the minute. Missing: 422
+                `missing_parameter`.
             since: Lower time bound, inclusive. A `datetime` (naive = UTC), a `date`, an ISO
                 string (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
             until: Upper time bound, inclusive to the millisecond. A `datetime` (naive =
@@ -8481,11 +8321,11 @@ class AsyncTradesAvgSizeHistoryResource(AsyncResource):
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
             timeframe: Required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. One row per
-                closed bucket: for a STATE (basis, open interest, heatmap) the value of its
-                LAST minute — its close —, for a FLOW (open-interest change, liquidations,
-                trade sizes) the total over its minutes; `sample_count` = minutes with data
-                in the bucket. `1m` gives one row per minute, aligned on the minute.
-                Missing: 422 `missing_parameter`.
+                closed bucket: for a STATE (basis, open interest) the value of its LAST
+                minute — its close —, for a FLOW (open-interest change, liquidations, trade
+                sizes) the total over its minutes; `sample_count` = minutes with data in the
+                bucket. `1m` gives one row per minute, aligned on the minute. Missing: 422
+                `missing_parameter`.
             limit: Number of rows to return, in the reading order (most recent first by
                 default). Bounded by your plan's history window: an explicit `limit` (or
                 `since_ms`) reaching beyond it returns 403 `history_depth`; without them the
@@ -8535,11 +8375,11 @@ class AsyncTradesAvgSizeHistoryResource(AsyncResource):
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
             timeframe: Required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. One row per
-                closed bucket: for a STATE (basis, open interest, heatmap) the value of its
-                LAST minute — its close —, for a FLOW (open-interest change, liquidations,
-                trade sizes) the total over its minutes; `sample_count` = minutes with data
-                in the bucket. `1m` gives one row per minute, aligned on the minute.
-                Missing: 422 `missing_parameter`.
+                closed bucket: for a STATE (basis, open interest) the value of its LAST
+                minute — its close —, for a FLOW (open-interest change, liquidations, trade
+                sizes) the total over its minutes; `sample_count` = minutes with data in the
+                bucket. `1m` gives one row per minute, aligned on the minute. Missing: 422
+                `missing_parameter`.
             since: Lower time bound, inclusive. A `datetime` (naive = UTC), a `date`, an ISO
                 string (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
             until: Upper time bound, inclusive to the millisecond. A `datetime` (naive =
@@ -8588,11 +8428,11 @@ class AsyncTradesAvgSizeSpotHistoryResource(AsyncResource):
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
             timeframe: Required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. One row per
-                closed bucket: for a STATE (basis, open interest, heatmap) the value of its
-                LAST minute — its close —, for a FLOW (open-interest change, liquidations,
-                trade sizes) the total over its minutes; `sample_count` = minutes with data
-                in the bucket. `1m` gives one row per minute, aligned on the minute.
-                Missing: 422 `missing_parameter`.
+                closed bucket: for a STATE (basis, open interest) the value of its LAST
+                minute — its close —, for a FLOW (open-interest change, liquidations, trade
+                sizes) the total over its minutes; `sample_count` = minutes with data in the
+                bucket. `1m` gives one row per minute, aligned on the minute. Missing: 422
+                `missing_parameter`.
             limit: Number of rows to return, in the reading order (most recent first by
                 default). Bounded by your plan's history window: an explicit `limit` (or
                 `since_ms`) reaching beyond it returns 403 `history_depth`; without them the
@@ -8642,11 +8482,11 @@ class AsyncTradesAvgSizeSpotHistoryResource(AsyncResource):
                 canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
                 accepted list.
             timeframe: Required: `1m`, `5m`, `15m`, `30m`, `1h`, `4h` or `1d`. One row per
-                closed bucket: for a STATE (basis, open interest, heatmap) the value of its
-                LAST minute — its close —, for a FLOW (open-interest change, liquidations,
-                trade sizes) the total over its minutes; `sample_count` = minutes with data
-                in the bucket. `1m` gives one row per minute, aligned on the minute.
-                Missing: 422 `missing_parameter`.
+                closed bucket: for a STATE (basis, open interest) the value of its LAST
+                minute — its close —, for a FLOW (open-interest change, liquidations, trade
+                sizes) the total over its minutes; `sample_count` = minutes with data in the
+                bucket. `1m` gives one row per minute, aligned on the minute. Missing: 422
+                `missing_parameter`.
             since: Lower time bound, inclusive. A `datetime` (naive = UTC), a `date`, an ISO
                 string (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
             until: Upper time bound, inclusive to the millisecond. A `datetime` (naive =
@@ -9156,7 +8996,6 @@ class AsyncResources:
     funding: AsyncFundingResource
     global_: AsyncGlobalResource
     health: AsyncHealthResource
-    heatmap: AsyncHeatmapResource
     indicators: AsyncIndicatorsResource
     indices: AsyncIndicesResource
     klines: AsyncKlinesResource
@@ -9189,7 +9028,6 @@ class AsyncResources:
         self.funding = AsyncFundingResource(self)
         self.global_ = AsyncGlobalResource(self)
         self.health = AsyncHealthResource(self)
-        self.heatmap = AsyncHeatmapResource(self)
         self.indicators = AsyncIndicatorsResource(self)
         self.indices = AsyncIndicesResource(self)
         self.klines = AsyncKlinesResource(self)
