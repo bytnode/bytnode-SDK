@@ -156,15 +156,17 @@ class AsyncBasisHistoryResource(AsyncResource):
 
         One row per closed bucket of `timeframe` (required). Each `timeframe` starts where
         readings are at least that fine, so `step` is always the real spacing: `1d` covers
-        the whole history, `4h` starts on 2025-10-07, `1h` on 2026-04-04 17:00 UTC, and `1m`
-        to `30m` on 2026-05-28 19:10 UTC (2026-09-12 14:40 UTC for AVAX, HBAR, LINK, NEAR,
-        TAO, UNI, XMR, ADA, GRAM and LTC; older readings were taken once a day, then every 4
-        hours, then hourly). The 82 pairs added in October 2026 have their own starts, pair
-        by pair: `1d` covers their whole history, `1h` and `4h` start around 2025-10-24,
-        `30m` around 2026-04-22, `15m` around 2026-07-21, and `1m` and `5m` on the day the
-        pair was added (2026-10-19 09:31 UTC, or 2026-10-27 18:03 UTC for the 27 latest).
-        Read older periods at a coarser `timeframe`; a `since_ms` before the start is raised
-        to it, and a window entirely before it returns no rows. Most recent first, or oldest
+        the whole history, `4h` starts on 2025-10-07, `1h` on 2026-04-04 17:00 UTC (on
+        2025-10-24 for the open interest of the 20 original pairs, XMR on 2025-11-11, GRAM
+        excepted, and for their basis, HYPE, XMR and GRAM excepted), and `1m` to `30m` on
+        2026-05-28 19:10 UTC (2026-09-12 14:40 UTC for AVAX, HBAR, LINK, NEAR, TAO, UNI,
+        XMR, ADA, GRAM and LTC; older readings were taken once a day, then every 4 hours,
+        then hourly). The 82 pairs added in October 2026 have their own starts, pair by
+        pair: `1d` covers their whole history, `1h` and `4h` start around 2025-10-24, `30m`
+        around 2026-04-22, `15m` around 2026-07-21, and `1m` and `5m` on the day the pair
+        was added (2026-10-19 09:31 UTC, or 2026-10-27 18:03 UTC for the 27 latest). Read
+        older periods at a coarser `timeframe`; a `since_ms` before the start is raised to
+        it, and a window entirely before it returns no rows. Most recent first, or oldest
         first with `order=asc`. Follow `next` to read the following page (it never repeats a
         row).
 
@@ -5312,16 +5314,18 @@ class AsyncOiChangeHistoryResource(AsyncResource):
         `/v1/oi/history`: same buckets, same `oi`. A venue carried over from a previous
         reading counts with no change. Each `timeframe` starts where readings are at least
         that fine, so `step` is always the real spacing: `1d` covers the whole history, `4h`
-        starts on 2025-10-07, `1h` on 2026-04-04 17:00 UTC, and `1m` to `30m` on 2026-05-28
-        19:10 UTC (2026-09-12 14:40 UTC for AVAX, HBAR, LINK, NEAR, TAO, UNI, XMR, ADA, GRAM
-        and LTC; older readings were taken once a day, then every 4 hours, then hourly). The
-        82 pairs added in October 2026 have their own starts, pair by pair: `1d` covers
-        their whole history, `1h` and `4h` start around 2025-10-24, `30m` around 2026-04-22,
-        `15m` around 2026-07-21, and `1m` and `5m` on the day the pair was added (2026-10-19
-        09:31 UTC, or 2026-10-27 18:03 UTC for the 27 latest). Read older periods at a
-        coarser `timeframe`; a `since_ms` before the start is raised to it, and a window
-        entirely before it returns no rows. Most recent first, or oldest first with
-        `order=asc`. Follow `next` to read the following page (it never repeats a row).
+        starts on 2025-10-07, `1h` on 2026-04-04 17:00 UTC (on 2025-10-24 for the open
+        interest of the 20 original pairs, XMR on 2025-11-11, GRAM excepted, and for their
+        basis, HYPE, XMR and GRAM excepted), and `1m` to `30m` on 2026-05-28 19:10 UTC
+        (2026-09-12 14:40 UTC for AVAX, HBAR, LINK, NEAR, TAO, UNI, XMR, ADA, GRAM and LTC;
+        older readings were taken once a day, then every 4 hours, then hourly). The 82 pairs
+        added in October 2026 have their own starts, pair by pair: `1d` covers their whole
+        history, `1h` and `4h` start around 2025-10-24, `30m` around 2026-04-22, `15m`
+        around 2026-07-21, and `1m` and `5m` on the day the pair was added (2026-10-19 09:31
+        UTC, or 2026-10-27 18:03 UTC for the 27 latest). Read older periods at a coarser
+        `timeframe`; a `since_ms` before the start is raised to it, and a window entirely
+        before it returns no rows. Most recent first, or oldest first with `order=asc`.
+        Follow `next` to read the following page (it never repeats a row).
 
         Args:
             symbol: Trading pair, e.g. `BTCUSDT`. Required. The served pairs: `GET
@@ -5473,16 +5477,18 @@ class AsyncOiHistoryResource(AsyncResource):
         with a partial total. The same quantity, under the same name, as `oi` on
         `/v1/oi/change`. Each `timeframe` starts where readings are at least that fine, so
         `step` is always the real spacing: `1d` covers the whole history, `4h` starts on
-        2025-10-07, `1h` on 2026-04-04 17:00 UTC, and `1m` to `30m` on 2026-05-28 19:10 UTC
-        (2026-09-12 14:40 UTC for AVAX, HBAR, LINK, NEAR, TAO, UNI, XMR, ADA, GRAM and LTC;
-        older readings were taken once a day, then every 4 hours, then hourly). The 82 pairs
-        added in October 2026 have their own starts, pair by pair: `1d` covers their whole
-        history, `1h` and `4h` start around 2025-10-24, `30m` around 2026-04-22, `15m`
-        around 2026-07-21, and `1m` and `5m` on the day the pair was added (2026-10-19 09:31
-        UTC, or 2026-10-27 18:03 UTC for the 27 latest). Read older periods at a coarser
-        `timeframe`; a `since_ms` before the start is raised to it, and a window entirely
-        before it returns no rows. Most recent first, or oldest first with `order=asc`.
-        Follow `next` to read the following page (it never repeats a row).
+        2025-10-07, `1h` on 2026-04-04 17:00 UTC (on 2025-10-24 for the open interest of the
+        20 original pairs, XMR on 2025-11-11, GRAM excepted, and for their basis, HYPE, XMR
+        and GRAM excepted), and `1m` to `30m` on 2026-05-28 19:10 UTC (2026-09-12 14:40 UTC
+        for AVAX, HBAR, LINK, NEAR, TAO, UNI, XMR, ADA, GRAM and LTC; older readings were
+        taken once a day, then every 4 hours, then hourly). The 82 pairs added in October
+        2026 have their own starts, pair by pair: `1d` covers their whole history, `1h` and
+        `4h` start around 2025-10-24, `30m` around 2026-04-22, `15m` around 2026-07-21, and
+        `1m` and `5m` on the day the pair was added (2026-10-19 09:31 UTC, or 2026-10-27
+        18:03 UTC for the 27 latest). Read older periods at a coarser `timeframe`; a
+        `since_ms` before the start is raised to it, and a window entirely before it returns
+        no rows. Most recent first, or oldest first with `order=asc`. Follow `next` to read
+        the following page (it never repeats a row).
 
         Args:
             symbol: Trading pair, e.g. `BTCUSDT`. Required. The served pairs: `GET
@@ -7062,6 +7068,378 @@ class AsyncPriceChangeResource(AsyncResource):
             request_options: Per-request `timeout`, `max_retries` or extra `headers`.
         """
         return await self._call(self._route, {'symbol': symbol, 'fields': fields}, request_options)
+
+
+class AsyncSentimentHistoryResource(AsyncResource):
+    """`/v1/sentiment/history`."""
+
+    _route = RouteSpec(path='/v1/sentiment/history', method='GET', shape='list', model=m.SentimentHistoryItem, paginated=True, path_params=(), max_limit=1000, range_mode=False)
+
+    async def __call__(
+        self,
+        symbol: KnownSymbol | str,
+        indicator: str,
+        *,
+        limit: int | None = None,
+        since: TimeLike | None = None,
+        until: TimeLike | None = None,
+        before: TimeLike | None = None,
+        order: Order | None = None,
+        timeframe: CoarseTimeframe | None = None,
+        fields: Fields | None = None,
+        request_options: RequestOptions | None = None,
+    ) -> Response[list[m.SentimentHistoryItem]]:
+        """GET /v1/sentiment/history — Sentiment indicator history
+
+        One indicator of the pair, bucket by bucket, as it was served at the time: values
+        are computed once per closed bucket with the data known then, and never change. Most
+        recent first, or oldest first with `order=asc`. Follow `next` to read the following
+        page (it never repeats a row).
+
+        Args:
+            symbol: Trading pair, e.g. `BTCUSDT`. Required. The served pairs: `GET
+                /v1/symbols`. Case-insensitive (`btcusdt` works; the envelope gives the
+                canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
+                accepted list.
+            indicator: Indicator of the pair, required: `volatility`, `momentum`, `regime`,
+                `leverage`, `oi_price`, `liquidations`, `order_flow`, `liquidity` or
+                `fear_greed`. Other values: 422 `invalid_parameter` with the accepted list.
+            limit: Number of rows to return, in the reading order (most recent first by
+                default). Bounded by your plan's history window: an explicit `limit` (or
+                `since_ms`) reaching beyond it returns 403 `history_depth`; without them the
+                page simply stops at the window.
+            since: Lower time bound, inclusive. A `datetime` (naive = UTC), a `date`, an ISO
+                string (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
+            until: Upper time bound, inclusive to the millisecond. A `datetime` (naive =
+                UTC), a `date`, an ISO string (`2026-01-01`, `2026-01-01T12:00:00Z`) or
+                epoch milliseconds.
+            before: Upper time bound, exclusive (rows strictly before it). Not combinable
+                with `until`. A `datetime` (naive = UTC), a `date`, an ISO string
+                (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
+            order: Reading order: `desc` (most recent first, the default) or `asc` (oldest
+                first, reading forward from `since_ms`, which is then required). Follow
+                `next` to read the following page.
+            timeframe: Bucket size: `1h` (default), `4h` or `1d`. Values are computed once
+                per CLOSED bucket, a few minutes after its close, and never change. Other
+                values: 422 `invalid_timeframe`.
+            fields: Only return these fields of each row (a list or a comma-separated
+                string; dotted paths reach nested keys). Rows are then partial and not
+                validated.
+            request_options: Per-request `timeout`, `max_retries` or extra `headers`.
+        """
+        return await self._call(self._route, {'symbol': symbol, 'indicator': indicator, 'limit': limit, 'since_ms': since, 'until_ms': until, 'before_ms': before, 'order': order, 'timeframe': timeframe, 'fields': fields}, request_options)
+
+    def iter(
+        self,
+        symbol: KnownSymbol | str,
+        indicator: str,
+        *,
+        since: TimeLike | None = None,
+        until: TimeLike | None = None,
+        order: Order | None = None,
+        timeframe: CoarseTimeframe | None = None,
+        fields: Fields | None = None,
+        page_size: int | None = None,
+        max_items: int | None = None,
+        limit: int | None = None,
+        request_options: RequestOptions | None = None,
+    ) -> AsyncRowIterator[m.SentimentHistoryItem]:
+        """Every row of `/v1/sentiment/history` over a period, following `next` page after page.
+
+        Pages are fetched lazily, `page_size` rows at a time (default with `since`: the
+        route's maximum; without it, the route's default page, which stops at your plan's
+        history window). With `since`, rows come oldest first unless
+        `order` says otherwise. Call `.to_pandas()` / `.to_list()` to collect them.
+
+        Args:
+            symbol: Trading pair, e.g. `BTCUSDT`. Required. The served pairs: `GET
+                /v1/symbols`. Case-insensitive (`btcusdt` works; the envelope gives the
+                canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
+                accepted list.
+            indicator: Indicator of the pair, required: `volatility`, `momentum`, `regime`,
+                `leverage`, `oi_price`, `liquidations`, `order_flow`, `liquidity` or
+                `fear_greed`. Other values: 422 `invalid_parameter` with the accepted list.
+            since: Lower time bound, inclusive. A `datetime` (naive = UTC), a `date`, an ISO
+                string (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
+            until: Upper time bound, inclusive to the millisecond. A `datetime` (naive =
+                UTC), a `date`, an ISO string (`2026-01-01`, `2026-01-01T12:00:00Z`) or
+                epoch milliseconds.
+            order: Reading order: `desc` (most recent first, the default) or `asc` (oldest
+                first, reading forward from `since_ms`, which is then required). Follow
+                `next` to read the following page.
+            timeframe: Bucket size: `1h` (default), `4h` or `1d`. Values are computed once
+                per CLOSED bucket, a few minutes after its close, and never change. Other
+                values: 422 `invalid_timeframe`.
+            fields: Only return these fields of each row (a list or a comma-separated
+                string; dotted paths reach nested keys). Rows are then partial and not
+                validated.
+            page_size: Rows per request (`limit`), up to the route's maximum.
+            max_items: Stop after this many rows.
+            limit: The same as `max_items` (the name the other methods use for a number of
+                rows).
+            request_options: Per-request `timeout`, `max_retries` or extra `headers`.
+        """
+        return self._iter(self._route, {'symbol': symbol, 'indicator': indicator, 'since_ms': since, 'until_ms': until, 'order': order, 'timeframe': timeframe, 'fields': fields}, page_size=page_size, max_items=max_items if max_items is not None else limit, request_options=request_options)
+
+
+class AsyncSentimentMarketHistoryResource(AsyncResource):
+    """`/v1/sentiment/market/history`."""
+
+    _route = RouteSpec(path='/v1/sentiment/market/history', method='GET', shape='list', model=m.SentimentMarketHistoryItem, paginated=True, path_params=(), max_limit=1000, range_mode=False)
+
+    async def __call__(
+        self,
+        indicator: str,
+        *,
+        limit: int | None = None,
+        since: TimeLike | None = None,
+        until: TimeLike | None = None,
+        before: TimeLike | None = None,
+        order: Order | None = None,
+        timeframe: CoarseTimeframe | None = None,
+        fields: Fields | None = None,
+        request_options: RequestOptions | None = None,
+    ) -> Response[list[m.SentimentMarketHistoryItem]]:
+        """GET /v1/sentiment/market/history — Market sentiment history
+
+        One market indicator, bucket by bucket, computed once per closed bucket. Most recent
+        first, or oldest first with `order=asc`. Follow `next` to read the following page
+        (it never repeats a row).
+
+        Args:
+            indicator: Market indicator, required: `breadth`, `market_fear_greed` or
+                `market_phase`. Other values: 422 `invalid_parameter`.
+            limit: Number of rows to return, in the reading order (most recent first by
+                default). Bounded by your plan's history window: an explicit `limit` (or
+                `since_ms`) reaching beyond it returns 403 `history_depth`; without them the
+                page simply stops at the window.
+            since: Lower time bound, inclusive. A `datetime` (naive = UTC), a `date`, an ISO
+                string (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
+            until: Upper time bound, inclusive to the millisecond. A `datetime` (naive =
+                UTC), a `date`, an ISO string (`2026-01-01`, `2026-01-01T12:00:00Z`) or
+                epoch milliseconds.
+            before: Upper time bound, exclusive (rows strictly before it). Not combinable
+                with `until`. A `datetime` (naive = UTC), a `date`, an ISO string
+                (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
+            order: Reading order: `desc` (most recent first, the default) or `asc` (oldest
+                first, reading forward from `since_ms`, which is then required). Follow
+                `next` to read the following page.
+            timeframe: Bucket size: `1h` (default), `4h` or `1d`. Values are computed once
+                per CLOSED bucket, a few minutes after its close, and never change. Other
+                values: 422 `invalid_timeframe`.
+            fields: Only return these fields of each row (a list or a comma-separated
+                string; dotted paths reach nested keys). Rows are then partial and not
+                validated.
+            request_options: Per-request `timeout`, `max_retries` or extra `headers`.
+        """
+        return await self._call(self._route, {'indicator': indicator, 'limit': limit, 'since_ms': since, 'until_ms': until, 'before_ms': before, 'order': order, 'timeframe': timeframe, 'fields': fields}, request_options)
+
+    def iter(
+        self,
+        indicator: str,
+        *,
+        since: TimeLike | None = None,
+        until: TimeLike | None = None,
+        order: Order | None = None,
+        timeframe: CoarseTimeframe | None = None,
+        fields: Fields | None = None,
+        page_size: int | None = None,
+        max_items: int | None = None,
+        limit: int | None = None,
+        request_options: RequestOptions | None = None,
+    ) -> AsyncRowIterator[m.SentimentMarketHistoryItem]:
+        """Every row of `/v1/sentiment/market/history` over a period, following `next` page after page.
+
+        Pages are fetched lazily, `page_size` rows at a time (default with `since`: the
+        route's maximum; without it, the route's default page, which stops at your plan's
+        history window). With `since`, rows come oldest first unless
+        `order` says otherwise. Call `.to_pandas()` / `.to_list()` to collect them.
+
+        Args:
+            indicator: Market indicator, required: `breadth`, `market_fear_greed` or
+                `market_phase`. Other values: 422 `invalid_parameter`.
+            since: Lower time bound, inclusive. A `datetime` (naive = UTC), a `date`, an ISO
+                string (`2026-01-01`, `2026-01-01T12:00:00Z`) or epoch milliseconds.
+            until: Upper time bound, inclusive to the millisecond. A `datetime` (naive =
+                UTC), a `date`, an ISO string (`2026-01-01`, `2026-01-01T12:00:00Z`) or
+                epoch milliseconds.
+            order: Reading order: `desc` (most recent first, the default) or `asc` (oldest
+                first, reading forward from `since_ms`, which is then required). Follow
+                `next` to read the following page.
+            timeframe: Bucket size: `1h` (default), `4h` or `1d`. Values are computed once
+                per CLOSED bucket, a few minutes after its close, and never change. Other
+                values: 422 `invalid_timeframe`.
+            fields: Only return these fields of each row (a list or a comma-separated
+                string; dotted paths reach nested keys). Rows are then partial and not
+                validated.
+            page_size: Rows per request (`limit`), up to the route's maximum.
+            max_items: Stop after this many rows.
+            limit: The same as `max_items` (the name the other methods use for a number of
+                rows).
+            request_options: Per-request `timeout`, `max_retries` or extra `headers`.
+        """
+        return self._iter(self._route, {'indicator': indicator, 'since_ms': since, 'until_ms': until, 'order': order, 'timeframe': timeframe, 'fields': fields}, page_size=page_size, max_items=max_items if max_items is not None else limit, request_options=request_options)
+
+
+class AsyncSentimentMarketResource(AsyncResource):
+    """`/v1/sentiment/market` and its sub-routes."""
+
+    history: AsyncSentimentMarketHistoryResource
+
+    def __init__(self, client: Any) -> None:
+        super().__init__(client)
+        self.history = AsyncSentimentMarketHistoryResource(client)
+
+    _route = RouteSpec(path='/v1/sentiment/market', method='GET', shape='object', model=m.SentimentMarket, paginated=False, path_params=(), max_limit=None, range_mode=False)
+
+    async def __call__(
+        self,
+        *,
+        timeframe: CoarseTimeframe | None = None,
+        fields: Fields | None = None,
+        request_options: RequestOptions | None = None,
+    ) -> Response[m.SentimentMarket | None]:
+        """GET /v1/sentiment/market — Market sentiment
+
+        The whole market at the latest closed bucket: `breadth` (advancers, McClellan, pairs
+        above their averages, new highs and lows, rotation vs BTC, herding, stablecoin
+        share, BTC dominance), `market_fear_greed` (pairs weighted by open interest 55 %,
+        breadth 30 %, dominance 15 %) and `market_phase` (capitulation, stress, euphoria,
+        recovery, broad rally, altcoin rotation, Bitcoin-led, quiet range, mixed), with a
+        one-sentence `summary` citing the most extreme facts. The alternative.me and
+        CoinMarketCap indices: `/v1/fear-greed`.
+
+        Args:
+            timeframe: Bucket size: `1h` (default), `4h` or `1d`. Values are computed once
+                per CLOSED bucket, a few minutes after its close, and never change. Other
+                values: 422 `invalid_timeframe`.
+            fields: Only return these fields of each row (a list or a comma-separated
+                string; dotted paths reach nested keys). Rows are then partial and not
+                validated.
+            request_options: Per-request `timeout`, `max_retries` or extra `headers`.
+        """
+        return await self._call(self._route, {'timeframe': timeframe, 'fields': fields}, request_options)
+
+
+class AsyncSentimentMethodologyResource(AsyncResource):
+    """`/v1/sentiment/methodology`."""
+
+    _route = RouteSpec(path='/v1/sentiment/methodology', method='GET', shape='object', model=m.SentimentMethodology, paginated=False, path_params=(), max_limit=None, range_mode=False)
+
+    async def __call__(
+        self,
+        *,
+        fields: Fields | None = None,
+        request_options: RequestOptions | None = None,
+    ) -> Response[m.SentimentMethodology | None]:
+        """GET /v1/sentiment/methodology — Sentiment methodology
+
+        The published methodology: principles (own-history percentiles, windows, states with
+        hysteresis, frozen values, confidence), and for every indicator its inputs,
+        sub-indicators, score, weights and the entry and stay rule of each state, by
+        priority. `method_version` changes with any threshold or weight.
+
+        Args:
+            fields: Only return these fields of each row (a list or a comma-separated
+                string; dotted paths reach nested keys). Rows are then partial and not
+                validated.
+            request_options: Per-request `timeout`, `max_retries` or extra `headers`.
+        """
+        return await self._call(self._route, {'fields': fields}, request_options)
+
+
+class AsyncSentimentScreenerResource(AsyncResource):
+    """`/v1/sentiment/screener`."""
+
+    _route = RouteSpec(path='/v1/sentiment/screener', method='GET', shape='list', model=m.SentimentScreener, paginated=False, path_params=(), max_limit=200, range_mode=False)
+
+    async def __call__(
+        self,
+        indicator: str,
+        *,
+        limit: int | None = None,
+        timeframe: CoarseTimeframe | None = None,
+        state: str | None = None,
+        fields: Fields | None = None,
+        request_options: RequestOptions | None = None,
+    ) -> Response[list[m.SentimentScreener]]:
+        """GET /v1/sentiment/screener — Pairs by sentiment
+
+        Every pair's value of one indicator at the latest closed bucket, highest score
+        first; `state` keeps the pairs in that state ("which pairs have overheated
+        leverage?": `indicator=leverage&state=overheated_longs`).
+
+        Args:
+            indicator: Indicator of the pair, required: `volatility`, `momentum`, `regime`,
+                `leverage`, `oi_price`, `liquidations`, `order_flow`, `liquidity` or
+                `fear_greed`. Other values: 422 `invalid_parameter` with the accepted list.
+            limit: Number of pairs to return, 1 to 200 (default 100), highest score first.
+            timeframe: Bucket size: `1h` (default), `4h` or `1d`. Values are computed once
+                per CLOSED bucket, a few minutes after its close, and never change. Other
+                values: 422 `invalid_timeframe`.
+            state: Keep only the pairs in this state (e.g. `overheated_longs` for
+                `leverage`); the states of each indicator: `/v1/sentiment/methodology`.
+                Unknown for the indicator: 422 `invalid_parameter` with the accepted list.
+            fields: Only return these fields of each row (a list or a comma-separated
+                string; dotted paths reach nested keys). Rows are then partial and not
+                validated.
+            request_options: Per-request `timeout`, `max_retries` or extra `headers`.
+        """
+        return await self._call(self._route, {'indicator': indicator, 'limit': limit, 'timeframe': timeframe, 'state': state, 'fields': fields}, request_options)
+
+
+class AsyncSentimentResource(AsyncResource):
+    """`/v1/sentiment` and its sub-routes."""
+
+    history: AsyncSentimentHistoryResource
+    market: AsyncSentimentMarketResource
+    methodology: AsyncSentimentMethodologyResource
+    screener: AsyncSentimentScreenerResource
+
+    def __init__(self, client: Any) -> None:
+        super().__init__(client)
+        self.history = AsyncSentimentHistoryResource(client)
+        self.market = AsyncSentimentMarketResource(client)
+        self.methodology = AsyncSentimentMethodologyResource(client)
+        self.screener = AsyncSentimentScreenerResource(client)
+
+    _route = RouteSpec(path='/v1/sentiment', method='GET', shape='object', model=m.Sentiment, paginated=False, path_params=(), max_limit=None, range_mode=False)
+
+    async def __call__(
+        self,
+        symbol: KnownSymbol | str,
+        *,
+        timeframe: CoarseTimeframe | None = None,
+        fields: Fields | None = None,
+        request_options: RequestOptions | None = None,
+    ) -> Response[m.Sentiment | None]:
+        """GET /v1/sentiment — Market sentiment of a pair
+
+        Every sentiment indicator of the pair at the latest closed bucket, and a
+        one-sentence `summary`. Each indicator gives a `score` 0-100, a `state` from a
+        frozen vocabulary, `meaning` (one English sentence with its figures),
+        `state_since_at`, `bars_in_state`, `previous_state`, `confidence`, `drivers` and
+        `components` (its sub-indicators, each with its `percentile` in the pair's own
+        history). Indicators: volatility, momentum, regime, leverage, oi_price,
+        liquidations, order_flow, liquidity, and fear_greed (the pair's Fear & Greed, from
+        five of them with published weights). A value older than 3 buckets is not served as
+        current. Formulas, weights and thresholds: `/v1/sentiment/methodology`. On a
+        stablecoin: 200, `data: null`.
+
+        Args:
+            symbol: Trading pair, e.g. `BTCUSDT`. Required. The served pairs: `GET
+                /v1/symbols`. Case-insensitive (`btcusdt` works; the envelope gives the
+                canonical `BTCUSDT`). An unknown pair returns 422 `invalid_symbol` with the
+                accepted list.
+            timeframe: Bucket size: `1h` (default), `4h` or `1d`. Values are computed once
+                per CLOSED bucket, a few minutes after its close, and never change. Other
+                values: 422 `invalid_timeframe`.
+            fields: Only return these fields of each row (a list or a comma-separated
+                string; dotted paths reach nested keys). Rows are then partial and not
+                validated.
+            request_options: Per-request `timeout`, `max_retries` or extra `headers`.
+        """
+        return await self._call(self._route, {'symbol': symbol, 'timeframe': timeframe, 'fields': fields}, request_options)
 
 
 class AsyncSnapshotResource(AsyncResource):
@@ -9006,6 +9384,7 @@ class AsyncResources:
     options: AsyncOptionsResource
     orderbook: AsyncOrderbookResource
     price_change: AsyncPriceChangeResource
+    sentiment: AsyncSentimentResource
     snapshot: AsyncSnapshotResource
     spread: AsyncSpreadResource
     status: AsyncStatusResource
@@ -9038,6 +9417,7 @@ class AsyncResources:
         self.options = AsyncOptionsResource(self)
         self.orderbook = AsyncOrderbookResource(self)
         self.price_change = AsyncPriceChangeResource(self)
+        self.sentiment = AsyncSentimentResource(self)
         self.snapshot = AsyncSnapshotResource(self)
         self.spread = AsyncSpreadResource(self)
         self.status = AsyncStatusResource(self)

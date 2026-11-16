@@ -23,6 +23,7 @@ SAMPLE_VALUES: dict[str, Any] = {
     "series": "DGS10",
     "expiry": "2026-10-30",
     "dataset": "concentration",
+    "indicator": "fear_greed",
 }
 
 

@@ -120,6 +120,12 @@ ROUTES: dict[str, str] = {
     '/v1/orderbook/spot': 'orderbook.spot',
     '/v1/orderbook/spot/history': 'orderbook.spot.history',
     '/v1/price-change': 'price_change',
+    '/v1/sentiment': 'sentiment',
+    '/v1/sentiment/history': 'sentiment.history',
+    '/v1/sentiment/market': 'sentiment.market',
+    '/v1/sentiment/market/history': 'sentiment.market.history',
+    '/v1/sentiment/methodology': 'sentiment.methodology',
+    '/v1/sentiment/screener': 'sentiment.screener',
     '/v1/snapshot': 'snapshot',
     '/v1/spread/interexchange': 'spread.interexchange',
     '/v1/spread/interexchange/history': 'spread.interexchange.history',
@@ -145,5 +151,5 @@ ROUTES: dict[str, str] = {
     '/v1/trades/spot': 'trades.spot',
     '/v1/ws/token': 'ws.token',
 }
-API_VERSION = '1.0.2'
+API_VERSION = '1.1.0'
 """`info.version` of the contract this SDK was generated from."""

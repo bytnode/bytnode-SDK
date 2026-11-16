@@ -123,6 +123,12 @@ const R_ORDERBOOK_HISTORY: RouteSpec = {"path": "/v1/orderbook/history", "method
 const R_ORDERBOOK_SPOT: RouteSpec = {"path": "/v1/orderbook/spot", "method": "GET", "shape": "object", "model": "Orderbook", "paginated": false, "pathParams": [], "maxLimit": null, "rangeMode": false, "wire": {}};
 const R_ORDERBOOK_SPOT_HISTORY: RouteSpec = {"path": "/v1/orderbook/spot/history", "method": "GET", "shape": "list", "model": "Orderbook", "paginated": true, "pathParams": [], "maxLimit": 1000, "rangeMode": false, "wire": {"since": "since_ms", "until": "until_ms", "before": "before_ms"}};
 const R_PRICE_CHANGE: RouteSpec = {"path": "/v1/price-change", "method": "GET", "shape": "object", "model": "PriceChange", "paginated": false, "pathParams": [], "maxLimit": null, "rangeMode": false, "wire": {}};
+const R_SENTIMENT: RouteSpec = {"path": "/v1/sentiment", "method": "GET", "shape": "object", "model": "Sentiment", "paginated": false, "pathParams": [], "maxLimit": null, "rangeMode": false, "wire": {}};
+const R_SENTIMENT_HISTORY: RouteSpec = {"path": "/v1/sentiment/history", "method": "GET", "shape": "list", "model": "SentimentHistoryItem", "paginated": true, "pathParams": [], "maxLimit": 1000, "rangeMode": false, "wire": {"since": "since_ms", "until": "until_ms", "before": "before_ms"}};
+const R_SENTIMENT_MARKET: RouteSpec = {"path": "/v1/sentiment/market", "method": "GET", "shape": "object", "model": "SentimentMarket", "paginated": false, "pathParams": [], "maxLimit": null, "rangeMode": false, "wire": {}};
+const R_SENTIMENT_MARKET_HISTORY: RouteSpec = {"path": "/v1/sentiment/market/history", "method": "GET", "shape": "list", "model": "SentimentMarketHistoryItem", "paginated": true, "pathParams": [], "maxLimit": 1000, "rangeMode": false, "wire": {"since": "since_ms", "until": "until_ms", "before": "before_ms"}};
+const R_SENTIMENT_METHODOLOGY: RouteSpec = {"path": "/v1/sentiment/methodology", "method": "GET", "shape": "object", "model": "SentimentMethodology", "paginated": false, "pathParams": [], "maxLimit": null, "rangeMode": false, "wire": {}};
+const R_SENTIMENT_SCREENER: RouteSpec = {"path": "/v1/sentiment/screener", "method": "GET", "shape": "list", "model": "SentimentScreener", "paginated": false, "pathParams": [], "maxLimit": 200, "rangeMode": false, "wire": {}};
 const R_SNAPSHOT: RouteSpec = {"path": "/v1/snapshot", "method": "GET", "shape": "snapshot", "model": null, "paginated": false, "pathParams": [], "maxLimit": null, "rangeMode": false, "wire": {}};
 const R_SPREAD_INTEREXCHANGE: RouteSpec = {"path": "/v1/spread/interexchange", "method": "GET", "shape": "object", "model": "SpreadInterexchange", "paginated": false, "pathParams": [], "maxLimit": null, "rangeMode": false, "wire": {}};
 const R_SPREAD_INTEREXCHANGE_HISTORY: RouteSpec = {"path": "/v1/spread/interexchange/history", "method": "GET", "shape": "list", "model": "SpreadInterexchange", "paginated": true, "pathParams": [], "maxLimit": 1000, "rangeMode": false, "wire": {"since": "since_ms", "until": "until_ms", "before": "before_ms"}};
@@ -328,16 +334,17 @@ export interface BasisHistoryResource {
    *
    * One row per closed bucket of `timeframe` (required). Each `timeframe` starts where readings
    * are at least that fine, so `step` is always the real spacing: `1d` covers the whole
-   * history, `4h` starts on 2025-10-07, `1h` on 2026-04-04 17:00 UTC, and `1m` to `30m` on
-   * 2026-05-28 19:10 UTC (2026-09-12 14:40 UTC for AVAX, HBAR, LINK, NEAR, TAO, UNI, XMR, ADA,
-   * GRAM and LTC; older readings were taken once a day, then every 4 hours, then hourly). The
-   * 82 pairs added in October 2026 have their own starts, pair by pair: `1d` covers their whole
-   * history, `1h` and `4h` start around 2025-10-24, `30m` around 2026-04-22, `15m` around
-   * 2026-07-21, and `1m` and `5m` on the day the pair was added (2026-10-19 09:31 UTC, or
-   * 2026-10-27 18:03 UTC for the 27 latest). Read older periods at a coarser `timeframe`; a
-   * `since_ms` before the start is raised to it, and a window entirely before it returns no
-   * rows. Most recent first, or oldest first with `order=asc`. Follow `next` to read the
-   * following page (it never repeats a row).
+   * history, `4h` starts on 2025-10-07, `1h` on 2026-04-04 17:00 UTC (on 2025-10-24 for the
+   * open interest of the 20 original pairs, XMR on 2025-11-11, GRAM excepted, and for their
+   * basis, HYPE, XMR and GRAM excepted), and `1m` to `30m` on 2026-05-28 19:10 UTC (2026-09-12
+   * 14:40 UTC for AVAX, HBAR, LINK, NEAR, TAO, UNI, XMR, ADA, GRAM and LTC; older readings were
+   * taken once a day, then every 4 hours, then hourly). The 82 pairs added in October 2026 have
+   * their own starts, pair by pair: `1d` covers their whole history, `1h` and `4h` start around
+   * 2025-10-24, `30m` around 2026-04-22, `15m` around 2026-07-21, and `1m` and `5m` on the day
+   * the pair was added (2026-10-19 09:31 UTC, or 2026-10-27 18:03 UTC for the 27 latest). Read
+   * older periods at a coarser `timeframe`; a `since_ms` before the start is raised to it, and
+   * a window entirely before it returns no rows. Most recent first, or oldest first with
+   * `order=asc`. Follow `next` to read the following page (it never repeats a row).
    */
   (params: BasisHistoryParams, options?: RequestOptions): Promise<ApiResponse<Array<M.BasisHistoryItem>>>;
   /**
@@ -4498,16 +4505,17 @@ export interface OiChangeHistoryResource {
    * `/v1/oi/history`: same buckets, same `oi`. A venue carried over from a previous reading
    * counts with no change. Each `timeframe` starts where readings are at least that fine, so
    * `step` is always the real spacing: `1d` covers the whole history, `4h` starts on
-   * 2025-10-07, `1h` on 2026-04-04 17:00 UTC, and `1m` to `30m` on 2026-05-28 19:10 UTC
-   * (2026-09-12 14:40 UTC for AVAX, HBAR, LINK, NEAR, TAO, UNI, XMR, ADA, GRAM and LTC; older
-   * readings were taken once a day, then every 4 hours, then hourly). The 82 pairs added in
-   * October 2026 have their own starts, pair by pair: `1d` covers their whole history, `1h` and
-   * `4h` start around 2025-10-24, `30m` around 2026-04-22, `15m` around 2026-07-21, and `1m`
-   * and `5m` on the day the pair was added (2026-10-19 09:31 UTC, or 2026-10-27 18:03 UTC for
-   * the 27 latest). Read older periods at a coarser `timeframe`; a `since_ms` before the start
-   * is raised to it, and a window entirely before it returns no rows. Most recent first, or
-   * oldest first with `order=asc`. Follow `next` to read the following page (it never repeats a
-   * row).
+   * 2025-10-07, `1h` on 2026-04-04 17:00 UTC (on 2025-10-24 for the open interest of the 20
+   * original pairs, XMR on 2025-11-11, GRAM excepted, and for their basis, HYPE, XMR and GRAM
+   * excepted), and `1m` to `30m` on 2026-05-28 19:10 UTC (2026-09-12 14:40 UTC for AVAX, HBAR,
+   * LINK, NEAR, TAO, UNI, XMR, ADA, GRAM and LTC; older readings were taken once a day, then
+   * every 4 hours, then hourly). The 82 pairs added in October 2026 have their own starts, pair
+   * by pair: `1d` covers their whole history, `1h` and `4h` start around 2025-10-24, `30m`
+   * around 2026-04-22, `15m` around 2026-07-21, and `1m` and `5m` on the day the pair was added
+   * (2026-10-19 09:31 UTC, or 2026-10-27 18:03 UTC for the 27 latest). Read older periods at a
+   * coarser `timeframe`; a `since_ms` before the start is raised to it, and a window entirely
+   * before it returns no rows. Most recent first, or oldest first with `order=asc`. Follow
+   * `next` to read the following page (it never repeats a row).
    */
   (params: OiChangeHistoryParams, options?: RequestOptions): Promise<ApiResponse<Array<M.OiChangeHistoryItem>>>;
   /**
@@ -4638,16 +4646,17 @@ export interface OiHistoryResource {
    * that recent is left out rather than served with a partial total. The same quantity, under
    * the same name, as `oi` on `/v1/oi/change`. Each `timeframe` starts where readings are at
    * least that fine, so `step` is always the real spacing: `1d` covers the whole history, `4h`
-   * starts on 2025-10-07, `1h` on 2026-04-04 17:00 UTC, and `1m` to `30m` on 2026-05-28 19:10
-   * UTC (2026-09-12 14:40 UTC for AVAX, HBAR, LINK, NEAR, TAO, UNI, XMR, ADA, GRAM and LTC;
-   * older readings were taken once a day, then every 4 hours, then hourly). The 82 pairs added
-   * in October 2026 have their own starts, pair by pair: `1d` covers their whole history, `1h`
-   * and `4h` start around 2025-10-24, `30m` around 2026-04-22, `15m` around 2026-07-21, and
-   * `1m` and `5m` on the day the pair was added (2026-10-19 09:31 UTC, or 2026-10-27 18:03 UTC
-   * for the 27 latest). Read older periods at a coarser `timeframe`; a `since_ms` before the
-   * start is raised to it, and a window entirely before it returns no rows. Most recent first,
-   * or oldest first with `order=asc`. Follow `next` to read the following page (it never
-   * repeats a row).
+   * starts on 2025-10-07, `1h` on 2026-04-04 17:00 UTC (on 2025-10-24 for the open interest of
+   * the 20 original pairs, XMR on 2025-11-11, GRAM excepted, and for their basis, HYPE, XMR and
+   * GRAM excepted), and `1m` to `30m` on 2026-05-28 19:10 UTC (2026-09-12 14:40 UTC for AVAX,
+   * HBAR, LINK, NEAR, TAO, UNI, XMR, ADA, GRAM and LTC; older readings were taken once a day,
+   * then every 4 hours, then hourly). The 82 pairs added in October 2026 have their own starts,
+   * pair by pair: `1d` covers their whole history, `1h` and `4h` start around 2025-10-24, `30m`
+   * around 2026-04-22, `15m` around 2026-07-21, and `1m` and `5m` on the day the pair was added
+   * (2026-10-19 09:31 UTC, or 2026-10-27 18:03 UTC for the 27 latest). Read older periods at a
+   * coarser `timeframe`; a `since_ms` before the start is raised to it, and a window entirely
+   * before it returns no rows. Most recent first, or oldest first with `order=asc`. Follow
+   * `next` to read the following page (it never repeats a row).
    */
   (params: OiHistoryParams, options?: RequestOptions): Promise<ApiResponse<Array<M.OiHistoryItem>>>;
   /**
@@ -5939,6 +5948,333 @@ export interface PriceChangeResource {
    * instant minus the window. Spot-based for stablecoins.
    */
   (params: PriceChangeParams, options?: RequestOptions): Promise<ApiResponse<M.PriceChange | null>>;
+}
+
+export interface SentimentHistoryParams {
+  /**
+   * Indicator of the pair, required: `volatility`, `momentum`, `regime`, `leverage`,
+   * `oi_price`, `liquidations`, `order_flow`, `liquidity` or `fear_greed`. Other values: 422
+   * `invalid_parameter` with the accepted list.
+   */
+  indicator: string;
+  /**
+   * Bucket size: `1h` (default), `4h` or `1d`. Values are computed once per CLOSED bucket, a
+   * few minutes after its close, and never change. Other values: 422 `invalid_timeframe`.
+   */
+  timeframe?: CoarseTimeframe;
+  /**
+   * Lower time bound, inclusive. A `Date`, an ISO string (`2026-01-01`) or epoch milliseconds.
+   */
+  since?: TimeLike;
+  /**
+   * Upper time bound, inclusive to the millisecond. A `Date`, an ISO string (`2026-01-01`) or
+   * epoch milliseconds.
+   */
+  until?: TimeLike;
+  /**
+   * Number of rows to return, in the reading order (most recent first by default). Bounded by
+   * your plan's history window: an explicit `limit` (or `since_ms`) reaching beyond it returns
+   * 403 `history_depth`; without them the page simply stops at the window.
+   */
+  limit?: number;
+  /**
+   * Trading pair, e.g. `BTCUSDT`. Required. The served pairs: `GET /v1/symbols`.
+   * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
+   * pair returns 422 `invalid_symbol` with the accepted list.
+   */
+  symbol: KnownSymbol | (string & {});
+  /**
+   * Only return these fields of each row (array or comma-separated). Rows are then partial.
+   */
+  fields?: Fields;
+  /**
+   * Upper time bound, exclusive (rows strictly before it). Not combinable with `until`. A
+   * `Date`, an ISO string (`2026-01-01`) or epoch milliseconds.
+   */
+  before?: TimeLike;
+  /**
+   * Reading order: `desc` (most recent first, the default) or `asc` (oldest first, reading
+   * forward from `since_ms`, which is then required). Follow `next` to read the following page.
+   */
+  order?: Order;
+}
+
+export interface SentimentHistoryIterParams {
+  /**
+   * Indicator of the pair, required: `volatility`, `momentum`, `regime`, `leverage`,
+   * `oi_price`, `liquidations`, `order_flow`, `liquidity` or `fear_greed`. Other values: 422
+   * `invalid_parameter` with the accepted list.
+   */
+  indicator: string;
+  /**
+   * Bucket size: `1h` (default), `4h` or `1d`. Values are computed once per CLOSED bucket, a
+   * few minutes after its close, and never change. Other values: 422 `invalid_timeframe`.
+   */
+  timeframe?: CoarseTimeframe;
+  /**
+   * Lower time bound, inclusive. A `Date`, an ISO string (`2026-01-01`) or epoch milliseconds.
+   */
+  since?: TimeLike;
+  /**
+   * Upper time bound, inclusive to the millisecond. A `Date`, an ISO string (`2026-01-01`) or
+   * epoch milliseconds.
+   */
+  until?: TimeLike;
+  /**
+   * Trading pair, e.g. `BTCUSDT`. Required. The served pairs: `GET /v1/symbols`.
+   * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
+   * pair returns 422 `invalid_symbol` with the accepted list.
+   */
+  symbol: KnownSymbol | (string & {});
+  /**
+   * Only return these fields of each row (array or comma-separated). Rows are then partial.
+   */
+  fields?: Fields;
+  /**
+   * Reading order: `desc` (most recent first, the default) or `asc` (oldest first, reading
+   * forward from `since_ms`, which is then required). Follow `next` to read the following page.
+   */
+  order?: Order;
+}
+
+export type SentimentHistoryIterOptions = SentimentHistoryIterParams & IterOptions;
+
+/** `/v1/sentiment/history`. */
+export interface SentimentHistoryResource {
+  /**
+   * GET /v1/sentiment/history — Sentiment indicator history
+   *
+   * One indicator of the pair, bucket by bucket, as it was served at the time: values are
+   * computed once per closed bucket with the data known then, and never change. Most recent
+   * first, or oldest first with `order=asc`. Follow `next` to read the following page (it never
+   * repeats a row).
+   */
+  (params: SentimentHistoryParams, options?: RequestOptions): Promise<ApiResponse<Array<M.SentimentHistoryItem>>>;
+  /**
+   * Every row of `/v1/sentiment/history` over a period, following `next` page after page (`for
+   * await`).
+   */
+  iter(params: SentimentHistoryIterOptions, options?: RequestOptions): RowIterator<M.SentimentHistoryItem>;
+}
+
+export interface SentimentMarketHistoryParams {
+  /**
+   * Market indicator, required: `breadth`, `market_fear_greed` or `market_phase`. Other values:
+   * 422 `invalid_parameter`.
+   */
+  indicator: string;
+  /**
+   * Bucket size: `1h` (default), `4h` or `1d`. Values are computed once per CLOSED bucket, a
+   * few minutes after its close, and never change. Other values: 422 `invalid_timeframe`.
+   */
+  timeframe?: CoarseTimeframe;
+  /**
+   * Lower time bound, inclusive. A `Date`, an ISO string (`2026-01-01`) or epoch milliseconds.
+   */
+  since?: TimeLike;
+  /**
+   * Upper time bound, inclusive to the millisecond. A `Date`, an ISO string (`2026-01-01`) or
+   * epoch milliseconds.
+   */
+  until?: TimeLike;
+  /**
+   * Number of rows to return, in the reading order (most recent first by default). Bounded by
+   * your plan's history window: an explicit `limit` (or `since_ms`) reaching beyond it returns
+   * 403 `history_depth`; without them the page simply stops at the window.
+   */
+  limit?: number;
+  /**
+   * Only return these fields of each row (array or comma-separated). Rows are then partial.
+   */
+  fields?: Fields;
+  /**
+   * Upper time bound, exclusive (rows strictly before it). Not combinable with `until`. A
+   * `Date`, an ISO string (`2026-01-01`) or epoch milliseconds.
+   */
+  before?: TimeLike;
+  /**
+   * Reading order: `desc` (most recent first, the default) or `asc` (oldest first, reading
+   * forward from `since_ms`, which is then required). Follow `next` to read the following page.
+   */
+  order?: Order;
+}
+
+export interface SentimentMarketHistoryIterParams {
+  /**
+   * Market indicator, required: `breadth`, `market_fear_greed` or `market_phase`. Other values:
+   * 422 `invalid_parameter`.
+   */
+  indicator: string;
+  /**
+   * Bucket size: `1h` (default), `4h` or `1d`. Values are computed once per CLOSED bucket, a
+   * few minutes after its close, and never change. Other values: 422 `invalid_timeframe`.
+   */
+  timeframe?: CoarseTimeframe;
+  /**
+   * Lower time bound, inclusive. A `Date`, an ISO string (`2026-01-01`) or epoch milliseconds.
+   */
+  since?: TimeLike;
+  /**
+   * Upper time bound, inclusive to the millisecond. A `Date`, an ISO string (`2026-01-01`) or
+   * epoch milliseconds.
+   */
+  until?: TimeLike;
+  /**
+   * Only return these fields of each row (array or comma-separated). Rows are then partial.
+   */
+  fields?: Fields;
+  /**
+   * Reading order: `desc` (most recent first, the default) or `asc` (oldest first, reading
+   * forward from `since_ms`, which is then required). Follow `next` to read the following page.
+   */
+  order?: Order;
+}
+
+export type SentimentMarketHistoryIterOptions = SentimentMarketHistoryIterParams & IterOptions;
+
+/** `/v1/sentiment/market/history`. */
+export interface SentimentMarketHistoryResource {
+  /**
+   * GET /v1/sentiment/market/history — Market sentiment history
+   *
+   * One market indicator, bucket by bucket, computed once per closed bucket. Most recent first,
+   * or oldest first with `order=asc`. Follow `next` to read the following page (it never
+   * repeats a row).
+   */
+  (params: SentimentMarketHistoryParams, options?: RequestOptions): Promise<ApiResponse<Array<M.SentimentMarketHistoryItem>>>;
+  /**
+   * Every row of `/v1/sentiment/market/history` over a period, following `next` page after page
+   * (`for await`).
+   */
+  iter(params: SentimentMarketHistoryIterOptions, options?: RequestOptions): RowIterator<M.SentimentMarketHistoryItem>;
+}
+
+export interface SentimentMarketParams {
+  /**
+   * Bucket size: `1h` (default), `4h` or `1d`. Values are computed once per CLOSED bucket, a
+   * few minutes after its close, and never change. Other values: 422 `invalid_timeframe`.
+   */
+  timeframe?: CoarseTimeframe;
+  /**
+   * Only return these fields of each row (array or comma-separated). Rows are then partial.
+   */
+  fields?: Fields;
+}
+
+/** `/v1/sentiment/market` and its sub-routes. */
+export interface SentimentMarketResource {
+  /**
+   * GET /v1/sentiment/market — Market sentiment
+   *
+   * The whole market at the latest closed bucket: `breadth` (advancers, McClellan, pairs above
+   * their averages, new highs and lows, rotation vs BTC, herding, stablecoin share, BTC
+   * dominance), `market_fear_greed` (pairs weighted by open interest 55 %, breadth 30 %,
+   * dominance 15 %) and `market_phase` (capitulation, stress, euphoria, recovery, broad rally,
+   * altcoin rotation, Bitcoin-led, quiet range, mixed), with a one-sentence `summary` citing
+   * the most extreme facts. The alternative.me and CoinMarketCap indices: `/v1/fear-greed`.
+   */
+  (params?: SentimentMarketParams, options?: RequestOptions): Promise<ApiResponse<M.SentimentMarket | null>>;
+  history: SentimentMarketHistoryResource;
+}
+
+export interface SentimentMethodologyParams {
+  /**
+   * Only return these fields of each row (array or comma-separated). Rows are then partial.
+   */
+  fields?: Fields;
+}
+
+/** `/v1/sentiment/methodology`. */
+export interface SentimentMethodologyResource {
+  /**
+   * GET /v1/sentiment/methodology — Sentiment methodology
+   *
+   * The published methodology: principles (own-history percentiles, windows, states with
+   * hysteresis, frozen values, confidence), and for every indicator its inputs, sub-indicators,
+   * score, weights and the entry and stay rule of each state, by priority. `method_version`
+   * changes with any threshold or weight.
+   */
+  (params?: SentimentMethodologyParams, options?: RequestOptions): Promise<ApiResponse<M.SentimentMethodology | null>>;
+}
+
+export interface SentimentScreenerParams {
+  /**
+   * Indicator of the pair, required: `volatility`, `momentum`, `regime`, `leverage`,
+   * `oi_price`, `liquidations`, `order_flow`, `liquidity` or `fear_greed`. Other values: 422
+   * `invalid_parameter` with the accepted list.
+   */
+  indicator: string;
+  /**
+   * Bucket size: `1h` (default), `4h` or `1d`. Values are computed once per CLOSED bucket, a
+   * few minutes after its close, and never change. Other values: 422 `invalid_timeframe`.
+   */
+  timeframe?: CoarseTimeframe;
+  /**
+   * Keep only the pairs in this state (e.g. `overheated_longs` for `leverage`); the states of
+   * each indicator: `/v1/sentiment/methodology`. Unknown for the indicator: 422
+   * `invalid_parameter` with the accepted list.
+   */
+  state?: string;
+  /**
+   * Number of pairs to return, 1 to 200 (default 100), highest score first.
+   */
+  limit?: number;
+  /**
+   * Only return these fields of each row (array or comma-separated). Rows are then partial.
+   */
+  fields?: Fields;
+}
+
+/** `/v1/sentiment/screener`. */
+export interface SentimentScreenerResource {
+  /**
+   * GET /v1/sentiment/screener — Pairs by sentiment
+   *
+   * Every pair's value of one indicator at the latest closed bucket, highest score first;
+   * `state` keeps the pairs in that state ("which pairs have overheated leverage?":
+   * `indicator=leverage&state=overheated_longs`).
+   */
+  (params: SentimentScreenerParams, options?: RequestOptions): Promise<ApiResponse<Array<M.SentimentScreener>>>;
+}
+
+export interface SentimentParams {
+  /**
+   * Bucket size: `1h` (default), `4h` or `1d`. Values are computed once per CLOSED bucket, a
+   * few minutes after its close, and never change. Other values: 422 `invalid_timeframe`.
+   */
+  timeframe?: CoarseTimeframe;
+  /**
+   * Trading pair, e.g. `BTCUSDT`. Required. The served pairs: `GET /v1/symbols`.
+   * Case-insensitive (`btcusdt` works; the envelope gives the canonical `BTCUSDT`). An unknown
+   * pair returns 422 `invalid_symbol` with the accepted list.
+   */
+  symbol: KnownSymbol | (string & {});
+  /**
+   * Only return these fields of each row (array or comma-separated). Rows are then partial.
+   */
+  fields?: Fields;
+}
+
+/** `/v1/sentiment` and its sub-routes. */
+export interface SentimentResource {
+  /**
+   * GET /v1/sentiment — Market sentiment of a pair
+   *
+   * Every sentiment indicator of the pair at the latest closed bucket, and a one-sentence
+   * `summary`. Each indicator gives a `score` 0-100, a `state` from a frozen vocabulary,
+   * `meaning` (one English sentence with its figures), `state_since_at`, `bars_in_state`,
+   * `previous_state`, `confidence`, `drivers` and `components` (its sub-indicators, each with
+   * its `percentile` in the pair's own history). Indicators: volatility, momentum, regime,
+   * leverage, oi_price, liquidations, order_flow, liquidity, and fear_greed (the pair's Fear &
+   * Greed, from five of them with published weights). A value older than 3 buckets is not
+   * served as current. Formulas, weights and thresholds: `/v1/sentiment/methodology`. On a
+   * stablecoin: 200, `data: null`.
+   */
+  (params: SentimentParams, options?: RequestOptions): Promise<ApiResponse<M.Sentiment | null>>;
+  history: SentimentHistoryResource;
+  market: SentimentMarketResource;
+  methodology: SentimentMethodologyResource;
+  screener: SentimentScreenerResource;
 }
 
 /** A snapshot depth: `true` for the latest value, `N` for the N latest rows. */
@@ -7971,6 +8307,7 @@ export interface Resources {
   options: OptionsResource;
   orderbook: OrderbookResource;
   priceChange: PriceChangeResource;
+  sentiment: SentimentResource;
   snapshot: SnapshotResource;
   spread: SpreadResource;
   status: StatusResource;
@@ -8163,6 +8500,14 @@ export function createResources(core: Core): Resources {
       })
     }) as OrderbookResource,
     priceChange: core.resource(R_PRICE_CHANGE) as PriceChangeResource,
+    sentiment: Object.assign(core.resource(R_SENTIMENT), {
+      history: core.resource(R_SENTIMENT_HISTORY),
+      market: Object.assign(core.resource(R_SENTIMENT_MARKET), {
+        history: core.resource(R_SENTIMENT_MARKET_HISTORY)
+      }),
+      methodology: core.resource(R_SENTIMENT_METHODOLOGY),
+      screener: core.resource(R_SENTIMENT_SCREENER)
+    }) as SentimentResource,
     snapshot: core.snapshotResource(R_SNAPSHOT) as SnapshotResource,
     spread: {
       interexchange: Object.assign(core.resource(R_SPREAD_INTEREXCHANGE), {
@@ -8320,6 +8665,12 @@ export const ROUTES: Record<string, string> = {
   "/v1/orderbook/spot": "orderbook.spot",
   "/v1/orderbook/spot/history": "orderbook.spot.history",
   "/v1/price-change": "priceChange",
+  "/v1/sentiment": "sentiment",
+  "/v1/sentiment/history": "sentiment.history",
+  "/v1/sentiment/market": "sentiment.market",
+  "/v1/sentiment/market/history": "sentiment.market.history",
+  "/v1/sentiment/methodology": "sentiment.methodology",
+  "/v1/sentiment/screener": "sentiment.screener",
   "/v1/snapshot": "snapshot",
   "/v1/spread/interexchange": "spread.interexchange",
   "/v1/spread/interexchange/history": "spread.interexchange.history",
@@ -8346,4 +8697,4 @@ export const ROUTES: Record<string, string> = {
   "/v1/ws/token": "ws.token",
 };
 /** `info.version` of the contract this SDK was generated from. */
-export const API_VERSION = "1.0.2";
+export const API_VERSION = "1.1.0";

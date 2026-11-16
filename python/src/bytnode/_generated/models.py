@@ -1536,6 +1536,653 @@ class PriceChange(BytnodeModel):
     changes_pct: PriceChangeChangesPct = PydField(description='Price change over each window, keyed by window (`1m` … `1w`), in percent.')
 
 
+class SentimentIndicatorsItemComponentsRv7d(BytnodeModel):
+    """Rogers-Satchell realized volatility over 7 days, annualized, percent."""
+
+    value: float | None = PydField(None, description="The sub-indicator's value, in the unit of its name.")
+    percentile: int | None = PydField(None, description="Rank 0-100 of the value in the pair's own history (strictly past). Unit: dimensionless score.")
+
+
+class SentimentIndicatorsItemComponentsRv24h(BytnodeModel):
+    """Rogers-Satchell realized volatility over 24 hours, annualized, percent."""
+
+    value: float | None = PydField(None, description="The sub-indicator's value, in the unit of its name.")
+    percentile: int | None = PydField(None, description="Rank 0-100 of the value in the pair's own history (strictly past). Unit: dimensionless score.")
+
+
+class SentimentIndicatorsItemComponentsRv30d(BytnodeModel):
+    """Rogers-Satchell realized volatility over 30 days, annualized, percent."""
+
+    value: float | None = PydField(None, description="The sub-indicator's value, in the unit of its name.")
+    percentile: int | None = PydField(None, description="Rank 0-100 of the value in the pair's own history (strictly past). Unit: dimensionless score.")
+
+
+class SentimentIndicatorsItemComponentsShockZ(BytnodeModel):
+    """|last log return| / lagged EWMA volatility."""
+
+    value: float | None = PydField(None, description="The sub-indicator's value, in the unit of its name.")
+
+
+class SentimentIndicatorsItemComponentsRvRatio(BytnodeModel):
+    """Short / long realized volatility (above 1: stress building)."""
+
+    value: float | None = PydField(None, description="The sub-indicator's value, in the unit of its name.")
+    percentile: int | None = PydField(None, description="Rank 0-100 of the value in the pair's own history (strictly past). Unit: dimensionless score.")
+
+
+class SentimentIndicatorsItemComponentsBandwidth(BytnodeModel):
+    """Bollinger (20, 2) width / middle band; percentile over 180 days."""
+
+    value: float | None = PydField(None, description="The sub-indicator's value, in the unit of its name.")
+    percentile: int | None = PydField(None, description="Rank 0-100 of the value in the pair's own history (strictly past). Unit: dimensionless score.")
+
+
+class SentimentIndicatorsItemComponentsVolOfVol(BytnodeModel):
+    """Standard deviation of the change of log short volatility, 30 days."""
+
+    value: float | None = PydField(None, description="The sub-indicator's value, in the unit of its name.")
+
+
+class SentimentIndicatorsItemComponentsRangeShock(BytnodeModel):
+    """True range / lagged ATR(14)."""
+
+    value: float | None = PydField(None, description="The sub-indicator's value, in the unit of its name.")
+
+
+class SentimentIndicatorsItemComponentsIsSqueezeOn(BytnodeModel):
+    """Bollinger bands fully inside Keltner (20, 1.5 x ATR)."""
+
+    value: bool | None = PydField(None, description="The sub-indicator's value, in the unit of its name.")
+
+
+class SentimentIndicatorsItemComponents(BytnodeModel):
+    """Sub-indicators: each `{value, percentile?}` (percentile = rank 0-100 in the pair's own history), or a plain value for flags and labels."""
+
+    rv_7d: SentimentIndicatorsItemComponentsRv7d | None = PydField(None, description='Rogers-Satchell realized volatility over 7 days, annualized, percent.')
+    rv_24h: SentimentIndicatorsItemComponentsRv24h | None = PydField(None, description='Rogers-Satchell realized volatility over 24 hours, annualized, percent.')
+    rv_30d: SentimentIndicatorsItemComponentsRv30d | None = PydField(None, description='Rogers-Satchell realized volatility over 30 days, annualized, percent.')
+    shock_z: SentimentIndicatorsItemComponentsShockZ | None = PydField(None, description='|last log return| / lagged EWMA volatility.')
+    rv_ratio: SentimentIndicatorsItemComponentsRvRatio | None = PydField(None, description='Short / long realized volatility (above 1: stress building).')
+    bandwidth: SentimentIndicatorsItemComponentsBandwidth | None = PydField(None, description='Bollinger (20, 2) width / middle band; percentile over 180 days.')
+    vol_of_vol: SentimentIndicatorsItemComponentsVolOfVol | None = PydField(None, description='Standard deviation of the change of log short volatility, 30 days.')
+    range_shock: SentimentIndicatorsItemComponentsRangeShock | None = PydField(None, description='True range / lagged ATR(14).')
+    is_squeeze_on: SentimentIndicatorsItemComponentsIsSqueezeOn | None = PydField(None, description='Bollinger bands fully inside Keltner (20, 1.5 x ATR).')
+
+
+class SentimentIndicatorsItemInputs(BytnodeModel):
+    """What the value was computed from: windows, coverage, missing parts."""
+
+    windows_days: list[int] | None = PydField(None, description='Short / medium / long volatility windows, days.')
+
+
+class SentimentIndicatorsItem(BytnodeModel):
+    """Nested object (SentimentIndicatorsItem)."""
+
+    time: datetime | None = PydField(None, description='Start of the bucket of `timeframe` the value was computed on, once the bucket closed. Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
+    indicator: str | None = PydField(None, description='Indicator name (see `/v1/sentiment/methodology`).')
+    timeframe: str | None = PydField(None, description='Bucket size of the row.')
+    score: float | None = PydField(None, description="0-100 in the indicator's own direction (see `score_meaning` in the methodology); `null` while warming up. Unit: dimensionless score.")
+    state: str | None = PydField(None, description="The indicator's state, a frozen snake_case vocabulary; `warming_up` while the history is too short.")
+    meaning: str | None = PydField(None, description='One English sentence explaining the state, with its figures.')
+    state_since_at: datetime | None = PydField(None, description='Start of the first bucket of the current state. Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
+    bars_in_state: int | None = PydField(None, description='Number of buckets in the current state, this one included. Unit: count.')
+    previous_state: str | None = PydField(None, description='The state before the last change (`null` if none known).')
+    confidence: str | None = PydField(None, description='`high`, `medium` or `low`: low when an input is missing or the score is within 3 points of a threshold, medium when the history is shorter than twice the minimum.')
+    drivers: list[str] = PydField(description='The 3 sub-indicators farthest from their middle (`name pNN` for percentiles, `name NN/100` for composite axes).')
+    components: SentimentIndicatorsItemComponents = PydField(description="Sub-indicators: each `{value, percentile?}` (percentile = rank 0-100 in the pair's own history), or a plain value for flags and labels.")
+    inputs: SentimentIndicatorsItemInputs = PydField(description='What the value was computed from: windows, coverage, missing parts.')
+    history_points: int | None = PydField(None, description="Points of the indicator's own history used to place it (window of the timeframe). Unit: count.")
+    method_version: int | None = PydField(None, description='Version of the published methodology; any threshold or weight change increments it. Unit: count.')
+
+
+class Sentiment(BytnodeModel):
+    """Row of `/v1/sentiment`."""
+
+    summary: str | None = PydField(None, description='One deterministic English sentence summarizing the most extreme facts (no language model).')
+    indicators: list[SentimentIndicatorsItem] = PydField(description='The indicators of the bucket, one object each, in the published order.')
+
+
+class SentimentHistoryItemComponentsRaw(BytnodeModel):
+    """Unsmoothed value (pair: 50 + 1.5 x (weighted_mean - 50), in [0, 100])."""
+
+    value: float | None = PydField(None, description="The sub-indicator's value, in the unit of its name.")
+
+
+class SentimentHistoryItemComponentsLeverage(BytnodeModel):
+    """Axis: the leverage positioning."""
+
+    value: float | None = PydField(None, description="The sub-indicator's value, in the unit of its name.")
+
+
+class SentimentHistoryItemComponentsMomentum(BytnodeModel):
+    """Axis 0 = fear, 100 = greed: the momentum score."""
+
+    value: float | None = PydField(None, description="The sub-indicator's value, in the unit of its name.")
+
+
+class SentimentHistoryItemComponentsOrderFlow(BytnodeModel):
+    """Axis: the order_flow score."""
+
+    value: float | None = PydField(None, description="The sub-indicator's value, in the unit of its name.")
+
+
+class SentimentHistoryItemComponentsLiquidations(BytnodeModel):
+    """Axis: 50 + 50 x (short share - long share) x intensity percentile / 100."""
+
+    value: float | None = PydField(None, description="The sub-indicator's value, in the unit of its name.")
+
+
+class SentimentHistoryItemComponentsWeightedMean(BytnodeModel):
+    """Weighted mean of the available axes (weights renormalized)."""
+
+    value: float | None = PydField(None, description="The sub-indicator's value, in the unit of its name.")
+
+
+class SentimentHistoryItemComponentsWeightCovered(BytnodeModel):
+    """Share of the published weights available."""
+
+    value: float | None = PydField(None, description="The sub-indicator's value, in the unit of its name.")
+
+
+class SentimentHistoryItemComponentsVolatilityCalm(BytnodeModel):
+    """Axis: 100 - volatility score."""
+
+    value: float | None = PydField(None, description="The sub-indicator's value, in the unit of its name.")
+
+
+class SentimentHistoryItemComponents(BytnodeModel):
+    """Sub-indicators: each `{value, percentile?}` (percentile = rank 0-100 in the pair's own history), or a plain value for flags and labels."""
+
+    raw: SentimentHistoryItemComponentsRaw = PydField(description='Unsmoothed value (pair: 50 + 1.5 x (weighted_mean - 50), in [0, 100]).')
+    leverage: SentimentHistoryItemComponentsLeverage = PydField(description='Axis: the leverage positioning.')
+    momentum: SentimentHistoryItemComponentsMomentum = PydField(description='Axis 0 = fear, 100 = greed: the momentum score.')
+    order_flow: SentimentHistoryItemComponentsOrderFlow = PydField(description='Axis: the order_flow score.')
+    liquidations: SentimentHistoryItemComponentsLiquidations = PydField(description='Axis: 50 + 50 x (short share - long share) x intensity percentile / 100.')
+    weighted_mean: SentimentHistoryItemComponentsWeightedMean = PydField(description='Weighted mean of the available axes (weights renormalized).')
+    weight_covered: SentimentHistoryItemComponentsWeightCovered = PydField(description='Share of the published weights available.')
+    volatility_calm: SentimentHistoryItemComponentsVolatilityCalm = PydField(description='Axis: 100 - volatility score.')
+
+
+class SentimentHistoryItem(BytnodeModel):
+    """Row of `/v1/sentiment/history`."""
+
+    time: datetime | None = PydField(None, description='Start of the bucket of `timeframe` the value was computed on, once the bucket closed. Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
+    indicator: str | None = PydField(None, description='Indicator name (see `/v1/sentiment/methodology`).')
+    score: float | None = PydField(None, description="0-100 in the indicator's own direction (see `score_meaning` in the methodology); `null` while warming up. Unit: dimensionless score.")
+    state: str | None = PydField(None, description="The indicator's state, a frozen snake_case vocabulary; `warming_up` while the history is too short.")
+    meaning: str | None = PydField(None, description='One English sentence explaining the state, with its figures.')
+    state_since_at: datetime | None = PydField(None, description='Start of the first bucket of the current state. Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
+    bars_in_state: int | None = PydField(None, description='Number of buckets in the current state, this one included. Unit: count.')
+    previous_state: float | str | None = PydField(None, description='The state before the last change (`null` if none known).')
+    confidence: str | None = PydField(None, description='`high`, `medium` or `low`: low when an input is missing or the score is within 3 points of a threshold, medium when the history is shorter than twice the minimum.')
+    drivers: list[str] = PydField(description='The 3 sub-indicators farthest from their middle (`name pNN` for percentiles, `name NN/100` for composite axes).')
+    components: SentimentHistoryItemComponents = PydField(description="Sub-indicators: each `{value, percentile?}` (percentile = rank 0-100 in the pair's own history), or a plain value for flags and labels.")
+    inputs: dict[str, Any] = PydField(description='What the value was computed from: windows, coverage, missing parts.')
+    history_points: int | None = PydField(None, description="Points of the indicator's own history used to place it (window of the timeframe). Unit: count.")
+    method_version: int | None = PydField(None, description='Version of the published methodology; any threshold or weight change increments it. Unit: count.')
+    is_closed: bool | None = PydField(None, description='`true` = the row is final; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it. Exception, rare: when a venue delivers trades LATE (seconds to minutes, e.g. during a burst), a closed row built from trades (trade candles, candle volumes, CVD, buy/sell ratio, trades per second) is corrected afterwards to include them, usually within minutes and at most one hour later; the correction only adds the late trades.')
+
+
+class SentimentMarketIndicatorsItemComponentsRana(BytnodeModel):
+    """(advancers - decliners) / (advancers + decliners)."""
+
+    value: float | None = PydField(None, description="The sub-indicator's value, in the unit of its name.")
+
+
+class SentimentMarketIndicatorsItemComponentsHerding(BytnodeModel):
+    """Mean pairwise correlation of daily returns over 30 days."""
+
+    value: float | None = PydField(None, description="The sub-indicator's value, in the unit of its name.")
+    percentile: int | None = PydField(None, description="Rank 0-100 of the value in the pair's own history (strictly past). Unit: dimensionless score.")
+
+
+class SentimentMarketIndicatorsItemComponentsMcclellan(BytnodeModel):
+    """EMA(19 days) - EMA(39 days) of rana."""
+
+    value: float | None = PydField(None, description="The sub-indicator's value, in the unit of its name.")
+
+
+class SentimentMarketIndicatorsItemComponentsPairsCount(BytnodeModel):
+    """Pairs measured (breadth) or averaged (market Fear & Greed)."""
+
+    value: float | None = PydField(None, description="The sub-indicator's value, in the unit of its name.")
+
+
+class SentimentMarketIndicatorsItemComponentsAdvancersPct(BytnodeModel):
+    """Share of pairs up over 24 hours, percent."""
+
+    value: float | None = PydField(None, description="The sub-indicator's value, in the unit of its name. Unit: percent.")
+
+
+class SentimentMarketIndicatorsItemComponentsAboveMa50Pct(BytnodeModel):
+    """Share of pairs above their 50-day mean, percent."""
+
+    value: float | None = PydField(None, description="The sub-indicator's value, in the unit of its name. Unit: percent.")
+
+
+class SentimentMarketIndicatorsItemComponentsAboveMa200Pct(BytnodeModel):
+    """Share of pairs above their 200-day mean (null if shorter)."""
+
+    value: float | None = PydField(None, description="The sub-indicator's value, in the unit of its name. Unit: percent.")
+
+
+class SentimentMarketIndicatorsItemComponentsNewLows30dPct(BytnodeModel):
+    """Share of pairs whose last-24h low breaks the 30 days before."""
+
+    value: float | None = PydField(None, description="The sub-indicator's value, in the unit of its name. Unit: percent.")
+
+
+class SentimentMarketIndicatorsItemComponentsNewLows90dPct(BytnodeModel):
+    """The same over 90 days."""
+
+    value: float | None = PydField(None, description="The sub-indicator's value, in the unit of its name. Unit: percent.")
+
+
+class SentimentMarketIndicatorsItemComponentsBtcDominancePct(BytnodeModel):
+    """BTC dominance, percent."""
+
+    value: float | None = PydField(None, description="The sub-indicator's value, in the unit of its name. Unit: percent.")
+
+
+class SentimentMarketIndicatorsItemComponentsBtcReturn7dPct(BytnodeModel):
+    """BTC price change over 7 days, percent."""
+
+    value: float | None = PydField(None, description="The sub-indicator's value, in the unit of its name. Unit: percent.")
+
+
+class SentimentMarketIndicatorsItemComponentsNewHighs30dPct(BytnodeModel):
+    """Share of pairs whose last-24h high beats the 30 days before."""
+
+    value: float | None = PydField(None, description="The sub-indicator's value, in the unit of its name. Unit: percent.")
+
+
+class SentimentMarketIndicatorsItemComponentsNewHighs90dPct(BytnodeModel):
+    """The same over 90 days."""
+
+    value: float | None = PydField(None, description="The sub-indicator's value, in the unit of its name. Unit: percent.")
+
+
+class SentimentMarketIndicatorsItemComponentsDispersion24hPct(BytnodeModel):
+    """Cross-sectional standard deviation of 24h returns, percent."""
+
+    value: float | None = PydField(None, description="The sub-indicator's value, in the unit of its name. Unit: percent.")
+
+
+class SentimentMarketIndicatorsItemComponentsEqualVsCap7dPct(BytnodeModel):
+    """Equal-weighted minus cap-weighted 7-day return, points."""
+
+    value: float | None = PydField(None, description="The sub-indicator's value, in the unit of its name. Unit: percent.")
+
+
+class SentimentMarketIndicatorsItemComponentsFundingBreadthPct(BytnodeModel):
+    """Share of pairs with settled funding > 0.01% per 8 h."""
+
+    value: float | None = PydField(None, description="The sub-indicator's value, in the unit of its name. Unit: percent.")
+
+
+class SentimentMarketIndicatorsItemComponentsStablecoinSharePct(BytnodeModel):
+    """(USDT + USDC supply) / total crypto market cap, percent."""
+
+    value: float | None = PydField(None, description="The sub-indicator's value, in the unit of its name. Unit: percent.")
+
+
+class SentimentMarketIndicatorsItemComponentsOutperformBtc7dPct(BytnodeModel):
+    """Share of pairs beating BTC over 7 days, percent."""
+
+    value: float | None = PydField(None, description="The sub-indicator's value, in the unit of its name. Unit: percent.")
+
+
+class SentimentMarketIndicatorsItemComponentsOutperformBtc30dPct(BytnodeModel):
+    """Share of pairs beating BTC over 30 days, percent."""
+
+    value: float | None = PydField(None, description="The sub-indicator's value, in the unit of its name. Unit: percent.")
+
+
+class SentimentMarketIndicatorsItemComponentsBtcDominanceChange7d(BytnodeModel):
+    """7-day change of BTC dominance, points."""
+
+    value: float | None = PydField(None, description="The sub-indicator's value, in the unit of its name.")
+    percentile: int | None = PydField(None, description="Rank 0-100 of the value in the pair's own history (strictly past). Unit: dimensionless score.")
+
+
+class SentimentMarketIndicatorsItemComponentsAltLeveragePremiumPct(BytnodeModel):
+    """Median altcoin funding - BTC funding, percent per 8 h."""
+
+    value: float | None = PydField(None, description="The sub-indicator's value, in the unit of its name. Unit: percent.")
+
+
+class SentimentMarketIndicatorsItemComponentsCapWeightedReturn7dPct(BytnodeModel):
+    """Market-cap-weighted 7-day return, percent."""
+
+    value: float | None = PydField(None, description="The sub-indicator's value, in the unit of its name. Unit: percent.")
+
+
+class SentimentMarketIndicatorsItemComponentsStablecoinShareChange7d(BytnodeModel):
+    """7-day change of stablecoin_share_pct, points."""
+
+    value: float | None = PydField(None, description="The sub-indicator's value, in the unit of its name.")
+
+
+class SentimentMarketIndicatorsItemComponentsCapWeightedReturn24hPct(BytnodeModel):
+    """Market-cap-weighted 24-hour return, percent."""
+
+    value: float | None = PydField(None, description="The sub-indicator's value, in the unit of its name. Unit: percent.")
+
+
+class SentimentMarketIndicatorsItemComponentsEqualWeightedReturn7dPct(BytnodeModel):
+    """Equal-weighted 7-day return of the pairs, percent."""
+
+    value: float | None = PydField(None, description="The sub-indicator's value, in the unit of its name. Unit: percent.")
+
+
+class SentimentMarketIndicatorsItemComponents(BytnodeModel):
+    """Sub-indicators: each `{value, percentile?}` (percentile = rank 0-100 in the pair's own history), or a plain value for flags and labels."""
+
+    rana: SentimentMarketIndicatorsItemComponentsRana | None = PydField(None, description='(advancers - decliners) / (advancers + decliners).')
+    herding: SentimentMarketIndicatorsItemComponentsHerding | None = PydField(None, description='Mean pairwise correlation of daily returns over 30 days.')
+    mcclellan: SentimentMarketIndicatorsItemComponentsMcclellan | None = PydField(None, description='EMA(19 days) - EMA(39 days) of rana.')
+    pairs_count: SentimentMarketIndicatorsItemComponentsPairsCount | None = PydField(None, description='Pairs measured (breadth) or averaged (market Fear & Greed).')
+    advancers_pct: SentimentMarketIndicatorsItemComponentsAdvancersPct | None = PydField(None, description='Share of pairs up over 24 hours, percent.')
+    above_ma50_pct: SentimentMarketIndicatorsItemComponentsAboveMa50Pct | None = PydField(None, description='Share of pairs above their 50-day mean, percent.')
+    above_ma200_pct: SentimentMarketIndicatorsItemComponentsAboveMa200Pct | None = PydField(None, description='Share of pairs above their 200-day mean (null if shorter).')
+    new_lows_30d_pct: SentimentMarketIndicatorsItemComponentsNewLows30dPct | None = PydField(None, description='Share of pairs whose last-24h low breaks the 30 days before.')
+    new_lows_90d_pct: SentimentMarketIndicatorsItemComponentsNewLows90dPct | None = PydField(None, description='The same over 90 days.')
+    btc_dominance_pct: SentimentMarketIndicatorsItemComponentsBtcDominancePct | None = PydField(None, description='BTC dominance, percent.')
+    btc_return_7d_pct: SentimentMarketIndicatorsItemComponentsBtcReturn7dPct | None = PydField(None, description='BTC price change over 7 days, percent.')
+    new_highs_30d_pct: SentimentMarketIndicatorsItemComponentsNewHighs30dPct | None = PydField(None, description='Share of pairs whose last-24h high beats the 30 days before.')
+    new_highs_90d_pct: SentimentMarketIndicatorsItemComponentsNewHighs90dPct | None = PydField(None, description='The same over 90 days.')
+    dispersion_24h_pct: SentimentMarketIndicatorsItemComponentsDispersion24hPct | None = PydField(None, description='Cross-sectional standard deviation of 24h returns, percent.')
+    equal_vs_cap_7d_pct: SentimentMarketIndicatorsItemComponentsEqualVsCap7dPct | None = PydField(None, description='Equal-weighted minus cap-weighted 7-day return, points.')
+    funding_breadth_pct: SentimentMarketIndicatorsItemComponentsFundingBreadthPct | None = PydField(None, description='Share of pairs with settled funding > 0.01% per 8 h.')
+    stablecoin_share_pct: SentimentMarketIndicatorsItemComponentsStablecoinSharePct | None = PydField(None, description='(USDT + USDC supply) / total crypto market cap, percent.')
+    outperform_btc_7d_pct: SentimentMarketIndicatorsItemComponentsOutperformBtc7dPct | None = PydField(None, description='Share of pairs beating BTC over 7 days, percent.')
+    outperform_btc_30d_pct: SentimentMarketIndicatorsItemComponentsOutperformBtc30dPct | None = PydField(None, description='Share of pairs beating BTC over 30 days, percent.')
+    btc_dominance_change_7d: SentimentMarketIndicatorsItemComponentsBtcDominanceChange7d | None = PydField(None, description='7-day change of BTC dominance, points.')
+    alt_leverage_premium_pct: SentimentMarketIndicatorsItemComponentsAltLeveragePremiumPct | None = PydField(None, description='Median altcoin funding - BTC funding, percent per 8 h.')
+    cap_weighted_return_7d_pct: SentimentMarketIndicatorsItemComponentsCapWeightedReturn7dPct | None = PydField(None, description='Market-cap-weighted 7-day return, percent.')
+    stablecoin_share_change_7d: SentimentMarketIndicatorsItemComponentsStablecoinShareChange7d | None = PydField(None, description='7-day change of stablecoin_share_pct, points.')
+    cap_weighted_return_24h_pct: SentimentMarketIndicatorsItemComponentsCapWeightedReturn24hPct | None = PydField(None, description='Market-cap-weighted 24-hour return, percent.')
+    equal_weighted_return_7d_pct: SentimentMarketIndicatorsItemComponentsEqualWeightedReturn7dPct | None = PydField(None, description='Equal-weighted 7-day return of the pairs, percent.')
+
+
+class SentimentMarketIndicatorsItem(BytnodeModel):
+    """Nested object (SentimentMarketIndicatorsItem)."""
+
+    time: datetime | None = PydField(None, description='Start of the bucket of `timeframe` the value was computed on, once the bucket closed. Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
+    indicator: str | None = PydField(None, description='Indicator name (see `/v1/sentiment/methodology`).')
+    timeframe: str | None = PydField(None, description='Bucket size of the row.')
+    score: float | None = PydField(None, description="0-100 in the indicator's own direction (see `score_meaning` in the methodology); `null` while warming up. Unit: dimensionless score.")
+    state: str | None = PydField(None, description="The indicator's state, a frozen snake_case vocabulary; `warming_up` while the history is too short.")
+    meaning: str | None = PydField(None, description='One English sentence explaining the state, with its figures.')
+    state_since_at: datetime | None = PydField(None, description='Start of the first bucket of the current state. Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
+    bars_in_state: int | None = PydField(None, description='Number of buckets in the current state, this one included. Unit: count.')
+    previous_state: float | str | None = PydField(None, description='The state before the last change (`null` if none known).')
+    confidence: str | None = PydField(None, description='`high`, `medium` or `low`: low when an input is missing or the score is within 3 points of a threshold, medium when the history is shorter than twice the minimum.')
+    drivers: list[str] = PydField(description='The 3 sub-indicators farthest from their middle (`name pNN` for percentiles, `name NN/100` for composite axes).')
+    components: SentimentMarketIndicatorsItemComponents = PydField(description="Sub-indicators: each `{value, percentile?}` (percentile = rank 0-100 in the pair's own history), or a plain value for flags and labels.")
+    inputs: dict[str, Any] = PydField(description='What the value was computed from: windows, coverage, missing parts.')
+    history_points: int | None = PydField(None, description="Points of the indicator's own history used to place it (window of the timeframe). Unit: count.")
+    method_version: int | None = PydField(None, description='Version of the published methodology; any threshold or weight change increments it. Unit: count.')
+
+
+class SentimentMarket(BytnodeModel):
+    """Row of `/v1/sentiment/market`."""
+
+    summary: str | None = PydField(None, description='One deterministic English sentence summarizing the most extreme facts (no language model).')
+    indicators: list[SentimentMarketIndicatorsItem] = PydField(description='The indicators of the bucket, one object each, in the published order.')
+
+
+class SentimentMarketHistoryItemComponentsHerding(BytnodeModel):
+    """Mean pairwise correlation of daily returns over 30 days."""
+
+    value: float | None = PydField(None, description="The sub-indicator's value, in the unit of its name.")
+    percentile: int | None = PydField(None, description="Rank 0-100 of the value in the pair's own history (strictly past). Unit: dimensionless score.")
+
+
+class SentimentMarketHistoryItemComponentsMcclellan(BytnodeModel):
+    """EMA(19 days) - EMA(39 days) of rana."""
+
+    value: float | None = PydField(None, description="The sub-indicator's value, in the unit of its name.")
+
+
+class SentimentMarketHistoryItemComponentsAdvancersPct(BytnodeModel):
+    """Share of pairs up over 24 hours, percent."""
+
+    value: float | None = PydField(None, description="The sub-indicator's value, in the unit of its name. Unit: percent.")
+
+
+class SentimentMarketHistoryItemComponentsLiqTotal24hUsd(BytnodeModel):
+    """Liquidations of all pairs over 24 hours."""
+
+    value: float | None = PydField(None, description="The sub-indicator's value, in the unit of its name.")
+
+
+class SentimentMarketHistoryItemComponentsMarketFearGreed(BytnodeModel):
+    """The market Fear & Greed."""
+
+    value: float | None = PydField(None, description="The sub-indicator's value, in the unit of its name.")
+
+
+class SentimentMarketHistoryItemComponentsLiqIntensity24hBps(BytnodeModel):
+    """Liquidations over 24 hours / total open interest x 10,000."""
+
+    value: float | None = PydField(None, description="The sub-indicator's value, in the unit of its name.")
+    percentile: int | None = PydField(None, description="Rank 0-100 of the value in the pair's own history (strictly past). Unit: dimensionless score.")
+
+
+class SentimentMarketHistoryItemComponentsFundingOiWeightedPct(BytnodeModel):
+    """Settled funding weighted by open interest, percent per 8 h."""
+
+    value: float | None = PydField(None, description="The sub-indicator's value, in the unit of its name. Unit: percent.")
+    percentile: int | None = PydField(None, description="Rank 0-100 of the value in the pair's own history (strictly past). Unit: dimensionless score.")
+
+
+class SentimentMarketHistoryItemComponentsMarketFearGreedMin7d(BytnodeModel):
+    """Lowest market Fear & Greed of the last 7 days."""
+
+    value: float | None = PydField(None, description="The sub-indicator's value, in the unit of its name.")
+
+
+class SentimentMarketHistoryItemComponents(BytnodeModel):
+    """Sub-indicators: each `{value, percentile?}` (percentile = rank 0-100 in the pair's own history), or a plain value for flags and labels."""
+
+    herding: SentimentMarketHistoryItemComponentsHerding = PydField(description='Mean pairwise correlation of daily returns over 30 days.')
+    mcclellan: SentimentMarketHistoryItemComponentsMcclellan = PydField(description='EMA(19 days) - EMA(39 days) of rana.')
+    btc_regime: str | None = PydField(None, description='BTC regime state of the same bucket.')
+    advancers_pct: SentimentMarketHistoryItemComponentsAdvancersPct = PydField(description='Share of pairs up over 24 hours, percent.')
+    breadth_state: str | None = PydField(None, description='The breadth state of the same bucket.')
+    btc_volatility: str | None = PydField(None, description='BTC volatility state of the same bucket.')
+    liq_total_24h_usd: SentimentMarketHistoryItemComponentsLiqTotal24hUsd = PydField(description='Liquidations of all pairs over 24 hours.')
+    market_fear_greed: SentimentMarketHistoryItemComponentsMarketFearGreed = PydField(description='The market Fear & Greed.')
+    liq_intensity_24h_bps: SentimentMarketHistoryItemComponentsLiqIntensity24hBps = PydField(description='Liquidations over 24 hours / total open interest x 10,000.')
+    funding_oi_weighted_pct: SentimentMarketHistoryItemComponentsFundingOiWeightedPct = PydField(description='Settled funding weighted by open interest, percent per 8 h.')
+    market_fear_greed_min_7d: SentimentMarketHistoryItemComponentsMarketFearGreedMin7d = PydField(description='Lowest market Fear & Greed of the last 7 days.')
+
+
+class SentimentMarketHistoryItem(BytnodeModel):
+    """Row of `/v1/sentiment/market/history`."""
+
+    time: datetime | None = PydField(None, description='Start of the bucket of `timeframe` the value was computed on, once the bucket closed. Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
+    indicator: str | None = PydField(None, description='Indicator name (see `/v1/sentiment/methodology`).')
+    score: float | None = PydField(None, description="0-100 in the indicator's own direction (see `score_meaning` in the methodology); `null` while warming up. Unit: dimensionless score.")
+    state: str | None = PydField(None, description="The indicator's state, a frozen snake_case vocabulary; `warming_up` while the history is too short.")
+    meaning: str | None = PydField(None, description='One English sentence explaining the state, with its figures.')
+    state_since_at: datetime | None = PydField(None, description='Start of the first bucket of the current state. Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
+    bars_in_state: int | None = PydField(None, description='Number of buckets in the current state, this one included. Unit: count.')
+    previous_state: float | str | None = PydField(None, description='The state before the last change (`null` if none known).')
+    confidence: str | None = PydField(None, description='`high`, `medium` or `low`: low when an input is missing or the score is within 3 points of a threshold, medium when the history is shorter than twice the minimum.')
+    drivers: list[str] = PydField(description='The 3 sub-indicators farthest from their middle (`name pNN` for percentiles, `name NN/100` for composite axes).')
+    components: SentimentMarketHistoryItemComponents = PydField(description="Sub-indicators: each `{value, percentile?}` (percentile = rank 0-100 in the pair's own history), or a plain value for flags and labels.")
+    inputs: dict[str, Any] = PydField(description='What the value was computed from: windows, coverage, missing parts.')
+    history_points: int | None = PydField(None, description="Points of the indicator's own history used to place it (window of the timeframe). Unit: count.")
+    method_version: int | None = PydField(None, description='Version of the published methodology; any threshold or weight change increments it. Unit: count.')
+    is_closed: bool | None = PydField(None, description='`true` = the row is final; `false` = provisional: the latest bucket while it still settles (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period in progress with `?live=1` on the routes that take it. Exception, rare: when a venue delivers trades LATE (seconds to minutes, e.g. during a burst), a closed row built from trades (trade candles, candle volumes, CVD, buy/sell ratio, trades per second) is corrected afterwards to include them, usually within minutes and at most one hour later; the correction only adds the late trades.')
+
+
+class SentimentMethodologyPrinciplesItem(BytnodeModel):
+    """Nested object (SentimentMethodologyPrinciplesItem)."""
+
+    topic: str | None = PydField(None, description='Short name of the principle.')
+    text: str | None = PydField(None, description='The principle, in plain English.')
+
+
+class SentimentMethodologyWindowsItem(BytnodeModel):
+    """Nested object (SentimentMethodologyWindowsItem)."""
+
+    timeframe: str | None = PydField(None, description='Bucket size.')
+    history_days: int | None = PydField(None, description='Length of the history each value is placed in. Unit: days.')
+    min_points: int | None = PydField(None, description='Points needed before a score is given (else `warming_up`). Unit: count.')
+    same_hour_min_points: int | None = PydField(None, description='Points needed when a 1h flow is compared to the same hour of previous days. Unit: count.')
+
+
+class SentimentMethodologyFearGreedBandsItem(BytnodeModel):
+    """Nested object (SentimentMethodologyFearGreedBandsItem)."""
+
+    state: str | None = PydField(None, description='State name, as served in `state`.')
+    min_score: float | None = PydField(None, description='Lower bound of the band, included. Unit: dimensionless score.')
+    max_score: float | None = PydField(None, description='Upper bound of the band (excluded, except 100). Unit: dimensionless score.')
+
+
+class SentimentMethodologyIndicatorsItemSubIndicatorsItem(BytnodeModel):
+    """Nested object (SentimentMethodologyIndicatorsItemSubIndicatorsItem)."""
+
+    name: str | None = PydField(None, description='Sub-indicator name (several names share one definition when separated by /).')
+    definition: str | None = PydField(None, description='Formula and unit of the sub-indicator.')
+
+
+class SentimentMethodologyIndicatorsItemStatesItem(BytnodeModel):
+    """Nested object (SentimentMethodologyIndicatorsItemStatesItem)."""
+
+    state: str | None = PydField(None, description='State name, as served in `state`.')
+    priority: int | None = PydField(None, description='1 = tried first. Unit: count.')
+    rule: str | None = PydField(None, description='Entry rule, and the looser rule that keeps the state.')
+    meaning: str | None = PydField(None, description='The base sentence served in `meaning` for this state.')
+
+
+class SentimentMethodologyIndicatorsItemWeightsItem(BytnodeModel):
+    """Nested object (SentimentMethodologyIndicatorsItemWeightsItem)."""
+
+    component: str | None = PydField(None, description='Axis of the composite.')
+    weight: float | None = PydField(None, description='Weight of the axis before renormalization. Unit: fraction (0.585 = 58.5 %).')
+
+
+class SentimentMethodologyIndicatorsItem(BytnodeModel):
+    """Nested object (SentimentMethodologyIndicatorsItem)."""
+
+    indicator: str | None = PydField(None, description='Indicator name, as in `?indicator=`.')
+    scope: str | None = PydField(None, description='`pair` or `market`.')
+    timeframes: list[str] = PydField(description='Timeframes the indicator is computed on.')
+    score_meaning: str | None = PydField(None, description="What 0 and 100 mean for this indicator's score.")
+    inputs: str | None = PydField(None, description='The data the indicator reads.')
+    score: str | None = PydField(None, description='How the score is computed.')
+    sub_indicators: list[SentimentMethodologyIndicatorsItemSubIndicatorsItem] = PydField(description='Each `{name, definition}` served in `components`.')
+    states: list[SentimentMethodologyIndicatorsItemStatesItem] = PydField(description='Every state, by priority: `{state, priority, rule, meaning}`.')
+    min_bars_in_state: int | None = PydField(None, description='A younger state is only left for a higher-priority one. Unit: count.')
+    weights: list[SentimentMethodologyIndicatorsItemWeightsItem] | None = PydField(None, description='Published weights of a composite: `{component, weight}`.')
+
+
+class SentimentMethodology(BytnodeModel):
+    """Row of `/v1/sentiment/methodology`."""
+
+    method_version: int | None = PydField(None, description='Version of the methodology; served with every value. Unit: count.')
+    principles: list[SentimentMethodologyPrinciplesItem] = PydField(description='How every indicator is computed: one `{topic, text}` per principle.')
+    windows: list[SentimentMethodologyWindowsItem] = PydField(description='History window and minimum points of each timeframe.')
+    fear_greed_bands: list[SentimentMethodologyFearGreedBandsItem] = PydField(description='The five Fear & Greed bands: `{state, min_score, max_score}`.')
+    indicators: list[SentimentMethodologyIndicatorsItem] = PydField(description='One object per indicator, in the published order.')
+
+
+class SentimentScreenerComponentsIntensity(BytnodeModel):
+    """mean(percentile(leverage_ratio), percentile(oi_growth_7d))."""
+
+    value: float | None = PydField(None, description="The sub-indicator's value, in the unit of its name.")
+
+
+class SentimentScreenerComponentsFundingAprPct(BytnodeModel):
+    """The settled funding annualized (x 1095), percent."""
+
+    value: float | None = PydField(None, description="The sub-indicator's value, in the unit of its name. Unit: percent.")
+
+
+class SentimentScreenerComponentsFundingNextPct(BytnodeModel):
+    """Median estimated next funding, percent per 8 h."""
+
+    value: float | None = PydField(None, description="The sub-indicator's value, in the unit of its name. Unit: percent.")
+
+
+class SentimentScreenerComponentsOiGrowth7dPct(BytnodeModel):
+    """Open interest change over 7 days, in base units, percent."""
+
+    value: float | str | None = PydField(None, description="The sub-indicator's value, in the unit of its name. Unit: percent.")
+
+
+class SentimentScreenerComponentsOiGrowth24hPct(BytnodeModel):
+    """Open interest change over 24 hours, in base units, percent."""
+
+    value: float | None = PydField(None, description="The sub-indicator's value, in the unit of its name. Unit: percent.")
+    percentile: int | None = PydField(None, description="Rank 0-100 of the value in the pair's own history (strictly past). Unit: dimensionless score.")
+
+
+class SentimentScreenerComponentsSpeculationRatio(BytnodeModel):
+    """Futures / spot volume over 24 hours."""
+
+    value: float | None = PydField(None, description="The sub-indicator's value, in the unit of its name.")
+    percentile: int | None = PydField(None, description="Rank 0-100 of the value in the pair's own history (strictly past). Unit: dimensionless score.")
+
+
+class SentimentScreenerComponentsLeverageRatioPct(BytnodeModel):
+    """Open interest / circulating supply, percent."""
+
+    value: float | None = PydField(None, description="The sub-indicator's value, in the unit of its name. Unit: percent.")
+    percentile: int | None = PydField(None, description="Rank 0-100 of the value in the pair's own history (strictly past). Unit: dimensionless score.")
+
+
+class SentimentScreenerComponentsFunding8hMedianPct(BytnodeModel):
+    """Median across venues of the last settled funding, 8h-equivalent, percent per 8 h."""
+
+    value: float | None = PydField(None, description="The sub-indicator's value, in the unit of its name. Unit: percent.")
+    percentile: int | None = PydField(None, description="Rank 0-100 of the value in the pair's own history (strictly past). Unit: dimensionless score.")
+
+
+class SentimentScreenerComponents(BytnodeModel):
+    """Sub-indicators: each `{value, percentile?}` (percentile = rank 0-100 in the pair's own history), or a plain value for flags and labels."""
+
+    intensity: SentimentScreenerComponentsIntensity = PydField(description='mean(percentile(leverage_ratio), percentile(oi_growth_7d)).')
+    funding_apr_pct: SentimentScreenerComponentsFundingAprPct = PydField(description='The settled funding annualized (x 1095), percent.')
+    funding_next_pct: SentimentScreenerComponentsFundingNextPct = PydField(description='Median estimated next funding, percent per 8 h.')
+    oi_growth_7d_pct: SentimentScreenerComponentsOiGrowth7dPct = PydField(description='Open interest change over 7 days, in base units, percent.')
+    oi_growth_24h_pct: SentimentScreenerComponentsOiGrowth24hPct = PydField(description='Open interest change over 24 hours, in base units, percent.')
+    speculation_ratio: SentimentScreenerComponentsSpeculationRatio = PydField(description='Futures / spot volume over 24 hours.')
+    leverage_ratio_pct: SentimentScreenerComponentsLeverageRatioPct = PydField(description='Open interest / circulating supply, percent.')
+    funding_8h_median_pct: SentimentScreenerComponentsFunding8hMedianPct = PydField(description='Median across venues of the last settled funding, 8h-equivalent, percent per 8 h.')
+
+
+class SentimentScreenerInputs(BytnodeModel):
+    """What the value was computed from: windows, coverage, missing parts."""
+
+    funding: str | None = PydField(None, description='How the funding is aggregated.')
+    positioning: str | None = PydField(None, description='What the positioning score is made of.')
+
+
+class SentimentScreener(BytnodeModel):
+    """Row of `/v1/sentiment/screener`."""
+
+    time: datetime | None = PydField(None, description='Start of the bucket of `timeframe` the value was computed on, once the bucket closed. Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
+    symbol: str | None = PydField(None, description='Trading pair.')
+    indicator: str | None = PydField(None, description='Indicator name (see `/v1/sentiment/methodology`).')
+    score: float | None = PydField(None, description="0-100 in the indicator's own direction (see `score_meaning` in the methodology); `null` while warming up. Unit: dimensionless score.")
+    state: str | None = PydField(None, description="The indicator's state, a frozen snake_case vocabulary; `warming_up` while the history is too short.")
+    meaning: str | None = PydField(None, description='One English sentence explaining the state, with its figures.')
+    state_since_at: datetime | None = PydField(None, description='Start of the first bucket of the current state. Unit: ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).')
+    bars_in_state: int | None = PydField(None, description='Number of buckets in the current state, this one included. Unit: count.')
+    previous_state: str | None = PydField(None, description='The state before the last change (`null` if none known).')
+    confidence: str | None = PydField(None, description='`high`, `medium` or `low`: low when an input is missing or the score is within 3 points of a threshold, medium when the history is shorter than twice the minimum.')
+    drivers: list[str] = PydField(description='The 3 sub-indicators farthest from their middle (`name pNN` for percentiles, `name NN/100` for composite axes).')
+    components: SentimentScreenerComponents = PydField(description="Sub-indicators: each `{value, percentile?}` (percentile = rank 0-100 in the pair's own history), or a plain value for flags and labels.")
+    inputs: SentimentScreenerInputs = PydField(description='What the value was computed from: windows, coverage, missing parts.')
+    history_points: int | None = PydField(None, description="Points of the indicator's own history used to place it (window of the timeframe). Unit: count.")
+    method_version: int | None = PydField(None, description='Version of the published methodology; any threshold or weight change increments it. Unit: count.')
+
+
 class SpreadInterexchangeVenuesItem(BytnodeModel):
     """Nested object (SpreadInterexchangeVenuesItem)."""
 
@@ -1695,4 +2342,4 @@ class WsToken(BytnodeModel):
     url: str | None = PydField(None, description='The stream URL with the token already in it, ready to open.')
 
 
-__all__ = ['AltcoinSeason', 'AltcoinSeasonHistoryItem', 'Basis', 'BasisHistoryItem', 'BtcActiveAddresses', 'BtcActiveAddressesHistoryItem', 'BtcFeesFeePressure', 'BtcFees', 'BtcFeesHistoryItem', 'BtcMempoolTrend', 'BtcMempool', 'BtcMempoolHistoryItem', 'BtcMiningConcentration', 'BtcMiningLatestReward', 'BtcMiningPoolsItem', 'BtcMining', 'BtcMiningHistoryItem', 'BtcMvrv', 'BtcMvrvHistoryItem', 'BtcNetworkBlockTime', 'BtcNetworkNextAdjustment', 'BtcNetwork', 'BtcNetworkHistoryItem', 'BtcNvt', 'BtcNvtHistoryItem', 'BtcRevenuePerDifficulty', 'BtcRevenuePerDifficultyHistoryItem', 'BuySellRatio', 'BuySellRatioHistoryItem', 'CapabilitiesFeedsActiveLast24h', 'CapabilitiesComputedMetricsNotApplicable', 'Capabilities', 'Cvd', 'EtfFundamentals', 'EtfFundamentalsHistoryItem', 'EthDefi', 'EthDefiHistoryItem', 'EthDeflation', 'EthDeflationHistoryItem', 'EthGas', 'EthGasMomentum', 'EthGasMomentumHistoryItem', 'EthGasHistoryItem', 'EthPriceBtc', 'EthPriceBtcHistoryItem', 'EthSqueeze', 'EthSqueezeHistoryItem', 'EthStaking', 'EthStakingHistoryItem', 'EthSupply', 'EthSupplyHistoryItem', 'FearGreed', 'FearGreedCmc', 'FearGreedCmcHistoryItem', 'FearGreedHistoryItem', 'FundingCumulative', 'FundingCumulativeHistoryItem', 'FundingNext', 'FundingRate', 'GlobalMarket', 'GlobalMarketHistoryItem', 'Health', 'IndicesCmc100ConstituentsItem', 'IndicesCmc100', 'IndicesCmc100HistoryItem', 'IndicesCmc20ConstituentsItem', 'IndicesCmc20', 'IndicesCmc20HistoryItem', 'Kline', 'KlineHistoryItem', 'LimitsHistoryItem', 'LimitsRate', 'LimitsQuota', 'Limits', 'LiquidationsBigSmallRatio', 'LiquidationsBigSmallRatioHistoryItem', 'LiquidationsCumulative', 'LiquidationsCumulativeHistoryItem', 'LiquidationEvent', 'Macro', 'MacroCorrelationsCorrelationsDxy30d', 'MacroCorrelationsCorrelationsDxy90d', 'MacroCorrelationsCorrelationsDxy', 'MacroCorrelationsCorrelationsSp50030d', 'MacroCorrelationsCorrelationsSp50090d', 'MacroCorrelationsCorrelationsSp500', 'MacroCorrelationsCorrelationsGold30d', 'MacroCorrelationsCorrelationsGold90d', 'MacroCorrelationsCorrelationsGold', 'MacroCorrelationsCorrelationsVix30d', 'MacroCorrelationsCorrelationsVix90d', 'MacroCorrelationsCorrelationsVix', 'MacroCorrelationsCorrelations', 'MacroCorrelations', 'MacroHistoryItem', 'MacroIntraday', 'MacroIntradaySeriesInfoLastCandleAt', 'MacroIntradaySeriesInfo', 'MacroMomentum30dComponentsItem', 'MacroMomentum30d', 'MacroMomentum90dComponentsItem', 'MacroMomentum90d', 'MacroMomentum', 'MacroNetLiquidity', 'MacroNetLiquidityHistoryItem', 'MacroRiskSignalsVix', 'MacroRiskSignalsDxy', 'MacroRiskSignalsYieldCurve', 'MacroRiskSignalsSp500', 'MacroRiskSignalsGold', 'MacroRiskSignals', 'MacroRiskContext', 'MacroRisk', 'MacroSeriesInfo', 'Oi', 'OiChange', 'OiChangeHistoryItem', 'OiHistoryItem', 'OptionsExpiry', 'OptionsGreeksCoverage', 'OptionsGreeks', 'OptionsIv', 'OptionsIvKline', 'OptionsIvKlineHistoryItem', 'OptionsMaxPain', 'OptionsMaxPainHistoryItem', 'OptionsOiCoverage', 'OptionsOi', 'OptionsOiChange', 'OptionsOiChangeHistoryItem', 'OptionsOiDistribution', 'OptionsOiHistoryItem', 'OptionsPutCallRatio', 'OptionsPutCallRatioHistoryItem', 'OptionsSummaryNearestExpiry', 'OptionsSummaryCoverage', 'OptionsSummary', 'OptionsVolumeCoverage', 'OptionsVolume', 'OptionsVolumeHistoryItem', 'OrderbookRangesItem', 'Orderbook', 'PriceChangeChangesPct', 'PriceChange', 'SpreadInterexchangeVenuesItem', 'SpreadInterexchange', 'StatusFeedsItem', 'Status', 'SymbolInfo', 'Tokenomics', 'TokenomicsHistoryItem', 'TradesKline', 'TradesKlineSecond', 'TradesAvgSize', 'TradesAvgSizeHistoryItem', 'Trade', 'WsToken']
+__all__ = ['AltcoinSeason', 'AltcoinSeasonHistoryItem', 'Basis', 'BasisHistoryItem', 'BtcActiveAddresses', 'BtcActiveAddressesHistoryItem', 'BtcFeesFeePressure', 'BtcFees', 'BtcFeesHistoryItem', 'BtcMempoolTrend', 'BtcMempool', 'BtcMempoolHistoryItem', 'BtcMiningConcentration', 'BtcMiningLatestReward', 'BtcMiningPoolsItem', 'BtcMining', 'BtcMiningHistoryItem', 'BtcMvrv', 'BtcMvrvHistoryItem', 'BtcNetworkBlockTime', 'BtcNetworkNextAdjustment', 'BtcNetwork', 'BtcNetworkHistoryItem', 'BtcNvt', 'BtcNvtHistoryItem', 'BtcRevenuePerDifficulty', 'BtcRevenuePerDifficultyHistoryItem', 'BuySellRatio', 'BuySellRatioHistoryItem', 'CapabilitiesFeedsActiveLast24h', 'CapabilitiesComputedMetricsNotApplicable', 'Capabilities', 'Cvd', 'EtfFundamentals', 'EtfFundamentalsHistoryItem', 'EthDefi', 'EthDefiHistoryItem', 'EthDeflation', 'EthDeflationHistoryItem', 'EthGas', 'EthGasMomentum', 'EthGasMomentumHistoryItem', 'EthGasHistoryItem', 'EthPriceBtc', 'EthPriceBtcHistoryItem', 'EthSqueeze', 'EthSqueezeHistoryItem', 'EthStaking', 'EthStakingHistoryItem', 'EthSupply', 'EthSupplyHistoryItem', 'FearGreed', 'FearGreedCmc', 'FearGreedCmcHistoryItem', 'FearGreedHistoryItem', 'FundingCumulative', 'FundingCumulativeHistoryItem', 'FundingNext', 'FundingRate', 'GlobalMarket', 'GlobalMarketHistoryItem', 'Health', 'IndicesCmc100ConstituentsItem', 'IndicesCmc100', 'IndicesCmc100HistoryItem', 'IndicesCmc20ConstituentsItem', 'IndicesCmc20', 'IndicesCmc20HistoryItem', 'Kline', 'KlineHistoryItem', 'LimitsHistoryItem', 'LimitsRate', 'LimitsQuota', 'Limits', 'LiquidationsBigSmallRatio', 'LiquidationsBigSmallRatioHistoryItem', 'LiquidationsCumulative', 'LiquidationsCumulativeHistoryItem', 'LiquidationEvent', 'Macro', 'MacroCorrelationsCorrelationsDxy30d', 'MacroCorrelationsCorrelationsDxy90d', 'MacroCorrelationsCorrelationsDxy', 'MacroCorrelationsCorrelationsSp50030d', 'MacroCorrelationsCorrelationsSp50090d', 'MacroCorrelationsCorrelationsSp500', 'MacroCorrelationsCorrelationsGold30d', 'MacroCorrelationsCorrelationsGold90d', 'MacroCorrelationsCorrelationsGold', 'MacroCorrelationsCorrelationsVix30d', 'MacroCorrelationsCorrelationsVix90d', 'MacroCorrelationsCorrelationsVix', 'MacroCorrelationsCorrelations', 'MacroCorrelations', 'MacroHistoryItem', 'MacroIntraday', 'MacroIntradaySeriesInfoLastCandleAt', 'MacroIntradaySeriesInfo', 'MacroMomentum30dComponentsItem', 'MacroMomentum30d', 'MacroMomentum90dComponentsItem', 'MacroMomentum90d', 'MacroMomentum', 'MacroNetLiquidity', 'MacroNetLiquidityHistoryItem', 'MacroRiskSignalsVix', 'MacroRiskSignalsDxy', 'MacroRiskSignalsYieldCurve', 'MacroRiskSignalsSp500', 'MacroRiskSignalsGold', 'MacroRiskSignals', 'MacroRiskContext', 'MacroRisk', 'MacroSeriesInfo', 'Oi', 'OiChange', 'OiChangeHistoryItem', 'OiHistoryItem', 'OptionsExpiry', 'OptionsGreeksCoverage', 'OptionsGreeks', 'OptionsIv', 'OptionsIvKline', 'OptionsIvKlineHistoryItem', 'OptionsMaxPain', 'OptionsMaxPainHistoryItem', 'OptionsOiCoverage', 'OptionsOi', 'OptionsOiChange', 'OptionsOiChangeHistoryItem', 'OptionsOiDistribution', 'OptionsOiHistoryItem', 'OptionsPutCallRatio', 'OptionsPutCallRatioHistoryItem', 'OptionsSummaryNearestExpiry', 'OptionsSummaryCoverage', 'OptionsSummary', 'OptionsVolumeCoverage', 'OptionsVolume', 'OptionsVolumeHistoryItem', 'OrderbookRangesItem', 'Orderbook', 'PriceChangeChangesPct', 'PriceChange', 'SentimentIndicatorsItemComponentsRv7d', 'SentimentIndicatorsItemComponentsRv24h', 'SentimentIndicatorsItemComponentsRv30d', 'SentimentIndicatorsItemComponentsShockZ', 'SentimentIndicatorsItemComponentsRvRatio', 'SentimentIndicatorsItemComponentsBandwidth', 'SentimentIndicatorsItemComponentsVolOfVol', 'SentimentIndicatorsItemComponentsRangeShock', 'SentimentIndicatorsItemComponentsIsSqueezeOn', 'SentimentIndicatorsItemComponents', 'SentimentIndicatorsItemInputs', 'SentimentIndicatorsItem', 'Sentiment', 'SentimentHistoryItemComponentsRaw', 'SentimentHistoryItemComponentsLeverage', 'SentimentHistoryItemComponentsMomentum', 'SentimentHistoryItemComponentsOrderFlow', 'SentimentHistoryItemComponentsLiquidations', 'SentimentHistoryItemComponentsWeightedMean', 'SentimentHistoryItemComponentsWeightCovered', 'SentimentHistoryItemComponentsVolatilityCalm', 'SentimentHistoryItemComponents', 'SentimentHistoryItem', 'SentimentMarketIndicatorsItemComponentsRana', 'SentimentMarketIndicatorsItemComponentsHerding', 'SentimentMarketIndicatorsItemComponentsMcclellan', 'SentimentMarketIndicatorsItemComponentsPairsCount', 'SentimentMarketIndicatorsItemComponentsAdvancersPct', 'SentimentMarketIndicatorsItemComponentsAboveMa50Pct', 'SentimentMarketIndicatorsItemComponentsAboveMa200Pct', 'SentimentMarketIndicatorsItemComponentsNewLows30dPct', 'SentimentMarketIndicatorsItemComponentsNewLows90dPct', 'SentimentMarketIndicatorsItemComponentsBtcDominancePct', 'SentimentMarketIndicatorsItemComponentsBtcReturn7dPct', 'SentimentMarketIndicatorsItemComponentsNewHighs30dPct', 'SentimentMarketIndicatorsItemComponentsNewHighs90dPct', 'SentimentMarketIndicatorsItemComponentsDispersion24hPct', 'SentimentMarketIndicatorsItemComponentsEqualVsCap7dPct', 'SentimentMarketIndicatorsItemComponentsFundingBreadthPct', 'SentimentMarketIndicatorsItemComponentsStablecoinSharePct', 'SentimentMarketIndicatorsItemComponentsOutperformBtc7dPct', 'SentimentMarketIndicatorsItemComponentsOutperformBtc30dPct', 'SentimentMarketIndicatorsItemComponentsBtcDominanceChange7d', 'SentimentMarketIndicatorsItemComponentsAltLeveragePremiumPct', 'SentimentMarketIndicatorsItemComponentsCapWeightedReturn7dPct', 'SentimentMarketIndicatorsItemComponentsStablecoinShareChange7d', 'SentimentMarketIndicatorsItemComponentsCapWeightedReturn24hPct', 'SentimentMarketIndicatorsItemComponentsEqualWeightedReturn7dPct', 'SentimentMarketIndicatorsItemComponents', 'SentimentMarketIndicatorsItem', 'SentimentMarket', 'SentimentMarketHistoryItemComponentsHerding', 'SentimentMarketHistoryItemComponentsMcclellan', 'SentimentMarketHistoryItemComponentsAdvancersPct', 'SentimentMarketHistoryItemComponentsLiqTotal24hUsd', 'SentimentMarketHistoryItemComponentsMarketFearGreed', 'SentimentMarketHistoryItemComponentsLiqIntensity24hBps', 'SentimentMarketHistoryItemComponentsFundingOiWeightedPct', 'SentimentMarketHistoryItemComponentsMarketFearGreedMin7d', 'SentimentMarketHistoryItemComponents', 'SentimentMarketHistoryItem', 'SentimentMethodologyPrinciplesItem', 'SentimentMethodologyWindowsItem', 'SentimentMethodologyFearGreedBandsItem', 'SentimentMethodologyIndicatorsItemSubIndicatorsItem', 'SentimentMethodologyIndicatorsItemStatesItem', 'SentimentMethodologyIndicatorsItemWeightsItem', 'SentimentMethodologyIndicatorsItem', 'SentimentMethodology', 'SentimentScreenerComponentsIntensity', 'SentimentScreenerComponentsFundingAprPct', 'SentimentScreenerComponentsFundingNextPct', 'SentimentScreenerComponentsOiGrowth7dPct', 'SentimentScreenerComponentsOiGrowth24hPct', 'SentimentScreenerComponentsSpeculationRatio', 'SentimentScreenerComponentsLeverageRatioPct', 'SentimentScreenerComponentsFunding8hMedianPct', 'SentimentScreenerComponents', 'SentimentScreenerInputs', 'SentimentScreener', 'SpreadInterexchangeVenuesItem', 'SpreadInterexchange', 'StatusFeedsItem', 'Status', 'SymbolInfo', 'Tokenomics', 'TokenomicsHistoryItem', 'TradesKline', 'TradesKlineSecond', 'TradesAvgSize', 'TradesAvgSizeHistoryItem', 'Trade', 'WsToken']

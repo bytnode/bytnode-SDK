@@ -4831,6 +4831,1550 @@ export interface PriceChange {
 }
 
 /**
+ * Rogers-Satchell realized volatility over 7 days, annualized, percent.
+ */
+export interface SentimentIndicatorsItemComponentsRv7d {
+  /**
+   * The sub-indicator's value, in the unit of its name.
+   */
+  value: number | null;
+  /**
+   * Rank 0-100 of the value in the pair's own history (strictly past). Unit: dimensionless
+   * score.
+   */
+  percentile: number | null;
+}
+
+/**
+ * Rogers-Satchell realized volatility over 24 hours, annualized, percent.
+ */
+export interface SentimentIndicatorsItemComponentsRv24h {
+  /**
+   * The sub-indicator's value, in the unit of its name.
+   */
+  value: number | null;
+  /**
+   * Rank 0-100 of the value in the pair's own history (strictly past). Unit: dimensionless
+   * score.
+   */
+  percentile: number | null;
+}
+
+/**
+ * Rogers-Satchell realized volatility over 30 days, annualized, percent.
+ */
+export interface SentimentIndicatorsItemComponentsRv30d {
+  /**
+   * The sub-indicator's value, in the unit of its name.
+   */
+  value: number | null;
+  /**
+   * Rank 0-100 of the value in the pair's own history (strictly past). Unit: dimensionless
+   * score.
+   */
+  percentile: number | null;
+}
+
+/**
+ * |last log return| / lagged EWMA volatility.
+ */
+export interface SentimentIndicatorsItemComponentsShockZ {
+  /**
+   * The sub-indicator's value, in the unit of its name.
+   */
+  value: number | null;
+}
+
+/**
+ * Short / long realized volatility (above 1: stress building).
+ */
+export interface SentimentIndicatorsItemComponentsRvRatio {
+  /**
+   * The sub-indicator's value, in the unit of its name.
+   */
+  value: number | null;
+  /**
+   * Rank 0-100 of the value in the pair's own history (strictly past). Unit: dimensionless
+   * score.
+   */
+  percentile: number | null;
+}
+
+/**
+ * Bollinger (20, 2) width / middle band; percentile over 180 days.
+ */
+export interface SentimentIndicatorsItemComponentsBandwidth {
+  /**
+   * The sub-indicator's value, in the unit of its name.
+   */
+  value: number | null;
+  /**
+   * Rank 0-100 of the value in the pair's own history (strictly past). Unit: dimensionless
+   * score.
+   */
+  percentile: number | null;
+}
+
+/**
+ * Standard deviation of the change of log short volatility, 30 days.
+ */
+export interface SentimentIndicatorsItemComponentsVolOfVol {
+  /**
+   * The sub-indicator's value, in the unit of its name.
+   */
+  value: number | null;
+}
+
+/**
+ * True range / lagged ATR(14).
+ */
+export interface SentimentIndicatorsItemComponentsRangeShock {
+  /**
+   * The sub-indicator's value, in the unit of its name.
+   */
+  value: number | null;
+}
+
+/**
+ * Bollinger bands fully inside Keltner (20, 1.5 x ATR).
+ */
+export interface SentimentIndicatorsItemComponentsIsSqueezeOn {
+  /**
+   * The sub-indicator's value, in the unit of its name.
+   */
+  value: boolean | null;
+}
+
+/**
+ * Sub-indicators: each `{value, percentile?}` (percentile = rank 0-100 in the pair's own
+ * history), or a plain value for flags and labels.
+ */
+export interface SentimentIndicatorsItemComponents {
+  /**
+   * Rogers-Satchell realized volatility over 7 days, annualized, percent.
+   */
+  rv_7d?: SentimentIndicatorsItemComponentsRv7d;
+  /**
+   * Rogers-Satchell realized volatility over 24 hours, annualized, percent.
+   */
+  rv_24h?: SentimentIndicatorsItemComponentsRv24h;
+  /**
+   * Rogers-Satchell realized volatility over 30 days, annualized, percent.
+   */
+  rv_30d?: SentimentIndicatorsItemComponentsRv30d;
+  /**
+   * |last log return| / lagged EWMA volatility.
+   */
+  shock_z?: SentimentIndicatorsItemComponentsShockZ;
+  /**
+   * Short / long realized volatility (above 1: stress building).
+   */
+  rv_ratio?: SentimentIndicatorsItemComponentsRvRatio;
+  /**
+   * Bollinger (20, 2) width / middle band; percentile over 180 days.
+   */
+  bandwidth?: SentimentIndicatorsItemComponentsBandwidth;
+  /**
+   * Standard deviation of the change of log short volatility, 30 days.
+   */
+  vol_of_vol?: SentimentIndicatorsItemComponentsVolOfVol;
+  /**
+   * True range / lagged ATR(14).
+   */
+  range_shock?: SentimentIndicatorsItemComponentsRangeShock;
+  /**
+   * Bollinger bands fully inside Keltner (20, 1.5 x ATR).
+   */
+  is_squeeze_on?: SentimentIndicatorsItemComponentsIsSqueezeOn;
+}
+
+/**
+ * What the value was computed from: windows, coverage, missing parts.
+ */
+export interface SentimentIndicatorsItemInputs {
+  /**
+   * Short / medium / long volatility windows, days.
+   */
+  windows_days?: Array<number>;
+}
+
+/**
+ * Nested object (SentimentIndicatorsItem).
+ */
+export interface SentimentIndicatorsItem {
+  /**
+   * Start of the bucket of `timeframe` the value was computed on, once the bucket closed. Unit:
+   * ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).
+   */
+  time: Date | null;
+  /**
+   * Indicator name (see `/v1/sentiment/methodology`).
+   */
+  indicator: string | null;
+  /**
+   * Bucket size of the row.
+   */
+  timeframe: string | null;
+  /**
+   * 0-100 in the indicator's own direction (see `score_meaning` in the methodology); `null`
+   * while warming up. Unit: dimensionless score.
+   */
+  score: number | null;
+  /**
+   * The indicator's state, a frozen snake_case vocabulary; `warming_up` while the history is
+   * too short.
+   */
+  state: string | null;
+  /**
+   * One English sentence explaining the state, with its figures.
+   */
+  meaning: string | null;
+  /**
+   * Start of the first bucket of the current state. Unit: ISO 8601 UTC, milliseconds
+   * (2026-09-28T14:00:00.000Z).
+   */
+  state_since_at: Date | null;
+  /**
+   * Number of buckets in the current state, this one included. Unit: count.
+   */
+  bars_in_state: number | null;
+  /**
+   * The state before the last change (`null` if none known).
+   */
+  previous_state: string | null;
+  /**
+   * `high`, `medium` or `low`: low when an input is missing or the score is within 3 points of
+   * a threshold, medium when the history is shorter than twice the minimum.
+   */
+  confidence: string | null;
+  /**
+   * The 3 sub-indicators farthest from their middle (`name pNN` for percentiles, `name NN/100`
+   * for composite axes).
+   */
+  drivers: Array<string>;
+  /**
+   * Sub-indicators: each `{value, percentile?}` (percentile = rank 0-100 in the pair's own
+   * history), or a plain value for flags and labels.
+   */
+  components: SentimentIndicatorsItemComponents;
+  /**
+   * What the value was computed from: windows, coverage, missing parts.
+   */
+  inputs: SentimentIndicatorsItemInputs;
+  /**
+   * Points of the indicator's own history used to place it (window of the timeframe). Unit:
+   * count.
+   */
+  history_points: number | null;
+  /**
+   * Version of the published methodology; any threshold or weight change increments it. Unit:
+   * count.
+   */
+  method_version: number | null;
+}
+
+/**
+ * Row of `/v1/sentiment`.
+ */
+export interface Sentiment {
+  /**
+   * One deterministic English sentence summarizing the most extreme facts (no language model).
+   */
+  summary: string | null;
+  /**
+   * The indicators of the bucket, one object each, in the published order.
+   */
+  indicators: Array<SentimentIndicatorsItem>;
+}
+
+/**
+ * Unsmoothed value (pair: 50 + 1.5 x (weighted_mean - 50), in [0, 100]).
+ */
+export interface SentimentHistoryItemComponentsRaw {
+  /**
+   * The sub-indicator's value, in the unit of its name.
+   */
+  value: number | null;
+}
+
+/**
+ * Axis: the leverage positioning.
+ */
+export interface SentimentHistoryItemComponentsLeverage {
+  /**
+   * The sub-indicator's value, in the unit of its name.
+   */
+  value: number | null;
+}
+
+/**
+ * Axis 0 = fear, 100 = greed: the momentum score.
+ */
+export interface SentimentHistoryItemComponentsMomentum {
+  /**
+   * The sub-indicator's value, in the unit of its name.
+   */
+  value: number | null;
+}
+
+/**
+ * Axis: the order_flow score.
+ */
+export interface SentimentHistoryItemComponentsOrderFlow {
+  /**
+   * The sub-indicator's value, in the unit of its name.
+   */
+  value: number | null;
+}
+
+/**
+ * Axis: 50 + 50 x (short share - long share) x intensity percentile / 100.
+ */
+export interface SentimentHistoryItemComponentsLiquidations {
+  /**
+   * The sub-indicator's value, in the unit of its name.
+   */
+  value: number | null;
+}
+
+/**
+ * Weighted mean of the available axes (weights renormalized).
+ */
+export interface SentimentHistoryItemComponentsWeightedMean {
+  /**
+   * The sub-indicator's value, in the unit of its name.
+   */
+  value: number | null;
+}
+
+/**
+ * Share of the published weights available.
+ */
+export interface SentimentHistoryItemComponentsWeightCovered {
+  /**
+   * The sub-indicator's value, in the unit of its name.
+   */
+  value: number | null;
+}
+
+/**
+ * Axis: 100 - volatility score.
+ */
+export interface SentimentHistoryItemComponentsVolatilityCalm {
+  /**
+   * The sub-indicator's value, in the unit of its name.
+   */
+  value: number | null;
+}
+
+/**
+ * Sub-indicators: each `{value, percentile?}` (percentile = rank 0-100 in the pair's own
+ * history), or a plain value for flags and labels.
+ */
+export interface SentimentHistoryItemComponents {
+  /**
+   * Unsmoothed value (pair: 50 + 1.5 x (weighted_mean - 50), in [0, 100]).
+   */
+  raw: SentimentHistoryItemComponentsRaw;
+  /**
+   * Axis: the leverage positioning.
+   */
+  leverage: SentimentHistoryItemComponentsLeverage;
+  /**
+   * Axis 0 = fear, 100 = greed: the momentum score.
+   */
+  momentum: SentimentHistoryItemComponentsMomentum;
+  /**
+   * Axis: the order_flow score.
+   */
+  order_flow: SentimentHistoryItemComponentsOrderFlow;
+  /**
+   * Axis: 50 + 50 x (short share - long share) x intensity percentile / 100.
+   */
+  liquidations: SentimentHistoryItemComponentsLiquidations;
+  /**
+   * Weighted mean of the available axes (weights renormalized).
+   */
+  weighted_mean: SentimentHistoryItemComponentsWeightedMean;
+  /**
+   * Share of the published weights available.
+   */
+  weight_covered: SentimentHistoryItemComponentsWeightCovered;
+  /**
+   * Axis: 100 - volatility score.
+   */
+  volatility_calm: SentimentHistoryItemComponentsVolatilityCalm;
+}
+
+/**
+ * Row of `/v1/sentiment/history`.
+ */
+export interface SentimentHistoryItem {
+  /**
+   * Start of the bucket of `timeframe` the value was computed on, once the bucket closed. Unit:
+   * ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).
+   */
+  time: Date | null;
+  /**
+   * Indicator name (see `/v1/sentiment/methodology`).
+   */
+  indicator: string | null;
+  /**
+   * 0-100 in the indicator's own direction (see `score_meaning` in the methodology); `null`
+   * while warming up. Unit: dimensionless score.
+   */
+  score: number | null;
+  /**
+   * The indicator's state, a frozen snake_case vocabulary; `warming_up` while the history is
+   * too short.
+   */
+  state: string | null;
+  /**
+   * One English sentence explaining the state, with its figures.
+   */
+  meaning: string | null;
+  /**
+   * Start of the first bucket of the current state. Unit: ISO 8601 UTC, milliseconds
+   * (2026-09-28T14:00:00.000Z).
+   */
+  state_since_at: Date | null;
+  /**
+   * Number of buckets in the current state, this one included. Unit: count.
+   */
+  bars_in_state: number | null;
+  /**
+   * The state before the last change (`null` if none known).
+   */
+  previous_state: number | string | null;
+  /**
+   * `high`, `medium` or `low`: low when an input is missing or the score is within 3 points of
+   * a threshold, medium when the history is shorter than twice the minimum.
+   */
+  confidence: string | null;
+  /**
+   * The 3 sub-indicators farthest from their middle (`name pNN` for percentiles, `name NN/100`
+   * for composite axes).
+   */
+  drivers: Array<string>;
+  /**
+   * Sub-indicators: each `{value, percentile?}` (percentile = rank 0-100 in the pair's own
+   * history), or a plain value for flags and labels.
+   */
+  components: SentimentHistoryItemComponents;
+  /**
+   * What the value was computed from: windows, coverage, missing parts.
+   */
+  inputs: Record<string, unknown>;
+  /**
+   * Points of the indicator's own history used to place it (window of the timeframe). Unit:
+   * count.
+   */
+  history_points: number | null;
+  /**
+   * Version of the published methodology; any threshold or weight change increments it. Unit:
+   * count.
+   */
+  method_version: number | null;
+  /**
+   * `true` = the row is final; `false` = provisional: the latest bucket while it still settles
+   * (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period
+   * in progress with `?live=1` on the routes that take it. Exception, rare: when a venue
+   * delivers trades LATE (seconds to minutes, e.g. during a burst), a closed row built from
+   * trades (trade candles, candle volumes, CVD, buy/sell ratio, trades per second) is corrected
+   * afterwards to include them, usually within minutes and at most one hour later; the
+   * correction only adds the late trades.
+   */
+  is_closed: boolean | null;
+}
+
+/**
+ * (advancers - decliners) / (advancers + decliners).
+ */
+export interface SentimentMarketIndicatorsItemComponentsRana {
+  /**
+   * The sub-indicator's value, in the unit of its name.
+   */
+  value: number | null;
+}
+
+/**
+ * Mean pairwise correlation of daily returns over 30 days.
+ */
+export interface SentimentMarketIndicatorsItemComponentsHerding {
+  /**
+   * The sub-indicator's value, in the unit of its name.
+   */
+  value: number | null;
+  /**
+   * Rank 0-100 of the value in the pair's own history (strictly past). Unit: dimensionless
+   * score.
+   */
+  percentile: number | null;
+}
+
+/**
+ * EMA(19 days) - EMA(39 days) of rana.
+ */
+export interface SentimentMarketIndicatorsItemComponentsMcclellan {
+  /**
+   * The sub-indicator's value, in the unit of its name.
+   */
+  value: number | null;
+}
+
+/**
+ * Pairs measured (breadth) or averaged (market Fear & Greed).
+ */
+export interface SentimentMarketIndicatorsItemComponentsPairsCount {
+  /**
+   * The sub-indicator's value, in the unit of its name.
+   */
+  value: number | null;
+}
+
+/**
+ * Share of pairs up over 24 hours, percent.
+ */
+export interface SentimentMarketIndicatorsItemComponentsAdvancersPct {
+  /**
+   * The sub-indicator's value, in the unit of its name. Unit: percent.
+   */
+  value: number | null;
+}
+
+/**
+ * Share of pairs above their 50-day mean, percent.
+ */
+export interface SentimentMarketIndicatorsItemComponentsAboveMa50Pct {
+  /**
+   * The sub-indicator's value, in the unit of its name. Unit: percent.
+   */
+  value: number | null;
+}
+
+/**
+ * Share of pairs above their 200-day mean (null if shorter).
+ */
+export interface SentimentMarketIndicatorsItemComponentsAboveMa200Pct {
+  /**
+   * The sub-indicator's value, in the unit of its name. Unit: percent.
+   */
+  value: number | null;
+}
+
+/**
+ * Share of pairs whose last-24h low breaks the 30 days before.
+ */
+export interface SentimentMarketIndicatorsItemComponentsNewLows30dPct {
+  /**
+   * The sub-indicator's value, in the unit of its name. Unit: percent.
+   */
+  value: number | null;
+}
+
+/**
+ * The same over 90 days.
+ */
+export interface SentimentMarketIndicatorsItemComponentsNewLows90dPct {
+  /**
+   * The sub-indicator's value, in the unit of its name. Unit: percent.
+   */
+  value: number | null;
+}
+
+/**
+ * BTC dominance, percent.
+ */
+export interface SentimentMarketIndicatorsItemComponentsBtcDominancePct {
+  /**
+   * The sub-indicator's value, in the unit of its name. Unit: percent.
+   */
+  value: number | null;
+}
+
+/**
+ * BTC price change over 7 days, percent.
+ */
+export interface SentimentMarketIndicatorsItemComponentsBtcReturn7dPct {
+  /**
+   * The sub-indicator's value, in the unit of its name. Unit: percent.
+   */
+  value: number | null;
+}
+
+/**
+ * Share of pairs whose last-24h high beats the 30 days before.
+ */
+export interface SentimentMarketIndicatorsItemComponentsNewHighs30dPct {
+  /**
+   * The sub-indicator's value, in the unit of its name. Unit: percent.
+   */
+  value: number | null;
+}
+
+/**
+ * The same over 90 days.
+ */
+export interface SentimentMarketIndicatorsItemComponentsNewHighs90dPct {
+  /**
+   * The sub-indicator's value, in the unit of its name. Unit: percent.
+   */
+  value: number | null;
+}
+
+/**
+ * Cross-sectional standard deviation of 24h returns, percent.
+ */
+export interface SentimentMarketIndicatorsItemComponentsDispersion24hPct {
+  /**
+   * The sub-indicator's value, in the unit of its name. Unit: percent.
+   */
+  value: number | null;
+}
+
+/**
+ * Equal-weighted minus cap-weighted 7-day return, points.
+ */
+export interface SentimentMarketIndicatorsItemComponentsEqualVsCap7dPct {
+  /**
+   * The sub-indicator's value, in the unit of its name. Unit: percent.
+   */
+  value: number | null;
+}
+
+/**
+ * Share of pairs with settled funding > 0.01% per 8 h.
+ */
+export interface SentimentMarketIndicatorsItemComponentsFundingBreadthPct {
+  /**
+   * The sub-indicator's value, in the unit of its name. Unit: percent.
+   */
+  value: number | null;
+}
+
+/**
+ * (USDT + USDC supply) / total crypto market cap, percent.
+ */
+export interface SentimentMarketIndicatorsItemComponentsStablecoinSharePct {
+  /**
+   * The sub-indicator's value, in the unit of its name. Unit: percent.
+   */
+  value: number | null;
+}
+
+/**
+ * Share of pairs beating BTC over 7 days, percent.
+ */
+export interface SentimentMarketIndicatorsItemComponentsOutperformBtc7dPct {
+  /**
+   * The sub-indicator's value, in the unit of its name. Unit: percent.
+   */
+  value: number | null;
+}
+
+/**
+ * Share of pairs beating BTC over 30 days, percent.
+ */
+export interface SentimentMarketIndicatorsItemComponentsOutperformBtc30dPct {
+  /**
+   * The sub-indicator's value, in the unit of its name. Unit: percent.
+   */
+  value: number | null;
+}
+
+/**
+ * 7-day change of BTC dominance, points.
+ */
+export interface SentimentMarketIndicatorsItemComponentsBtcDominanceChange7d {
+  /**
+   * The sub-indicator's value, in the unit of its name.
+   */
+  value: number | null;
+  /**
+   * Rank 0-100 of the value in the pair's own history (strictly past). Unit: dimensionless
+   * score.
+   */
+  percentile: number | null;
+}
+
+/**
+ * Median altcoin funding - BTC funding, percent per 8 h.
+ */
+export interface SentimentMarketIndicatorsItemComponentsAltLeveragePremiumPct {
+  /**
+   * The sub-indicator's value, in the unit of its name. Unit: percent.
+   */
+  value: number | null;
+}
+
+/**
+ * Market-cap-weighted 7-day return, percent.
+ */
+export interface SentimentMarketIndicatorsItemComponentsCapWeightedReturn7dPct {
+  /**
+   * The sub-indicator's value, in the unit of its name. Unit: percent.
+   */
+  value: number | null;
+}
+
+/**
+ * 7-day change of stablecoin_share_pct, points.
+ */
+export interface SentimentMarketIndicatorsItemComponentsStablecoinShareChange7d {
+  /**
+   * The sub-indicator's value, in the unit of its name.
+   */
+  value: number | null;
+}
+
+/**
+ * Market-cap-weighted 24-hour return, percent.
+ */
+export interface SentimentMarketIndicatorsItemComponentsCapWeightedReturn24hPct {
+  /**
+   * The sub-indicator's value, in the unit of its name. Unit: percent.
+   */
+  value: number | null;
+}
+
+/**
+ * Equal-weighted 7-day return of the pairs, percent.
+ */
+export interface SentimentMarketIndicatorsItemComponentsEqualWeightedReturn7dPct {
+  /**
+   * The sub-indicator's value, in the unit of its name. Unit: percent.
+   */
+  value: number | null;
+}
+
+/**
+ * Sub-indicators: each `{value, percentile?}` (percentile = rank 0-100 in the pair's own
+ * history), or a plain value for flags and labels.
+ */
+export interface SentimentMarketIndicatorsItemComponents {
+  /**
+   * (advancers - decliners) / (advancers + decliners).
+   */
+  rana?: SentimentMarketIndicatorsItemComponentsRana;
+  /**
+   * Mean pairwise correlation of daily returns over 30 days.
+   */
+  herding?: SentimentMarketIndicatorsItemComponentsHerding;
+  /**
+   * EMA(19 days) - EMA(39 days) of rana.
+   */
+  mcclellan?: SentimentMarketIndicatorsItemComponentsMcclellan;
+  /**
+   * Pairs measured (breadth) or averaged (market Fear & Greed).
+   */
+  pairs_count?: SentimentMarketIndicatorsItemComponentsPairsCount;
+  /**
+   * Share of pairs up over 24 hours, percent.
+   */
+  advancers_pct?: SentimentMarketIndicatorsItemComponentsAdvancersPct;
+  /**
+   * Share of pairs above their 50-day mean, percent.
+   */
+  above_ma50_pct?: SentimentMarketIndicatorsItemComponentsAboveMa50Pct;
+  /**
+   * Share of pairs above their 200-day mean (null if shorter).
+   */
+  above_ma200_pct?: SentimentMarketIndicatorsItemComponentsAboveMa200Pct;
+  /**
+   * Share of pairs whose last-24h low breaks the 30 days before.
+   */
+  new_lows_30d_pct?: SentimentMarketIndicatorsItemComponentsNewLows30dPct;
+  /**
+   * The same over 90 days.
+   */
+  new_lows_90d_pct?: SentimentMarketIndicatorsItemComponentsNewLows90dPct;
+  /**
+   * BTC dominance, percent.
+   */
+  btc_dominance_pct?: SentimentMarketIndicatorsItemComponentsBtcDominancePct;
+  /**
+   * BTC price change over 7 days, percent.
+   */
+  btc_return_7d_pct?: SentimentMarketIndicatorsItemComponentsBtcReturn7dPct;
+  /**
+   * Share of pairs whose last-24h high beats the 30 days before.
+   */
+  new_highs_30d_pct?: SentimentMarketIndicatorsItemComponentsNewHighs30dPct;
+  /**
+   * The same over 90 days.
+   */
+  new_highs_90d_pct?: SentimentMarketIndicatorsItemComponentsNewHighs90dPct;
+  /**
+   * Cross-sectional standard deviation of 24h returns, percent.
+   */
+  dispersion_24h_pct?: SentimentMarketIndicatorsItemComponentsDispersion24hPct;
+  /**
+   * Equal-weighted minus cap-weighted 7-day return, points.
+   */
+  equal_vs_cap_7d_pct?: SentimentMarketIndicatorsItemComponentsEqualVsCap7dPct;
+  /**
+   * Share of pairs with settled funding > 0.01% per 8 h.
+   */
+  funding_breadth_pct?: SentimentMarketIndicatorsItemComponentsFundingBreadthPct;
+  /**
+   * (USDT + USDC supply) / total crypto market cap, percent.
+   */
+  stablecoin_share_pct?: SentimentMarketIndicatorsItemComponentsStablecoinSharePct;
+  /**
+   * Share of pairs beating BTC over 7 days, percent.
+   */
+  outperform_btc_7d_pct?: SentimentMarketIndicatorsItemComponentsOutperformBtc7dPct;
+  /**
+   * Share of pairs beating BTC over 30 days, percent.
+   */
+  outperform_btc_30d_pct?: SentimentMarketIndicatorsItemComponentsOutperformBtc30dPct;
+  /**
+   * 7-day change of BTC dominance, points.
+   */
+  btc_dominance_change_7d?: SentimentMarketIndicatorsItemComponentsBtcDominanceChange7d;
+  /**
+   * Median altcoin funding - BTC funding, percent per 8 h.
+   */
+  alt_leverage_premium_pct?: SentimentMarketIndicatorsItemComponentsAltLeveragePremiumPct;
+  /**
+   * Market-cap-weighted 7-day return, percent.
+   */
+  cap_weighted_return_7d_pct?: SentimentMarketIndicatorsItemComponentsCapWeightedReturn7dPct;
+  /**
+   * 7-day change of stablecoin_share_pct, points.
+   */
+  stablecoin_share_change_7d?: SentimentMarketIndicatorsItemComponentsStablecoinShareChange7d;
+  /**
+   * Market-cap-weighted 24-hour return, percent.
+   */
+  cap_weighted_return_24h_pct?: SentimentMarketIndicatorsItemComponentsCapWeightedReturn24hPct;
+  /**
+   * Equal-weighted 7-day return of the pairs, percent.
+   */
+  equal_weighted_return_7d_pct?: SentimentMarketIndicatorsItemComponentsEqualWeightedReturn7dPct;
+}
+
+/**
+ * Nested object (SentimentMarketIndicatorsItem).
+ */
+export interface SentimentMarketIndicatorsItem {
+  /**
+   * Start of the bucket of `timeframe` the value was computed on, once the bucket closed. Unit:
+   * ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).
+   */
+  time: Date | null;
+  /**
+   * Indicator name (see `/v1/sentiment/methodology`).
+   */
+  indicator: string | null;
+  /**
+   * Bucket size of the row.
+   */
+  timeframe: string | null;
+  /**
+   * 0-100 in the indicator's own direction (see `score_meaning` in the methodology); `null`
+   * while warming up. Unit: dimensionless score.
+   */
+  score: number | null;
+  /**
+   * The indicator's state, a frozen snake_case vocabulary; `warming_up` while the history is
+   * too short.
+   */
+  state: string | null;
+  /**
+   * One English sentence explaining the state, with its figures.
+   */
+  meaning: string | null;
+  /**
+   * Start of the first bucket of the current state. Unit: ISO 8601 UTC, milliseconds
+   * (2026-09-28T14:00:00.000Z).
+   */
+  state_since_at: Date | null;
+  /**
+   * Number of buckets in the current state, this one included. Unit: count.
+   */
+  bars_in_state: number | null;
+  /**
+   * The state before the last change (`null` if none known).
+   */
+  previous_state: number | string | null;
+  /**
+   * `high`, `medium` or `low`: low when an input is missing or the score is within 3 points of
+   * a threshold, medium when the history is shorter than twice the minimum.
+   */
+  confidence: string | null;
+  /**
+   * The 3 sub-indicators farthest from their middle (`name pNN` for percentiles, `name NN/100`
+   * for composite axes).
+   */
+  drivers: Array<string>;
+  /**
+   * Sub-indicators: each `{value, percentile?}` (percentile = rank 0-100 in the pair's own
+   * history), or a plain value for flags and labels.
+   */
+  components: SentimentMarketIndicatorsItemComponents;
+  /**
+   * What the value was computed from: windows, coverage, missing parts.
+   */
+  inputs: Record<string, unknown>;
+  /**
+   * Points of the indicator's own history used to place it (window of the timeframe). Unit:
+   * count.
+   */
+  history_points: number | null;
+  /**
+   * Version of the published methodology; any threshold or weight change increments it. Unit:
+   * count.
+   */
+  method_version: number | null;
+}
+
+/**
+ * Row of `/v1/sentiment/market`.
+ */
+export interface SentimentMarket {
+  /**
+   * One deterministic English sentence summarizing the most extreme facts (no language model).
+   */
+  summary: string | null;
+  /**
+   * The indicators of the bucket, one object each, in the published order.
+   */
+  indicators: Array<SentimentMarketIndicatorsItem>;
+}
+
+/**
+ * Mean pairwise correlation of daily returns over 30 days.
+ */
+export interface SentimentMarketHistoryItemComponentsHerding {
+  /**
+   * The sub-indicator's value, in the unit of its name.
+   */
+  value: number | null;
+  /**
+   * Rank 0-100 of the value in the pair's own history (strictly past). Unit: dimensionless
+   * score.
+   */
+  percentile: number | null;
+}
+
+/**
+ * EMA(19 days) - EMA(39 days) of rana.
+ */
+export interface SentimentMarketHistoryItemComponentsMcclellan {
+  /**
+   * The sub-indicator's value, in the unit of its name.
+   */
+  value: number | null;
+}
+
+/**
+ * Share of pairs up over 24 hours, percent.
+ */
+export interface SentimentMarketHistoryItemComponentsAdvancersPct {
+  /**
+   * The sub-indicator's value, in the unit of its name. Unit: percent.
+   */
+  value: number | null;
+}
+
+/**
+ * Liquidations of all pairs over 24 hours.
+ */
+export interface SentimentMarketHistoryItemComponentsLiqTotal24hUsd {
+  /**
+   * The sub-indicator's value, in the unit of its name.
+   */
+  value: number | null;
+}
+
+/**
+ * The market Fear & Greed.
+ */
+export interface SentimentMarketHistoryItemComponentsMarketFearGreed {
+  /**
+   * The sub-indicator's value, in the unit of its name.
+   */
+  value: number | null;
+}
+
+/**
+ * Liquidations over 24 hours / total open interest x 10,000.
+ */
+export interface SentimentMarketHistoryItemComponentsLiqIntensity24hBps {
+  /**
+   * The sub-indicator's value, in the unit of its name.
+   */
+  value: number | null;
+  /**
+   * Rank 0-100 of the value in the pair's own history (strictly past). Unit: dimensionless
+   * score.
+   */
+  percentile: number | null;
+}
+
+/**
+ * Settled funding weighted by open interest, percent per 8 h.
+ */
+export interface SentimentMarketHistoryItemComponentsFundingOiWeightedPct {
+  /**
+   * The sub-indicator's value, in the unit of its name. Unit: percent.
+   */
+  value: number | null;
+  /**
+   * Rank 0-100 of the value in the pair's own history (strictly past). Unit: dimensionless
+   * score.
+   */
+  percentile: number | null;
+}
+
+/**
+ * Lowest market Fear & Greed of the last 7 days.
+ */
+export interface SentimentMarketHistoryItemComponentsMarketFearGreedMin7d {
+  /**
+   * The sub-indicator's value, in the unit of its name.
+   */
+  value: number | null;
+}
+
+/**
+ * Sub-indicators: each `{value, percentile?}` (percentile = rank 0-100 in the pair's own
+ * history), or a plain value for flags and labels.
+ */
+export interface SentimentMarketHistoryItemComponents {
+  /**
+   * Mean pairwise correlation of daily returns over 30 days.
+   */
+  herding: SentimentMarketHistoryItemComponentsHerding;
+  /**
+   * EMA(19 days) - EMA(39 days) of rana.
+   */
+  mcclellan: SentimentMarketHistoryItemComponentsMcclellan;
+  /**
+   * BTC regime state of the same bucket.
+   */
+  btc_regime: string | null;
+  /**
+   * Share of pairs up over 24 hours, percent.
+   */
+  advancers_pct: SentimentMarketHistoryItemComponentsAdvancersPct;
+  /**
+   * The breadth state of the same bucket.
+   */
+  breadth_state: string | null;
+  /**
+   * BTC volatility state of the same bucket.
+   */
+  btc_volatility: string | null;
+  /**
+   * Liquidations of all pairs over 24 hours.
+   */
+  liq_total_24h_usd: SentimentMarketHistoryItemComponentsLiqTotal24hUsd;
+  /**
+   * The market Fear & Greed.
+   */
+  market_fear_greed: SentimentMarketHistoryItemComponentsMarketFearGreed;
+  /**
+   * Liquidations over 24 hours / total open interest x 10,000.
+   */
+  liq_intensity_24h_bps: SentimentMarketHistoryItemComponentsLiqIntensity24hBps;
+  /**
+   * Settled funding weighted by open interest, percent per 8 h.
+   */
+  funding_oi_weighted_pct: SentimentMarketHistoryItemComponentsFundingOiWeightedPct;
+  /**
+   * Lowest market Fear & Greed of the last 7 days.
+   */
+  market_fear_greed_min_7d: SentimentMarketHistoryItemComponentsMarketFearGreedMin7d;
+}
+
+/**
+ * Row of `/v1/sentiment/market/history`.
+ */
+export interface SentimentMarketHistoryItem {
+  /**
+   * Start of the bucket of `timeframe` the value was computed on, once the bucket closed. Unit:
+   * ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).
+   */
+  time: Date | null;
+  /**
+   * Indicator name (see `/v1/sentiment/methodology`).
+   */
+  indicator: string | null;
+  /**
+   * 0-100 in the indicator's own direction (see `score_meaning` in the methodology); `null`
+   * while warming up. Unit: dimensionless score.
+   */
+  score: number | null;
+  /**
+   * The indicator's state, a frozen snake_case vocabulary; `warming_up` while the history is
+   * too short.
+   */
+  state: string | null;
+  /**
+   * One English sentence explaining the state, with its figures.
+   */
+  meaning: string | null;
+  /**
+   * Start of the first bucket of the current state. Unit: ISO 8601 UTC, milliseconds
+   * (2026-09-28T14:00:00.000Z).
+   */
+  state_since_at: Date | null;
+  /**
+   * Number of buckets in the current state, this one included. Unit: count.
+   */
+  bars_in_state: number | null;
+  /**
+   * The state before the last change (`null` if none known).
+   */
+  previous_state: number | string | null;
+  /**
+   * `high`, `medium` or `low`: low when an input is missing or the score is within 3 points of
+   * a threshold, medium when the history is shorter than twice the minimum.
+   */
+  confidence: string | null;
+  /**
+   * The 3 sub-indicators farthest from their middle (`name pNN` for percentiles, `name NN/100`
+   * for composite axes).
+   */
+  drivers: Array<string>;
+  /**
+   * Sub-indicators: each `{value, percentile?}` (percentile = rank 0-100 in the pair's own
+   * history), or a plain value for flags and labels.
+   */
+  components: SentimentMarketHistoryItemComponents;
+  /**
+   * What the value was computed from: windows, coverage, missing parts.
+   */
+  inputs: Record<string, unknown>;
+  /**
+   * Points of the indicator's own history used to place it (window of the timeframe). Unit:
+   * count.
+   */
+  history_points: number | null;
+  /**
+   * Version of the published methodology; any threshold or weight change increments it. Unit:
+   * count.
+   */
+  method_version: number | null;
+  /**
+   * `true` = the row is final; `false` = provisional: the latest bucket while it still settles
+   * (a few seconds after its end, e.g. a candle whose volumes are not final yet), or the period
+   * in progress with `?live=1` on the routes that take it. Exception, rare: when a venue
+   * delivers trades LATE (seconds to minutes, e.g. during a burst), a closed row built from
+   * trades (trade candles, candle volumes, CVD, buy/sell ratio, trades per second) is corrected
+   * afterwards to include them, usually within minutes and at most one hour later; the
+   * correction only adds the late trades.
+   */
+  is_closed: boolean | null;
+}
+
+/**
+ * Nested object (SentimentMethodologyPrinciplesItem).
+ */
+export interface SentimentMethodologyPrinciplesItem {
+  /**
+   * Short name of the principle.
+   */
+  topic: string | null;
+  /**
+   * The principle, in plain English.
+   */
+  text: string | null;
+}
+
+/**
+ * Nested object (SentimentMethodologyWindowsItem).
+ */
+export interface SentimentMethodologyWindowsItem {
+  /**
+   * Bucket size.
+   */
+  timeframe: string | null;
+  /**
+   * Length of the history each value is placed in. Unit: days.
+   */
+  history_days: number | null;
+  /**
+   * Points needed before a score is given (else `warming_up`). Unit: count.
+   */
+  min_points: number | null;
+  /**
+   * Points needed when a 1h flow is compared to the same hour of previous days. Unit: count.
+   */
+  same_hour_min_points: number | null;
+}
+
+/**
+ * Nested object (SentimentMethodologyFearGreedBandsItem).
+ */
+export interface SentimentMethodologyFearGreedBandsItem {
+  /**
+   * State name, as served in `state`.
+   */
+  state: string | null;
+  /**
+   * Lower bound of the band, included. Unit: dimensionless score.
+   */
+  min_score: number | null;
+  /**
+   * Upper bound of the band (excluded, except 100). Unit: dimensionless score.
+   */
+  max_score: number | null;
+}
+
+/**
+ * Nested object (SentimentMethodologyIndicatorsItemSubIndicatorsItem).
+ */
+export interface SentimentMethodologyIndicatorsItemSubIndicatorsItem {
+  /**
+   * Sub-indicator name (several names share one definition when separated by /).
+   */
+  name: string | null;
+  /**
+   * Formula and unit of the sub-indicator.
+   */
+  definition: string | null;
+}
+
+/**
+ * Nested object (SentimentMethodologyIndicatorsItemStatesItem).
+ */
+export interface SentimentMethodologyIndicatorsItemStatesItem {
+  /**
+   * State name, as served in `state`.
+   */
+  state: string | null;
+  /**
+   * 1 = tried first. Unit: count.
+   */
+  priority: number | null;
+  /**
+   * Entry rule, and the looser rule that keeps the state.
+   */
+  rule: string | null;
+  /**
+   * The base sentence served in `meaning` for this state.
+   */
+  meaning: string | null;
+}
+
+/**
+ * Nested object (SentimentMethodologyIndicatorsItemWeightsItem).
+ */
+export interface SentimentMethodologyIndicatorsItemWeightsItem {
+  /**
+   * Axis of the composite.
+   */
+  component: string | null;
+  /**
+   * Weight of the axis before renormalization. Unit: fraction (0.585 = 58.5 %).
+   */
+  weight: number | null;
+}
+
+/**
+ * Nested object (SentimentMethodologyIndicatorsItem).
+ */
+export interface SentimentMethodologyIndicatorsItem {
+  /**
+   * Indicator name, as in `?indicator=`.
+   */
+  indicator: string | null;
+  /**
+   * `pair` or `market`.
+   */
+  scope: string | null;
+  /**
+   * Timeframes the indicator is computed on.
+   */
+  timeframes: Array<string>;
+  /**
+   * What 0 and 100 mean for this indicator's score.
+   */
+  score_meaning: string | null;
+  /**
+   * The data the indicator reads.
+   */
+  inputs: string | null;
+  /**
+   * How the score is computed.
+   */
+  score: string | null;
+  /**
+   * Each `{name, definition}` served in `components`.
+   */
+  sub_indicators: Array<SentimentMethodologyIndicatorsItemSubIndicatorsItem>;
+  /**
+   * Every state, by priority: `{state, priority, rule, meaning}`.
+   */
+  states: Array<SentimentMethodologyIndicatorsItemStatesItem>;
+  /**
+   * A younger state is only left for a higher-priority one. Unit: count.
+   */
+  min_bars_in_state: number | null;
+  /**
+   * Published weights of a composite: `{component, weight}`.
+   */
+  weights?: Array<SentimentMethodologyIndicatorsItemWeightsItem>;
+}
+
+/**
+ * Row of `/v1/sentiment/methodology`.
+ */
+export interface SentimentMethodology {
+  /**
+   * Version of the methodology; served with every value. Unit: count.
+   */
+  method_version: number | null;
+  /**
+   * How every indicator is computed: one `{topic, text}` per principle.
+   */
+  principles: Array<SentimentMethodologyPrinciplesItem>;
+  /**
+   * History window and minimum points of each timeframe.
+   */
+  windows: Array<SentimentMethodologyWindowsItem>;
+  /**
+   * The five Fear & Greed bands: `{state, min_score, max_score}`.
+   */
+  fear_greed_bands: Array<SentimentMethodologyFearGreedBandsItem>;
+  /**
+   * One object per indicator, in the published order.
+   */
+  indicators: Array<SentimentMethodologyIndicatorsItem>;
+}
+
+/**
+ * mean(percentile(leverage_ratio), percentile(oi_growth_7d)).
+ */
+export interface SentimentScreenerComponentsIntensity {
+  /**
+   * The sub-indicator's value, in the unit of its name.
+   */
+  value: number | null;
+}
+
+/**
+ * The settled funding annualized (x 1095), percent.
+ */
+export interface SentimentScreenerComponentsFundingAprPct {
+  /**
+   * The sub-indicator's value, in the unit of its name. Unit: percent.
+   */
+  value: number | null;
+}
+
+/**
+ * Median estimated next funding, percent per 8 h.
+ */
+export interface SentimentScreenerComponentsFundingNextPct {
+  /**
+   * The sub-indicator's value, in the unit of its name. Unit: percent.
+   */
+  value: number | null;
+}
+
+/**
+ * Open interest change over 7 days, in base units, percent.
+ */
+export interface SentimentScreenerComponentsOiGrowth7dPct {
+  /**
+   * The sub-indicator's value, in the unit of its name. Unit: percent.
+   */
+  value: number | string | null;
+}
+
+/**
+ * Open interest change over 24 hours, in base units, percent.
+ */
+export interface SentimentScreenerComponentsOiGrowth24hPct {
+  /**
+   * The sub-indicator's value, in the unit of its name. Unit: percent.
+   */
+  value: number | null;
+  /**
+   * Rank 0-100 of the value in the pair's own history (strictly past). Unit: dimensionless
+   * score.
+   */
+  percentile: number | null;
+}
+
+/**
+ * Futures / spot volume over 24 hours.
+ */
+export interface SentimentScreenerComponentsSpeculationRatio {
+  /**
+   * The sub-indicator's value, in the unit of its name.
+   */
+  value: number | null;
+  /**
+   * Rank 0-100 of the value in the pair's own history (strictly past). Unit: dimensionless
+   * score.
+   */
+  percentile: number | null;
+}
+
+/**
+ * Open interest / circulating supply, percent.
+ */
+export interface SentimentScreenerComponentsLeverageRatioPct {
+  /**
+   * The sub-indicator's value, in the unit of its name. Unit: percent.
+   */
+  value: number | null;
+  /**
+   * Rank 0-100 of the value in the pair's own history (strictly past). Unit: dimensionless
+   * score.
+   */
+  percentile: number | null;
+}
+
+/**
+ * Median across venues of the last settled funding, 8h-equivalent, percent per 8 h.
+ */
+export interface SentimentScreenerComponentsFunding8hMedianPct {
+  /**
+   * The sub-indicator's value, in the unit of its name. Unit: percent.
+   */
+  value: number | null;
+  /**
+   * Rank 0-100 of the value in the pair's own history (strictly past). Unit: dimensionless
+   * score.
+   */
+  percentile: number | null;
+}
+
+/**
+ * Sub-indicators: each `{value, percentile?}` (percentile = rank 0-100 in the pair's own
+ * history), or a plain value for flags and labels.
+ */
+export interface SentimentScreenerComponents {
+  /**
+   * mean(percentile(leverage_ratio), percentile(oi_growth_7d)).
+   */
+  intensity: SentimentScreenerComponentsIntensity;
+  /**
+   * The settled funding annualized (x 1095), percent.
+   */
+  funding_apr_pct: SentimentScreenerComponentsFundingAprPct;
+  /**
+   * Median estimated next funding, percent per 8 h.
+   */
+  funding_next_pct: SentimentScreenerComponentsFundingNextPct;
+  /**
+   * Open interest change over 7 days, in base units, percent.
+   */
+  oi_growth_7d_pct: SentimentScreenerComponentsOiGrowth7dPct;
+  /**
+   * Open interest change over 24 hours, in base units, percent.
+   */
+  oi_growth_24h_pct: SentimentScreenerComponentsOiGrowth24hPct;
+  /**
+   * Futures / spot volume over 24 hours.
+   */
+  speculation_ratio: SentimentScreenerComponentsSpeculationRatio;
+  /**
+   * Open interest / circulating supply, percent.
+   */
+  leverage_ratio_pct: SentimentScreenerComponentsLeverageRatioPct;
+  /**
+   * Median across venues of the last settled funding, 8h-equivalent, percent per 8 h.
+   */
+  funding_8h_median_pct: SentimentScreenerComponentsFunding8hMedianPct;
+}
+
+/**
+ * What the value was computed from: windows, coverage, missing parts.
+ */
+export interface SentimentScreenerInputs {
+  /**
+   * How the funding is aggregated.
+   */
+  funding: string | null;
+  /**
+   * What the positioning score is made of.
+   */
+  positioning: string | null;
+}
+
+/**
+ * Row of `/v1/sentiment/screener`.
+ */
+export interface SentimentScreener {
+  /**
+   * Start of the bucket of `timeframe` the value was computed on, once the bucket closed. Unit:
+   * ISO 8601 UTC, milliseconds (2026-09-28T14:00:00.000Z).
+   */
+  time: Date | null;
+  /**
+   * Trading pair.
+   */
+  symbol: string | null;
+  /**
+   * Indicator name (see `/v1/sentiment/methodology`).
+   */
+  indicator: string | null;
+  /**
+   * 0-100 in the indicator's own direction (see `score_meaning` in the methodology); `null`
+   * while warming up. Unit: dimensionless score.
+   */
+  score: number | null;
+  /**
+   * The indicator's state, a frozen snake_case vocabulary; `warming_up` while the history is
+   * too short.
+   */
+  state: string | null;
+  /**
+   * One English sentence explaining the state, with its figures.
+   */
+  meaning: string | null;
+  /**
+   * Start of the first bucket of the current state. Unit: ISO 8601 UTC, milliseconds
+   * (2026-09-28T14:00:00.000Z).
+   */
+  state_since_at: Date | null;
+  /**
+   * Number of buckets in the current state, this one included. Unit: count.
+   */
+  bars_in_state: number | null;
+  /**
+   * The state before the last change (`null` if none known).
+   */
+  previous_state: string | null;
+  /**
+   * `high`, `medium` or `low`: low when an input is missing or the score is within 3 points of
+   * a threshold, medium when the history is shorter than twice the minimum.
+   */
+  confidence: string | null;
+  /**
+   * The 3 sub-indicators farthest from their middle (`name pNN` for percentiles, `name NN/100`
+   * for composite axes).
+   */
+  drivers: Array<string>;
+  /**
+   * Sub-indicators: each `{value, percentile?}` (percentile = rank 0-100 in the pair's own
+   * history), or a plain value for flags and labels.
+   */
+  components: SentimentScreenerComponents;
+  /**
+   * What the value was computed from: windows, coverage, missing parts.
+   */
+  inputs: SentimentScreenerInputs;
+  /**
+   * Points of the indicator's own history used to place it (window of the timeframe). Unit:
+   * count.
+   */
+  history_points: number | null;
+  /**
+   * Version of the published methodology; any threshold or weight change increments it. Unit:
+   * count.
+   */
+  method_version: number | null;
+}
+
+/**
  * Nested object (SpreadInterexchangeVenuesItem).
  */
 export interface SpreadInterexchangeVenuesItem {
@@ -5573,6 +7117,86 @@ export const MODEL_SHAPES: Record<string, { dates: string[]; nested: Record<stri
   Orderbook: { dates: ["time"], nested: {"ranges": "OrderbookRangesItem"} },
   PriceChangeChangesPct: { dates: [], nested: {} },
   PriceChange: { dates: ["time"], nested: {"changes_pct": "PriceChangeChangesPct"} },
+  SentimentIndicatorsItemComponentsRv7d: { dates: [], nested: {} },
+  SentimentIndicatorsItemComponentsRv24h: { dates: [], nested: {} },
+  SentimentIndicatorsItemComponentsRv30d: { dates: [], nested: {} },
+  SentimentIndicatorsItemComponentsShockZ: { dates: [], nested: {} },
+  SentimentIndicatorsItemComponentsRvRatio: { dates: [], nested: {} },
+  SentimentIndicatorsItemComponentsBandwidth: { dates: [], nested: {} },
+  SentimentIndicatorsItemComponentsVolOfVol: { dates: [], nested: {} },
+  SentimentIndicatorsItemComponentsRangeShock: { dates: [], nested: {} },
+  SentimentIndicatorsItemComponentsIsSqueezeOn: { dates: [], nested: {} },
+  SentimentIndicatorsItemComponents: { dates: [], nested: {"rv_7d": "SentimentIndicatorsItemComponentsRv7d", "rv_24h": "SentimentIndicatorsItemComponentsRv24h", "rv_30d": "SentimentIndicatorsItemComponentsRv30d", "shock_z": "SentimentIndicatorsItemComponentsShockZ", "rv_ratio": "SentimentIndicatorsItemComponentsRvRatio", "bandwidth": "SentimentIndicatorsItemComponentsBandwidth", "vol_of_vol": "SentimentIndicatorsItemComponentsVolOfVol", "range_shock": "SentimentIndicatorsItemComponentsRangeShock", "is_squeeze_on": "SentimentIndicatorsItemComponentsIsSqueezeOn"} },
+  SentimentIndicatorsItemInputs: { dates: [], nested: {} },
+  SentimentIndicatorsItem: { dates: ["time", "state_since_at"], nested: {"components": "SentimentIndicatorsItemComponents", "inputs": "SentimentIndicatorsItemInputs"} },
+  Sentiment: { dates: [], nested: {"indicators": "SentimentIndicatorsItem"} },
+  SentimentHistoryItemComponentsRaw: { dates: [], nested: {} },
+  SentimentHistoryItemComponentsLeverage: { dates: [], nested: {} },
+  SentimentHistoryItemComponentsMomentum: { dates: [], nested: {} },
+  SentimentHistoryItemComponentsOrderFlow: { dates: [], nested: {} },
+  SentimentHistoryItemComponentsLiquidations: { dates: [], nested: {} },
+  SentimentHistoryItemComponentsWeightedMean: { dates: [], nested: {} },
+  SentimentHistoryItemComponentsWeightCovered: { dates: [], nested: {} },
+  SentimentHistoryItemComponentsVolatilityCalm: { dates: [], nested: {} },
+  SentimentHistoryItemComponents: { dates: [], nested: {"raw": "SentimentHistoryItemComponentsRaw", "leverage": "SentimentHistoryItemComponentsLeverage", "momentum": "SentimentHistoryItemComponentsMomentum", "order_flow": "SentimentHistoryItemComponentsOrderFlow", "liquidations": "SentimentHistoryItemComponentsLiquidations", "weighted_mean": "SentimentHistoryItemComponentsWeightedMean", "weight_covered": "SentimentHistoryItemComponentsWeightCovered", "volatility_calm": "SentimentHistoryItemComponentsVolatilityCalm"} },
+  SentimentHistoryItem: { dates: ["time", "state_since_at"], nested: {"components": "SentimentHistoryItemComponents"} },
+  SentimentMarketIndicatorsItemComponentsRana: { dates: [], nested: {} },
+  SentimentMarketIndicatorsItemComponentsHerding: { dates: [], nested: {} },
+  SentimentMarketIndicatorsItemComponentsMcclellan: { dates: [], nested: {} },
+  SentimentMarketIndicatorsItemComponentsPairsCount: { dates: [], nested: {} },
+  SentimentMarketIndicatorsItemComponentsAdvancersPct: { dates: [], nested: {} },
+  SentimentMarketIndicatorsItemComponentsAboveMa50Pct: { dates: [], nested: {} },
+  SentimentMarketIndicatorsItemComponentsAboveMa200Pct: { dates: [], nested: {} },
+  SentimentMarketIndicatorsItemComponentsNewLows30dPct: { dates: [], nested: {} },
+  SentimentMarketIndicatorsItemComponentsNewLows90dPct: { dates: [], nested: {} },
+  SentimentMarketIndicatorsItemComponentsBtcDominancePct: { dates: [], nested: {} },
+  SentimentMarketIndicatorsItemComponentsBtcReturn7dPct: { dates: [], nested: {} },
+  SentimentMarketIndicatorsItemComponentsNewHighs30dPct: { dates: [], nested: {} },
+  SentimentMarketIndicatorsItemComponentsNewHighs90dPct: { dates: [], nested: {} },
+  SentimentMarketIndicatorsItemComponentsDispersion24hPct: { dates: [], nested: {} },
+  SentimentMarketIndicatorsItemComponentsEqualVsCap7dPct: { dates: [], nested: {} },
+  SentimentMarketIndicatorsItemComponentsFundingBreadthPct: { dates: [], nested: {} },
+  SentimentMarketIndicatorsItemComponentsStablecoinSharePct: { dates: [], nested: {} },
+  SentimentMarketIndicatorsItemComponentsOutperformBtc7dPct: { dates: [], nested: {} },
+  SentimentMarketIndicatorsItemComponentsOutperformBtc30dPct: { dates: [], nested: {} },
+  SentimentMarketIndicatorsItemComponentsBtcDominanceChange7d: { dates: [], nested: {} },
+  SentimentMarketIndicatorsItemComponentsAltLeveragePremiumPct: { dates: [], nested: {} },
+  SentimentMarketIndicatorsItemComponentsCapWeightedReturn7dPct: { dates: [], nested: {} },
+  SentimentMarketIndicatorsItemComponentsStablecoinShareChange7d: { dates: [], nested: {} },
+  SentimentMarketIndicatorsItemComponentsCapWeightedReturn24hPct: { dates: [], nested: {} },
+  SentimentMarketIndicatorsItemComponentsEqualWeightedReturn7dPct: { dates: [], nested: {} },
+  SentimentMarketIndicatorsItemComponents: { dates: [], nested: {"rana": "SentimentMarketIndicatorsItemComponentsRana", "herding": "SentimentMarketIndicatorsItemComponentsHerding", "mcclellan": "SentimentMarketIndicatorsItemComponentsMcclellan", "pairs_count": "SentimentMarketIndicatorsItemComponentsPairsCount", "advancers_pct": "SentimentMarketIndicatorsItemComponentsAdvancersPct", "above_ma50_pct": "SentimentMarketIndicatorsItemComponentsAboveMa50Pct", "above_ma200_pct": "SentimentMarketIndicatorsItemComponentsAboveMa200Pct", "new_lows_30d_pct": "SentimentMarketIndicatorsItemComponentsNewLows30dPct", "new_lows_90d_pct": "SentimentMarketIndicatorsItemComponentsNewLows90dPct", "btc_dominance_pct": "SentimentMarketIndicatorsItemComponentsBtcDominancePct", "btc_return_7d_pct": "SentimentMarketIndicatorsItemComponentsBtcReturn7dPct", "new_highs_30d_pct": "SentimentMarketIndicatorsItemComponentsNewHighs30dPct", "new_highs_90d_pct": "SentimentMarketIndicatorsItemComponentsNewHighs90dPct", "dispersion_24h_pct": "SentimentMarketIndicatorsItemComponentsDispersion24hPct", "equal_vs_cap_7d_pct": "SentimentMarketIndicatorsItemComponentsEqualVsCap7dPct", "funding_breadth_pct": "SentimentMarketIndicatorsItemComponentsFundingBreadthPct", "stablecoin_share_pct": "SentimentMarketIndicatorsItemComponentsStablecoinSharePct", "outperform_btc_7d_pct": "SentimentMarketIndicatorsItemComponentsOutperformBtc7dPct", "outperform_btc_30d_pct": "SentimentMarketIndicatorsItemComponentsOutperformBtc30dPct", "btc_dominance_change_7d": "SentimentMarketIndicatorsItemComponentsBtcDominanceChange7d", "alt_leverage_premium_pct": "SentimentMarketIndicatorsItemComponentsAltLeveragePremiumPct", "cap_weighted_return_7d_pct": "SentimentMarketIndicatorsItemComponentsCapWeightedReturn7dPct", "stablecoin_share_change_7d": "SentimentMarketIndicatorsItemComponentsStablecoinShareChange7d", "cap_weighted_return_24h_pct": "SentimentMarketIndicatorsItemComponentsCapWeightedReturn24hPct", "equal_weighted_return_7d_pct": "SentimentMarketIndicatorsItemComponentsEqualWeightedReturn7dPct"} },
+  SentimentMarketIndicatorsItem: { dates: ["time", "state_since_at"], nested: {"components": "SentimentMarketIndicatorsItemComponents"} },
+  SentimentMarket: { dates: [], nested: {"indicators": "SentimentMarketIndicatorsItem"} },
+  SentimentMarketHistoryItemComponentsHerding: { dates: [], nested: {} },
+  SentimentMarketHistoryItemComponentsMcclellan: { dates: [], nested: {} },
+  SentimentMarketHistoryItemComponentsAdvancersPct: { dates: [], nested: {} },
+  SentimentMarketHistoryItemComponentsLiqTotal24hUsd: { dates: [], nested: {} },
+  SentimentMarketHistoryItemComponentsMarketFearGreed: { dates: [], nested: {} },
+  SentimentMarketHistoryItemComponentsLiqIntensity24hBps: { dates: [], nested: {} },
+  SentimentMarketHistoryItemComponentsFundingOiWeightedPct: { dates: [], nested: {} },
+  SentimentMarketHistoryItemComponentsMarketFearGreedMin7d: { dates: [], nested: {} },
+  SentimentMarketHistoryItemComponents: { dates: [], nested: {"herding": "SentimentMarketHistoryItemComponentsHerding", "mcclellan": "SentimentMarketHistoryItemComponentsMcclellan", "advancers_pct": "SentimentMarketHistoryItemComponentsAdvancersPct", "liq_total_24h_usd": "SentimentMarketHistoryItemComponentsLiqTotal24hUsd", "market_fear_greed": "SentimentMarketHistoryItemComponentsMarketFearGreed", "liq_intensity_24h_bps": "SentimentMarketHistoryItemComponentsLiqIntensity24hBps", "funding_oi_weighted_pct": "SentimentMarketHistoryItemComponentsFundingOiWeightedPct", "market_fear_greed_min_7d": "SentimentMarketHistoryItemComponentsMarketFearGreedMin7d"} },
+  SentimentMarketHistoryItem: { dates: ["time", "state_since_at"], nested: {"components": "SentimentMarketHistoryItemComponents"} },
+  SentimentMethodologyPrinciplesItem: { dates: [], nested: {} },
+  SentimentMethodologyWindowsItem: { dates: [], nested: {} },
+  SentimentMethodologyFearGreedBandsItem: { dates: [], nested: {} },
+  SentimentMethodologyIndicatorsItemSubIndicatorsItem: { dates: [], nested: {} },
+  SentimentMethodologyIndicatorsItemStatesItem: { dates: [], nested: {} },
+  SentimentMethodologyIndicatorsItemWeightsItem: { dates: [], nested: {} },
+  SentimentMethodologyIndicatorsItem: { dates: [], nested: {"sub_indicators": "SentimentMethodologyIndicatorsItemSubIndicatorsItem", "states": "SentimentMethodologyIndicatorsItemStatesItem", "weights": "SentimentMethodologyIndicatorsItemWeightsItem"} },
+  SentimentMethodology: { dates: [], nested: {"principles": "SentimentMethodologyPrinciplesItem", "windows": "SentimentMethodologyWindowsItem", "fear_greed_bands": "SentimentMethodologyFearGreedBandsItem", "indicators": "SentimentMethodologyIndicatorsItem"} },
+  SentimentScreenerComponentsIntensity: { dates: [], nested: {} },
+  SentimentScreenerComponentsFundingAprPct: { dates: [], nested: {} },
+  SentimentScreenerComponentsFundingNextPct: { dates: [], nested: {} },
+  SentimentScreenerComponentsOiGrowth7dPct: { dates: [], nested: {} },
+  SentimentScreenerComponentsOiGrowth24hPct: { dates: [], nested: {} },
+  SentimentScreenerComponentsSpeculationRatio: { dates: [], nested: {} },
+  SentimentScreenerComponentsLeverageRatioPct: { dates: [], nested: {} },
+  SentimentScreenerComponentsFunding8hMedianPct: { dates: [], nested: {} },
+  SentimentScreenerComponents: { dates: [], nested: {"intensity": "SentimentScreenerComponentsIntensity", "funding_apr_pct": "SentimentScreenerComponentsFundingAprPct", "funding_next_pct": "SentimentScreenerComponentsFundingNextPct", "oi_growth_7d_pct": "SentimentScreenerComponentsOiGrowth7dPct", "oi_growth_24h_pct": "SentimentScreenerComponentsOiGrowth24hPct", "speculation_ratio": "SentimentScreenerComponentsSpeculationRatio", "leverage_ratio_pct": "SentimentScreenerComponentsLeverageRatioPct", "funding_8h_median_pct": "SentimentScreenerComponentsFunding8hMedianPct"} },
+  SentimentScreenerInputs: { dates: [], nested: {} },
+  SentimentScreener: { dates: ["time", "state_since_at"], nested: {"components": "SentimentScreenerComponents", "inputs": "SentimentScreenerInputs"} },
   SpreadInterexchangeVenuesItem: { dates: [], nested: {} },
   SpreadInterexchange: { dates: ["time"], nested: {"venues": "SpreadInterexchangeVenuesItem"} },
   StatusFeedsItem: { dates: [], nested: {} },

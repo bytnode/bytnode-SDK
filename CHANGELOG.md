@@ -4,6 +4,16 @@ All notable changes to the BytNode SDKs. Both packages share one version number.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow
 [Semantic Versioning](https://semver.org/).
 
+## [1.1.0] — unreleased
+
+Generated from contract `1.1.0`: computed market sentiment (144 routes).
+
+- `sentiment` (every sentiment indicator of a pair: score, state, one-sentence meaning,
+  confidence, drivers, sub-indicators, and a summary), `sentiment.history`,
+  `sentiment.market` (breadth, market Fear & Greed, market phase), `sentiment.market.history`,
+  `sentiment.screener` (every pair's value of one indicator, filtered by state) and
+  `sentiment.methodology` (formulas, weights and the rule of every state).
+
 ## [1.0.1] — 2026-11-08
 
 Generated from contract `1.0.1`.

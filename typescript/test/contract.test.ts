@@ -11,6 +11,7 @@ const SAMPLE: Record<string, string> = {
   timeframe: '1h',
   asset: 'BTC',
   series: 'DGS10',
+  indicator: 'fear_greed',
   expiry: '2026-10-30',
   dataset: 'concentration',
 };
@@ -22,7 +23,7 @@ function method(client: any, dotted: string): any {
 
 describe('contract', () => {
   it('maps every route to a method', () => {
-    expect(OPS).toHaveLength(138);
+    expect(OPS).toHaveLength(144);
     expect(Object.keys(ROUTES).sort()).toEqual(OPS.map((o) => o.path).sort());
   });
 
