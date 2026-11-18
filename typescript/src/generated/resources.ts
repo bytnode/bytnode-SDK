@@ -6059,8 +6059,8 @@ export interface SentimentHistoryResource {
 
 export interface SentimentMarketHistoryParams {
   /**
-   * Market indicator, required: `breadth`, `market_fear_greed` or `market_phase`. Other values:
-   * 422 `invalid_parameter`.
+   * Market indicator, required: `breadth`, `market_fear_greed`, `market_phase` or
+   * `risk_appetite`. Other values: 422 `invalid_parameter`.
    */
   indicator: string;
   /**
@@ -6101,8 +6101,8 @@ export interface SentimentMarketHistoryParams {
 
 export interface SentimentMarketHistoryIterParams {
   /**
-   * Market indicator, required: `breadth`, `market_fear_greed` or `market_phase`. Other values:
-   * 422 `invalid_parameter`.
+   * Market indicator, required: `breadth`, `market_fear_greed`, `market_phase` or
+   * `risk_appetite`. Other values: 422 `invalid_parameter`.
    */
   indicator: string;
   /**
@@ -6169,9 +6169,11 @@ export interface SentimentMarketResource {
    * The whole market at the latest closed bucket: `breadth` (advancers, McClellan, pairs above
    * their averages, new highs and lows, rotation vs BTC, herding, stablecoin share, BTC
    * dominance), `market_fear_greed` (pairs weighted by open interest 55 %, breadth 30 %,
-   * dominance 15 %) and `market_phase` (capitulation, stress, euphoria, recovery, broad rally,
-   * altcoin rotation, Bitcoin-led, quiet range, mixed), with a one-sentence `summary` citing
-   * the most extreme facts. The alternative.me and CoinMarketCap indices: `/v1/fear-greed`.
+   * dominance 15 %), `market_phase` (capitulation, stress, euphoria, recovery, broad rally,
+   * altcoin rotation, Bitcoin-led, quiet range, mixed) and `risk_appetite` (the backdrop
+   * outside crypto from the daily closes of `/v1/macro`: VIX, S&P 500, Nasdaq, 10-year yield,
+   * dollar; stress, risk-off, risk-on), with a one-sentence `summary` citing the most extreme
+   * facts. The alternative.me and CoinMarketCap indices: `/v1/fear-greed`.
    */
   (params?: SentimentMarketParams, options?: RequestOptions): Promise<ApiResponse<M.SentimentMarket | null>>;
   history: SentimentMarketHistoryResource;
@@ -8697,4 +8699,4 @@ export const ROUTES: Record<string, string> = {
   "/v1/ws/token": "ws.token",
 };
 /** `info.version` of the contract this SDK was generated from. */
-export const API_VERSION = "1.1.0";
+export const API_VERSION = "1.1.1";
